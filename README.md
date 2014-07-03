@@ -43,5 +43,7 @@ $coroutine = Coroutine::async(function (Server $server) {
     }
 });
 
+$coroutine($server);
+
 Loop::run();
 ```
