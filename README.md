@@ -23,7 +23,7 @@ $coroutine = Coroutine::async(function (Server $server) {
                 
                 echo "Read {$data} from client.\n";
                 
-                yield $client->write();
+                yield $client->write($data);
                 
                 if ("exit\r\n" === $data) {
                     $client->close();
