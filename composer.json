@@ -1,0 +1,19 @@
+{
+    "require": {
+        "php": ">=5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.0.*"
+    },
+    "suggest": {
+        "ext-pcntl": "Required for custom signal handling and for forking child processes to handle connections.",
+        "ext-event": "Preferred extension for providing an event loop with better performance.",
+        "ext-libevent": "Alternative extension that also provides an event loop with better performance.",
+        "ext-ev": "Experimental extention that can also provide an event loop with better performance."
+    },
+    "autoload": {
+        "psr-4": {
+            "Icicle\\": "src"
+        }
+    }
+}
