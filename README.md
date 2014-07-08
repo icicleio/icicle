@@ -127,7 +127,7 @@ The event loop schedules functions, runs timers, handles signals, and polls sock
 
 The default event loop should be accessed via the static methods of the `Loop` class. The `Loop::init()` method allows a specific or custom implementation of `LoopInterface` to be used as the default event loop.
 
-The following code demonstrates how functions may be scheduled by the event loop to run later. Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon. See [function schedule timing](src/Loop#schedule-timing) for more details.)
+The following code demonstrates how functions may be scheduled to run later using the `Loop::schedule()` method. Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon. See [function schedule timing](src/Loop#schedule-timing) for more details.)
 
 ```php
 use Icicle\Loop\Loop
@@ -137,10 +137,11 @@ Loop::schedule(function () {
 	Loop::schedule(function () {
 	    echo "Second.\n";
 	});
+	echo "Third.\n";
 	Loop::schedule(function () {
-		echo "Third.\n";
+		echo "Fourth.\n";
 	});
-	echo "Fourth.\n";
+	echo "Fifth.\n";
 });
 
 echo "Starting event loop.\n";
@@ -152,10 +153,10 @@ The above code will output:
 ```
 Starting event loop.
 First.
-Fourth.
-Second.
 Third.
-
+Fifth.
+Second.
+Fourth.
 ```
 
 **[Loop API documentation](src/Loop)**
