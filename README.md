@@ -20,10 +20,11 @@ Icicle uses [Promises](#promises) and [Coroutines](#coroutines) to facilitate wr
 
 ##### Suggested
 
+- [openssl extension](http://php.net/manual/en/book.openssl.php): Enables using SSL/TLS on sockets.
+- [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling, process forking, and child process execution.
 - [event pecl extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
 - [libevent pecl extension](http://pecl.php.net/package/libevent): Similar to the event pecl extension, it allows for a more performant event loop implementation.
 - [libev (ev) pecl extension](http://pecl.php.net/package/ev): Another extension allowing a more performant event loop implementation, though those above should be preferred.
-- [pcntl extension](http://www.php.net/manual/en/book.pcntl.php): Enables custom signal handling, process forking, and child process execution. This extension is bundled with PHP but must be enabled at compile time or compiled as an extension.
 
 ## Promises
 
