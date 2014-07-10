@@ -38,7 +38,7 @@ The `then(callable $onFulfilled = null, callable $onRejected = null)` method is 
 
 The `done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
 
-*For more on how callbacks are used to access promise values, see the section on [interacting with promises](src/Promise#interacting-with-promises) in the promise API documentation.*
+*[More on using callbacks to interact with promises...](src/Promises#interacting-with-promises)*
 
 ```php
 use Icicle\Loop\Loop;
@@ -72,7 +72,7 @@ In the above example, the function `doSomethingAsynchronously()` returns a promi
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is modified and returned, fulfilling `$promise2`. 
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
 
-*For more on how promise resolution values are propagated to registered callbacks, see the section on [resolution and propagation](src/Promise#resolution-and-propagation)*
+*[More on promise resolution and propagation...](src/Promise#resolution-and-propagation)*
 
 ##### Brief overview of promise API features
 
@@ -128,10 +128,12 @@ The event loop schedules functions, runs timers, handles signals, and polls sock
 
 The default event loop should be accessed via the static methods of the `Loop` class. The `Loop::init()` method allows a specific or custom implementation of `LoopInterface` to be used as the default event loop.
 
-The following code demonstrates how functions may be scheduled to run later using the `Loop::schedule()` method. Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon. See [function schedule timing](src/Loop#schedule-timing) for more details.)
+The `Loop::run()` method runs the event loop and will not return until the event loop is stopped or no further scheduled functions, timers, or sockets remain in the loop.
+
+The following code demonstrates how functions may be scheduled to run later using the `Loop::schedule()` method.
 
 ```php
-use Icicle\Loop\Loop
+use Icicle\Loop\Loop;
 
 Loop::schedule(function () {
 	echo "First.\n";
@@ -159,6 +161,8 @@ Fifth.
 Second.
 Fourth.
 ```
+
+Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon. See [function schedule timing](src/Loop#schedule-timing) for more details.) `Loop::schedule()` is used throughout Icicle to ensure callbacks are executed asynchronously.
 
 **[Loop API documentation](src/Loop)**
 
