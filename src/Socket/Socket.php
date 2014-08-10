@@ -1,8 +1,7 @@
 <?php
-namespace Icicle\PromiseSocket;
+namespace Icicle\Socket;
 
-use Icicle\Socket\SocketInterface;
-use InvalidArgumentException;
+use Icicle\Socket\Exception\InvalidArgumentException;
 
 abstract class Socket implements SocketInterface
 {
@@ -12,22 +11,19 @@ abstract class Socket implements SocketInterface
     private $socket;
     
     /**
-     * Integer identifier based on socket resource. Stored separately so it is still available even after close.
-     * @var     int
-     */
-    private $id;
-    
-    /**
-     * @param   resource $socket
+     * @param   resource $socket PHP stream socket resource.
+     *
+     * @throws  InvalidArgumentException Thrown if a non-resource is given.
      */
     public function __construct($socket)
     {
         if (!is_resource($socket)) {
-            throw new InvalidArgumentException("Non-resource given to constructor!");
+            throw new InvalidArgumentException('Non-resource given to constructor!');
         }
         
         $this->socket = $socket;
-        $this->id = (int) $socket;
+        
+        stream_set_blocking($this->socket, 0);
     }
     
     /**
@@ -42,28 +38,28 @@ abstract class Socket implements SocketInterface
     
     /**
      * Determines if the socket is still open.
+     *
      * @return  bool
      */
     public function isOpen()
     {
-        return (null !== $this->socket);
+        return is_resource($this->socket);
     }
     
     /**
-     * Disconnects the connection and removes it from the loop.
+     * Closes the socket.
      */
     public function close()
     {
         if (is_resource($this->socket)) {
             fclose($this->socket);
         }
-        
-        $this->socket = null;
     }
     
     /**
-     * Returns socket resource or null if the connection is closed.
-     * @return  resource|null
+     * Returns the stream socket resource.
+     *
+     * @return  resource
      */
     public function getResource()
     {
@@ -71,13 +67,13 @@ abstract class Socket implements SocketInterface
     }
     
     /**
-     * Integer ID of the socket resource. Retained even after closing.
+     * Integer ID of the stream socket resource.
      *
      * @return  int
      */
     public function getId()
     {
-        return $this->id;
+        return (int) $this->socket;
     }
     
     /**
@@ -87,16 +83,31 @@ abstract class Socket implements SocketInterface
      * @param   resource $socket
      * @param   bool $peer True for remote ip and port, false for local ip and port.
      *
-     * @return  [string, int]
+     * @return  [int, int]
+     *
+     * @throws  FailureException Thrown if getting the socket name fails.
      */
     public static function parseSocketName($socket, $peer = true)
     {
-        $name = stream_socket_get_name($socket, (bool) $peer);
+        $name = @stream_socket_get_name($socket, (bool) $peer);
+        
+        if (false === $name) {
+            $error = error_get_last();
+            $message = 'Could not get socket name.';
+            if (null !== $error) {
+                $message .= " [Errno: {$error['type']}] {$error['message']}";
+            }
+            throw new InvalidArgumentException($message);
+        }
         
         $colon = strrpos($name, ':');
         
         $address = trim(substr($name, 0, $colon), '[]');
         $port = (int) substr($name, $colon + 1);
+        
+        if (false !== strpos($address, ':')) {
+            $address = '[' . trim($address, '[]') . ']';
+        }
         
         return [$address, $port];
     }

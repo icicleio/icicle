@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Loop;
 
+use Exception;
 use Icicle\Event\EventEmitterTrait;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
@@ -15,7 +16,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @var bool
      */
-    private static $signalHandlingEnabled;
+    private $signalHandlingEnabled;
     
     /**
      * @var CallableQueue
@@ -45,10 +46,7 @@ abstract class AbstractLoop implements LoopInterface
     {
         $this->callableQueue = new CallableQueue();
         $this->immediateQueue = new ImmediateQueue();
-        
-        if (null === self::$signalHandlingEnabled) {
-            self::$signalHandlingEnabled = extension_loaded('pcntl');
-        }
+        $this->signalHandlingEnabled = extension_loaded('pcntl');
     }
     
     /**
@@ -85,15 +83,20 @@ abstract class AbstractLoop implements LoopInterface
         
         $this->running = true;
         
-        do {
-            if ($this->isEmpty()) {
-                $this->stop();
-                return;
-            }
-            
-            $this->tick();
-            
-        } while ($this->isRunning());
+        try {
+            do {
+                if ($this->isEmpty()) {
+                    $this->stop();
+                    return false;
+                }
+                $this->tick();
+            } while ($this->isRunning());
+        } catch (Exception $exception) {
+            $this->stop();
+            throw $exception;
+        }
+        
+        return true;
     }
     
     /**
@@ -123,9 +126,9 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function maxScheduleDepth($depth)
+    public function maxScheduleDepth($depth = null)
     {
-        $this->callableQueue->maxDepth($depth);
+        return $this->callableQueue->maxDepth($depth);
     }
     
     /**
@@ -158,12 +161,12 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function signalHandlingEnabled()
     {
-        return self::$signalHandlingEnabled;
+        return $this->signalHandlingEnabled;
     }
     
     /**
      * Returns an array of signals to be handled. Exploits the fact that PHP will not notice the signal constants are
-     * undefined if the pcntl extension is not installed until the method is called.
+     * undefined if the pcntl extension is not installed.
      *
      * @return  int[string]
      *
@@ -171,9 +174,10 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function getSignalList()
     {
+        // @codeCoverageIgnoreStart
         if (!$this->signalHandlingEnabled()) {
             throw new SignalHandlingDisabledException('The pcntl extension must be installed for signal constants to be defined.');
-        }
+        } // @codeCoverageIgnoreEnd
         
         return [
             'SIGHUP' => SIGHUP,
@@ -195,38 +199,39 @@ abstract class AbstractLoop implements LoopInterface
      * Creates callback function for handling signals.
      *
      * @return  callable function (int $signo)
+     *
+     * @throws  SignalHandlingDisabledException
      */
     protected function createSignalCallback()
     {
+        // @codeCoverageIgnoreStart
+        if (!$this->signalHandlingEnabled()) {
+            throw new SignalHandlingDisabledException('The pcntl extension must be installed for signal constants to be defined.');
+        } // @codeCoverageIgnoreEnd
+        
         return function ($signo) {
             switch ($signo)
             {
                 case SIGHUP:
                 case SIGINT:
                 case SIGQUIT:
-                
-                    if (!$this->emit($signo, $signo) && $this->isRunning()) {
+                    if (!$this->emit($signo, $signo)) {
                         $this->stop();
                     }
                     break;
                     
                 case SIGTERM:
-                
                     $this->emit($signo, $signo);
-                    if ($this->isRunning()) {
-                        $this->stop();
-                    }
+                    $this->stop();
                     break;
                     
                 case SIGCHLD:
-                
                     while (0 < ($pid = pcntl_wait($status, WNOHANG))) {
                         $this->emit($signo, $signo, $pid, $status);
                     }
                     break;
                     
                 default:
-                
                     $this->emit($signo, $signo);
             }
         };

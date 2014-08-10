@@ -4,7 +4,8 @@ namespace Icicle\Stream;
 interface ReadableStreamInterface extends StreamInterface
 {
     /**
-     * @param   int|null $length Use null to return all data available.
+     * @param   int|null $length Max number of bytes to read. Fewer bytes may be returned.
+     *          Use null to read as much data as possible.
      *
      * @return  PromiseInterface
      *
@@ -13,43 +14,24 @@ interface ReadableStreamInterface extends StreamInterface
     public function read($length = null);
     
     /**
-     * Determines if there is information in the stream to read.
+     * Returns a promise that is fulfilled when there is data available to read, without
+     * actually consuming any data.
+     *
+     * @return  PromiseInterface
+     *
+     * @api
+     */
+    public function poll();
+    
+    /**
+     * Determines if the stream is still readable. A stream being readable does not mean
+     * there is data immediately available to read. Use read() or poll() to wait for data.
      *
      * @return  bool
      *
      * @api
      */
     public function isReadable();
-    
-    /**
-     * @param   string $data Data to reinsert at the front of the read buffer.
-     *
-     * @api
-     */
-    public function unshift($data);
-    
-    /**
-     * Pauses reading data on the socket.
-     *
-     * @api
-     */
-    public function pause();
-    
-    /**
-     * Resumes reading data on the socket.
-     *
-     * @api
-     */
-    public function resume();
-    
-    /**
-     * Determines if the stream is socket.
-     *
-     * @return  bool
-     *
-     * @api
-     */
-    public function isPaused();
     
     /**
      * Pipes data read on this stream into the given writable stream destination.
@@ -61,12 +43,12 @@ interface ReadableStreamInterface extends StreamInterface
      *
      * @api
      */
-    public function pipe(WritableStreamInterface $stream, $end = true);
+    //public function pipe(WritableStreamInterface $stream, $end = true);
     
     /**
      * Stops piping data from this stream to the current destination.
      *
      * @api
      */
-    public function unpipe();
+    //public function unpipe();
 }

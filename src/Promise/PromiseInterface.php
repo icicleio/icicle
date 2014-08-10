@@ -30,7 +30,7 @@ interface PromiseInterface
     
     /**
      * Cancels the promise, signaling that the value is no longer needed. This method should call any appropriate
-     * cancellation handler, then reject the promise with the given exception or a CancelledException if non is
+     * cancellation handler, then reject the promise with the given exception or a CancelledException if none is
      * given.
      *
      * @param   Exception|null $exception
@@ -63,27 +63,6 @@ interface PromiseInterface
      * @api
      */
     public function delay($time);
-    
-    /**
-     * Returns a promise that if cancelled does not cancel this promise. The promise is resolved in the same way as
-     * this promise.
-     *
-     * @param   callable|null $onCancelled
-     *
-     * @return  PromiseInterface
-     *
-     * @api
-     */
-    public function fork(callable $onCancelled = null);
-    
-    /**
-     * Returns a promise that cannot be cancelled (cancel() is a no-op).
-     *
-     * @return  PromiseInterface
-     *
-     * @api
-     */
-    public function uncancellable();
     
     /**
      * Assigns a callback function to be called if the promise is fulfilled or rejected.

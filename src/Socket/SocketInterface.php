@@ -13,21 +13,21 @@ interface SocketInterface
     public function isOpen();
     
     /**
-     * Closes the socket and removes it from the loop.
+     * Closes the socket.
      *
      * @api
      */
     public function close();
     
     /**
-     * Returns stream resource or null if the socket is closed.
+     * Returns socket resource.
      *
-     * @return  resource|null
+     * @return  resource
      */
     public function getResource();
     
     /**
-     * Integer ID of the socket resource. Should be retained even after closure.
+     * Integer ID of the socket resource.
      *
      * @return  int
      */

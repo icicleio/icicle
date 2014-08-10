@@ -1,11 +1,10 @@
 <?php
 namespace Icicle\Timer;
 
-use Countable;
 use SplObjectStorage;
 use SplQueue;
 
-class ImmediateQueue implements Countable
+class ImmediateQueue implements \Countable
 {
     /**
      * @var     SplQueue
@@ -71,16 +70,7 @@ class ImmediateQueue implements Countable
      */
     public function count()
     {
-        return $this->immediates->count();
-    }
-    
-    /**
-     * Alias of count().
-     * @return  int
-     */
-    public function getLength()
-    {
-        return $this->count();
+        return $this->queue->count();
     }
     
     /**
@@ -89,7 +79,7 @@ class ImmediateQueue implements Countable
      */
     public function isEmpty()
     {
-        return 0 === $this->immediates->count();
+        return 0 === $this->count();
     }
     
     /**
@@ -102,16 +92,22 @@ class ImmediateQueue implements Countable
     }
     
     /**
-     * Executes the next immediate.
-     * @return  int
+     * Executes the next immediate. Returns true if one was executed, false if there were no immediates
+     * in the queue.
+     *
+     * @return  bool
      */
     public function tick()
     {
-        if (!$this->queue->isEmpty()) {
-            $immediate = $this->queue->shift();
-            $this->immediates->detach($immediate);
-            
-            $immediate->call(); // Execute the immediate.
+        if ($this->queue->isEmpty()) {
+            return false;
         }
+        
+        $immediate = $this->queue->shift();
+        $this->immediates->detach($immediate);
+        
+        $immediate->call(); // Execute the immediate.
+        
+        return true;
     }
 }

@@ -23,7 +23,7 @@ interface TimerInterface
     /**
      * Starts the timer if it is not currently active.
      */
-    public function start();
+    public function set($interval, $periodic = false);
     
     /**
      * Cancels this timer.
@@ -31,10 +31,11 @@ interface TimerInterface
     public function cancel();
     
     /**
-     * Determines if the timer is active and will be called again.
+     * Determines if the timer is pending and will be called again.
+     *
      * @return  bool
      */
-    public function isActive();
+    public function isPending();
     
     /**
      */
@@ -43,4 +44,9 @@ interface TimerInterface
     /**
      */
     public function reference();
+    
+    /**
+     * Alias of set().
+     */
+    public function __invoke();
 }

@@ -2,12 +2,12 @@
 
 **Icicle is a PHP library for writing *asynchronous* code using *synchronous* coding techniques.**
 
-Icicle uses [Promises](#promises) and [Coroutines](#coroutines) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
+Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
 #### Library Constructs
 
-- [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
+- [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or available writes.
 - [Sockets](#sockets): Implement asynchronous network and file operations.
 - [Streams](#streams) Common interface for reading and writing from sockets or transforming data.
@@ -22,9 +22,9 @@ Icicle uses [Promises](#promises) and [Coroutines](#coroutines) to facilitate wr
 
 - [openssl extension](http://php.net/manual/en/book.openssl.php): Enables using SSL/TLS on sockets.
 - [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling, process forking, and child process execution.
-- [event pecl extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
-- [libevent pecl extension](http://pecl.php.net/package/libevent): Similar to the event pecl extension, it allows for a more performant event loop implementation.
-- [libev (ev) pecl extension](http://pecl.php.net/package/ev): Another extension allowing a more performant event loop implementation, though those above should be preferred.
+- [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
+- [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
+<!-- - [ev extension](http://pecl.php.net/package/ev): Another extension allowing a more performant event loop implementation, though those above should be preferred. -->
 
 ## Promises
 

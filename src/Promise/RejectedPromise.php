@@ -12,26 +12,11 @@ class RejectedPromise extends ResolvedPromise
     private $exception;
     
     /**
-     * @var bool
-     */
-    private $throwException = true;
-    
-    /**
      * @param   Exception $exception
      */
     public function __construct(Exception $exception)
     {
         $this->exception = $exception;
-        
-        /*
-         * This bit of code waits until the next tick to rethrow the exception used to reject the
-         * promise in an uncatchable way if then() or done() is not called on this rejected promise.
-         */
-        Loop::schedule(function () {
-            if ($this->throwException) {
-                throw $this->exception;
-            }
-        });
     }
     
     /**
@@ -40,10 +25,8 @@ class RejectedPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onRejected) {
-            return $this;
+            return new static($this->exception);
         }
-        
-        $this->throwException = false;
         
         return new Promise(function ($resolve, $reject) use ($onRejected) {
             Loop::schedule(function () use ($resolve, $reject, $onRejected) {
@@ -62,9 +45,20 @@ class RejectedPromise extends ResolvedPromise
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onRejected) {
-            $this->throwException = false;
             Loop::schedule($onRejected, $this->exception);
+        } else {
+            Loop::schedule(function () {
+                throw $this->exception;
+            });
         }
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function delay($time)
+    {
+        return $this->then();
     }
     
     /**

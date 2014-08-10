@@ -19,10 +19,25 @@ class Immediate implements ImmediateInterface
     private $args;
     
     /**
+     * Creates an Immediate using the given callback and arguments.
+     *
+     * @param   callable $callback
+     * @param   mixed ...$args Optional arguments to pass to the callback function.
+     *
+     * @api
+     */
+    public static function enqueue(callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 1);
+        
+        return new static($callback, $args);
+    }
+    
+    /**
      * @param   callable $callback Function called when the interval expires.
      * @param   array $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(callable $callback, array $args = [])
+    protected function __construct(callable $callback, array $args = [])
     {
         $this->callback = $callback;
         $this->args = $args;
@@ -33,9 +48,11 @@ class Immediate implements ImmediateInterface
     /**
      * {@inheritdoc}
      */
-    public function schedule()
+    public function set()
     {
-        Loop::getInstance()->addImmediate($this);
+        $loop = Loop::getInstance();
+        $loop->cancelImmediate($this);
+        $loop->addImmediate($this);
     }
     
     /**
@@ -59,21 +76,19 @@ class Immediate implements ImmediateInterface
      */
     public function call()
     {
-        call_user_func_array($this->callback, $this->args);
+        if (empty($this->args)) {
+            $callback = $this->callback;
+            $callback();
+        } else {
+            call_user_func_array($this->callback, $this->args);
+        }
     }
     
     /**
-     * Creates an Immediate using the given callback and arguments.
-     *
-     * @param   callable $callback
-     * @param   mixed ...$args Optional arguments to pass to the callback function.
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public static function enqueue(callable $callback /* , ...$args */)
+    public function __invoke()
     {
-        $args = array_slice(func_get_args(), 1);
-        
-        return new static($callback, $args);
+        $this->set();
     }
 }

@@ -8,37 +8,38 @@ class LazyPromise implements PromiseInterface
     use PromiseTrait;
     
     /**
-     * @var callable
-     */
-    private $worker;
-    
-    /**
      * @var callable|null
      */
-    private $onCancelled;
+    private $promisor;
     
     /**
-     * @var Promise
+     * @var PromiseInterface|null
      */
     private $promise;
     
     /**
-     * @param   LoopInterface $loop
-     * @param   callable $worker
+     * @param   callable $promisor
      */
-    public function __construct(callable $worker, callable $onCancelled = null)
+    public function __construct(callable $promisor)
     {
-        $this->worker = $worker;
-        $this->onCancelled = $onCancelled;
+        $this->promisor = $promisor;
     }
     
     /**
-     * @return  Promise
+     * @return  PromiseInterface
      */
     protected function getPromise()
     {
         if (null === $this->promise) {
-            $this->promise = new Promise($this->worker, $this->onCancelled);
+            $promisor = $this->promisor;
+            
+            try {
+                $this->promise = Promise::resolve($promisor());
+            } catch (Exception $exception) {
+                $this->promise = Promise::reject($exception);
+            }
+            
+            $this->promisor = null;
         }
         
         return $this->promise;
@@ -87,22 +88,6 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function fork(callable $onCancelled = null)
-    {
-        return $this->getPromise()->fork($onCancelled);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function uncancellable()
-    {
-        return new UncancellablePromise($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
     public function isPending()
     {
         return $this->getPromise()->isPending();
@@ -130,5 +115,31 @@ class LazyPromise implements PromiseInterface
     public function getResult()
     {
         return $this->getPromise()->getResult();
+    }
+    
+    /**
+     * @param   callable $promisor
+     * @param   mixed ...$args
+     *
+     * @return  LazyPromise
+     */
+    public static function call(callable $promisor /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 1);
+        
+        return static::create($promisor, $args);
+    }
+    
+    /**
+     * @param   callable $promisor
+     * @param   mixed[] $args
+     *
+     * @return  LazyPromise
+     */
+    public static function create(callable $promisor, array $args = [])
+    {
+        return new static(function () use ($promisor, $args) {
+            return call_user_func_array($promisor, $args);
+        });
     }
 }

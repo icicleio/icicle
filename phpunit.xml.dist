@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.1/phpunit.xsd"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        bootstrap="test/bootstrap.php"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        strict="true"
+>
+    <testsuites>
+        <testsuite name="Icicle EventEmitter">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Event</directory>
+        </testsuite>
+        <testsuite name="Icicle Structures">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Structures</directory>
+        </testsuite>
+        <testsuite name="Icicle Loop">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Loop</directory>
+        </testsuite>
+        <testsuite name="Icicle Timer">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Timer</directory>
+        </testsuite>
+        <testsuite name="Icicle Promise">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Promise</directory>
+        </testsuite>
+        <testsuite name="Icicle Coroutine">
+            <directory phpVersion="5.5.0" phpVersionOperator=">=">test/Coroutine</directory>
+        </testsuite>
+        <testsuite name="Icicle Socket">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Socket</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+        </whitelist>
+    </filter>
+</phpunit>

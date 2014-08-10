@@ -1,4 +1,4 @@
 <?php
-namespace Icicle\Socket\Exception;
+namespace Icicle\Stream\Exception;
 
 class BusyException extends LogicException {}

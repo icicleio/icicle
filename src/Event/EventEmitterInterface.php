@@ -90,5 +90,5 @@ interface EventEmitterInterface
      *
      * @return  bool True if any listeners were defined on the event, false otherwise.
      */
-    public function emit($event /* , ...$args */);
+    //public function emit($event /* , ...$args */);
 }

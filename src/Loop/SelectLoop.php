@@ -11,52 +11,41 @@ use Icicle\Timer\TimerQueue;
 
 class SelectLoop extends AbstractLoop
 {
-    const TIMEOUT_TIMER_INTERVAL = 1;
+    const INTERVAL = 1;
+    
     const MICROSEC_PER_SEC = 1e6;
     const NANOSEC_PER_SEC = 1e9;
     
     /**
      * Array of ReadableSocketInterface objects waiting to read.
      *
-     * @var     ReadableSocketInterface[int]
+     * @var ReadableSocketInterface[int]
      */
     private $sockets = [];
     
     /**
-     * Array of ReadableSocketInterface objects that are paused.
-     *
-     * @var     ReadableSocketInterface[int]
-     */
-    private $paused = [];
-    
-    /**
      * Array of timestamps of last read times.
      *
-     * @var     int[]
+     * @var float[]
      */
     private $timeouts = [];
     
     /**
      * Array of WritableSocketInterface objects waiting to write.
      *
-     * @var     WritableSocketInterface[int]
+     * @var WritableSocketInterface[int]
      */
     private $queue = [];
     
     /**
-     * @var     TimerQueue
+     * @var TimerQueue
      */
     private $timerQueue;
     
     /**
-     * @var     bool
+     * @var float
      */
-    private $running = false;
-    
-    /**
-     * @var     Timer|null
-     */
-    private $timer;
+    private $last;
     
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
@@ -69,7 +58,6 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param   Logger|null $logger
      */
     public function __construct()
     {
@@ -81,22 +69,12 @@ class SelectLoop extends AbstractLoop
             $callback = $this->createSignalCallback();
             
             foreach ($this->getSignalList() as $signal) {
+                $this->createEvent($signal);
                 pcntl_signal($signal, $callback);
             }
         }
         
-        $this->schedule(function () {
-            $this->timer = Timer::periodic(function() {
-                $time = time();
-                foreach ($this->timeouts as $id => $timeout) {
-                    if (0 < $timeout && $timeout <= $time) {
-                        $this->timeouts[$id] = $time + $this->sockets[$id]->getTimeout();
-                        $this->sockets[$id]->onTimeout();
-                    }
-                }
-            }, self::TIMEOUT_TIMER_INTERVAL);
-            $this->timer->unreference();
-        });
+        $this->last = microtime(true);
     }
     
     /**
@@ -110,61 +88,138 @@ class SelectLoop extends AbstractLoop
     protected function dispatch($blocking)
     {
         if ($blocking) {
-            $timeout = $this->timerQueue->getTimeout(); // There should always be at least one timer.
+            $timeout = self::INTERVAL;
+            
+            if (false !== ($interval = $this->timerQueue->getInterval()) && $interval < $timeout) {
+                $timeout = $interval;
+            }
         } else {
             $timeout = 0;
         }
-        
-        $seconds = floor($timeout);
-        $remainder = ($timeout - $seconds);
-        
-        $read = [];
-        $write = [];
-        $except = null;
-        
-        foreach ($this->sockets as $socket) {
-            $read[] = $socket->getResource();
-        }
-        
-        foreach ($this->queue as $socket) {
-            $write[] = $socket->getResource();
-        }
-        
-        if (count($read) || count($write)) { // Use stream_select() if there are any streams in the loop.
-            // Error reporting supressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
-            $count = @stream_select($read, $write, $except, $seconds, $remainder * self::MICROSEC_PER_SEC);
-            
-            if ($count) {
-                $time = time();
-                
-                foreach ($read as $resource) {
-                    $id = (int) $resource;
-                    if (isset($this->sockets[$id])) { // Connection may have been removed from a previous call.
-                        if (isset($this->timeouts[$id]) && 0 < $this->timeouts[$id]) {
-                            $this->timeouts[$id] = $time + $this->sockets[$id]->getTimeout();
-                        }
-                        $this->sockets[$id]->onRead();
-                    }
-                }
-                
-                foreach ($write as $resource) {
-                    $id = (int) $resource;
-                    if (isset($this->queue[$id])) { // Connection may have been removed from a previous call.
-                        $socket = $this->queue[$id];
-                        unset($this->queue[$id]); // Remove connection from the queue since it was able to write.
-                        $socket->onWrite();
-                    }
-                }
+/*
+        if (!$blocking) {
+            $timeout = 0;
+        } else {
+            $timeout = self::INTERVAL - (microtime(true) - $this->last);
+            if (0 > $timeout) {
+                $timeout = 0;
             }
-        } elseif (0 < $timeout) { // Use time_nanosleep() if the loop only contains timers.
-            time_nanosleep($seconds, $remainder * self::NANOSEC_PER_SEC); // Will be interrupted if a signal is received.
         }
+        
+        if (0 !== $timeout && false !== ($interval = $this->timerQueue->getInterval()) && $interval < $timeout) {
+            $timeout = $interval;
+        }
+*/
+        
+        if (!$this->select($timeout) && 0 !== $timeout) { // Select available sockets for reading or writing.
+            $this->sleep($timeout); // If no sockets available, sleep until the next timer is ready.
+        }
+        
+        $this->timerQueue->tick(); // Call any pending timers.
         
         if ($this->signalHandlingEnabled()) {
             pcntl_signal_dispatch(); // Dispatch any signals that may have arrived.
         }
         
-        $this->timerQueue->tick(); // Call any pending timers.
+        $this->socketTimeoutDispatch(); // Call onTimeout on any sockets that have timed out.
+    }
+    
+    /**
+     * @param   float $timeout
+     *
+     * @return  bool
+     */
+    protected function select($timeout)
+    {
+        if (count($this->sockets) || count($this->queue)) { // Use stream_select() if there are any streams in the loop.
+            $seconds = (int) floor($timeout);
+            $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
+            
+            $read = [];
+            $write = [];
+            $except = null;
+            
+            foreach ($this->sockets as $id => $socket) {
+                $read[$id] = $socket->getResource();
+            }
+            
+            foreach ($this->queue as $id => $socket) {
+                $write[$id] = $socket->getResource();
+            }
+            
+            // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
+            $count = @stream_select($read, $write, $except, $seconds, $microseconds);
+            
+            if ($count) {
+                foreach ($read as $id => $resource) {
+                    if (isset($this->sockets[$id])) { // Socket may have been removed from a previous call.
+                        $socket = $this->sockets[$id];
+                        unset($this->sockets[$id]);
+                        unset($this->timeouts[$id]);
+                        
+                        $socket->onRead();
+                    }
+                }
+                
+                foreach ($write as $id => $resource) {
+                    if (isset($this->queue[$id])) { // Socket may have been removed from a previous call.
+                        $socket = $this->queue[$id];
+                        unset($this->queue[$id]);
+                        
+                        $socket->onWrite();
+                    }
+                }
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @param   float $timeout
+     *
+     * @return  bool
+     */
+    protected function sleep($timeout)
+    {
+        $seconds = (int) floor($timeout);
+        $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
+        
+        return true === time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
+    }
+    
+    /**
+     * Checks if any sockets have timed out.
+     */
+    protected function socketTimeoutDispatch()
+    {
+        $time = microtime(true);
+        
+/*
+        if ($this->last <= $time - self::INTERVAL) { // Only execute every INTERVAL seconds.
+            $this->last = $time;
+            foreach ($this->timeouts as $id => $timeout) { // Look for sockets that have timed out.
+                if ($timeout <= $time && isset($this->sockets[$id])) {
+                    $socket = $this->sockets[$id];
+                    unset($this->sockets[$id]);
+                    unset($this->timeouts[$id]);
+                    
+                    $socket->onTimeout();
+                }
+            }
+        }
+*/
+        foreach ($this->timeouts as $id => $timeout) { // Look for sockets that have timed out.
+            if ($timeout <= $time && isset($this->sockets[$id])) {
+                $socket = $this->sockets[$id];
+                unset($this->sockets[$id]);
+                unset($this->timeouts[$id]);
+                
+                $socket->onTimeout();
+            }
+        }
     }
     
     /**
@@ -178,14 +233,14 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function addReadableSocket(ReadableSocketInterface $socket)
+    public function scheduleReadableSocket(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
-        if (!isset($this->sockets[$id]) && !isset($this->paused[$id])) {
+        if (!isset($this->sockets[$id])) {
             $this->sockets[$id] = $socket;
             if ($timeout = $socket->getTimeout()) {
-                $this->timeouts[$id] = time() + $timeout;
+                $this->timeouts[$id] = microtime(true) + $timeout;
             }
         }
     }
@@ -193,37 +248,18 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function pauseReadableSocket(ReadableSocketInterface $socket)
+    public function unscheduleReadableSocket(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
-        if (isset($this->sockets[$id])) {
-            unset($this->sockets[$id]);
-            unset($this->timeouts[$id]);
-            $this->paused[$id] = $socket;
-        }
+        unset($this->sockets[$id]);
+        unset($this->timeouts[$id]);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function resumeReadableSocket(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->paused[$id])) {
-            unset($this->paused[$id]);
-            $this->sockets[$id] = $socket;
-            if ($timeout = $socket->getTimeout()) {
-                $this->timeouts[$id] = time() + $timeout;
-            }
-        }
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isReadableSocketPending(ReadableSocketInterface $socket)
+    public function isReadableSocketScheduled(ReadableSocketInterface $socket)
     {
         return isset($this->sockets[$socket->getId()]);
     }
@@ -259,22 +295,11 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function containsSocket(SocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        return isset($this->socket[$id]) || isset($this->paused[$id]) || isset($this->queue[$id]);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
     public function removeSocket(SocketInterface $socket)
     {
         $id = $socket->getId();
         
         unset($this->sockets[$id]);
-        unset($this->paused[$id]);
         unset($this->timeouts[$id]);
         unset($this->queue[$id]);
     }
@@ -298,7 +323,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isTimerActive(TimerInterface $timer)
+    public function isTimerPending(TimerInterface $timer)
     {
         return $this->timerQueue->contains($timer);
     }
@@ -324,14 +349,9 @@ class SelectLoop extends AbstractLoop
         parent::clear();
         
         $this->sockets = [];
-        $this->paused = [];
         $this->timeouts = [];
         $this->queue = [];
         
         $this->timerQueue->clear();
-        
-        if (null !== $this->timer) {
-            $this->timer->start();
-        }
     }
 }

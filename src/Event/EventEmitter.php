@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Event;
 
-abstract class EventEmitter
+class EventEmitter implements EventEmitterInterface
 {
     use EventEmitterTrait;
 }

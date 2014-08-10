@@ -14,6 +14,8 @@ class LibeventLoop extends AbstractLoop
     const MICROSEC_PER_SEC = 1e6;
     
     /**
+     * Event base created with event_base_new().
+     *
      * @var     resource
      */
     private $base;
@@ -41,14 +43,9 @@ class LibeventLoop extends AbstractLoop
     private $signalEvents = [];
     
     /**
-     * @var     ReadableSocketInterface[int]
+     * @var     int[int]
      */
-    private $readPending = [];
-    
-    /**
-     * @var     WritableSocketInterface[int]
-     */
-    private $writePending = [];
+    private $pending = [];
     
     /**
      * @var     Closure
@@ -66,7 +63,7 @@ class LibeventLoop extends AbstractLoop
     private $timerCallback;
     
     /**
-     * Determines if the PECL libevent extension is loaded, which is required for this class.
+     * Determines if the libevent extension is loaded, which is required for this class.
      *
      * @return  bool
      */
@@ -76,13 +73,14 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @throws  UnsupportedException Thrown if the PECL libevent extension is not loaded.
+     * @throws  UnsupportedException Thrown if the libevent extension is not loaded.
      */
     public function __construct()
     {
+        // @codeCoverageIgnoreStart
         if (!self::enabled()) {
             throw new UnsupportedException('LibeventLoop class requires the libevent extension.');
-        }
+        } // @codeCoverageIgnoreEnd
         
         parent::__construct();
         
@@ -93,6 +91,7 @@ class LibeventLoop extends AbstractLoop
             $callback = $this->createSignalCallback();
             
             foreach ($this->getSignalList() as $signal) {
+                $this->createEvent($signal);
                 $event = event_new();
                 event_set($event, $signal, EV_SIGNAL | EV_PERSIST, $callback);
                 event_base_set($event, $this->base);
@@ -101,7 +100,8 @@ class LibeventLoop extends AbstractLoop
             }
         }
         
-        $this->readCallback = function ($_, $what, ReadableSocketInterface $socket) {
+        $this->readCallback = function ($socket, $what, ReadableSocketInterface $socket) {
+            $this->pending[$socket->getId()] &= ~EV_READ;
             if (EV_TIMEOUT & $what) {
                 $socket->onTimeout();
             } else {
@@ -109,15 +109,14 @@ class LibeventLoop extends AbstractLoop
             }
         };
         
-        $this->writeCallback = function ($_, $_, WritableSocketInterface $socket) {
+        $this->writeCallback = function ($socket, $what, WritableSocketInterface $socket) {
+            $this->pending[$socket->getId()] &= ~EV_WRITE;
             $socket->onWrite();
         };
         
-        $this->timerCallback = function ($_, $_, TimerInterface $timer) {
+        $this->timerCallback = function ($socket, $what, TimerInterface $timer) {
             if (!$timer->isPeriodic()) {
-                $event = $this->timers[$timer];
-                event_del($event);
-                event_free($event);
+                event_free($this->timers[$timer]);
                 unset($this->timers[$timer]);
             } else {
                 event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
@@ -128,6 +127,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
+     * @codeCoverageIgnore
      */
     public function __destruct()
     {
@@ -136,31 +136,25 @@ class LibeventLoop extends AbstractLoop
         }
         
         foreach ($this->readEvents as $event) {
-            event_del($event);
             event_free($event);
         }
         
         foreach ($this->writeEvents as $event) {
-            event_del($event);
             event_free($event);
         }
         
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
-            $event = $this->timers->getInfo();
-            event_del($event);
-            event_free($event);
+            event_free($this->timers->getInfo());
         }
         
         foreach ($this->signalEvents as $event) {
-            event_del($event);
             event_free($event);
         }
         
-        // Need to completely destroy timer events before freeing base.
+        // Need to completely destroy timer events before freeing base or an error is generated.
         $this->timers = null;
         
         event_base_free($this->base);
-        
     }
     
     /**
@@ -176,7 +170,13 @@ class LibeventLoop extends AbstractLoop
      */
     public function isEmpty()
     {
-        return empty($this->readEvents) && empty($this->writeEvents) && !$this->timers->count() && parent::isEmpty();
+        foreach ($this->pending as $pending) {
+            if (0 !== $pending) {
+                return false;
+            }
+        }
+        
+        return !$this->timers->count() && parent::isEmpty();
     }
     
     /**
@@ -196,58 +196,49 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function addReadableSocket(ReadableSocketInterface $socket)
+    public function scheduleReadableSocket(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
         if (!isset($this->readEvents[$id])) {
             $event = event_new();
-            event_set($event, $socket->getResource(), EV_READ | EV_PERSIST, $this->readCallback, $socket);
+            event_set($event, $socket->getResource(), EV_READ, $this->readCallback, $socket);
             event_base_set($event, $this->base);
             
-            if ($timeout = $socket->getTimeout()) {
-                event_add($event, $timeout * self::MICROSEC_PER_SEC);
-            } else {
-                event_add($event);
-            }
-            
             $this->readEvents[$id] = $event;
-            $this->readPending[$id] = $socket;
-        }
-    }
-    
-    public function pauseReadableSocket(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->readEvent[$id])) {
-            event_del($this->readEvent[$id]);
-            unset($this->readPending[$id]);
-        }
-    }
-    
-    public function resumeReadableSocket(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->readEvents[$id]) && !isset($this->readPending[$id])) {
-            if ($timeout = $socket->getTimeout()) {
-                event_add($this->readEvents[$id], $timeout * self::MICROSEC_PER_SEC);
-            } else {
-                event_add($this->readEvents[$id]);
+            
+            if (!isset($this->pending[$id])) {
+                $this->pending[$id] = 0;
             }
-            $this->readPending[$id] = $socket;
+        }
+        
+        if ($timeout = $socket->getTimeout()) {
+            event_add($this->readEvents[$id], $timeout * self::MICROSEC_PER_SEC);
+        } else {
+            event_add($this->readEvents[$id]);
+        }
+        
+        $this->pending[$id] |= EV_READ;
+    }
+    
+    public function unscheduleReadableSocket(ReadableSocketInterface $socket)
+    {
+        $id = $socket->getId();
+        
+        if (isset($this->readEvents[$id])) {
+            event_del($this->readEvents[$id]);
+            $this->pending[$id] &= ~EV_READ;
         }
     }
     
     /**
      * {@inheritdoc}
      */
-    public function isReadableSocketPending(ReadableSocketInterface $socket)
+    public function isReadableSocketScheduled(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
-        return isset($this->readEvents[$id], $this->readPending[$id]);
+        return isset($this->readEvents[$id], $this->pending[$id]) && EV_READ & $this->pending[$id];
     }
     
     /**
@@ -261,21 +252,17 @@ class LibeventLoop extends AbstractLoop
             $event = event_new();
             event_set($event, $socket->getResource(), EV_WRITE, $this->writeCallback, $socket);
             event_base_set($event, $this->base);
+            
             $this->writeEvents[$id] = $event;
+            
+            if (!isset($this->pending[$id])) {
+                $this->pending[$id] = 0;
+            }
         }
         
         event_add($this->writeEvents[$id]);
-        $this->writePending[$id] = $socket;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isWritableSocketScheduled(WritableSocketInterface $socket)
-    {
-        $id = $socket->getId();
         
-        return isset($this->writeEvents[$id], $this->writePending[$id]);
+        $this->pending[$id] |= EV_WRITE;
     }
     
     /**
@@ -287,18 +274,18 @@ class LibeventLoop extends AbstractLoop
         
         if (isset($this->writeEvents[$id])) {
             event_del($this->writeEvents[$id]);
-            unset($this->writePending[$id]);
+            $this->pending[$id] &= ~EV_WRITE;
         }
     }
     
     /**
      * {@inheritdoc}
      */
-    public function containsSocket(SocketInterface $socket)
+    public function isWritableSocketScheduled(WritableSocketInterface $socket)
     {
         $id = $socket->getId();
         
-        return isset($this->readEvents[$id]) || isset($this->writeEvents[$id]);
+        return isset($this->writeEvents[$id], $this->pending[$id]) && EV_WRITE & $this->pending[$id];
     }
     
     /**
@@ -309,18 +296,16 @@ class LibeventLoop extends AbstractLoop
         $id = $socket->getId();
         
         if (isset($this->readEvents[$id])) {
-            event_del($this->readEvents[$id]);
             event_free($this->readEvents[$id]);
             unset($this->readEvents[$id]);
-            unset($this->readPending[$id]);
         }
         
         if (isset($this->writeEvents[$id])) {
-            event_del($this->writeEvents[$id]);
             event_free($this->writeEvents[$id]);
             unset($this->writeEvents[$id]);
-            unset($this->writePending[$id]);
         }
+        
+        unset($this->pending[$id]);
     }
     
     /**
@@ -346,7 +331,6 @@ class LibeventLoop extends AbstractLoop
     {
         if (isset($this->timers[$timer])) {
             $event = $this->timers[$timer];
-            event_del($event);
             event_free($event);
             unset($this->timers[$timer]);
         }
@@ -355,7 +339,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isTimerActive(TimerInterface $timer)
+    public function isTimerPending(TimerInterface $timer)
     {
         return isset($this->timers[$timer]);
     }
@@ -384,22 +368,19 @@ class LibeventLoop extends AbstractLoop
         parent::clear();
         
         foreach ($this->readEvents as $event) {
-            event_del($event);
             event_free($event);
         }
         
         foreach ($this->writeEvents as $event) {
-            event_del($event);
             event_free($event);
         }
         
         $this->readEvents = [];
         $this->writeEvents = [];
+        $this->pending = [];
         
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
-            $event = $this->timers->getInfo();
-            event_del($event);
-            event_free($event);
+            event_free($this->timers->getInfo());
         }
         
         $this->timers = new UnreferencableObjectStorage();

@@ -70,11 +70,13 @@ interface LoopInterface extends EventEmitterInterface
     /**
      * Sets the maximum number of callbacks set with schedule() that will be executed per tick.
      *
-     * @param   int $depth
+     * @param   int|null $depth
+     *
+     * @return  int Current max depth if $depth = null or previous max depth otherwise.
      *
      * @api
      */
-    public function maxScheduleDepth($depth);
+    public function maxScheduleDepth($depth = null);
     
     /**
      * Define a callback function to be run after all I/O has been handled in the current tick.
@@ -92,7 +94,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @param   ReadableSocketInterface $socket
      */
-    public function addReadableSocket(ReadableSocketInterface $socket);
+    public function scheduleReadableSocket(ReadableSocketInterface $socket);
     
     /**
      * Pauses listening for data on the socket.
@@ -101,16 +103,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  bool
      */
-    public function pauseReadableSocket(ReadableSocketInterface $socket);
-    
-    /**
-     * Resumes listening for data on the socket.
-     *
-     * @param   ReadableSocketInterface $socket
-     *
-     * @return  bool
-     */
-    public function resumeReadableSocket(ReadableSocketInterface $socket);
+    public function unscheduleReadableSocket(ReadableSocketInterface $socket);
     
     /**
      * Determines if the given socket is pending (listneing for data).
@@ -119,7 +112,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  bool
      */
-    public function isReadableSocketPending(ReadableSocketInterface $socket);
+    public function isReadableSocketScheduled(ReadableSocketInterface $socket);
     
     /**
      * Adds the socket to the queue waiting to write.
@@ -143,13 +136,6 @@ interface LoopInterface extends EventEmitterInterface
      * @return  bool
      */
     public function isWritableSocketScheduled(WritableSocketInterface $socket);
-    
-    /**
-     * @param   SocketInterface $socket
-     *
-     * @return  bool
-     */
-    public function containsSocket(SocketInterface $socket);
     
     /**
      * Completely removes the socket from the loop (stops listening for data or writing data).
@@ -179,7 +165,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  bool
      */
-    public function isTimerActive(TimerInterface $timer);
+    public function isTimerPending(TimerInterface $timer);
     
     /**
      * Adds the given timer to the loop.

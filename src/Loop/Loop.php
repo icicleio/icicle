@@ -21,11 +21,30 @@ abstract class Loop
      */
     public static function init(LoopInterface $loop)
     {
+        // @codeCoverageIgnoreStart
         if (null !== self::$instance) {
             throw new InitializedException('The loop has already been initialized.');
-        }
+        } // @codeCoverageIgnoreEnd
         
         self::$instance = $loop;
+    }
+    
+    /**
+     * @return  LoopInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected static function create()
+    {
+        if (EventLoop::enabled()) {
+            return new EventLoop();
+        }
+        
+        if (LibeventLoop::enabled()) {
+            return new LibeventLoop();
+        }
+        
+        return new SelectLoop();
     }
     
     /**
@@ -37,9 +56,10 @@ abstract class Loop
      */
     public static function getInstance()
     {
+        // @codeCoverageIgnoreStart
         if (null === self::$instance) {
-            self::$instance = LoopFactory::create();
-        }
+            self::$instance = static::create();
+        } // @codeCoverageIgnoreEnd
         
         return self::$instance;
     }
@@ -61,26 +81,17 @@ abstract class Loop
     }
     
     /**
-     * @param   callable $callback
-     * @param   mixed ...$args
-     */
-    public static function nextTick(callable $callback /* , ...$args */)
-    {
-        $args = array_slice(func_get_args(), 1);
-        
-        static::getInstance()->schedule($callback, $args);
-    }
-    
-    /**
      * Sets the maximum number of callbacks set with nextTick() that will be executed per tick.
      *
-     * @param   int $depth
+     * @param   int|null $depth
+     *
+     * @return  int Current max depth if $depth = null or previous max depth otherwise.
      *
      * @api
      */
-    public static function maxScheduleDepth($depth)
+    public static function maxScheduleDepth($depth = null)
     {
-        static::getInstance()->maxScheduleDepth($depth);
+        return static::getInstance()->maxScheduleDepth($depth);
     }
     
     /**
@@ -98,11 +109,13 @@ abstract class Loop
     /**
      * Runs the event loop, dispatching I/O events, timers, etc.
      *
+     * @return  bool
+     *
      * @api
      */
     public static function run()
     {
-        static::getInstance()->run();
+        return static::getInstance()->run();
     }
     
     /**
@@ -195,4 +208,25 @@ abstract class Loop
     {
         static::getInstance()->reInit();
     }
+    
+    /**
+     * Provides access to any other methods of the LoopInterface object.
+     *
+     * @param   string $name
+     * @param   array $args
+     *
+     * @return  mixed
+     */
+/*
+    public static function __callStatic($name, array $args)
+    {
+        $method = [self::getInstance(), $name];
+        
+        if (!is_callable($method)) {
+            throw new LogicException();
+        }
+        
+        return call_user_func_array($method, $args);
+    }
+*/
 }

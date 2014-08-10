@@ -1,35 +1,27 @@
 <?php
-namespace Icicle\PromiseSocket;
+namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\DeferredPromise;
 use Icicle\Promise\Promise;
-use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
-use Icicle\Socket\DuplexSocketInterface;
 use Icicle\Stream\DuplexStreamInterface;
+use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\UnreadableException;
+use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\WritableStreamInterface;
 use Icicle\Structures\Buffer;
 use SplQueue;
 
 class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterface
 {
-    const CHUNK_SIZE = 8192; // 8kb
-    
-    const MAX_BUFFER_LENGTH = 65536; // 64kb
+    const CHUNK_SIZE = 8192; // 8kB
     
     /**
-     * Data read from socket is buffered here until read() is called.
-     *
-     * @var     Buffer
-     */
-    private $readBuffer;
-    
-    /**
-     * @var     int
+     * @var     float
      */
     private $timeout;
     
@@ -50,7 +42,7 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
     
     /**
      * Queue of data to write and promises to resolve when that data is written (or fails to write).
-     * Data is stored as a pair array: [Buffer, DeferredPromise].
+     * Data is stored as an array: [Buffer, int, DeferredPromise].
      *
      * @var     SplQueue
      */
@@ -69,47 +61,45 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
     {
         parent::__construct($socket);
         
-        $this->timeout = (int) $timeout;
+        $this->timeout = (float) $timeout;
         
-        if (0 >= $this->timeout) {
-            $this->timeout = self::NO_TIMEOUT;
+        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
+            $this->timeout = self::MIN_TIMEOUT;
         }
         
         stream_set_read_buffer($socket, 0);
         stream_set_write_buffer($socket, 0);
         stream_set_chunk_size($socket, self::CHUNK_SIZE);
-        stream_set_blocking($socket, 0);
         
-        $this->readBuffer = new Buffer();
         $this->writeQueue = new SplQueue();
-        
-        Loop::getInstance()->addReadableSocket($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function close()
+    public function close(Exception $exception = null)
     {
         if ($this->isOpen()) {
-            $exception = new ClosedException('The stream was closed.');
+            $this->writable = false;
+            
+            if (null === $exception) {
+                $exception = new ClosedException('The socket was closed.');
+            }
             
             if (null !== $this->deferred) {
                 $this->deferred->reject($exception);
                 $this->deferred = null;
             }
             
-            $this->writable = false;
-            
             while (!$this->writeQueue->isEmpty()) {
-                list($data, $deferred) = $this->writeQueue->shift();
+                list( , , $deferred) = $this->writeQueue->shift();
                 $deferred->reject($exception);
             }
             
             Loop::getInstance()->removeSocket($this);
-            
-            parent::close();
         }
+        
+        parent::close();
     }
     
     /**
@@ -121,31 +111,36 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
             return Promise::reject(new BusyException('Already waiting on stream.'));
         }
         
+        if (!$this->isReadable()) {
+            return Promise::reject(new UnreadableException('The socket has closed.'));
+        }
+        
         if (null !== $length) {
             $length = (int) $length;
-        }
-        
-        if (0 === $length) {
-            return Promise::resolve('');
-        }
-        
-        if ($this->readBuffer->isEmpty() || (null !== $length && $this->readBuffer->getLength() < $length)) {
-            if (!$this->isOpen()) {
-                return Promise::reject(new ClosedException('The stream has closed.'));
+            
+            if (0 > $length) {
+                $length = 0;
             }
-            
-            $this->resume();
-            
-            $this->length = $length;
-            $this->deferred = new DeferredPromise(function () { $this->deferred = null; });
-            return $this->deferred->getPromise();
         }
         
-        if (null === $length) {
-            return Promise::resolve($this->readBuffer->drain());
-        }
+        Loop::getInstance()->scheduleReadableSocket($this);
         
-        return Promise::resolve($this->readBuffer->remove($length));
+        $this->length = $length;
+        
+        $this->deferred = new DeferredPromise(function () {
+            Loop::getInstance()->unscheduleReadableSocket($this);
+            $this->deferred = null;
+        });
+        
+        return $this->deferred->getPromise();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function poll()
+    {
+        return $this->read(0);
     }
     
     /**
@@ -153,65 +148,38 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
      */
     public function isReadable()
     {
-        return !$this->readBuffer->isEmpty() || $this->isOpen();
+        return $this->isOpen();
     }
     
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function write($data = null)
     {
-        return $this->readBuffer->isEmpty();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function getLength()
-    {
-        return $this->readBuffer->getLength();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function unshift($data)
-    {
-        $this->readBuffer->unshift($data);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function write($data, callable $callback = null)
-    {
-        if (!$this->writable) {
-            return Promise::reject(new ClosedException('The stream is no longer writable.'));
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
         }
         
         $data = new Buffer($data);
         
         if (!$this->writeQueue->isEmpty()) {
             $deferred = new DeferredPromise();
-            $this->writeQueue->push([$data, $deferred]);
+            $this->writeQueue->push([$data, 0, $deferred]);
             return $deferred->getPromise();
         }
         
-        if (0 === $data->getLength()) {
-            return Promise::resolve(0);
-        }
-        
-        $written = $this->send($data);
+        $written = @fwrite($this->getResource(), $data, self::CHUNK_SIZE);
         
         if (false === $written) {
-            $this->close();
-            return Promise::reject(new FailureException('Writing to socket failed.'));
+            $exception = new FailureException('Writing to socket failed.');
+            $this->close($exception);
+            return Promise::reject($exception);
         }
         
-        if ($data->getLength() !== $written) {
+        if ($data->getLength() > $written) {
             $data->remove($written);
             $deferred = new DeferredPromise();
-            $this->writeQueue->push([$data, $deferred]);
+            $this->writeQueue->push([$data, $written, $deferred]);
             Loop::getInstance()->scheduleWritableSocket($this);
             return $deferred->getPromise();
         }
@@ -222,13 +190,33 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
     /**
      * {@inheritdoc}
      */
-    public function end($data = null, callable $callback = null)
+    public function end($data = null)
     {
         $promise = $this->write($data);
         
         $this->writable = false;
         
-        return $promise->cleanup([$this, 'close']);
+        return $promise->cleanup(function () {
+            $this->close(new ClosedException('The stream was ended.'));
+        });
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function await()
+    {
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+        }
+        
+        $deferred = new DeferredPromise();
+        
+        $this->writeQueue->push([new Buffer(), 0, $deferred]);
+        
+        Loop::getInstance()->scheduleWritableSocket($this);
+        
+        return $deferred->getPromise();
     }
     
     /**
@@ -246,60 +234,36 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
     {
         $socket = $this->getResource();
         
-        if (feof($socket)) {
-            if (null !== $this->deferred) {
-                $this->deferred->reject(new ClosedException('Connection reset by peer.'));
-                $this->deferred = null;
-            }
-            $this->close();
+        if (@feof($socket)) {
+            $exception = new ClosedException('Connection reset by peer.');
+            $this->deferred->reject($exception);
+            $this->deferred = null;
+            $this->close($exception);
             return;
         }
         
-        $data = @fread($socket, self::CHUNK_SIZE);
-        
-        if (false === $data) { // Reading failed, so close connection.
-            if (null !== $this->deferred) {
-                $this->deferred->reject(new FailureException('Reading from the socket failed.'));
-                $this->deferred = null;
-            }
-            $this->close();
-            return;
+        if (null === $this->length) {
+            $length = self::CHUNK_SIZE;
+        } else {
+            $length = $this->length;
         }
         
-        if (empty($data)) {
-            return; // Ignore if no data was read.
-        }
-        
-        $this->readBuffer->push($data);
-        
-        if (null !== $this->destination)
-        {
-            $promise = $this->destination->write($this->readBuffer->drain());
+        if (0 === $length) {
+            $data = '';
+        } else {
+            $data = @fread($socket, $length);
             
-            if ($promise->isPending() || $promise->isRejected()) {
-                $this->pause();
-                $promise->done(
-                    function () {
-                        $this->resume();
-                    },
-                    function (Exception $exception) {
-                        $this->destination = null;
-                        $this->deferred->reject($exception);
-                        $this->deferred = null;
-                    }
-                );
-            }
-        } elseif (null !== $this->deferred) {
-            if (null === $this->length) {
-                $this->deferred->resolve($this->readBuffer->drain());
+            if (false === $data) { // Reading failed, so close connection.
+                $exception = new FailureException('Reading from the socket failed.');
+                $this->deferred->reject($exception);
                 $this->deferred = null;
-            } elseif ($this->readBuffer->getLength() >= $this->length) {
-                $this->deferred->resolve($this->readBuffer->remove($this->length));
-                $this->deferred = null;
+                $this->close($exception);
+                return;
             }
-        } elseif ($this->readBuffer->getLength() > self::MAX_BUFFER_LENGTH) {
-            $this->pause();
         }
+        
+        $this->deferred->resolve($data);
+        $this->deferred = null;
     }
     
     /**
@@ -307,16 +271,8 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
      */
     public function onTimeout()
     {
-        if (null !== $this->destination) {
-            return;
-        }
-        
-        if (null !== $this->deferred) {
-            $this->deferred->reject(new TimeoutException('The connection timed out.'));
-            $this->deferred = null;
-        } else {
-            $this->close();
-        }
+        $this->deferred->reject(new TimeoutException('The connection timed out.'));
+        $this->deferred = null;
     }
     
     /**
@@ -324,53 +280,34 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
      */
     public function onWrite()
     {
-        if ($this->writeQueue->isEmpty()) {
+        list($data, $previous, $deferred) = $this->writeQueue->shift();
+        
+        $written = @fwrite($this->getResource(), $data, self::CHUNK_SIZE);
+        
+        if (false === $written || (0 === $written && !$data->isEmpty())) {
+            $this->writable = false;
+            $exception = new FailureException('Could not write to socket.');
+            $deferred->reject($exception);
+            while (!$this->writeQueue->isEmpty()) {
+                list( , , $deferred) = $this->writeQueue->shift();
+                $deferred->reject($exception);
+            }
             return;
         }
         
-        list($data, $deferred) = $this->writeQueue->shift();
+        $data->remove($written);
+        
+        $written += $previous;
         
         if ($data->isEmpty()) {
-            $deferred->resolve(0);
+            $deferred->resolve($written);
         } else {
-            $written = $this->send($data);
-            
-            if (!$written) {
-                $exception = new FailureException('Could not write to socket.');
-                $deferred->reject($exception);
-                $this->writable = false;
-                while (!$this->writeQueue->isEmpty()) {
-                    list($data, $deferred) = $this->writeQueue->shift();
-                    $deferred->reject($exception);
-                }
-                return;
-            }
-            
-            $data->remove($written);
-            
-            if ($data->isEmpty()) {
-                $deferred->resolve($written);
-            } else {
-                $this->writeQueue->unshift([$data, $deferred]);
-            }
+            $this->writeQueue->unshift([$data, $written, $deferred]);
         }
         
         if (!$this->writeQueue->isEmpty()) {
             Loop::getInstance()->scheduleWritableSocket($this);
         }
-    }
-    
-    /**
-     * Writes as much of the buffer as possible to the socket. Does not block. Returns the number of bytes read
-     * or false if an error occurs. The buffer is not modified.
-     *
-     * @param   Buffer $buffer
-     *
-     * @return  int|false Number of bytes written or false if an error occurs.
-     */
-    protected function send(Buffer $buffer)
-    {
-        return @fwrite($this->getResource(), $buffer->peek(self::CHUNK_SIZE), self::CHUNK_SIZE);
     }
     
     /**
@@ -386,92 +323,17 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
      */
     public function setTimeout($timeout)
     {
-        $this->timeout = (int) $timeout;
+        $this->timeout = (float) $timeout;
         
-        if (0 > $this->timeout) {
-            $this->timeout = self::NO_TIMEOUT;
+        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
+            $this->timeout = self::MIN_TIMEOUT;
         }
         
-        Loop::getInstance()->pauseReadableSocket($this);
-        Loop::getInstance()->resumeReadableSocket($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isPaused()
-    {
-        return !Loop::getInstance()->isReadableSocketPending($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function pause()
-    {
-        Loop::getInstance()->pauseReadableSocket($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function resume()
-    {
-        Loop::getInstance()->resumeReadableSocket($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function pipe(WritableStreamInterface $destination, $end = true)
-    {
-        if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('The stream is already busy.'));
+        $loop = Loop::getInstance();
+        
+        if ($loop->isReadableSocketScheduled($this)) {
+            $loop->unscheduleReadableSocket($this);
+            $loop->scheduleReadableSocket($this);
         }
-        
-        if (!$destination->isWritable()) {
-            return Promise::reject(new ClosedException('The destination is not writable.'));
-        }
-        
-        $this->destination = $destination;
-        $this->deferred = new DeferredPromise();
-        $promise = $this->deferred->getPromise();
-        
-        $this->resume();
-        
-        if ($end) {
-            $promise = $promise->capture(function (Exception $exception) use ($destination) {
-                $destination->end();
-                throw $exception;
-            });
-        }
-        
-        if (!$this->readBuffer->isEmpty()) {
-            $this->destination
-                ->write($this->readBuffer->drain())
-                ->otherwise(function (Exception $exception) {
-                    $this->destination = null;
-                    $this->deferred->reject($exception);
-                    $this->deferred = null;
-                });
-        }
-        
-        return $promise;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function unpipe(WritableStreamInterface $destination = null)
-    {
-        if (null !== $this->destination && null !== $this->deferred) {
-            $destination = $this->destination;
-            $this->destination = null;
-            $this->deferred->resolve();
-            $this->deferred = null;
-            return $destination;
-        }
-        
-        return null;
     }
 }

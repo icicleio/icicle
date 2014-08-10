@@ -4,30 +4,36 @@ namespace Icicle\Stream;
 interface WritableStreamInterface extends StreamInterface
 {
     /**
-     * Queues data to be sent on the stream (non-blocking write). If given, the callback will
-     * be called once all the data has been written to the stream.
+     * Queues data to be sent on the stream. The promise returned is fulfilled once the data has
+     * successfully been written to the stream.
      *
-     * @param   string $data
-     * @param   callable|null $callback
+     * @param   string|null $data
      *
-     * @return  bool Returns true if the data was queued to be sent, false if an error occurred.
+     * @return  PromiseInterface
      *
      * @api
      */
-    public function write($data, callable $callback = null);
+    public function write($data = null);
+    
+    /**
+     * Returns a promise that is fulfilled when the stream is ready to receive data.
+     *
+     * @return  PromiseInterface
+     *
+     * @api
+     */
+    public function await();
     
     /**
      * Queues the data to be sent on the stream and closes the stream once the data has been written.
-     * If a callback is given, it will be called once all the data has been written to the stream.
      *
      * @param   string|null $data
-     * @param   callable|null $callback
      *
-     * @return  bool Returns true if the data was queued to be sent, false if an error occurred.
+     * @return  PromiseInterface
      *
      * @api
      */
-    public function end($data = null, callable $callback = null);
+    public function end($data = null);
     
     /**
      * Determines if the stream is still writable.

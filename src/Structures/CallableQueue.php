@@ -1,9 +1,10 @@
 <?php
 namespace Icicle\Structures;
 
+use Countable;
 use SplQueue;
 
-class CallableQueue implements \Countable
+class CallableQueue implements Countable
 {
     const DEFAULT_MAX_DEPTH = 1000;
     
@@ -50,16 +51,6 @@ class CallableQueue implements \Countable
     }
     
     /**
-     * Alias of count().
-     *
-     * @return  int
-     */
-    public function getLength()
-    {
-        return $this->count();
-    }
-    
-    /**
      * Determines if the queue is empty.
      *
      * @return  bool
@@ -80,23 +71,37 @@ class CallableQueue implements \Countable
     /**
      * Sets the maximum number of functions that can be called when the queue is called.
      *
-     * @param   int $depth
+     * @param   int|null $depth
+     *
+     * @return  int Current max depth if $depth = null or previous max depth otherwise.
      */
-    public function maxDepth($depth)
+    public function maxDepth($depth = null)
     {
-        $depth = (int) $depth;
-        $this->maxDepth = 0 < $depth ? $depth : 1;
+        $previous = $this->maxDepth;
+        
+        if (null !== $depth) {
+            $depth = (int) $depth;
+            $this->maxDepth = 1 > $depth ? 1 : $depth;
+        }
+        
+        return $previous;
     }
     
     /**
      * Executes each callback that was in the queue when this method is called up to the maximum depth.
+     * 
+     * @return  int Number of functions called.
      */
     public function call()
     {
-        for ($count = 0; !$this->queue->isEmpty() && $count < $this->maxDepth; ++$count) {
+        $count = 0;
+        
+        while (!$this->queue->isEmpty() && ++$count <= $this->maxDepth) {
             $callback = $this->queue->shift();
             $callback();
         }
+        
+        return $count;
     }
     
     /**
@@ -104,6 +109,6 @@ class CallableQueue implements \Countable
      */
     public function __invoke()
     {
-        $this->call();
+        return $this->call();
     }
 }

@@ -27,7 +27,7 @@ trait PromiseTrait
                 return $onRejected($exception);
             }
             
-            throw $exception;
+            return $this; // $this is now a rejected promise.
         });
     }
     
@@ -44,7 +44,7 @@ trait PromiseTrait
      */
     public function otherwise(callable $onRejected)
     {
-        return $this->done(null, $onRejected);
+        $this->done(null, $onRejected);
     }
     
     /**
@@ -53,7 +53,7 @@ trait PromiseTrait
     public function tap(callable $onFulfilled) {
         return $this->then(function ($value) use ($onFulfilled) {
             $onFulfilled($value);
-            return $value;
+            return $this; // $this is now a fulfilled promise.
         });
     }
     
@@ -62,15 +62,9 @@ trait PromiseTrait
      */
     public function cleanup(callable $onResolved)
     {
-        return $this->then(
-            function ($value) use ($onResolved) {
-                $onResolved();
-                return $value;
-            },
-            function (Exception $exception) use ($onResolved) {
-                $onResolved();
-                throw $exception;
-            }
-        );
+        return $this->always(function () use ($onResolved) {
+            $onResolved();
+            return $this; // $this is now a resolved promise.
+        });
     }
 }

@@ -56,7 +56,7 @@ class EventLoop extends AbstractLoop
     private $timerCallback;
     
     /**
-     * Determines if the PECL event extension is loaded, which is required for this class.
+     * Determines if the event extension is loaded, which is required for this class.
      *
      * @return  bool
      */
@@ -66,13 +66,14 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @throws  UnsupportedException Thrown if the PECL event extension is not loaded.
+     * @throws  UnsupportedException Thrown if the event extension is not loaded.
      */
     public function __construct()
     {
+        // @codeCoverageIgnoreStart
         if (!self::enabled()) {
             throw new UnsupportedException('EventLoop class requires the event extension.');
-        }
+        } // @codeCoverageIgnoreEnd
         
         parent::__construct();
         
@@ -83,13 +84,14 @@ class EventLoop extends AbstractLoop
             $callback = $this->createSignalCallback();
             
             foreach ($this->getSignalList() as $signal) {
+                $this->createEvent($signal);
                 $event = new Event($this->base, $signal, Event::SIGNAL | Event::PERSIST, $callback);
                 $event->add();
                 $this->signalEvents[$signal] = $event;
             }
         }
         
-        $this->readCallback = function ($_, $what, ReadableSocketInterface $socket) {
+        $this->readCallback = function ($resource, $what, ReadableSocketInterface $socket) {
             if (Event::TIMEOUT & $what) {
                 $socket->onTimeout();
             } else {
@@ -97,11 +99,11 @@ class EventLoop extends AbstractLoop
             }
         };
         
-        $this->writeCallback = function ($_, $_, WritableSocketInterface $socket) {
+        $this->writeCallback = function ($resource, $what, WritableSocketInterface $socket) {
             $socket->onWrite();
         };
         
-        $this->timerCallback = function ($_, $_, TimerInterface $timer) {
+        $this->timerCallback = function ($resource, $what, TimerInterface $timer) {
             if (!$this->timers[$timer]->pending(Event::TIMEOUT)) {
                 $this->timers[$timer]->free();
                 unset($this->timers[$timer]);
@@ -112,6 +114,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
+     * @codeCoverageIgnore
      */
     public function __destruct()
     {
@@ -149,7 +152,19 @@ class EventLoop extends AbstractLoop
      */
     public function isEmpty()
     {
-        return empty($this->readEvents) && empty($this->writeEvents) && !$this->timers->count() && parent::isEmpty();
+        foreach ($this->readEvents as $event) {
+            if ($event->pending) {
+                return false;
+            }
+        }
+        
+        foreach ($this->writeEvents as $event) {
+            if ($event->pending) {
+                return false;
+            }
+        }
+        
+        return !$this->timers->count() && parent::isEmpty();
     }
     
     /**
@@ -169,59 +184,41 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function addReadableSocket(ReadableSocketInterface $socket)
+    public function scheduleReadableSocket(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
         if (!isset($this->readEvents[$id])) {
-            $event = new Event($this->base, $socket->getResource(), Event::READ | Event::PERSIST, $this->readCallback, $socket);
-            
-            if ($timeout = $socket->getTimeout()) {
-                $event->add($timeout);
-            } else {
-                $event->add();
-            }
-            
-            $this->readEvents[$id] = $event;
+            $this->readEvents[$id] = new Event($this->base, $socket->getResource(), Event::READ, $this->readCallback, $socket);
+        }
+        
+        if ($timeout = $socket->getTimeout()) {
+            $this->readEvents[$id]->add($timeout);
+        } else {
+            $this->readEvents[$id]->add();
         }
     }
     
     /**
      * {@inheritdoc}
      */
-    public function pauseReadableSocket(ReadableSocketInterface $socket)
+    public function isReadableSocketScheduled(ReadableSocketInterface $socket)
+    {
+        $id = $socket->getId();
+        
+        return isset($this->readEvents[$id]) && $this->readEvents[$id]->pending(Event::READ);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function unscheduleReadableSocket(ReadableSocketInterface $socket)
     {
         $id = $socket->getId();
         
         if (isset($this->readEvents[$id])) {
             $this->readEvents[$id]->del();
         }
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function resumeReadableSocket(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->readEvents[$id]) && !$this->readEvents[$id]->pending(Event::READ)) {
-            if ($timeout = $socket->getTimeout()) {
-                $event->add($timeout);
-            } else {
-                $event->add();
-            }
-        }
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isReadableSocketPending(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        return isset($this->readEvents[$id]) && $this->readEvents[$id]->pending(Event::READ);
     }
     
     /**
@@ -258,16 +255,6 @@ class EventLoop extends AbstractLoop
         if (isset($this->writeEvents[$id])) {
             $this->writeEvents[$id]->del();
         }
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function containsSocket(SocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        return isset($this->readEvents[$id]) || isset($this->writeEvents[$id]);
     }
     
     /**
@@ -321,7 +308,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isTimerActive(TimerInterface $timer)
+    public function isTimerPending(TimerInterface $timer)
     {
         return isset($this->timers[$timer]);
     }

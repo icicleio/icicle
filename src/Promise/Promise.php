@@ -5,6 +5,7 @@ use Exception;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise\Exception\MultiReasonException;
+use Icicle\Promise\Exception\RuntimeException;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Exception\UnresolvedException;
@@ -20,75 +21,69 @@ class Promise implements PromiseInterface
     private $result;
     
     /**
-     * @var     ThenQueue
+     * @var     ThenQueue|null
      */
     private $onFulfilled;
     
     /**
-     * @var     ThenQueue
+     * @var     ThenQueue|null
      */
     private $onRejected;
     
     /**
-     * @var     Closure
+     * @var     Closure|null
      */
     private $onCancelled;
     
     /**
-     * @var     Promise|null
+     * @var     bool
      */
-    private $source;
+    private $resolving = false;
     
     /**
-     * @param   callable $worker
+     * @param   callable $resolver
      * @param   callable|null $onCancelled
      */
-    public function __construct(callable $worker, callable $onCancelled = null)
+    public function __construct(callable $resolver, callable $onCancelled = null)
     {
         $this->onFulfilled = new ThenQueue();
         $this->onRejected = new ThenQueue();
         
         /**
-         * Fulfills the promise with the given value. Calls self::resolve() on given value to generate
-         * fulfilled a promise.
+         * Resolves the promise with the given promise or value. If another promise, this promise takes
+         * on the state of that promise. If a value, the promise will be fulfilled with that value.
          *
-         * @param   mixed $value A promise can be fulfilled with anything other than itself.
-         *
-         * @throws  TypeException Thrown if self is used to fulfill the promise.
+         * @param   mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
             if (null === $this->result) {
-                if ($value instanceof self) {
-                    $result = $value;
-                    do {
-                        if ($this === $result) {
-                            throw new TypeException('Circular reference detected in promise fulfillment chain (fulfilling with self).');
-                        }
-                        $result = $result->result;
-                    } while ($result instanceof self);
+                $this->resolving = true;
+                
+                try {
+                    $this->result = static::resolve($value);
+                    $this->result->done($this->onFulfilled, $this->onRejected);
+                } catch (Exception $exception) {
+                    $this->result = static::reject($exception);
+                    $this->result->done($this->onFulfilled, $this->onRejected);
                 }
                 
-                $this->source = null;
-                $this->result = static::resolve($value);
-                if (!$this->onFulfilled->isEmpty()) {
-                    $this->result->done($this->onFulfilled);
-                }
+                $this->resolving = false;
+                
+                $this->close();
             }
         };
         
         /**
-         * Rejects the promise with the given exception. Calls self::reject() on exception to generate
-         * a rejected promise.
+         * Rejects the promise with the given exception.
          *
          * @param   Exception $exception
          */
         $reject = function (Exception $exception) {
             if (null === $this->result) {
-                $this->source = null;
                 $this->result = static::reject($exception);
-                if (!$this->onRejected->isEmpty()) {
-                    $this->result->done(null, $this->onRejected);
-                }
+                $this->result->done($this->onFulfilled, $this->onRejected);
+                
+                $this->close();
             }
         };
         
@@ -107,10 +102,21 @@ class Promise implements PromiseInterface
         }
         
         try {
-            $worker($resolve, $reject);
+            $resolver($resolve, $reject);
         } catch (Exception $exception) {
             $reject($exception);
         }
+    }
+    
+    /**
+     * The garbage collector does not automatically detect the deep circular references that can be
+     * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
+     */
+    private function close()
+    {
+        $this->onFulfilled = null;
+        $this->onRejected = null;
+        $this->onCancelled = null;
     }
     
     /**
@@ -122,11 +128,7 @@ class Promise implements PromiseInterface
             return $this->result->then($onFulfilled, $onRejected);
         }
         
-        if (null === $onFulfilled && null === $onRejected) {
-            return $this;
-        }
-        
-        $promise = new static(function ($resolve, $reject) use ($onFulfilled, $onRejected) {
+        return new static(function ($resolve, $reject) use ($onFulfilled, $onRejected) {
             if (null !== $onFulfilled) {
                 $this->onFulfilled->insert(function ($value) use ($resolve, $reject, $onFulfilled) {
                     try {
@@ -136,7 +138,9 @@ class Promise implements PromiseInterface
                     }
                 });
             } else {
-                $this->onFulfilled->insert($resolve);
+                $this->onFulfilled->insert(function () use ($resolve) {
+                    $resolve($this->result);
+                });
             }
             
             if (null !== $onRejected) {
@@ -148,13 +152,11 @@ class Promise implements PromiseInterface
                     }
                 });
             } else {
-                $this->onRejected->insert($reject);
+                $this->onRejected->insert(function () use ($resolve) {
+                    $resolve($this->result);
+                });
             }
         });
-        
-        $promise->source = $this;
-        
-        return $promise;
     }
     
     /**
@@ -162,6 +164,10 @@ class Promise implements PromiseInterface
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
+        if ($this->resolving) { // Will only throw during resolution.
+            throw new TypeException('Circular reference detected in promise resolution chain.');
+        }
+        
         if (null !== $this->result) {
             $this->result->done($onFulfilled, $onRejected);
         } else {
@@ -171,6 +177,10 @@ class Promise implements PromiseInterface
             
             if (null !== $onRejected) {
                 $this->onRejected->insert($onRejected);
+            } else {
+                $this->onRejected->insert(function (Exception $exception) {
+                    throw $exception;
+                });
             }
         }
     }
@@ -182,21 +192,13 @@ class Promise implements PromiseInterface
     {
         if (null !== $this->result) {
             $this->result->cancel($exception);
-        } elseif (null === $this->source) {
+        } else {
             if (null === $exception) {
                 $exception = new CancelledException('The promise was cancelled.');
             }
             
             $onCancelled = $this->onCancelled;
             $onCancelled($exception);
-        } else {
-            // Find the most distant ancestor and cancel that promise.
-            $source = $this->source;
-            while (null !== $source->source) {
-                $source = $source->source;
-            }
-            
-            $source->cancel($exception);
         }
     }
     
@@ -209,22 +211,27 @@ class Promise implements PromiseInterface
             return $this->result->timeout($timeout, $exception);
         }
         
-        if (null === $exception) {
-            $exception = new TimeoutException('The promise timed out.');
-        }
-        
-        $promise = new static(function ($resolve, $reject) use ($timeout, $exception) {
-            $timer = Timer::once(function () use ($reject, $exception) {
-                $reject($exception);
-            }, $timeout);
-            
-            $this->after(function () use ($timer) { $timer->cancel(); });
-            $this->done($resolve, $reject);
-        });
-        
-        $promise->source = $this;
-        
-        return $promise;
+        return new static(
+            function ($resolve) use (&$timer, $timeout, $exception) {
+                $timer = Timer::once(function () use ($exception) {
+                    if (null === $exception) {
+                        $exception = new TimeoutException('The promise timed out.');
+                    }
+                    $this->cancel($exception);
+                }, $timeout);
+                
+                $onResolved = function () use ($resolve, $timer) {
+                    $resolve($this->result);
+                    $timer->cancel();
+                };
+                
+                $this->onFulfilled->insert($onResolved);
+                $this->onRejected->insert($onResolved);
+            },
+            function () use (&$timer) {
+                $timer->cancel();
+            }
+        );
     }
     
     /**
@@ -236,13 +243,17 @@ class Promise implements PromiseInterface
             return $this->result->delay($time);
         }
         
-        $promise = new static(
-            function ($resolve, $reject) use (&$timer, $time) {
-                $this->done(function ($value) use (&$timer, $time, $resolve) {
-                    $timer = Timer::once(function () use ($resolve, $value) {
-                        $resolve($value);
-                    });
-                }, $reject);
+        return new static(
+            function ($resolve) use (&$timer, $time) {
+                $this->onFulfilled->insert(function () use (&$timer, $time, $resolve) {
+                    $timer = Timer::once(function () use ($resolve) {
+                        $resolve($this->result);
+                    }, $time);
+                });
+                
+                $this->onRejected->insert(function () use ($resolve) {
+                    $resolve($this->result);
+                });
             },
             function (Exception $exception) use (&$timer) {
                 if (null !== $timer) {
@@ -250,32 +261,6 @@ class Promise implements PromiseInterface
                 }
             }
         );
-        
-        $promise->source = $this;
-        
-        return $promise;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function fork(callable $onCancelled = null)
-    {
-        if (null !== $this->result) {
-            return $this->result->fork($onCancelled);
-        }
-        
-        return new static(function ($resolve, $reject) {
-            $this->done($resolve, $reject);
-        }, $onCancelled);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function uncancellable()
-    {
-        return new UncancellablePromise($this);
     }
     
     /**
@@ -318,7 +303,7 @@ class Promise implements PromiseInterface
      * Return a promise using the given value. There are three possible outcomes depending on the type of the passed value:
      * (1) PromiseInterface: The promise is returned without modification.
      * (2) PromisorInterface: The contained promise is returned by calling PromisorInterface::getPromise().
-     * (3) All other types: A fulfilled (resolved) promise (FulfilledPromise) is returned.
+     * (3) All other types: A fulfilled promise is returned using the given value as the result.
      *
      * @param   mixed $value
      *
@@ -332,15 +317,17 @@ class Promise implements PromiseInterface
             return $value;
         }
         
+/*
         if ($value instanceof PromisorInterface) {
             return $value->getPromise();
         }
+*/
         
         return new FulfilledPromise($value);
     }
     
     /**
-     * Create a new rejected promise (RejectedPromise) using the given exception as the rejection reason.
+     * Create a new rejected promise using the given exception as the rejection reason.
      *
      * @param   Exception $exception
      *
@@ -369,13 +356,18 @@ class Promise implements PromiseInterface
      */
     public static function lift(callable $worker)
     {
+        $worker = function (array $args) use ($worker) {
+            ksort($args); // Needed to ensure correct argument order.
+            return call_user_func_array($worker, $args);
+        };
+        
         /**
          * @param   mixed ...$args Promises or values.
          *
          * @return  PromiseInterface
          */
         return function (/* ...$args */) use ($worker) {
-            return static::fold(func_get_args(), $worker);
+            return static::join(func_get_args())->then($worker);
         };
     }
     
@@ -390,21 +382,57 @@ class Promise implements PromiseInterface
      *
      * @api
      */
-    public static function promisify(callable $worker, $index = 1)
+    public static function promisify(callable $worker, $index = 0)
     {
-        return function (/* ...$args */) use ($index) {
+        return function (/* ...$args */) use ($worker, $index) {
             $args = func_get_args();
             
-            return new static(function ($resolve) use ($index, $args) {
+            return new static(function ($resolve) use ($worker, $index, $args) {
                 $callback = function (/* ...$args */) use ($resolve) {
                     $resolve(func_get_args());
                 };
+                
+                if (count($args) < $index) {
+                    throw new LogicException('Too few arguments given to function.');
+                }
                 
                 array_splice($args, $index, 0, [$callback]);
                 
                 call_user_func_array($worker, $args);
             });
         };
+    }
+    
+    /**
+     * Returns a promise that is resolved when all promises are resolved. The returned promise will not reject by itself (only
+     * if cancelled). Returned promise is fulfilled with an array of resolved promises, with keys identical and corresponding
+     * to the original given array.
+     *
+     * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
+     *
+     * @return  PromiseInterface
+     *
+     * @api
+     */
+    public static function settle(array $promises)
+    {
+        if (empty($promises)) {
+            return static::resolve([]);
+        }
+        
+        return new static(function ($resolve) use ($promises) {
+            $pending = count($promises);
+            
+            foreach ($promises as $key => $promise) {
+                $promises[$key] = $promise = static::resolve($promise);
+                
+                $promise->after(function () use (&$promises, &$pending, $resolve) {
+                    if (0 === --$pending) {
+                        $resolve($promises);
+                    }
+                });
+            }
+        });
     }
     
     /**
@@ -438,26 +466,6 @@ class Promise implements PromiseInterface
                 
                 static::resolve($promise)->done($onFulfilled, $reject);
             }
-        });
-    }
-    
-    /**
-     * Calls the given callback function using the resolution values of the given promises or values as the parameters
-     * to the function. Parameters are passed to the function in the iteration order of the passed array. The returned
-     * promise is fulfilled using the return value of $callback or rejected if $callback throws or if any of the given
-     * promises are rejected.
-     *
-     * @param   mixed[] $promises
-     * @param   callable $callback
-     *
-     * @return  PromiseInterface
-     *
-     * @api
-     */
-    public static function fold(array $promises, callable $callback)
-    {
-        return static::join($promises)->then(function (array $values) use ($callback) {
-            return call_user_func_array($callback, $values);
         });
     }
     
@@ -509,7 +517,7 @@ class Promise implements PromiseInterface
         $required = (int) $required;
         
         if (0 >= $required) {
-            return static::resolve(null);
+            return static::resolve([]);
         }
         
         if ($required > count($promises)) {
@@ -659,7 +667,7 @@ class Promise implements PromiseInterface
                     if ($predicate($value)) { // Resolve promise if predicate returns true.
                         $resolve($value);
                     } else { // Otherwise use result of $worker in promise context (so promises returned by $worker delay iteration).
-                        self::resolve($worker($value))->done($callback, $reject);
+                        static::resolve($worker($value))->done($callback, $reject);
                     }
                 } catch (Exception $exception) {
                     $reject($exception);

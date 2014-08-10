@@ -5,8 +5,7 @@ use Exception;
 use Generator;
 use Icicle\Coroutine\Exception\CancelledException;
 use Icicle\Coroutine\Exception\InvalidCallableException;
-use Icicle\Coroutine\Exception\UnsuccessfulCancellationException;
-use Icicle\Loop\Loop;
+use Icicle\Coroutine\Exception\InvalidGeneratorException;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Promise\PromiseTrait;
@@ -18,7 +17,7 @@ class Coroutine implements PromiseInterface
     use PromiseTrait;
     
     /**
-     * @var Generator
+     * @var Generator|null
      */
     private $generator;
     
@@ -28,7 +27,7 @@ class Coroutine implements PromiseInterface
     private $promise;
     
     /**
-     * @var Closure
+     * @var Closure|null
      */
     private $worker;
     
@@ -47,24 +46,21 @@ class Coroutine implements PromiseInterface
         $this->promise = new Promise(
             function ($resolve, $reject) {
                 /**
-                 * Excutes the Generator until a yield statement is encountered. If the Generator yields another Generator object,
-                 * another Coroutine is created and execution of that coroutine supersedes this Coroutine. The resolved value
-                 * of the new Coroutine is used as the send value of this Coroutine. If the Generator yields a PromiseInterface
-                 * or a PromisorInterface, execution of the Generator waits until the promise resolves. The resolution of the
-                 * promise is either sent or thrown into the Generator.
-                 *
                  * @param   mixed $value The value to send to the Generator.
                  * @param   Exception|null $exception If not null, the Exception object will be thrown into the Generator.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
-                    if ($this->promise->isPending()) { // Coroutine may have been cancelled.
+                    if ($this->promise->isPending()) { // Coroutine may have been cancelled and closed.
                         try {
                             if (null !== $exception) { // Throw exception at current execution point.
                                 $initial = false;
                                 $this->current = $this->generator->throw($exception);
                             } elseif ($initial) { // Get result of first yield statement.
                                 $initial = false;
+                                if (!$this->generator->valid()) { // Reject if initially given an invalid generator.
+                                    throw new InvalidGeneratorException($this->generator);
+                                }
                                 $this->current = $this->generator->current();
                             } else { // Send the new value and execute to next yield statement.
                                 $this->current = $this->generator->send($value);
@@ -72,20 +68,23 @@ class Coroutine implements PromiseInterface
                             
                             if (!$this->generator->valid()) {
                                 $resolve($value);
+                                $this->close();
                             } else {
                                 if ($this->current instanceof Generator) {
                                     $this->current = new static($this->current);
-                                } elseif ($this->current instanceof PromisorInterface) {
-                                    $this->current = $this->current->getPromise();
                                 }
                                 
                                 if ($this->current instanceof PromiseInterface) {
                                     $this->current->done(
                                         function ($value) {
-                                            Immediate::enqueue($this->worker, $value);
+                                            if ($this->promise->isPending()) {
+                                                Immediate::enqueue($this->worker, $value);
+                                            }
                                         },
                                         function (Exception $exception) {
-                                            Immediate::enqueue($this->worker, null, $exception);
+                                            if ($this->promise->isPending()) {
+                                                Immediate::enqueue($this->worker, null, $exception);
+                                            }
                                         }
                                     );
                                 } else {
@@ -94,6 +93,7 @@ class Coroutine implements PromiseInterface
                             }
                         } catch (Exception $exception) {
                             $reject($exception);
+                            $this->close();
                         }
                     }
                 };
@@ -101,19 +101,42 @@ class Coroutine implements PromiseInterface
                 Immediate::enqueue($this->worker);
             },
             function (Exception $exception) {
-                if ($this->current instanceof PromiseInterface) {
-                    $this->current->cancel($exception);
+                try {
+                    while ($this->generator->valid()) {
+                        if ($this->current instanceof PromiseInterface) {
+                            $this->current->cancel($exception);
+                        }
+                        
+                        $this->current = $this->generator->throw($exception);
+                    }
+                } finally {
+                    $this->close();
                 }
                 
-                $this->generator->throw($exception);
-                
-                if ($this->generator->valid()) {
-                    Loop::schedule(function () {
+/*
+                try {
+                    $this->generator->throw($exception);
+                    
+                    if ($this->generator->valid()) {
                         throw new UnsuccessfulCancellationException($this);
-                    });
+                    }
+                } finally {
+                    $this->close();
                 }
+*/
             }
         );
+    }
+    
+    /**
+     * The garbage collector does not automatically detect the deep circular references that can be
+     * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
+     */
+    private function close()
+    {
+        $this->generator = null;
+        $this->worker = null;
+        $this->current = null;
     }
     
     /**
@@ -121,10 +144,6 @@ class Coroutine implements PromiseInterface
      */
     public function cancel(Exception $exception = null)
     {
-        if (null === $exception) {
-            $exception = new CancelledException('The coroutine was terminated.');
-        }
-        
         $this->promise->cancel($exception);
     }
     
@@ -158,22 +177,6 @@ class Coroutine implements PromiseInterface
     public function delay($time)
     {
         return $this->promise->delay($time);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function fork(callable $onCancelled = null)
-    {
-        return $this->promise->fork($onCancelled);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function uncancellable()
-    {
-        return $this->promise->uncancellable();
     }
     
     /**
@@ -229,16 +232,6 @@ class Coroutine implements PromiseInterface
     
     /**
      * @param   callable $worker
-     *
-     * @return  callable
-     */
-    public static function lift(callable $worker)
-    {
-        return Promise::lift(static::async($worker));
-    }
-    
-    /**
-     * @param   callable $worker
      * @param   mixed ...$args
      *
      * @return  Coroutine
@@ -273,5 +266,19 @@ class Coroutine implements PromiseInterface
         }
         
         return new static($generator);
+    }
+    
+    /**
+     * @coroutine
+     *
+     * @param   float $time Time to sleep in seconds.
+     *
+     * @return  float Actual time slept in seconds.
+     */
+    public static function sleep($time)
+    {
+        $start = (yield Promise::resolve(microtime(true))->delay($time));
+        
+        yield microtime(true) - $start;
     }
 }

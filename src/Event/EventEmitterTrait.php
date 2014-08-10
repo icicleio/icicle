@@ -1,6 +1,8 @@
 <?php
 namespace Icicle\Event;
 
+use Icicle\Event\Exception\InvalidEventException;
+
 trait EventEmitterTrait
 {
     /**
@@ -9,12 +11,29 @@ trait EventEmitterTrait
     private $listeners = [];
     
     /**
+     * @param   string|int $event
+     */
+    protected function createEvent($event)
+    {
+        if (!isset($this->listeners[$event])) {
+            $this->listeners[$event] = [];
+        }
+    }
+    
+/*
+    protected function removeEvent($event)
+    {
+        unset($this->listeners[$event]);
+    }
+*/
+    
+    /**
      * {@inheritdoc}
      */
     public function addListener($event, callable $listener, $once = false)
     {
         if (!isset($this->listeners[$event])) {
-            $this->listeners[$event] = [];
+            throw new InvalidEventException($event);
         }
         
         $index = $this->getListenerIndex($listener);
@@ -54,6 +73,10 @@ trait EventEmitterTrait
      */
     public function removeListener($event, callable $listener)
     {
+        if (!isset($this->listeners[$event])) {
+            throw new InvalidEventException($event);
+        }
+        
         if (isset($this->listeners[$event])) {
             $index = $this->getListenerIndex($listener);
             unset($this->listeners[$event][$index]);
@@ -76,9 +99,15 @@ trait EventEmitterTrait
     public function removeAllListeners($event = null)
     {
         if (null === $event) {
-            $this->listeners = [];
+            foreach ($this->listeners as $event => $listeners) {
+                $this->listeners[$event] = [];
+            }
         } else {
-            unset($this->listeners[$event]);
+            if (!isset($this->listeners[$event])) {
+                throw new InvalidEventException($event);
+            }
+            
+            $this->listeners[$event] = [];
         }
         
         return $this;
@@ -89,7 +118,11 @@ trait EventEmitterTrait
      */
     public function getListeners($event)
     {
-        return isset($this->listeners[$event]) ? $this->listeners[$event] : [];
+        if (!isset($this->listeners[$event])) {
+            throw new InvalidEventException($event);
+        }
+        
+        return $this->listeners[$event];
     }
     
     /**
@@ -97,14 +130,22 @@ trait EventEmitterTrait
      */
     public function getListenerCount($event)
     {
-        return isset($this->listeners[$event]) ? count($this->listeners[$event]) : 0;
+        if (!isset($this->listeners[$event])) {
+            throw new InvalidEventException($event);
+        }
+        
+        return count($this->listeners[$event]);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function emit($event /* , ...$args */)
+    protected function emit($event /* , ...$args */)
     {
+        if (!isset($this->listeners[$event])) {
+            throw new InvalidEventException($event);
+        }
+        
         if (empty($this->listeners[$event])) {
             return false;
         }

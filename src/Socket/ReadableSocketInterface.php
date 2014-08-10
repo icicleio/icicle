@@ -5,7 +5,9 @@ interface ReadableSocketInterface extends SocketInterface
 {
     const NO_TIMEOUT = 0;
     
-    const DEFAULT_TIMEOUT = 60;
+    const MIN_TIMEOUT = 0.001;
+    
+    const DEFAULT_TIMEOUT = 30;
     
     /**
      * Returns the number of seconds until the connection times out if no read events have occurred.
@@ -15,29 +17,6 @@ interface ReadableSocketInterface extends SocketInterface
      * @api
      */
     public function getTimeout();
-    
-    /**
-     * Stops listening for incoming data on the socket.
-     *
-     * @api
-     */
-    public function pause();
-    
-    /**
-     * Resumes listening for incoming data on the socket.
-     *
-     * @api
-     */
-    public function resume();
-    
-    /**
-     * Determines if the socket is paused.
-     *
-     * @return  bool
-     *
-     * @api
-     */
-    public function isPaused();
     
     /**
      * Called when the connection has data waiting to be read or a connection to be accepted.

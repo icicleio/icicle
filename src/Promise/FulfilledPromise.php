@@ -18,7 +18,7 @@ class FulFilledPromise extends ResolvedPromise
      *
      * @throws  TypeException Thrown if a PromiseInterface or PromisorInterface is given as the value.
      */
-    public function __construct($value = null)
+    public function __construct($value)
     {
         if ($value instanceof PromiseInterface || $value instanceof PromisorInterface) {
             throw new TypeException('Cannot use a PromiseInterface or PromisorInterface as a fulfilled promise value.');
@@ -33,7 +33,7 @@ class FulFilledPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onFulfilled) {
-            return $this;
+            return new static($this->value);
         }
         
         return new Promise(function ($resolve, $reject) use ($onFulfilled) {
@@ -65,7 +65,7 @@ class FulFilledPromise extends ResolvedPromise
         return new Promise(
             function ($resolve) use (&$timer, $time) {
                 $timer = Timer::once(function () use ($resolve) {
-                    $resolve($this->value);
+                    $resolve($this);
                 }, $time);
             },
             function () use (&$timer) {

@@ -1,11 +1,10 @@
 <?php
 namespace Icicle\Timer;
 
-use Countable;
 use Icicle\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
-class TimerQueue implements Countable
+class TimerQueue implements \Countable
 {
     /**
      * @var SplPriorityQueue
@@ -100,16 +99,6 @@ class TimerQueue implements Countable
     }
     
     /**
-     * Alias of count().
-     *
-     * @return  int
-     */
-    public function getLength()
-    {
-        return $this->count();
-    }
-    
-    /**
      * Determines if the queue is empty (includes unreferenced timers).
      *
      * @return  bool
@@ -134,7 +123,7 @@ class TimerQueue implements Countable
      *
      * @return  int|float|bool
      */
-    public function getTimeout()
+    public function getInterval()
     {
         if ($this->queue->isEmpty()) {
             return false;
@@ -153,28 +142,35 @@ class TimerQueue implements Countable
     
     /**
      * Executes any pending timers. Returns the number of timers executed.
+     *
+     * @return  int
      */
     public function tick()
     {
+        $count = 0;
+        
         while (!$this->queue->isEmpty()) {
             $timer = $this->queue->top();
             
             if ($this->timers[$timer] > microtime(true)) { // Timer at top of queue has not expired.
-                return;
+                return $count;
             }
             
             // Remove and execute timer. Replace timer if persistent.
             $this->queue->extract();
             
             if ($timer->isPeriodic()) {
-                $timeout = $this->timers[$timer] + $timer->getInterval();
-                $this->queue->insert($timer, -$timeout);
-                $this->timers[$timer] = $timeout;
+                $this->timers[$timer] += $timer->getInterval();
+                $this->queue->insert($timer, -$this->timers[$timer]);
             } else {
                 $this->timers->detach($timer);
             }
             
             $timer->call(); // Execute the timer.
+            
+            ++$count;
         }
+        
+        return $count;
     }
 }

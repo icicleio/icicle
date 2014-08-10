@@ -1,27 +1,25 @@
 <?php
-namespace Icicle\PromiseSocket;
-
-use InvalidArgumentException;
-use LogicException;
-use RuntimeException;
+namespace Icicle\Socket;
 
 use Icicle\Loop\Loop;
 use Icicle\Promise\DeferredPromise;
 use Icicle\Promise\Promise;
-use Icicle\Socket\Exception\SocketException;
-use Icicle\Socket\ReadableSocketInterface;
+use Icicle\Socket\Exception\AcceptException;
+use Icicle\Socket\Exception\ClosedException;
+use Icicle\Socket\Exception\InvalidArgumentException;
+use Icicle\Socket\Exception\FailureException;
+use Icicle\Socket\Exception\TimeoutException;
+use Icicle\Socket\Exception\UnavailableException;
 
 class Server extends Socket implements ReadableSocketInterface
 {
-    const DEFAULT_QUEUE_LENGTH = 100;
-    
-    const DEFAULT_ACCEPT_TIMEOUT = 1;
+    const DEFAULT_BACKLOG = SOMAXCONN;
     
     /**
      * Listening hostname or IP address.
-     * @var     string
+     * @var     int
      */
-    private $host;
+    private $address;
     
     /**
      * Listening port.
@@ -31,15 +29,10 @@ class Server extends Socket implements ReadableSocketInterface
     
     /**
      * True if using SSL/TLS, false otherwise.
+     *
      * @var     bool
      */
     private $secure;
-    
-    /**
-     * Number of seconds to attempt to accept a client.
-     * @var     int
-     */
-    private $acceptTimeout;
     
     /**
      * @var     DeferredPromise
@@ -47,26 +40,20 @@ class Server extends Socket implements ReadableSocketInterface
     private $deferred;
     
     /**
-     * @var     Client|null
+     * @var     float
      */
-    private $client;
+    private $timeout = self::NO_TIMEOUT;
     
     /**
      * @param   string $host
      * @param   int $port
-     * @param   string|null $pem
-     * @param   string|null $passphrase
      * @param   array $options
+     *
      * @return  Server
      */
     public static function create($host, $port, array $options = null)
     {
-        if (!is_int($port) || 0 >= $port) {
-            throw new InvalidArgumentException('The port must be a positive integer.');
-        }
-        
-        $queue = isset($options['queue_length']) ? (int) $options['queue_length'] : self::DEFAULT_QUEUE_LENGTH;
-        $acceptTimeout = isset($options['accept_timeout']) ? (float) $options['accept_timeout'] : self::DEFAULT_ACCEPT_TIMEOUT;
+        $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
         $pem = isset($options['pem']) ? (string) $options['pem'] : null;
         $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
         
@@ -77,10 +64,10 @@ class Server extends Socket implements ReadableSocketInterface
         $context = [];
         
         $context['socket'] = [];
-        $context['socket']['bindto'] = sprintf('%s:%d', $host, $port);
+        $context['socket']['bindto'] = "{$host}:{$port}";
         $context['socket']['backlog'] = $queue;
         
-        if (is_string($pem)) {
+        if (null !== $pem) {
             if (!file_exists($pem)) {
                 throw new InvalidArgumentException('No file found at given PEM path.');
             }
@@ -91,7 +78,7 @@ class Server extends Socket implements ReadableSocketInterface
             $context['ssl']['local_cert'] = $pem;
             $context['ssl']['disable_compression'] = true;
             
-            if (is_string($passphrase)) {
+            if (null !== $passphrase) {
                 $context['ssl']['passphrase'] = $passphrase;
             }
         } else {
@@ -100,50 +87,78 @@ class Server extends Socket implements ReadableSocketInterface
         
         $context = stream_context_create($context);
         
-        $uri = sprintf('%s://%s:%d', ($secure ? 'tls' : 'tcp'), $host, $port);
-        
-        $socket = stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $uri = "tcp://{$host}:{$port}";
+        $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         
         if (!$socket || $errno) {
-            throw new RuntimeException("Could not create server ({$uri}): [{$errno}] {$errstr}.");
+            throw new FailureException("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
         }
         
-        return new static($socket, $secure, $acceptTimeout);
+        return new static($socket, $secure);
     }
     
     /**
      * @param   resource $socket
-     * @param   LoopInterface $loop
      * @param   bool $secure
      */
-    public function __construct($socket, $secure, $acceptTimeout = self::DEFAULT_ACCEPT_TIMEOUT)
+    public function __construct($socket, $secure = false)
     {
         parent::__construct($socket);
         
-        $this->secure = (bool) $secure;
-        $this->acceptTimeout = (float) $acceptTimeout;
+        $this->secure = $secure;
         
-        if (0 >= $this->acceptTimeout) {
-            throw new InvalidArgumentException('The accept timeout must be a positive integer or float.');
-        }
-        
-        stream_set_blocking($socket, 0);
-        
-        list($this->host, $this->port) = self::parseSocketName($socket, false);
-        
-        Loop::getInstance()->addReadableSocket($this);
-    }
-    
-    public function close()
-    {
-        if ($this->isOpen()) {
-            Loop::getInstance()->removeSocket($this);
-            parent::close();
-        }
+        list($this->address, $this->port) = self::parseSocketName($socket, false);
     }
     
     /**
-     * Determines if the server is using SSL/TLS for connections.
+     * {@inheritdoc}
+     */
+    public function close(Exception $exception = null)
+    {
+        if ($this->isOpen()) {
+            if (null !== $this->deferred) {
+                if (null === $exception) {
+                    $exception = new ClosedException('The server has closed.');
+                }
+                
+                $this->deferred->reject($exception);
+                $this->deferred = null;
+            }
+        
+            Loop::getInstance()->removeSocket($this);
+        }
+        
+        parent::close();
+    }
+    
+    /**
+     * Accepts incoming client connections.
+     *
+     * @return  PromiseInterface
+     */
+    public function accept()
+    {
+        if (null !== $this->deferred) {
+            return Promise::reject(new UnavailableException('Already waiting on server.'));
+        }
+        
+        if (!$this->isOpen()) {
+            return Promise::reject(new ClosedException('The server has been closed.'));
+        }
+        
+        Loop::getInstance()->scheduleReadableSocket($this);
+        
+        $this->deferred = new DeferredPromise(function () {
+            Loop::getInstance()->unscheduleReadableSocket($this);
+            $this->deferred = null;
+        });
+        
+        return $this->deferred->getPromise();
+    }
+    
+    /**
+     * Determines if the server is using SSL/TLS.
+     *
      * @return  bool
      */
     public function isSecure()
@@ -152,16 +167,18 @@ class Server extends Socket implements ReadableSocketInterface
     }
     
     /**
-     * Returns the hostname or IP addresses on which the server is listening.
+     * Returns the IP address on which the server is listening.
+     *
      * @return  string
      */
-    public function getHost()
+    public function getAddress()
     {
-        return $this->host;
+        return $this->address;
     }
     
     /**
      * Returns the port on which the server is listening.
+     *
      * @return  int
      */
     public function getPort()
@@ -172,56 +189,28 @@ class Server extends Socket implements ReadableSocketInterface
     /**
      * {@inheritdoc}
      */
-    public function getName()
-    {
-        return $this->getHost() . ':' . $this->getPort();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isPaused()
-    {
-        return !Loop::getInstance()->isReadableSocketPending($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function pause()
-    {
-        Loop::getInstance()->removeSocket($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function resume()
-    {
-        Loop::getInstance()->addReadableSocket($this);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
     public function onRead()
     {
-        if ($this->isOpen()) {
-            $client = @stream_socket_accept($this->getResource(), $this->acceptTimeout);
-            
-            if ($client) {
-                $client = new Client($client, $this->secure);
-                
-                if (null !== $this->deferred) {
-                    $this->deferred->resolve($client);
-                    $this->deferred = null;
-                } else {
-                    $this->client = $client;
-                    $this->pause();
-                    //echo "Pausing server.\n";
-                }
-            }
+        $socket = $this->getResource();
+        
+        if (@feof($socket)) {
+            $exception = new ClosedException("The server closed unexpectedly.");
+            $this->deferred->reject($exception);
+            $this->deferred = null;
+            $this->close($exception);
+            return;
         }
+        
+        $client = @stream_socket_accept($socket, 0);
+        
+        if (!$client) {
+            $this->deferred->reject(new AcceptException('Error when accepting client.'));
+            $this->deferred = null;
+            return;
+        }
+        
+        $this->deferred->resolve(new RemoteClient($client, $this->secure));
+        $this->deferred = null;
     }
     
     /**
@@ -229,12 +218,8 @@ class Server extends Socket implements ReadableSocketInterface
      */
     public function onTimeout()
     {
-        if (null !== $this->deferred) {
-            $this->deferred->reject(new SocketException('The connection timed out.'));
-            $this->deferred = null;
-        } else {
-            $this->close();
-        }
+        $this->deferred->reject(new TimeoutException('The server timed out.'));
+        $this->deferred = null;
     }
     
     /**
@@ -242,53 +227,55 @@ class Server extends Socket implements ReadableSocketInterface
      */
     public function getTimeout()
     {
-        return self::NO_TIMEOUT;
+        return $this->timeout;
     }
     
     /**
-     * Accepts incoming client connections. Should be called in response to a 'ready' event (blocking read).
-     * @return  Client|null
+     * {@inheritdoc}
      */
-    public function accept()
+    public function setTimeout($timeout)
     {
-        if (null !== $this->deferred) {
-            return Promise::reject(new SocketException('Already waiting on server.'));
+        $this->timeout = (float) $timeout;
+        
+        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
+            $this->timeout = self::MIN_TIMEOUT;
         }
         
-        if (null !== $this->client) {
-            $promise = Promise::resolve($this->client);
-            $this->client = null;
-            if ($this->isPaused()) {
-                $this->resume();
-                //echo "Resuming server.\n";
-            }
-            return $promise;
-        }
+        $loop = Loop::getInstance();
         
-        if (!$this->isOpen()) {
-            return Promise::reject(new SocketException('The server has disconnected.'));
+        if ($loop->isReadableSocketScheduled($this)) {
+            $loop->unscheduleReadableSocket($this);
+            $loop->scheduleReadableSocket($this);
         }
-        
-        $this->deferred = new DeferredPromise();
-        return $this->deferred->getPromise();
     }
     
     /**
      * Generates a self-signed certificate and private key that can be used for testing a server.
+     *
      * @param   string $country Country (2 letter code)
      * @param   string $state State or Province
      * @param   string $city Locality (eg, city)
      * @param   string $company Organization Name (eg, company)
      * @param   string $section Organizational Unit (eg, section)
-     * @param   string $domain Common Name (domain name)
+     * @param   string $domain Common Name (hostname or domain)
      * @param   string $email Email Address
      * @param   string $passphrase Optional passphrase, NULL for none.
      * @param   string $path Path to write PEM file. If NULL, the PEM is returned.
-     * @return  string|int|bool Returns the PEM if $path was NULL, or the number of bytes written to $path, or false if the file
-     *          could not be written.
+     *
+     * @return  string|int|bool Returns the PEM if $path was NULL, or the number of bytes written to $path,
+     *          of false if the file could not be written.
      */
-    public static function generateCert($country, $state, $city, $company, $section, $domain, $email, $passphrase = NULL, $path = NULL)
-    {
+    public static function generateCert(
+        $country,
+        $state,
+        $city,
+        $company,
+        $section,
+        $domain,
+        $email,
+        $passphrase = null,
+        $path = null
+    ) {
         if (!extension_loaded('openssl')) {
             throw new LogicException('The OpenSSL extension must be loaded to create a certificate.');
         }

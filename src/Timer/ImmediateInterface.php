@@ -6,7 +6,7 @@ interface ImmediateInterface
     /**
      * Sets the immediate to execute if it not already pending.
      */
-    public function schedule();
+    public function set();
     
     /**
      * Executes the immediate callback.
@@ -24,5 +24,8 @@ interface ImmediateInterface
      */
     public function isPending();
     
-    
+    /**
+     * Alias of set().
+     */
+    public function __invoke();
 }

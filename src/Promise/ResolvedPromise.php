@@ -25,30 +25,6 @@ abstract class ResolvedPromise implements PromiseInterface
      */
     public function timeout($timeout, Exception $exception = null)
     {
-        return $this;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function delay($time)
-    {
-        return $this;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function fork(callable $onCancelled = null)
-    {
-        return $this;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function uncancellable()
-    {
-        return $this;
+        return $this->then();
     }
 }

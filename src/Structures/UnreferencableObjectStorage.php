@@ -29,6 +29,15 @@ class UnreferencableObjectStorage extends SplObjectStorage
     /**
      * @param   object $object
      */
+    public function offsetUnset($object)
+    {
+        parent::offsetUnset($object);
+        $this->unreferenced->detach($object);
+    }
+    
+    /**
+     * @param   object $object
+     */
     public function unreference($object)
     {
         if ($this->contains($object)) {
@@ -52,6 +61,18 @@ class UnreferencableObjectStorage extends SplObjectStorage
     public function referenced($object)
     {
         return $this->contains($object) && !$this->unreferenced->contains($object);
+    }
+    
+    /**
+     * @param   SplObjectStorage $storage
+     */
+    public function addAll($storage)
+    {
+        parent::addAll($storage);
+        
+        if ($storage instanceof self) {
+            $this->unreferenced->addAll($storage->unreferenced);
+        }
     }
     
     /**

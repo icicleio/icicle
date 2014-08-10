@@ -3,10 +3,11 @@ namespace Icicle\Structures;
 
 use Icicle\Structures\Exception\InvalidArgumentException;
 use Icicle\Structures\Exception\InvalidIteratorException;
+use Iterator;
 
 /**
  */
-class BufferIterator implements \Iterator
+class BufferIterator implements Iterator
 {
     /**
      * @var     Buffer
