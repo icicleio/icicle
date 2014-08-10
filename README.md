@@ -24,7 +24,6 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 - [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling, process forking, and child process execution.
 - [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
 - [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
-<!-- - [ev extension](http://pecl.php.net/package/ev): Another extension allowing a more performant event loop implementation, though those above should be preferred. -->
 
 ## Promises
 
