@@ -42,7 +42,7 @@ The `done(callable $onFulfilled = null, callable $onRejected = null)` method reg
 ```php
 use Icicle\Loop\Loop;
 
-$promise1 = doSomethingAsynchronously(); // Asynchronous function returning a promise.
+$promise1 = doSomethingAsynchronously(); // Function returning a promise.
 
 $promise2 = $promise1->then(
     function ($value) { // Called if $promise1 is fulfilled.
@@ -92,7 +92,7 @@ When a coroutine yields a [promise](#promises), execution of the coroutine is in
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-The example below uses the `Coroutine::call()` method to create a `Coroutine` from a callable function returning a `Generator`.
+The example below uses the `Coroutine::call()` method to create a `Coroutine` from a function creating a `Generator`.
 
 ```php
 use Icicle\Coroutine\Coroutine;
@@ -107,7 +107,7 @@ $coroutine = Coroutine::call(function () {
         // Do something with $value.
         echo "Asynchronous task succeeded: {$value}\n";
     } catch (Exception $exception) {
-        // Promise returned by doSomethingAsynchronously() was rejected or fulfilled with null.
+        // Yielded promise was rejected or fulfilled with null.
         echo "Asynchronous task failed: {$exception->getMessage()}\n";
     }
 });
