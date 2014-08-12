@@ -111,9 +111,7 @@ class SelectLoop extends AbstractLoop
         }
 */
         
-        if (!$this->select($timeout) && 0 !== $timeout) { // Select available sockets for reading or writing.
-            $this->sleep($timeout); // If no sockets available, sleep until the next timer is ready.
-        }
+        $this->select($timeout); // Select available sockets for reading or writing.
         
         $this->timerQueue->tick(); // Call any pending timers.
         
@@ -170,24 +168,12 @@ class SelectLoop extends AbstractLoop
                     }
                 }
             }
-            
-            return true;
+        } elseif (0 !== $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
+            $seconds = (int) floor($timeout);
+            $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
+        
+            time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
         }
-        
-        return false;
-    }
-    
-    /**
-     * @param   float $timeout
-     *
-     * @return  bool
-     */
-    protected function sleep($timeout)
-    {
-        $seconds = (int) floor($timeout);
-        $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
-        
-        return true === time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
     }
     
     /**
