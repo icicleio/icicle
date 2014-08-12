@@ -1,4 +1,29 @@
 {
+    "name": "icicle/icicle",
+    "description": "Icicle is a PHP library for writing asynchronous code using synchronous coding techniques.",
+    "keywords": [
+        "asynchronous",
+        "async",
+        "coroutine",
+        "generator",
+        "interruptible",
+        "promise",
+        "socket",
+        "stream",
+        "network",
+        "server",
+        "multitasking",
+        "event"
+    ],
+    "homepage": "http://icicle.io",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aaron Piotrowski",
+            "email": "aaron@trowski.com",
+            "homepage": "http://trowski.com"
+        }
+    ],
     "require": {
         "php": ">=5.4"
     },
@@ -6,10 +31,10 @@
         "phpunit/phpunit": "4.0.*"
     },
     "suggest": {
-        "ext-pcntl": "Required for custom signal handling and for forking child processes to handle connections.",
+        "ext-openssl": "Enables using SSL/TLS on sockets.",
+        "ext-pcntl": "Enables custom signal handling, process forking, and child process execution.",
         "ext-event": "Preferred extension for providing an event loop with better performance.",
         "ext-libevent": "Alternative extension that also provides an event loop with better performance.",
-        "ext-ev": "Experimental extention that can also provide an event loop with better performance."
     },
     "autoload": {
         "psr-4": {

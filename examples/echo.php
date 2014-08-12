@@ -6,7 +6,6 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Socket\Server;
 use Icicle\Socket\Client;
-use Icicle\Socket\Exception\TimeoutException;
 
 $coroutine = Coroutine::call(function () {
     $server = Server::create('localhost', 8080);

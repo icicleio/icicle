@@ -112,7 +112,7 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
         }
         
         if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The socket has closed.'));
+            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
         }
         
         if (null !== $length) {
@@ -123,14 +123,14 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
             }
         }
         
-        Loop::getInstance()->scheduleReadableSocket($this);
-        
         $this->length = $length;
         
         $this->deferred = new DeferredPromise(function () {
             Loop::getInstance()->unscheduleReadableSocket($this);
             $this->deferred = null;
         });
+        
+        Loop::getInstance()->scheduleReadableSocket($this);
         
         return $this->deferred->getPromise();
     }
@@ -262,6 +262,20 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
             }
         }
         
+        if (null !== $this->destination) {
+            $this->destination->write($data)->done(
+                function () {
+                    Loop::getInstance()->scheduleReadableSocket($this);
+                },
+                function (Exception $exception) {
+                    $this->deferred->reject($exception);
+                    $this->deferred = null;
+                    $this->destination = null;
+                }
+            );
+            return;
+        }
+        
         $this->deferred->resolve($data);
         $this->deferred = null;
     }
@@ -335,5 +349,29 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
             $loop->unscheduleReadableSocket($this);
             $loop->scheduleReadableSocket($this);
         }
+    }
+    
+    public function pipe(WritableStreamInterface $stream, callable $onTimeout = null)
+    {
+        if (null !== $this->deferred) {
+            return Promise::reject(new BusyException('Already waiting on stream.'));
+        }
+        
+        if (!$this->isReadable()) {
+            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        }
+        
+        $this->length = null;
+        $this->destination = $stream;
+        
+        Loop::getInstance()->scheduleReadableSocket($this);
+        
+        $this->deferred = new DeferredPromise(function () {
+            Loop::getInstance()->unscheduleReadableSocket($this);
+            $this->deferred = null;
+            $this->destination = null;
+        });
+        
+        return $this->deferred->getPromise();
     }
 }
