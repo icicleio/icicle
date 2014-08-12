@@ -40,7 +40,7 @@ class ServerTest extends TestCase
      */
     public function testCreateInvalidHost()
     {
-        $server = Server::create('invalidhost', self::PORT);
+        $server = Server::create('invalid.host', self::PORT);
     }
     
     /**

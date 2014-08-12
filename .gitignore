@@ -1,2 +1,6 @@
+build/api
+build/coverage
+build/logs
+build/phpdox
 composer.lock
-vendor/
+vendor
