@@ -39,4 +39,7 @@
             <directory suffix=".php">src</directory>
         </whitelist>
     </filter>
+    <logging>
+        <log type="coverage-html" target="build/coverage" title="PHPUnit" highlight="true"/>
+    </logging>
 </phpunit>
