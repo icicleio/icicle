@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Stub;
 
-use Icicle\Event\EventEmitterInterface;
-use Icicle\Event\EventEmitterTrait;
+use Icicle\EventEmitter\EventEmitterInterface;
+use Icicle\EventEmitter\EventEmitterTrait;
 
 class EventEmitterStub implements EventEmitterInterface
 {

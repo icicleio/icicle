@@ -34,7 +34,7 @@ abstract class AbstractLoopTest extends TestCase
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         fwrite($sockets[1], self::WRITE_STRING); // Make $sockets[0] readable.
         
-        $readableMock = $this->getMockBuilder('Icicle\Socket\Stream')
+        $readableMock = $this->getMockBuilder('Icicle\StreamSocket\Stream')
                              ->disableOriginalConstructor()
                              ->getMock();
         
@@ -47,7 +47,7 @@ abstract class AbstractLoopTest extends TestCase
         $readableMock->method('isOpen')
                      ->will($this->returnValue(true));
         
-        $writableMock = $this->getMockBuilder('Icicle\Socket\Stream')
+        $writableMock = $this->getMockBuilder('Icicle\StreamSocket\Stream')
                              ->disableOriginalConstructor()
                              ->getMock();
         

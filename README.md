@@ -191,13 +191,13 @@ Some example code using coroutines to create an asynchronous echo server.
 ``` php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Client;
-use Icicle\Socket\Server;
+use Icicle\StreamSocket\Client;
+use Icicle\StreamSocket\Server;
 
 $server = Server::create('localhost', 8080);
 
-$coroutine = Coroutine::async(function (Server $server) {
-    $coroutine = Coroutine::async(function (Client $client) {
+$coroutine = Coroutine::call(function (Server $server) {
+    $handler = Coroutine::async(function (Client $client) {
         try {
             yield $client->write("Hello!\n");
 			
@@ -217,14 +217,12 @@ $coroutine = Coroutine::async(function (Server $server) {
     
     while ($server->isOpen()) {
         try {
-            $coroutine(yield $server->accept());
+            $coroutine = $handler(yield $server->accept());
         } catch (Exception $e) {
             echo "Error accepting client: {$e->getMessage()}\n";
         }
     }
-});
-
-$coroutine($server);
+}, $server);
 
 Loop::run();
 ```

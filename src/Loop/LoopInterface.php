@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Event\EventEmitterInterface;
+use Icicle\EventEmitter\EventEmitterInterface;
 use Icicle\Socket\ReadableSocketInterface;
 use Icicle\Socket\SocketInterface;
 use Icicle\Socket\WritableSocketInterface;

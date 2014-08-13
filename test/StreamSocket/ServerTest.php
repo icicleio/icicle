@@ -3,8 +3,8 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\LocalClient;
-use Icicle\Socket\Server;
+use Icicle\StreamSocket\LocalClient;
+use Icicle\StreamSocket\Server;
 use Icicle\Tests\TestCase;
 
 class ServerTest extends TestCase
@@ -56,7 +56,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -161,7 +161,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
         
         $promise1->done($callback, $this->createCallback(0));
         
@@ -191,7 +191,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
         
         $promise->done($callback, $this->createCallback(0));
         

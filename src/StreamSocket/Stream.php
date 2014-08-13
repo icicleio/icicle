@@ -1,10 +1,11 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\StreamSocket;
 
 use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\DeferredPromise;
 use Icicle\Promise\Promise;
+use Icicle\Socket\DuplexSocketInterface;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;

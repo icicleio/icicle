@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Event\Exception;
+namespace Icicle\EventEmitter\Exception;
 
 class InvalidEventException extends InvalidArgumentException
 {

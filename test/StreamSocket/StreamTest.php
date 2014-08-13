@@ -3,7 +3,7 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Stream;
+use Icicle\StreamSocket\Stream;
 use Icicle\Tests\TestCase;
 
 class StreamTest extends TestCase

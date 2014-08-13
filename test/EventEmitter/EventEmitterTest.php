@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Tests\Event;
+namespace Icicle\Tests\EventEmitter;
 
-use Icicle\Event\Exception\InvalidEventException;
+use Icicle\EventEmitter\Exception\InvalidEventException;
 use Icicle\Tests\Stub\EventEmitterStub;
 use Icicle\Tests\Stub\ListenerStub;
 use Icicle\Tests\TestCase;
@@ -76,7 +76,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testAddListenerToInvalidEvent()
     {
@@ -125,7 +125,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testEmitInvalidEvent()
     {
@@ -191,7 +191,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testRemoveListenerWithInvalidEvent()
     {
@@ -243,7 +243,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testRemoveAllListenersWithInvalidEvent()
     {
@@ -265,7 +265,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testGetListenersWithInvalidEvent()
     {
@@ -273,7 +273,7 @@ class EventEmitterTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Event\Exception\InvalidEventException
+     * @expectedException Icicle\EventEmitter\Exception\InvalidEventException
      */
     public function testGetListenerCountWithInvalidEvent()
     {

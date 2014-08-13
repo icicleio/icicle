@@ -2,7 +2,7 @@
 namespace Icicle\Loop;
 
 use Exception;
-use Icicle\Event\EventEmitterTrait;
+use Icicle\EventEmitter\EventEmitterTrait;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
 use Icicle\Structures\CallableQueue;

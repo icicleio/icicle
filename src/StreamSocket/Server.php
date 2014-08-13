@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\StreamSocket;
 
 use Icicle\Loop\Loop;
 use Icicle\Promise\DeferredPromise;
@@ -10,6 +10,7 @@ use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
+use Icicle\Socket\ReadableSocketInterface;
 
 class Server extends Socket implements ReadableSocketInterface
 {
@@ -194,7 +195,7 @@ class Server extends Socket implements ReadableSocketInterface
         $socket = $this->getResource();
         
         if (@feof($socket)) {
-            $exception = new ClosedException("The server closed unexpectedly.");
+            $exception = new ClosedException('The server closed unexpectedly.');
             $this->deferred->reject($exception);
             $this->deferred = null;
             $this->close($exception);

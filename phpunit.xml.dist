@@ -15,7 +15,7 @@
 >
     <testsuites>
         <testsuite name="Icicle EventEmitter">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Event</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/EventEmitter</directory>
         </testsuite>
         <testsuite name="Icicle Structures">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Structures</directory>
@@ -32,8 +32,8 @@
         <testsuite name="Icicle Coroutine">
             <directory phpVersion="5.5.0" phpVersionOperator=">=">test/Coroutine</directory>
         </testsuite>
-        <testsuite name="Icicle Socket">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Socket</directory>
+        <testsuite name="Icicle Stream Socket">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/StreamSocket</directory>
         </testsuite>
     </testsuites>
     <filter>

@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Event;
+namespace Icicle\EventEmitter;
 
-use Icicle\Event\Exception\InvalidEventException;
+use Icicle\EventEmitter\Exception\InvalidEventException;
 
 trait EventEmitterTrait
 {

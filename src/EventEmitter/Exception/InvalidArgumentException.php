@@ -1,4 +1,4 @@
 <?php
-namespace Icicle\Event\Exception;
+namespace Icicle\EventEmitter\Exception;
 
 class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface {}

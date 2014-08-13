@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Event;
+namespace Icicle\EventEmitter;
 
 class EventEmitter implements EventEmitterInterface
 {
