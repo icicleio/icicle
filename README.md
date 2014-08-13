@@ -194,20 +194,25 @@ use Icicle\Loop\Loop;
 use Icicle\StreamSocket\Client;
 use Icicle\StreamSocket\Server;
 
-$server = Server::create('localhost', 8080);
+// Connect to server using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (Server $server) {
+$coroutine = Coroutine::call(function () {
+    $server = Server::create('localhost', 60000);
+    
     $handler = Coroutine::async(function (Client $client) {
         try {
-            yield $client->write("Hello!\n");
+            yield $client->ready();
+            
+            yield $client->write("Hello, want to play echo? Type 'exit' to quit.\n");
 			
             while ($client->isReadable()) {
                 $data = (yield $client->read());
                 
-                yield $client->write($data);
-                
-                if ("exit\r\n" === $data) {
+                if ("exit\n" === $data) {
+                    yield $client->write("Goodbye!\n");
                     $client->close();
+                } else {
+                    yield $client->write($data);
                 }
             }
         } catch (Exception $e) {
@@ -216,13 +221,9 @@ $coroutine = Coroutine::call(function (Server $server) {
     });
     
     while ($server->isOpen()) {
-        try {
-            $coroutine = $handler(yield $server->accept());
-        } catch (Exception $e) {
-            echo "Error accepting client: {$e->getMessage()}\n";
-        }
+        $handler(yield $server->accept());
     }
-}, $server);
+});
 
 Loop::run();
 ```

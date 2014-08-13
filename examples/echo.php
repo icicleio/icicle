@@ -9,7 +9,9 @@ use Icicle\StreamSocket\Server;
 
 // Connect to server using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (Server $server) {
+$coroutine = Coroutine::call(function () {
+    $server = Server::create('localhost', 60000);
+    
     $handler = Coroutine::async(function (Client $client) {
         try {
             yield $client->ready();
@@ -34,6 +36,6 @@ $coroutine = Coroutine::call(function (Server $server) {
     while ($server->isOpen()) {
         $handler(yield $server->accept());
     }
-}, Server::create('localhost', 60000));
+});
 
 Loop::run();

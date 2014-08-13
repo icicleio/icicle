@@ -352,7 +352,7 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
         }
     }
     
-    public function pipe(WritableStreamInterface $stream, callable $onTimeout = null)
+    public function pipe(WritableStreamInterface $stream)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -365,13 +365,13 @@ class Stream extends Socket implements DuplexSocketInterface, DuplexStreamInterf
         $this->length = null;
         $this->destination = $stream;
         
-        Loop::getInstance()->scheduleReadableSocket($this);
-        
         $this->deferred = new DeferredPromise(function () {
             Loop::getInstance()->unscheduleReadableSocket($this);
             $this->deferred = null;
             $this->destination = null;
         });
+        
+        Loop::getInstance()->scheduleReadableSocket($this);
         
         return $this->deferred->getPromise();
     }
