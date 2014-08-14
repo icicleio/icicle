@@ -51,16 +51,20 @@ class Server extends Socket implements ReadableSocketInterface
      * @param   array $options
      *
      * @return  Server
+     *
+     * @throws  InvalidArgumentException Thrown if PEM file path given does not exist.
+     * @throws  FailureException Thrown if the server socket could not be created.
      */
     public static function create($host, $port, array $options = null)
     {
-        $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
-        $pem = isset($options['pem']) ? (string) $options['pem'] : null;
-        $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
-        
         if (false !== strpos($host, ':')) {
             $host = '[' . trim($host, '[]') . ']';
         }
+        
+        $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
+        $pem = isset($options['pem']) ? (string) $options['pem'] : null;
+        $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
+        $name = isset($options['name']) ? (string) $options['name'] : $host;
         
         $context = [];
         
@@ -78,6 +82,8 @@ class Server extends Socket implements ReadableSocketInterface
             $context['ssl'] = [];
             $context['ssl']['local_cert'] = $pem;
             $context['ssl']['disable_compression'] = true;
+            $context['ssl']['SNI_enabled'] = true;
+            $context['ssl']['SNI_server_name'] = $name;
             
             if (null !== $passphrase) {
                 $context['ssl']['passphrase'] = $passphrase;

@@ -655,4 +655,149 @@ class CoroutineTest extends TestCase
         
         $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
     }
+    
+    /**
+     * @depends testYieldGenerator
+     */
+    public function testPause()
+    {
+        $generator = function () {
+            yield Coroutine::sleep(self::TIMEOUT);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        $coroutine->pause();
+        
+        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+    }
+    
+    /**
+     * @depends testPause
+     */
+    public function testResume()
+    {
+        $generator = function () use (&$coroutine) {
+            yield Coroutine::sleep(self::TIMEOUT);
+            
+            $coroutine->pause();
+            
+            yield $coroutine->isPaused();
+            
+            yield Coroutine::sleep(self::TIMEOUT);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        $this->assertRunTimeBetween('Icicle\Loop\Loop::run', self::TIMEOUT, self::TIMEOUT * 2);
+        
+        $coroutine->resume();
+        
+        Loop::run();
+        
+        $coroutine->resume();
+        
+        Loop::run();
+        
+        $this->assertFalse($coroutine->isPending());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+    }
+    
+    /**
+     * @depends testResume
+     */
+    public function testResumeImmediatelyAfterPause()
+    {
+        $generator = function () use (&$coroutine) {
+            yield Coroutine::sleep(self::TIMEOUT);
+            
+            $coroutine->pause();
+            $coroutine->resume();
+            
+            yield Coroutine::sleep(self::TIMEOUT);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT * 2);
+    }
+    
+    /**
+     * @depends testResume
+     */
+    public function testResumeOnPendingPromise()
+    {
+        $generator = function () use (&$coroutine) {
+            yield Coroutine::sleep(self::TIMEOUT);
+            
+            $coroutine->pause();
+            
+            Loop::schedule([$coroutine, 'resume']);
+            
+            yield Coroutine::sleep(self::TIMEOUT);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        Loop::run();
+        
+        $this->assertFalse($coroutine->isPending());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+    }
+    
+    /**
+     * @depends testResume
+     */
+    public function testResumeOnFulfilledPromise()
+    {
+        $generator = function () use (&$coroutine) {
+            yield Coroutine::sleep(self::TIMEOUT);
+            
+            $coroutine->pause();
+            
+            yield Promise::resolve(1);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        Loop::run();
+        
+        $coroutine->resume();
+        
+        $this->assertTrue($coroutine->isPending());
+        
+        Loop::run();
+        
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+    }
+    
+    /**
+     * @depends testResume
+     */
+    public function testResumeOnRejectedPromise()
+    {
+        $exception = new Exception();
+        
+        $generator = function () use (&$coroutine, &$exception) {
+            yield Coroutine::sleep(self::TIMEOUT);
+            
+            $coroutine->pause();
+            
+            yield $promise = Promise::reject($exception);
+        };
+        
+        $coroutine = new Coroutine($generator());
+        
+        Loop::run();
+        
+        $coroutine->resume();
+        
+        $this->assertTrue($coroutine->isPending());
+        
+        Loop::run();
+        
+        $this->assertTrue($coroutine->isRejected());
+        $this->assertSame($exception, $coroutine->getResult());
+    }
 }

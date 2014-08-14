@@ -12,7 +12,7 @@ use Icicle\Promise\PromiseTrait;
 use Icicle\Promise\PromisorInterface;
 use Icicle\Timer\Immediate;
 
-class Coroutine implements PromiseInterface
+class Coroutine implements CoroutineInterface
 {
     use PromiseTrait;
     
@@ -37,6 +37,16 @@ class Coroutine implements PromiseInterface
     private $current;
     
     /**
+     * @var bool
+     */
+    private $ready = false;
+    
+    /**
+     * @var bool
+     */
+    private $paused = false;
+    
+    /**
      * @param   Generator $generator
      */
     public function __construct(Generator $generator)
@@ -51,50 +61,58 @@ class Coroutine implements PromiseInterface
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
-                    if ($this->promise->isPending()) { // Coroutine may have been cancelled and closed.
-                        try {
-                            if (null !== $exception) { // Throw exception at current execution point.
-                                $initial = false;
-                                $this->current = $this->generator->throw($exception);
-                            } elseif ($initial) { // Get result of first yield statement.
-                                $initial = false;
-                                if (!$this->generator->valid()) { // Reject if initially given an invalid generator.
-                                    throw new InvalidGeneratorException($this->generator);
-                                }
-                                $this->current = $this->generator->current();
-                            } else { // Send the new value and execute to next yield statement.
-                                $this->current = $this->generator->send($value);
+                    if (!$this->promise->isPending()) { // Coroutine may have been cancelled.
+                        return;
+                    }
+                    
+                    if ($this->isPaused()) { // If paused, mark coroutine as ready to resume.
+                        $this->ready = true;
+                        return;
+                    }
+                    
+                    try {
+                        if (null !== $exception) { // Throw exception at current execution point.
+                            $initial = false;
+                            $this->current = $this->generator->throw($exception);
+                        } elseif ($initial) { // Get result of first yield statement.
+                            $initial = false;
+                            if (!$this->generator->valid()) { // Reject if initially given an invalid generator.
+                                throw new InvalidGeneratorException($this->generator);
                             }
-                            
-                            if (!$this->generator->valid()) {
-                                $resolve($value);
-                                $this->close();
-                            } else {
-                                if ($this->current instanceof Generator) {
-                                    $this->current = new static($this->current);
-                                }
-                                
-                                if ($this->current instanceof PromiseInterface) {
-                                    $this->current->done(
-                                        function ($value) {
-                                            if ($this->promise->isPending()) {
-                                                Immediate::enqueue($this->worker, $value);
-                                            }
-                                        },
-                                        function (Exception $exception) {
-                                            if ($this->promise->isPending()) {
-                                                Immediate::enqueue($this->worker, null, $exception);
-                                            }
-                                        }
-                                    );
-                                } else {
-                                    Immediate::enqueue($this->worker, $this->current);
-                                }
-                            }
-                        } catch (Exception $exception) {
-                            $reject($exception);
-                            $this->close();
+                            $this->current = $this->generator->current();
+                        } else { // Send the new value and execute to next yield statement.
+                            $this->current = $this->generator->send($value);
                         }
+                        
+                        if (!$this->generator->valid()) {
+                            $resolve($value);
+                            $this->close();
+                            return;
+                        }
+                        
+                        if ($this->current instanceof Generator) {
+                            $this->current = new static($this->current);
+                        }
+                        
+                        if ($this->current instanceof PromiseInterface) {
+                            $this->current->done(
+                                function ($value) {
+                                    if ($this->promise->isPending()) {
+                                        Immediate::enqueue($this->worker, $value);
+                                    }
+                                },
+                                function (Exception $exception) {
+                                    if ($this->promise->isPending()) {
+                                        Immediate::enqueue($this->worker, null, $exception);
+                                    }
+                                }
+                            );
+                        } else {
+                            Immediate::enqueue($this->worker, $this->current);
+                        }
+                    } catch (Exception $exception) {
+                        $reject($exception);
+                        $this->close();
                     }
                 };
                 
@@ -112,18 +130,6 @@ class Coroutine implements PromiseInterface
                 } finally {
                     $this->close();
                 }
-                
-/*
-                try {
-                    $this->generator->throw($exception);
-                    
-                    if ($this->generator->valid()) {
-                        throw new UnsuccessfulCancellationException($this);
-                    }
-                } finally {
-                    $this->close();
-                }
-*/
             }
         );
     }
@@ -137,10 +143,59 @@ class Coroutine implements PromiseInterface
         $this->generator = null;
         $this->worker = null;
         $this->current = null;
+        
+        $this->paused = true;
     }
     
     /**
-     * @param   Exception|null $exception
+     * {@inheritdoc}
+     */
+    public function pause()
+    {
+        $this->paused = true;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function resume()
+    {
+        if ($this->promise->isPending() && $this->isPaused()) {
+            $this->paused = false;
+            
+            if ($this->ready) {
+                if ($this->current instanceof PromiseInterface) {
+                    $this->current->done(
+                        function ($value) {
+                            if ($this->promise->isPending()) {
+                                Immediate::enqueue($this->worker, $value);
+                            }
+                        },
+                        function (Exception $exception) {
+                            if ($this->promise->isPending()) {
+                                Immediate::enqueue($this->worker, null, $exception);
+                            }
+                        }
+                    );
+                } else {
+                    Immediate::enqueue($this->worker, $this->current);
+                }
+                
+                $this->ready = false;
+            }
+        }
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function isPaused()
+    {
+        return $this->paused;
+    }
+    
+    /**
+     * {@inheritdoc}
      */
     public function cancel(Exception $exception = null)
     {

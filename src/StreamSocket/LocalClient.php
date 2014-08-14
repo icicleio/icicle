@@ -46,18 +46,21 @@ class LocalClient extends Client
      * @param   array $options
      *
      * @return  LocalClient
+     *
+     * @throws  InvalidArgumentException Thrown if CA file path given does not exist.
+     * @throws  FailureException Thrown if the client socket could not be created.
      */
     public static function create($host, $port, $secure = false, $timeout = self::DEFAULT_TIMEOUT, array $options = [])
     {
+        if (false !== strpos($host, ':')) {
+            $host = '[' . trim($host, '[]') . ']';
+        }
+        
         $allowSelfSigned = isset($options['allow_self_signed']) ? (bool) $options['allow_self_signed'] : self::DEFAULT_ALLOW_SELF_SIGNED;
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
         $cn = isset($options['cn']) ? (string) $options['cn'] : (string) $host;
-        
-        if (false !== strpos($host, ':')) {
-            $host = '[' . trim($host, '[]') . ']';
-        }
         
         $context = [];
         
