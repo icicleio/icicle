@@ -109,7 +109,7 @@ abstract class Loop
     /**
      * Runs the event loop, dispatching I/O events, timers, etc.
      *
-     * @return  bool
+     * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @api
      */

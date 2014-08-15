@@ -31,10 +31,10 @@
         "phpunit/phpunit": "4.0.*"
     },
     "suggest": {
-        "ext-openssl": "Enables using SSL/TLS on sockets.",
+        "ext-openssl": "Enables using SSL/TLS on stream sockets.",
         "ext-pcntl": "Enables custom signal handling, process forking, and child process execution.",
         "ext-event": "Preferred extension for providing an event loop with better performance.",
-        "ext-libevent": "Alternative extension that also provides an event loop with better performance.",
+        "ext-libevent": "Alternative extension that also provides an event loop with better performance."
     },
     "autoload": {
         "psr-4": {

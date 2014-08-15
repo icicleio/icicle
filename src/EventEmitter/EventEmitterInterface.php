@@ -11,6 +11,10 @@ interface EventEmitterInterface
      * @param   bool $once Set to true for the listener to be called only the next time the event is emitted.
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function addListener($event, callable $listener);
     
@@ -21,6 +25,10 @@ interface EventEmitterInterface
      * @param   callable $listener
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function on($event, callable $listener);
     
@@ -32,6 +40,10 @@ interface EventEmitterInterface
      * @param   callable $listener
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function once($event, callable $listener);
     
@@ -42,6 +54,10 @@ interface EventEmitterInterface
      * @param   callable $listener
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function removeListener($event, callable $listener);
     
@@ -52,6 +68,10 @@ interface EventEmitterInterface
      * @param   callable $listener
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function off($event, callable $listener);
     
@@ -61,6 +81,10 @@ interface EventEmitterInterface
      * @param   string|int|null $event Event name or null to remove all event listeners.
      *
      * @return  self
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function removeAllListeners($event = null);
     
@@ -70,6 +94,10 @@ interface EventEmitterInterface
      * @param   string|int $event
      *
      * @return  callable[string] Array of event listeners.
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function getListeners($event);
     
@@ -79,16 +107,10 @@ interface EventEmitterInterface
      * @param   string $event
      *
      * @return  int Number of listeners defined.
+     *
+     * @throws  InvalidEventException Thrown if the event name does not exist.
+     *
+     * @api
      */
     public function getListenerCount($event);
-    
-    /**
-     * Emits an event, calling each listener with the given arguments.
-     *
-     * @param   string $event Event name.
-     * @param   mixed ...$args Arguments passed to the listening function.
-     *
-     * @return  bool True if any listeners were defined on the event, false otherwise.
-     */
-    //public function emit($event /* , ...$args */);
 }

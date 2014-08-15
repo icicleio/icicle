@@ -4,9 +4,7 @@ namespace Icicle\Socket;
 interface ReadableSocketInterface extends SocketInterface
 {
     const NO_TIMEOUT = 0;
-    
     const MIN_TIMEOUT = 0.001;
-    
     const DEFAULT_TIMEOUT = 30;
     
     /**
@@ -22,6 +20,8 @@ interface ReadableSocketInterface extends SocketInterface
      * Sets the number of seconds until the connection times out.
      *
      * @param   float Number of seconds. Use 0 for no timeout.
+     *
+     * @api
      */
     public function setTimeout($timeout);
     

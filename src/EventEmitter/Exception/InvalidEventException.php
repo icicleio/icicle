@@ -4,22 +4,22 @@ namespace Icicle\EventEmitter\Exception;
 class InvalidEventException extends InvalidArgumentException
 {
     /**
-     * @var mixed
+     * @var string|int
      */
     private $event;
     
     /**
-     * @param   mixed $event
+     * @param   string|int $event
      */
     public function __construct($event)
     {
-        parent::__construct("Event does not exist: {$event}.");
+        parent::__construct("Event '{$event}' does not exist.");
         
         $this->event = $event;
     }
     
     /**
-     * @return  callable
+     * @return  string|int
      */
     public function getEvent()
     {

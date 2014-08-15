@@ -14,8 +14,6 @@ interface LoopInterface extends EventEmitterInterface
      * Determines if the necessary components for the loop class are available.
      *
      * @return  bool
-     *
-     * @api
      */
     public static function enabled();
     
@@ -23,47 +21,35 @@ interface LoopInterface extends EventEmitterInterface
      * Executes a single tick, processing callbacks and handling any available I/O.
      *
      * @param   bool $blocking Determines if the tick should block and wait for I/O if no other tasks are scheduled.
-     *
-     * @api
      */
     public function tick($blocking = true);
     
     /**
-     * Starts the loop event loop.
-     * Emits: run
+     * Starts the event loop.
      *
-     * @api
+     * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
      */
     public function run();
     
     /**
-     * Stops the loop event loop.
-     * Emits: stop
-     *
-     * @api
+     * Stops the event loop.
      */
     public function stop();
     
     /**
-     * Determines if the loop event loop is running.
+     * Determines if the event loop is running.
      *
      * @return  bool
-     *
-     * @api
      */
     public function isRunning();
     
     /**
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
-     *
-     * @api
      */
     public function clear();
     
     /**
      * Performs any reinitializing necessary after forking.
-     *
-     * @api
      */
     public function reInit();
     
@@ -73,8 +59,6 @@ interface LoopInterface extends EventEmitterInterface
      * @param   int|null $depth
      *
      * @return  int Current max depth if $depth = null or previous max depth otherwise.
-     *
-     * @api
      */
     public function maxScheduleDepth($depth = null);
     
@@ -84,8 +68,6 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @param   callable $callback
      * @param   array $args Array of arguments to be passed to the callback function.
-     *
-     * @api
      */
     public function schedule(callable $callback, array $args = []);
     
@@ -97,11 +79,9 @@ interface LoopInterface extends EventEmitterInterface
     public function scheduleReadableSocket(ReadableSocketInterface $socket);
     
     /**
-     * Pauses listening for data on the socket.
+     * Stops listening for data on the socket.
      *
      * @param   ReadableSocketInterface $socket
-     *
-     * @return  bool
      */
     public function unscheduleReadableSocket(ReadableSocketInterface $socket);
     

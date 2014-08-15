@@ -6,7 +6,7 @@ use Icicle\EventEmitter\Exception\InvalidEventException;
 trait EventEmitterTrait
 {
     /**
-     * @var callable[mixed][string]
+     * @var callable[string|int][string]
      */
     private $listeners = [];
     
