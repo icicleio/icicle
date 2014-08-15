@@ -12,11 +12,18 @@ interface ReadableSocketInterface extends SocketInterface
     /**
      * Returns the number of seconds until the connection times out if no read events have occurred.
      *
-     * @return  int Number of seconds until a timeout event is triggered if no data is read. 0 = no timeout.
+     * @return  float Number of seconds. Use 0 for no timeout.
      *
      * @api
      */
     public function getTimeout();
+    
+    /**
+     * Sets the number of seconds until the connection times out.
+     *
+     * @param   float Number of seconds. Use 0 for no timeout.
+     */
+    public function setTimeout($timeout);
     
     /**
      * Called when the connection has data waiting to be read or a connection to be accepted.

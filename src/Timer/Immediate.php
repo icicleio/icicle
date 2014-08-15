@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Timer;
 
-use Icicle\Core\Base;
 use Icicle\Loop\Loop;
 
 class Immediate implements ImmediateInterface

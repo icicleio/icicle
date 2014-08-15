@@ -1,10 +1,11 @@
 <?php
 namespace Icicle\Timer;
 
+use Countable;
 use SplObjectStorage;
 use SplQueue;
 
-class ImmediateQueue implements \Countable
+class ImmediateQueue implements Countable
 {
     /**
      * @var     SplQueue

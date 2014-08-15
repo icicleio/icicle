@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -7,16 +8,14 @@ use Icicle\Loop\Loop;
 use Icicle\StreamSocket\Client;
 use Icicle\StreamSocket\Server;
 
-// Connect to server using `nc localhost 60000`.
+// Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function () {
-    $server = Server::create('localhost', 60000);
-    
+$coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (Client $client) {
         try {
             yield $client->ready();
             
-            yield $client->write("Hello, want to play echo? Type 'exit' to quit.\n");
+            yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
             while ($client->isReadable()) {
                 $data = (yield $client->read());
@@ -36,6 +35,6 @@ $coroutine = Coroutine::call(function () {
     while ($server->isOpen()) {
         $handler(yield $server->accept());
     }
-});
+}, Server::create('localhost', 60000));
 
 Loop::run();
