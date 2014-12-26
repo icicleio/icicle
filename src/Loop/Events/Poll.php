@@ -4,7 +4,7 @@ namespace Icicle\Loop\Events;
 use Icicle\Loop\Exception\InvalidArgumentException;
 use Icicle\Loop\LoopInterface;
 
-class Poll implements EventInterface
+class Poll implements PollInterface
 {
     /**
      * @var LoopInterface

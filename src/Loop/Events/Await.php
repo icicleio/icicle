@@ -3,7 +3,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\LoopInterface;
 
-class Await implements EventInterface
+class Await implements AwaitInterface
 {
     /**
      * @var LoopInterface
