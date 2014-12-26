@@ -6,8 +6,6 @@ use SplQueue;
 
 class CallableQueue implements Countable
 {
-    const DEFAULT_MAX_DEPTH = 1000;
-    
     /**
      * @var     SplQueue
      */
@@ -16,13 +14,17 @@ class CallableQueue implements Countable
     /**
      * @var     int
      */
-    private $maxDepth = self::DEFAULT_MAX_DEPTH;
+    private $maxDepth = 0;
     
     /**
      */
-    public function __construct()
+    public function __construct($depth = null)
     {
         $this->queue = new SplQueue();
+        
+        if (null !== $depth) {
+            $this->maxDepth($depth);
+        }
     }
     
     /**
@@ -81,7 +83,7 @@ class CallableQueue implements Countable
         
         if (null !== $depth) {
             $depth = (int) $depth;
-            $this->maxDepth = 1 > $depth ? 1 : $depth;
+            $this->maxDepth = 0 > $depth ? 0 : $depth;
         }
         
         return $previous;
@@ -96,7 +98,7 @@ class CallableQueue implements Countable
     {
         $count = 0;
         
-        while (!$this->queue->isEmpty() && ++$count <= $this->maxDepth) {
+        while (!$this->queue->isEmpty() && (++$count <= $this->maxDepth || 0 === $this->maxDepth)) {
             $callback = $this->queue->shift();
             $callback();
         }

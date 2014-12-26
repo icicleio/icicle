@@ -11,6 +11,8 @@ use Icicle\Loop\Structures\ImmediateQueue;
 
 abstract class AbstractLoop implements LoopInterface
 {
+    const DEFAULT_MAX_DEPTH = 1000;
+    
     use EventEmitterTrait;
     
     /**
@@ -44,7 +46,7 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function __construct()
     {
-        $this->callableQueue = new CallableQueue();
+        $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
         $this->immediateQueue = new ImmediateQueue();
         $this->signalHandlingEnabled = extension_loaded('pcntl');
     }
