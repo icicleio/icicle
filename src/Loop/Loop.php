@@ -36,6 +36,7 @@ abstract class Loop
      */
     protected static function create()
     {
+/*
         if (EventLoop::enabled()) {
             return new EventLoop();
         }
@@ -43,6 +44,7 @@ abstract class Loop
         if (LibeventLoop::enabled()) {
             return new LibeventLoop();
         }
+*/
         
         return new SelectLoop();
     }
@@ -138,6 +140,52 @@ abstract class Loop
     public static function stop()
     {
         static::getInstance()->stop();
+    }
+    
+    /**
+     * @return  Poll
+     */
+    public static function poll($socket, callable $callback)
+    {
+        return static::getInstance()->createPoll($socket, $callback);
+    }
+    
+    /**
+     * @return  Await
+     */
+    public static function await($socket, callable $callback)
+    {
+        return static::getInstance()->createAwait($socket, $callback);
+    }
+    
+    /**
+     * @return  Timer
+     */
+    public static function timer($interval, callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 2);
+        
+        return static::getInstance()->createTimer($interval, false, $callback, $args);
+    }
+    
+    /**
+     * @return  Timer
+     */
+    public static function periodic($interval, callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 2);
+        
+        return static::getInstance()->createTimer($interval, true, $callback, $args);
+    }
+    
+    /**
+     * @return  Immediate
+     */
+    public static function immediate(callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 1);
+        
+        return static::getInstance()->createImmediate($callback, $args);
     }
     
     /**

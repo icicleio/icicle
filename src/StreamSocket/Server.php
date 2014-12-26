@@ -10,10 +10,13 @@ use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
-use Icicle\Socket\ReadableSocketInterface;
 
-class Server extends Socket implements ReadableSocketInterface
+class Server extends Socket
 {
+    const NO_TIMEOUT = null;
+    const DEFAULT_TIMEOUT = 60;
+    const MIN_TIMEOUT = 0.001;
+    
     const DEFAULT_BACKLOG = SOMAXCONN;
     
     /**
@@ -44,6 +47,8 @@ class Server extends Socket implements ReadableSocketInterface
      * @var     float
      */
     private $timeout = self::NO_TIMEOUT;
+    
+    private $poll;
     
     /**
      * @param   string $host
@@ -123,7 +128,15 @@ class Server extends Socket implements ReadableSocketInterface
     public function close(Exception $exception = null)
     {
         if ($this->isOpen()) {
+            if (null !== $this->poll) {
+                $this->poll->free();
+            }
+            
             if (null !== $this->deferred) {
+                if (null !== $this->poll) {
+                    $this->poll->cancel();
+                }
+                
                 if (null === $exception) {
                     $exception = new ClosedException('The server has closed.');
                 }
@@ -131,8 +144,6 @@ class Server extends Socket implements ReadableSocketInterface
                 $this->deferred->reject($exception);
                 $this->deferred = null;
             }
-        
-            Loop::getInstance()->removeSocket($this);
         }
         
         parent::close();
@@ -153,10 +164,32 @@ class Server extends Socket implements ReadableSocketInterface
             return Promise::reject(new ClosedException('The server has been closed.'));
         }
         
-        Loop::getInstance()->scheduleReadableSocket($this);
+        if (null === $this->poll) {
+            $onRead = function ($resource) {
+                if (@feof($socket)) {
+                    $this->close(new ClosedException('The server closed unexpectedly.'));
+                    return;
+                }
+                
+                $client = @stream_socket_accept($resource, 0);
+                
+                if (!$client) {
+                    $this->deferred->reject(new AcceptException('Error when accepting client.'));
+                    $this->deferred = null;
+                    return;
+                }
+                
+                $this->deferred->resolve(new RemoteClient($client, $this->secure));
+                $this->deferred = null;
+            };
+            
+            $this->poll = Loop::poll($this->getResource(), $onRead);
+        }
+        
+        $this->poll->listen();
         
         $this->deferred = new DeferredPromise(function () {
-            Loop::getInstance()->unscheduleReadableSocket($this);
+            $this->poll->cancel();
             $this->deferred = null;
         });
         

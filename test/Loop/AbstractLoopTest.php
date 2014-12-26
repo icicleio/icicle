@@ -29,6 +29,7 @@ abstract class AbstractLoopTest extends TestCase
      */
     abstract public function createLoop();
     
+/*
     public function createSockets($timeout = self::TIMEOUT)
     {
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
@@ -65,17 +66,40 @@ abstract class AbstractLoopTest extends TestCase
             $writableMock
         ];
     }
+*/
+    
+    public function createSockets($timeout = self::TIMEOUT)
+    {
+        $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+        fwrite($sockets[1], self::WRITE_STRING); // Make $sockets[0] readable.
+        
+        return $sockets;
+    }
+    
+    public function createPoll()
+    {
+        return $this->getMockBuilder('Icicle\Loop\Events\Poll')
+                    ->disableOriginalConstructor()
+                    ->getMock();
+    }
+    
+    public function createAwait()
+    {
+        return $this->getMockBuilder('Icicle\Loop\Events\Await')
+                    ->disableOriginalConstructor()
+                    ->getMock();
+    }
     
     public function createImmediate()
     {
-        return $this->getMockBuilder('Icicle\Timer\Immediate')
+        return $this->getMockBuilder('Icicle\Loop\Events\Immediate')
                     ->disableOriginalConstructor()
                     ->getMock();
     }
     
     public function createTimer($periodic = false)
     {
-        $timer = $this->getMockBuilder('Icicle\Timer\Timer')
+        $timer = $this->getMockBuilder('Icicle\Loop\Events\Timer')
                       ->disableOriginalConstructor()
                       ->getMock();
         

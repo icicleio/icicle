@@ -3,11 +3,11 @@ namespace Icicle\Loop;
 
 use Exception;
 use Icicle\EventEmitter\EventEmitterTrait;
+use Icicle\Loop\Events\Immediate;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
 use Icicle\Structures\CallableQueue;
-use Icicle\Timer\ImmediateInterface;
-use Icicle\Timer\ImmediateQueue;
+use Icicle\Loop\Structures\ImmediateQueue;
 
 abstract class AbstractLoop implements LoopInterface
 {
@@ -134,15 +134,19 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function addImmediate(ImmediateInterface $immediate)
+    public function createImmediate(callable $callback, array $args = [])
     {
+        $immediate = new Immediate($this, $callback, $args);
+        
         $this->immediateQueue->add($immediate);
+        
+        return $immediate;
     }
     
     /**
      * {@inheritdoc}
      */
-    public function cancelImmediate(ImmediateInterface $immediate)
+    public function cancelImmediate(Immediate $immediate)
     {
         $this->immediateQueue->remove($immediate);
     }
@@ -150,7 +154,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function isImmediatePending(ImmediateInterface $immediate)
+    public function isImmediatePending(Immediate $immediate)
     {
         return $this->immediateQueue->contains($immediate);
     }

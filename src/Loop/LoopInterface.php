@@ -2,14 +2,15 @@
 namespace Icicle\Loop;
 
 use Icicle\EventEmitter\EventEmitterInterface;
-use Icicle\Socket\ReadableSocketInterface;
-use Icicle\Socket\SocketInterface;
-use Icicle\Socket\WritableSocketInterface;
-use Icicle\Timer\ImmediateInterface;
-use Icicle\Timer\TimerInterface;
+use Icicle\Loop\Events\Await;
+use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Events\Poll;
+use Icicle\Loop\Events\Timer;
 
 interface LoopInterface extends EventEmitterInterface
 {
+    const MIN_TIMEOUT = 0.001;
+    
     /**
      * Determines if the necessary components for the loop class are available.
      *
@@ -72,71 +73,98 @@ interface LoopInterface extends EventEmitterInterface
     public function schedule(callable $callback, array $args = []);
     
     /**
-     * Adds the socket to the loop and begins listening for data.
+     * Adds the socket or stream resource to the loop and begins listening for data.
      *
-     * @param   ReadableSocketInterface $socket
+     * @param   resource $resource
+     * @param   callable $callback
+     *
+     * @return  Poll
      */
-    public function scheduleReadableSocket(ReadableSocketInterface $socket);
+    public function createPoll($resource, callable $callback);
     
     /**
-     * Stops listening for data on the socket.
-     *
-     * @param   ReadableSocketInterface $socket
+     * @param   Poll $poll
+     * @param   float $timeout
      */
-    public function unscheduleReadableSocket(ReadableSocketInterface $socket);
+    public function addPoll(Poll $poll, $timeout);
+    
+    /**
+     * Cancels the given poll operation.
+     *
+     * @param   Poll $poll
+     */
+    public function cancelPoll(Poll $poll);
     
     /**
      * Determines if the given socket is pending (listneing for data).
      *
-     * @param   ReadableSocketInterface $socket
+     * @param   Poll $poll
      *
      * @return  bool
      */
-    public function isReadableSocketScheduled(ReadableSocketInterface $socket);
+    public function isPollPending(Poll $poll);
     
     /**
-     * Adds the socket to the queue waiting to write.
-     *
-     * @param   WritableSocketInterface $socket
+     * @param   Poll $poll
      */
-    public function scheduleWritableSocket(WritableSocketInterface $socket);
+    public function freePoll(Poll $poll);
     
     /**
-     * Removes the socket from the queue waiting to write.
+     * Adds the socket or stream resource to the queue waiting to write.
      *
-     * @param   WritableSocketInterface $socket
+     * @param   resource $resource
+     * @param   callable $callback
+     *
+     * @return  Await
      */
-    public function unscheduleWritableSocket(WritableSocketInterface $socket);
+    public function createAwait($resource, callable $callback);
     
     /**
-     * Determines if the socket is waiting to write.
+     * @param   Await $await
+     */
+    public function addAwait(Await $await);
+    
+    /**
+     * Removes the resoruce from the queue waiting to write.
+     *
+     * @param   Await $await
+     */
+    public function cancelAwait(Await $await);
+    
+    /**
+     * Determines if the resource is waiting to write.
      *
      * @param   WritableSocketInterface $socket
      *
      * @return  bool
      */
-    public function isWritableSocketScheduled(WritableSocketInterface $socket);
+    public function isAwaitPending(Await $await);
+    
+    /**
+     * @param   Await $await
+     */
+    public function freeAwait(Await $await);
     
     /**
      * Completely removes the socket from the loop (stops listening for data or writing data).
      *
      * @param   SocketInterface $socket
      */
-    public function removeSocket(SocketInterface $socket);
+    //public function removeSocket(SocketInterface $socket);
     
     /**
      * Adds the given timer to the loop.
      *
      * @param   TimerInterface $timer
      */
-    public function addTimer(TimerInterface $timer);
+    public function createTimer($interval, $periodic, callable $callback, array $args = []);
     
     /**
      * Removes the timer from the loop.
      *
      * @param   TimerInterface $timer
      */
-    public function cancelTimer(TimerInterface $timer);
+    public function cancelTimer(Timer $timer);
     
     /**
      * Determines if the timer is active in the loop.
@@ -145,21 +173,21 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  bool
      */
-    public function isTimerPending(TimerInterface $timer);
+    public function isTimerPending(Timer $timer);
     
     /**
      * Adds the given timer to the loop.
      *
      * @param   TimerInterface $timer
      */
-    public function addImmediate(ImmediateInterface $immediate);
+    public function createImmediate(callable $callback, array $args = []);
     
     /**
      * Removes the timer from the loop.
      *
      * @param   TimerInterface $timer
      */
-    public function cancelImmediate(ImmediateInterface $immediate);
+    public function cancelImmediate(Immediate $immediate);
     
     /**
      * Determines if the timer is active in the loop.
@@ -168,5 +196,5 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  bool
      */
-    public function isImmediatePending(ImmediateInterface $immediate);
+    public function isImmediatePending(Immediate $immediate);
 }

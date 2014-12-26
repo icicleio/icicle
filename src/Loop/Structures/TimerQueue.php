@@ -1,0 +1,179 @@
+<?php
+namespace Icicle\Loop\Structures;
+
+use Countable;
+use Icicle\Loop\Events\Timer;
+use SplPriorityQueue;
+
+class TimerQueue implements Countable
+{
+    /**
+     * @var SplPriorityQueue
+     */
+    protected $queue;
+    
+    /**
+     * @var UnreferencableObjectStorage
+     */
+    protected $timers;
+    
+    /**
+     */
+    public function __construct()
+    {
+        $this->queue = new SplPriorityQueue();
+        $this->timers = new UnreferencableObjectStorage();
+    }
+    
+    /**
+     * Adds the timer to the queue.
+     *
+     * @param   Timer $timer
+     */
+    public function add(Timer $timer)
+    {
+        if (!$this->timers->contains($timer)) {
+            $timeout = microtime(true) + $timer->getInterval();
+            $this->queue->insert($timer, -$timeout);
+            $this->timers[$timer] = $timeout;
+        }
+    }
+    
+    /**
+     * Determines if the timer is in the queue.
+     *
+     * @param   Timer $timer
+     *
+     * @return  bool
+     */
+    public function contains(Timer $timer)
+    {
+        return $this->timers->contains($timer);
+    }
+    
+    /**
+     * Removes the timer from the queue.
+     *
+     * @param   Timer $timer
+     */
+    public function remove(Timer $timer)
+    {
+        if (isset($this->timers[$timer])) {
+            $queue = $this->queue;
+            $this->queue = new SplPriorityQueue();
+            
+            while (!$queue->isEmpty()) {
+                $object = $queue->extract();
+                if ($object !== $timer) {
+                    $this->queue->insert($object, -$this->timers[$object]);
+                }
+            }
+            
+            $this->timers->detach($timer);
+        }
+    }
+    
+    /**
+     * @param   Timer $timer
+     */
+    public function unreference(Timer $timer)
+    {
+        $this->timers->unreference($timer);
+    }
+    
+    /**
+     * @param   Timer $timer
+     */
+    public function reference(Timer $timer)
+    {
+        $this->timers->reference($timer);
+    }
+    
+    /**
+     * Returns the number of referenced timers in the queue.
+     *
+     * @return  int
+     */
+    public function count()
+    {
+        return $this->timers->count();
+    }
+    
+    /**
+     * Determines if the queue is empty (includes unreferenced timers).
+     *
+     * @return  bool
+     */
+    public function isEmpty()
+    {
+        return $this->timers->isEmpty();
+    }
+    
+    /**
+     * Removes all timers in the queue. Safe to call during call to tick().
+     */
+    public function clear()
+    {
+        $this->queue = new SplPriorityQueue();
+        $this->timers = new UnreferencableObjectStorage();
+    }
+    
+    /**
+     * Calculates the time remaining until the top timer is ready. Returns false if no timers are in the queue, otherwise a
+     * non-negative value is returned.
+     *
+     * @return  int|float|bool
+     */
+    public function getInterval()
+    {
+        if ($this->queue->isEmpty()) {
+            return false;
+        }
+        
+        $timer = $this->queue->top();
+        
+        $timeout = $this->timers[$timer] - microtime(true);
+        
+        if (0 > $timeout) {
+            return 0;
+        }
+        
+        return $timeout;
+    }
+    
+    /**
+     * Executes any pending timers. Returns the number of timers executed.
+     *
+     * @return  int
+     */
+    public function tick()
+    {
+        $count = 0;
+        
+        while (!$this->queue->isEmpty()) {
+            $timer = $this->queue->top();
+            
+            if ($this->timers[$timer] > microtime(true)) { // Timer at top of queue has not expired.
+                return $count;
+            }
+            
+            // Remove and execute timer. Replace timer if persistent.
+            $this->queue->extract();
+            
+            if ($timer->isPeriodic()) {
+                $this->timers[$timer] += $timer->getInterval();
+                $this->queue->insert($timer, -$this->timers[$timer]);
+            } else {
+                $this->timers->detach($timer);
+            }
+            
+            // Execute the timer.
+            $callback = $timer->getCallback();
+            $callback();
+            
+            ++$count;
+        }
+        
+        return $count;
+    }
+}

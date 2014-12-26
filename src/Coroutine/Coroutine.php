@@ -6,11 +6,11 @@ use Generator;
 use Icicle\Coroutine\Exception\CancelledException;
 use Icicle\Coroutine\Exception\InvalidCallableException;
 use Icicle\Coroutine\Exception\InvalidGeneratorException;
+use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Promise\PromiseTrait;
 use Icicle\Promise\PromisorInterface;
-use Icicle\Timer\Immediate;
 
 class Coroutine implements CoroutineInterface
 {
@@ -98,17 +98,17 @@ class Coroutine implements CoroutineInterface
                             $this->current->done(
                                 function ($value) {
                                     if ($this->promise->isPending()) {
-                                        Immediate::enqueue($this->worker, $value);
+                                        Loop::immediate($this->worker, $value);
                                     }
                                 },
                                 function (Exception $exception) {
                                     if ($this->promise->isPending()) {
-                                        Immediate::enqueue($this->worker, null, $exception);
+                                        Loop::immediate($this->worker, null, $exception);
                                     }
                                 }
                             );
                         } else {
-                            Immediate::enqueue($this->worker, $this->current);
+                            Loop::immediate($this->worker, $this->current);
                         }
                     } catch (Exception $exception) {
                         $reject($exception);
@@ -116,7 +116,7 @@ class Coroutine implements CoroutineInterface
                     }
                 };
                 
-                Immediate::enqueue($this->worker);
+                Loop::immediate($this->worker);
             },
             function (Exception $exception) {
                 try {
@@ -168,17 +168,17 @@ class Coroutine implements CoroutineInterface
                     $this->current->done(
                         function ($value) {
                             if ($this->promise->isPending()) {
-                                Immediate::enqueue($this->worker, $value);
+                                Loop::immediate($this->worker, $value);
                             }
                         },
                         function (Exception $exception) {
                             if ($this->promise->isPending()) {
-                                Immediate::enqueue($this->worker, null, $exception);
+                                Loop::immediate($this->worker, null, $exception);
                             }
                         }
                     );
                 } else {
-                    Immediate::enqueue($this->worker, $this->current);
+                    Loop::immediate($this->worker, $this->current);
                 }
                 
                 $this->ready = false;

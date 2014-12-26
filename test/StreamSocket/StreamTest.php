@@ -57,36 +57,6 @@ class StreamTest extends TestCase
         $this->assertSame(Stream::MIN_TIMEOUT, $stream->getTimeout());
     }
     
-    /**
-     * @medium
-     * @depends testGetTimeout
-     */
-    public function testSetTimeout()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $promise = $writable->read();
-        
-        $writable->setTimeout(self::TIMEOUT * 3);
-        
-        $this->assertSame(self::TIMEOUT * 3, $writable->getTimeout());
-        
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT * 2);
-    }
-    
-    /**
-     * @medium
-     * @depends testSetTimeout
-     */
-    public function testSetTimeoutMinTimeout()
-    {
-        $stream = new Stream(fopen('php://memory', 'r+'), self::TIMEOUT);
-        
-        $stream->setTimeout(-1);
-        
-        $this->assertSame(Stream::MIN_TIMEOUT, $stream->getTimeout());
-    }
-    
     public function testRead()
     {
         list($readable, $writable) = $this->createStreams();
@@ -95,7 +65,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->callback(function ($param) {
+                     return self::WRITE_STRING === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -157,7 +129,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->callback(function ($param) {
+                     return self::WRITE_STRING === (string) $param;
+                 }));
         
         $promise1->done($callback, $this->createCallback(0));
         
@@ -183,7 +157,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $length)));
+                 ->with($this->callback(function ($param) use ($length) {
+                     return substr(self::WRITE_STRING, 0, $length) === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -193,7 +169,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(substr(self::WRITE_STRING, $length, $length)));
+                 ->with($this->callback(function ($param) use ($length) {
+                     return substr(self::WRITE_STRING, $length, $length) === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -211,7 +189,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(''));
+                 ->with($this->callback(function ($param) {
+                     return '' === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -256,7 +236,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->callback(function ($param) {
+                     return self::WRITE_STRING === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -397,6 +379,9 @@ class StreamTest extends TestCase
     }
 */
     
+    /**
+     * @depends testRead
+     */
     public function testWrite()
     {
         list($readable, $writable) = $this->createStreams();
@@ -421,7 +406,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($string));
+                 ->with($this->callback(function ($param) use ($string) {
+                     return $string === (string) $param;
+                 }));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -444,6 +431,28 @@ class StreamTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testWrite
+     */
+    public function testWriteThenClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $writable->write();
+        
+        $writable->close();
+        
+        $this->assertFalse($writable->isWritable());
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
         
         $promise->done($this->createCallback(0), $callback);
         
