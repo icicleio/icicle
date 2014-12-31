@@ -43,7 +43,7 @@ class Poll implements PollInterface
     
     public function listen($timeout = null)
     {
-        $this->loop->addPoll($this, $timeout);
+        $this->loop->listenPoll($this, $timeout);
     }
     
     /**

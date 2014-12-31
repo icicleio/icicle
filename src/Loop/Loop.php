@@ -36,7 +36,6 @@ abstract class Loop
      */
     protected static function create()
     {
-/*
         if (EventLoop::enabled()) {
             return new EventLoop();
         }
@@ -44,7 +43,6 @@ abstract class Loop
         if (LibeventLoop::enabled()) {
             return new LibeventLoop();
         }
-*/
         
         return new SelectLoop();
     }
@@ -143,7 +141,7 @@ abstract class Loop
     }
     
     /**
-     * @return  Poll
+     * @return  PollInterface
      */
     public static function poll($socket, callable $callback)
     {
@@ -151,7 +149,7 @@ abstract class Loop
     }
     
     /**
-     * @return  Await
+     * @return  AwaitInterface
      */
     public static function await($socket, callable $callback)
     {
@@ -159,7 +157,7 @@ abstract class Loop
     }
     
     /**
-     * @return  Timer
+     * @return  TimerInterface
      */
     public static function timer($interval, callable $callback /* , ...$args */)
     {
@@ -169,7 +167,7 @@ abstract class Loop
     }
     
     /**
-     * @return  Timer
+     * @return  TimerInterface
      */
     public static function periodic($interval, callable $callback /* , ...$args */)
     {
@@ -179,7 +177,7 @@ abstract class Loop
     }
     
     /**
-     * @return  Immediate
+     * @return  ImmediateInterface
      */
     public static function immediate(callable $callback /* , ...$args */)
     {

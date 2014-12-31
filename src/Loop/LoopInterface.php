@@ -86,7 +86,7 @@ interface LoopInterface extends EventEmitterInterface
      * @param   PollInterface $poll
      * @param   float $timeout
      */
-    public function addPoll(PollInterface $poll, $timeout);
+    public function listenPoll(PollInterface $poll, $timeout);
     
     /**
      * Cancels the given poll operation.
@@ -131,7 +131,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @param   AwaitInterface $await
      */
-    public function addAwait(AwaitInterface $await);
+    public function listenAwait(AwaitInterface $await);
     
     /**
      * Removes the await from the queue waiting to write.

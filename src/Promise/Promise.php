@@ -182,7 +182,7 @@ class Promise implements PromiseInterface
                 $this->onRejected->insert($onRejected);
             } else {
                 $this->onRejected->insert(function (Exception $exception) {
-                    throw $exception;
+                    throw $exception; // Rethrow exception in uncatchable way.
                 });
             }
         }
@@ -303,10 +303,9 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Return a promise using the given value. There are three possible outcomes depending on the type of the passed value:
+     * Return a promise using the given value. There are two possible outcomes depending on the type of the passed value:
      * (1) PromiseInterface: The promise is returned without modification.
-     * (2) PromisorInterface: The contained promise is returned by calling PromisorInterface::getPromise().
-     * (3) All other types: A fulfilled promise is returned using the given value as the result.
+     * (2) All other types: A fulfilled promise is returned using the given value as the result.
      *
      * @param   mixed $value
      *

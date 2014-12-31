@@ -3,55 +3,66 @@ namespace Icicle\Loop;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Exception\RunningException;
+use Icicle\Loop\Events\AwaitInterface;
+use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\PollInterface;
+use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Exception\FreedException;
+use Icicle\Loop\Exception\ResourceBusyException;
 use Icicle\Loop\Exception\UnsupportedException;
-use Icicle\Socket\ReadableSocketInterface;
-use Icicle\Socket\SocketInterface;
-use Icicle\Socket\WritableSocketInterface;
 use Icicle\Structures\UnreferencableObjectStorage;
-use Icicle\Timer\TimerInterface;
 
 class EventLoop extends AbstractLoop
 {
     /**
-     * @var     EventBase
+     * @var EventBase
      */
     private $base;
     
     /**
+     * @var PollInterface[int]
+     */
+    private $polls = [];
+    
+    /**
+     * @var AwaitInterface[int]
+     */
+    private $awaits = [];
+    
+    /**
      * UnreferencableObjectStorage mapping Timer objects to Event objects.
      *
-     * @var     UnreferencableObjectStorage
+     * @var UnreferencableObjectStorage
      */
     private $timers;
     
     /**
-     * @var     Event[int]
+     * @var Event[int]
      */
     private $readEvents = [];
     
     /**
-     * @var     Event[int]
+     * @var Event[int]
      */
     private $writeEvents = [];
     
     /**
-     * @var     Event[int]
+     * @var Event[int]
      */
     private $signalEvents = [];
     
     /**
-     * @var     Closure
+     * @var Closure
      */
     private $readCallback;
     
     /**
-     * @var     Closure
+     * @var Closure
      */
     private $writeCallback;
     
     /**
-     * @var     Closure
+     * @var Closure
      */
     private $timerCallback;
     
@@ -66,16 +77,18 @@ class EventLoop extends AbstractLoop
     }
     
     /**
+     * @param   EventFactoryInterface|null $eventFactory
+     *
      * @throws  UnsupportedException Thrown if the event extension is not loaded.
      */
-    public function __construct()
+    public function __construct(EventFactoryInterface $eventFactory = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
             throw new UnsupportedException('EventLoop class requires the event extension.');
         } // @codeCoverageIgnoreEnd
         
-        parent::__construct();
+        parent::__construct($eventFactory);
         
         $this->base = new EventBase();
         $this->timers = new UnreferencableObjectStorage();
@@ -91,16 +104,14 @@ class EventLoop extends AbstractLoop
             }
         }
         
-        $this->readCallback = function ($resource, $what, ReadableSocketInterface $socket) {
-            if (Event::TIMEOUT & $what) {
-                $socket->onTimeout();
-            } else {
-                $socket->onRead();
-            }
+        $this->readCallback = function ($resource, $what, PollInterface $poll) {
+            $callback = $poll->getCallback();
+            $callback($resource, Event::TIMEOUT & $what);
         };
         
-        $this->writeCallback = function ($resource, $what, WritableSocketInterface $socket) {
-            $socket->onWrite();
+        $this->writeCallback = function ($resource, $what, AwaitInterface $await) {
+            $callback = $await->getCallback();
+            $callback($resource);
         };
         
         $this->timerCallback = function ($resource, $what, TimerInterface $timer) {
@@ -109,7 +120,8 @@ class EventLoop extends AbstractLoop
                 unset($this->timers[$timer]);
             }
             
-            $timer->call();
+            $callback = $timer->getCallback();
+            $callback();
         };
     }
     
@@ -184,15 +196,37 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function scheduleReadableSocket(ReadableSocketInterface $socket)
+    public function createPoll($resource, callable $callback)
     {
-        $id = $socket->getId();
+        $id = (int) $resource;
         
-        if (!isset($this->readEvents[$id])) {
-            $this->readEvents[$id] = new Event($this->base, $socket->getResource(), Event::READ, $this->readCallback, $socket);
+        if (isset($this->polls[$id])) {
+            throw new ResourceBusyException('A poll has already been created for that resource.');
         }
         
-        if ($timeout = $socket->getTimeout()) {
+        return $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function listenPoll(PollInterface $poll, $timeout = null)
+    {
+        $id = (int) $poll->getResource();
+        
+        if (!isset($this->polls[$id]) || $poll !== $this->polls[$id]) {
+            throw new FreedException('Poll has been freed.');
+        }
+        
+        if (!isset($this->readEvents[$id])) {
+            $this->readEvents[$id] = new Event($this->base, $poll->getResource(), Event::READ, $this->readCallback, $poll);
+        }
+        
+        if (null !== $timeout) {
+            $timeout = (float) $timeout;
+            if (self::MIN_TIMEOUT > $timeout) {
+                $timeout = self::MIN_TIMEOUT;
+            }
             $this->readEvents[$id]->add($timeout);
         } else {
             $this->readEvents[$id]->add();
@@ -202,21 +236,11 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isReadableSocketScheduled(ReadableSocketInterface $socket)
+    public function cancelPoll(PollInterface $poll)
     {
-        $id = $socket->getId();
+        $id = (int) $poll->getResource();
         
-        return isset($this->readEvents[$id]) && $this->readEvents[$id]->pending(Event::READ);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function unscheduleReadableSocket(ReadableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->readEvents[$id])) {
+        if (isset($this->polls[$id], $this->readEvents[$id]) && $poll === $this->polls[$id]) {
             $this->readEvents[$id]->del();
         }
     }
@@ -224,12 +248,67 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function scheduleWritableSocket(WritableSocketInterface $socket)
+    public function isPollPending(PollInterface $poll)
     {
-        $id = $socket->getId();
+        $id = (int) $poll->getResource();
+        
+        return isset($this->polls[$id], $this->readEvents[$id]) && $poll === $this->polls[$id] && $this->readEvents[$id]->pending;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function freePoll(PollInterface $poll)
+    {
+        $id = (int) $poll->getResource();
+        
+        if (isset($this->polls[$id]) && $poll === $this->polls[$id]) {
+            unset($this->polls[$id]);
+            
+            if (isset($this->readEvents[$id])) {
+                $this->readEvents[$id]->free();
+                unset($this->readEvents[$id]);
+            }
+        }
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function isPollFreed(PollInterface $poll)
+    {
+        $id = (int) $poll->getResource();
+        
+        return !isset($this->polls[$id]) || $poll !== $this->polls[$id];
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function createAwait($resource, callable $callback)
+    {
+        $id = (int) $resource;
+        
+        if (isset($this->awaits[$id])) {
+            throw new ResourceBusyException('An await has already been created for that resource.');
+        }
+        
+        return $this->await[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function listenAwait(AwaitInterface $await)
+    {
+        $id = (int) $await->getResource();
+        
+        if (!isset($this->awaits[$id]) || $await !== $this->awaits[$id]) {
+            throw new FreedException('Poll has been freed.');
+        }
         
         if (!isset($this->writeEvents[$id])) {
-            $this->writeEvents[$id] = new Event($this->base, $socket->getResource(), Event::WRITE, $this->writeCallback, $socket);
+            $this->writeEvents[$id] = new Event($this->base, $await->getResource(), Event::WRITE, $this->writeCallback, $await);
         }
         
         $this->writeEvents[$id]->add();
@@ -238,21 +317,11 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isWritableSocketScheduled(WritableSocketInterface $socket)
+    public function cancelAwait(AwaitInterface $await)
     {
-        $id = $socket->getId();
+        $id = (int) $await->getResource();
         
-        return isset($this->writeEvents[$id]) && $this->writeEvents[$id]->pending(Event::WRITE);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function unscheduleWritableSocket(WritableSocketInterface $socket)
-    {
-        $id = $socket->getId();
-        
-        if (isset($this->writeEvents[$id])) {
+        if (isset($this->awaits[$id], $this->writeEvents[$id]) && $await === $this->awaits[$id]) {
             $this->writeEvents[$id]->del();
         }
     }
@@ -260,38 +329,59 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function removeSocket(SocketInterface $socket)
+    public function isAwaitPending(AwaitInterface $await)
     {
-        $id = $socket->getId();
+        $id = (int) $await->getResource();
         
-        if (isset($this->readEvents[$id])) {
-            $this->readEvents[$id]->free();
-            unset($this->readEvents[$id]);
-        }
+        return isset($this->awaits[$id], $this->writeEvents[$id]) && $await === $this->awaits[$id] && $this->writeEvents[$id]->pending;
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function freeAwait(AwaitInterface $await)
+    {
+        $id = (int) $await->getResource();
         
-        if (isset($this->writeEvents[$id])) {
-            $this->writeEvents[$id]->free();
-            unset($this->writeEvents[$id]);
+        if (isset($this->awaits[$id]) && $await === $this->awaits[$id]) {
+            unset($this->awaits[$id]);
+            
+            if (isset($this->writeEvents[$id])) {
+                $this->writeEvents[$id]->free();
+                unset($this->writeEvents[$id]);
+            }
         }
     }
     
     /**
      * {@inheritdoc}
      */
-    public function addTimer(TimerInterface $timer)
+    public function isAwaitFreed(AwaitInterface $await)
     {
-        if (!isset($this->timers[$timer])) {
-            $flags = Event::TIMEOUT;
-            if ($timer->isPeriodic()) {
-                $flags |= Event::PERSIST;
-            }
-            
-            $event = new Event($this->base, -1, $flags, $this->timerCallback, $timer);
-            
-            $this->timers[$timer] = $event;
-            
-            $event->add($timer->getInterval());
+        $id = (int) $await->getResource();
+        
+        return !isset($this->awaits[$id]) || $await !== $this->awaits[$id];
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = [])
+    {
+        $timer = $this->getEventFactory()->createTimer($this, $callback, $interval, $periodic, $args);
+        
+        $flags = Event::TIMEOUT;
+        if ($timer->isPeriodic()) {
+            $flags |= Event::PERSIST;
         }
+        
+        $event = new Event($this->base, -1, $flags, $this->timerCallback, $timer);
+        
+        $this->timers[$timer] = $event;
+        
+        $event->add($timer->getInterval());
+        
+        return $timer;
     }
     
     /**
@@ -310,7 +400,7 @@ class EventLoop extends AbstractLoop
      */
     public function isTimerPending(TimerInterface $timer)
     {
-        return isset($this->timers[$timer]);
+        return isset($this->timers[$timer]) && $this->timers[$timer]->pending;
     }
     
     /**
@@ -344,6 +434,8 @@ class EventLoop extends AbstractLoop
             $event->free();
         }
         
+        $this->polls = [];
+        $this->awaits = [];
         $this->readEvents = [];
         $this->writeEvents = [];
         

@@ -44,7 +44,7 @@ class Await implements AwaitInterface
      */
     public function listen()
     {
-        $this->loop->addAwait($this);
+        $this->loop->listenAwait($this);
     }
     
     /**

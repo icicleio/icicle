@@ -27,6 +27,6 @@ abstract class ResolvedPromise implements PromiseInterface
      */
     public function timeout($timeout, Exception $exception = null)
     {
-        return $this->then();
+        return $this;
     }
 }

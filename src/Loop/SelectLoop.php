@@ -17,7 +17,7 @@ class SelectLoop extends AbstractLoop
     const NANOSEC_PER_SEC = 1e9;
     
     /**
-     * @var Poll[int]
+     * @var PollInterface[int]
      */
     private $polls = [];
     
@@ -32,7 +32,7 @@ class SelectLoop extends AbstractLoop
     private $timeouts = [];
     
     /**
-     * @var Await[int]
+     * @var AwaitInterface[int]
      */
     private $awaits = [];
     
@@ -47,7 +47,7 @@ class SelectLoop extends AbstractLoop
     private $timerQueue;
     
     /**
-     * @var Timer
+     * @var TimerInterface
      */
     private $timer;
     
@@ -62,6 +62,8 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
+     * @param   EventFactoryInterface|null $eventFactory
+     * @param   int|float $interval Interval between checking for timed-out sockets.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, $interval = self::INTERVAL)
     {
@@ -82,12 +84,11 @@ class SelectLoop extends AbstractLoop
             $time = microtime(true);
             foreach ($this->timeouts as $id => $timeout) { // Look for sockets that have timed out.
                 if ($timeout <= $time && isset($this->polls[$id])) {
-                    $poll = $this->polls[$id];
                     unset($this->read[$id]);
                     unset($this->timeouts[$id]);
                     
-                    $callback = $poll->getCallback();
-                    $callback($poll->getResource(), true);
+                    $callback = $this->polls[$id]->getCallback();
+                    $callback($this->polls[$id]->getResource(), true);
                 }
             }
         }, $interval, true);
@@ -148,22 +149,20 @@ class SelectLoop extends AbstractLoop
             
             if ($count) {
                 foreach ($read as $id => $resource) {
-                    if (isset($this->polls[$id], $this->read[$id])) { // Socket may have been removed from a previous call.
-                        $poll = $this->polls[$id];
+                    if (isset($this->polls[$id], $this->read[$id])) { // Poll may have been removed from a previous call.
                         unset($this->read[$id]);
                         unset($this->timeouts[$id]);
                         
-                        $callback = $poll->getCallback();
+                        $callback = $this->polls[$id]->getCallback();
                         $callback($resource, false);
                     }
                 }
                 
                 foreach ($write as $id => $resource) {
-                    if (isset($this->awaits[$id], $this->write[$id])) { // Socket may have been removed from a previous call.
-                        $await = $this->awaits[$id];
+                    if (isset($this->awaits[$id], $this->write[$id])) { // Await may have been removed from a previous call.
                         unset($this->write[$id]);
                         
-                        $callback = $await->getCallback();
+                        $callback = $this->awaits[$id]->getCallback();
                         $callback($resource);
                     }
                 }
@@ -191,6 +190,13 @@ class SelectLoop extends AbstractLoop
     {
         $id = (int) $resource;
         
+        if (isset($this->polls[$id])) {
+            throw new LogicException('A poll has already been created for this resource.');
+        }
+        
+        return $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
+        
+/*
         if (!isset($this->polls[$id])) {
             $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
         } else {
@@ -198,9 +204,10 @@ class SelectLoop extends AbstractLoop
         }
         
         return $this->polls[$id];
+*/
     }
     
-    public function addPoll(PollInterface $poll, $timeout = null)
+    public function listenPoll(PollInterface $poll, $timeout = null)
     {
         $resource = $poll->getResource();
         $id = (int) $resource;
@@ -262,7 +269,7 @@ class SelectLoop extends AbstractLoop
     {
         $id = (int) $poll->getResource();
         
-        return isset($this->polls[$id]) && $poll === $this->polls[$id];
+        return !isset($this->polls[$id]) || $poll !== $this->polls[$id];
     }
     
     /**
@@ -272,6 +279,13 @@ class SelectLoop extends AbstractLoop
     {
         $id = (int) $resource;
         
+        if (isset($this->awaits[$id])) {
+            throw new LogicException('An await has already been created for this resource.');
+        }
+        
+        return $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
+        
+/*
         if (!isset($this->awaits[$id])) {
             $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
         } else {
@@ -279,9 +293,10 @@ class SelectLoop extends AbstractLoop
         }
         
         return $this->awaits[$id];
+*/
     }
     
-    public function addAwait(AwaitInterface $await, $timeout = null)
+    public function listenAwait(AwaitInterface $await, $timeout = null)
     {
         $resource = $await->getResource();
         $id = (int) $resource;
@@ -332,7 +347,7 @@ class SelectLoop extends AbstractLoop
     {
         $id = (int) $await->getResource();
         
-        return isset($this->awaits[$id]) && $await === $this->awaits[$id];
+        return !isset($this->awaits[$id]) || $await !== $this->awaits[$id];
     }
     
     /**
