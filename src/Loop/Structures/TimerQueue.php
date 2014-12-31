@@ -2,7 +2,8 @@
 namespace Icicle\Loop\Structures;
 
 use Countable;
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Events\TimerInterface;
+use Icicle\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
 class TimerQueue implements Countable
@@ -28,9 +29,9 @@ class TimerQueue implements Countable
     /**
      * Adds the timer to the queue.
      *
-     * @param   Timer $timer
+     * @param   TimerInterface $timer
      */
-    public function add(Timer $timer)
+    public function add(TimerInterface $timer)
     {
         if (!$this->timers->contains($timer)) {
             $timeout = microtime(true) + $timer->getInterval();
@@ -42,11 +43,11 @@ class TimerQueue implements Countable
     /**
      * Determines if the timer is in the queue.
      *
-     * @param   Timer $timer
+     * @param   TimerInterface $timer
      *
      * @return  bool
      */
-    public function contains(Timer $timer)
+    public function contains(TimerInterface $timer)
     {
         return $this->timers->contains($timer);
     }
@@ -54,9 +55,9 @@ class TimerQueue implements Countable
     /**
      * Removes the timer from the queue.
      *
-     * @param   Timer $timer
+     * @param   TimerInterface $timer
      */
-    public function remove(Timer $timer)
+    public function remove(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
             $queue = $this->queue;
@@ -74,17 +75,17 @@ class TimerQueue implements Countable
     }
     
     /**
-     * @param   Timer $timer
+     * @param   TimerInterface $timer
      */
-    public function unreference(Timer $timer)
+    public function unreference(TimerInterface $timer)
     {
         $this->timers->unreference($timer);
     }
     
     /**
-     * @param   Timer $timer
+     * @param   TimerInterface $timer
      */
-    public function reference(Timer $timer)
+    public function reference(TimerInterface $timer)
     {
         $this->timers->reference($timer);
     }

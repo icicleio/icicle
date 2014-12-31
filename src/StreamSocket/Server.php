@@ -21,33 +21,36 @@ class Server extends Socket
     
     /**
      * Listening hostname or IP address.
-     * @var     int
+     * @var int
      */
     private $address;
     
     /**
      * Listening port.
-     * @var     int
+     * @var int
      */
     private $port;
     
     /**
      * True if using SSL/TLS, false otherwise.
      *
-     * @var     bool
+     * @var bool
      */
     private $secure;
     
     /**
-     * @var     DeferredPromise
+     * @var DeferredPromise
      */
     private $deferred;
     
     /**
-     * @var     float
+     * @var float
      */
     private $timeout = self::NO_TIMEOUT;
     
+    /**
+     * @var PollInterface|null
+     */
     private $poll;
     
     /**

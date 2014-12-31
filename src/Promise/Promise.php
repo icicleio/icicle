@@ -2,6 +2,7 @@
 namespace Icicle\Promise;
 
 use Exception;
+use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise\Exception\MultiReasonException;
@@ -9,7 +10,9 @@ use Icicle\Promise\Exception\RuntimeException;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Exception\UnresolvedException;
-use Icicle\Timer\Timer;
+use Icicle\Promise\Structures\FulfilledPromise;
+use Icicle\Promise\Structures\RejectedPromise;
+use Icicle\Promise\Structures\ThenQueue;
 
 class Promise implements PromiseInterface
 {
@@ -213,12 +216,12 @@ class Promise implements PromiseInterface
         
         return new static(
             function ($resolve) use (&$timer, $timeout, $exception) {
-                $timer = Timer::once(function () use ($exception) {
+                $timer = Loop::timer($timeout, function () use ($exception) {
                     if (null === $exception) {
                         $exception = new TimeoutException('The promise timed out.');
                     }
                     $this->cancel($exception);
-                }, $timeout);
+                });
                 
                 $onResolved = function () use ($resolve, $timer) {
                     $resolve($this->result);
@@ -246,9 +249,9 @@ class Promise implements PromiseInterface
         return new static(
             function ($resolve) use (&$timer, $time) {
                 $this->onFulfilled->insert(function () use (&$timer, $time, $resolve) {
-                    $timer = Timer::once(function () use ($resolve) {
+                    $timer = Loop::timer($time, function () use ($resolve) {
                         $resolve($this->result);
-                    }, $time);
+                    });
                 });
                 
                 $this->onRejected->insert(function () use ($resolve) {
@@ -316,12 +319,6 @@ class Promise implements PromiseInterface
         if ($value instanceof PromiseInterface) {
             return $value;
         }
-        
-/*
-        if ($value instanceof PromisorInterface) {
-            return $value->getPromise();
-        }
-*/
         
         return new FulfilledPromise($value);
     }

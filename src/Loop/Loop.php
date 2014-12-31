@@ -165,7 +165,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->createTimer($interval, false, $callback, $args);
+        return static::getInstance()->createTimer($callback, $interval, false, $args);
     }
     
     /**
@@ -175,7 +175,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->createTimer($interval, true, $callback, $args);
+        return static::getInstance()->createTimer($callback, $interval, true, $args);
     }
     
     /**

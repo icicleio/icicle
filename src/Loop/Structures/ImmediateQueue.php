@@ -2,7 +2,7 @@
 namespace Icicle\Loop\Structures;
 
 use Countable;
-use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Events\ImmediateInterface;
 use SplObjectStorage;
 use SplQueue;
 
@@ -28,9 +28,9 @@ class ImmediateQueue implements Countable
     
     /**
      * Adds the timer to the queue.
-     * @param   Immediate $immediate
+     * @param   ImmediateInterface $immediate
      */
-    public function add(Immediate $immediate)
+    public function add(ImmediateInterface $immediate)
     {
         if (!$this->immediates->contains($immediate)) {
             $this->queue->push($immediate);
@@ -40,19 +40,19 @@ class ImmediateQueue implements Countable
     
     /**
      * Determines if the timer is in the queue.
-     * @param   Immediate $immediate
+     * @param   ImmediateInterface $immediate
      * @return  bool
      */
-    public function contains(Immediate $immediate)
+    public function contains(ImmediateInterface $immediate)
     {
         return $this->immediates->contains($immediate);
     }
     
     /**
      * Removes the immediate from the queue.
-     * @param   Immediate $immediate
+     * @param   ImmediateInterface $immediate
      */
-    public function remove(Immediate $immediate)
+    public function remove(ImmediateInterface $immediate)
     {
         if ($this->immediates->contains($immediate)) {
             foreach ($this->queue as $key => $value) {

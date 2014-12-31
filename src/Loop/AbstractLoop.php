@@ -3,17 +3,19 @@ namespace Icicle\Loop;
 
 use Exception;
 use Icicle\EventEmitter\EventEmitterTrait;
-use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Events\EventFactory;
+use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\ImmediateInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
-use Icicle\Structures\CallableQueue;
 use Icicle\Loop\Structures\ImmediateQueue;
+use Icicle\Structures\CallableQueue;
 
 abstract class AbstractLoop implements LoopInterface
 {
-    const DEFAULT_MAX_DEPTH = 1000;
-    
     use EventEmitterTrait;
+    
+    const DEFAULT_MAX_DEPTH = 1000;
     
     /**
      * @var bool
@@ -31,6 +33,11 @@ abstract class AbstractLoop implements LoopInterface
     private $immediateQueue;
     
     /**
+     * @var EventFactoryInterface
+     */
+    private $eventFactory;
+    
+    /**
      * @var bool
      */
     private $running = false;
@@ -43,12 +50,26 @@ abstract class AbstractLoop implements LoopInterface
     abstract protected function dispatch($blocking);
     
     /**
+     * @param   EventFactoryInterface|null $eventFactory
      */
-    public function __construct()
+    public function __construct(EventFactoryInterface $eventFactory = null)
     {
         $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
         $this->immediateQueue = new ImmediateQueue();
         $this->signalHandlingEnabled = extension_loaded('pcntl');
+        $this->eventFactory = $eventFactory;
+        
+        if (null === $this->eventFactory) {
+            $this->eventFactory = new EventFactory();
+        }
+    }
+    
+    /**
+     * @return  EventFactoryInterface
+     */
+    protected function getEventFactory()
+    {
+        return $this->eventFactory;
     }
     
     /**
@@ -138,7 +159,7 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function createImmediate(callable $callback, array $args = [])
     {
-        $immediate = new Immediate($this, $callback, $args);
+        $immediate = $this->getEventFactory()->createImmediate($this, $callback, $args);
         
         $this->immediateQueue->add($immediate);
         
@@ -148,7 +169,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function cancelImmediate(Immediate $immediate)
+    public function cancelImmediate(ImmediateInterface $immediate)
     {
         $this->immediateQueue->remove($immediate);
     }
@@ -156,7 +177,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function isImmediatePending(Immediate $immediate)
+    public function isImmediatePending(ImmediateInterface $immediate)
     {
         return $this->immediateQueue->contains($immediate);
     }

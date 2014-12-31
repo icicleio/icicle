@@ -3,7 +3,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\LoopInterface;
 
-class Immediate implements EventInterface
+class Immediate implements ImmediateInterface
 {
     /**
      * @var LoopInterface

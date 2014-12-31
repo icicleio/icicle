@@ -1,10 +1,10 @@
 <?php
-namespace Icicle\Promise;
+namespace Icicle\Promise\Structures;
 
 use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\TypeException;
-use Icicle\Timer\Timer;
+use Icicle\Promise\Promise;
 
 class FulFilledPromise extends ResolvedPromise
 {
@@ -20,8 +20,8 @@ class FulFilledPromise extends ResolvedPromise
      */
     public function __construct($value)
     {
-        if ($value instanceof PromiseInterface || $value instanceof PromisorInterface) {
-            throw new TypeException('Cannot use a PromiseInterface or PromisorInterface as a fulfilled promise value.');
+        if ($value instanceof PromiseInterface) {
+            throw new TypeException('Cannot use a PromiseInterface as a fulfilled promise value.');
         }
         
         $this->value = $value;
@@ -64,9 +64,9 @@ class FulFilledPromise extends ResolvedPromise
     {
         return new Promise(
             function ($resolve) use (&$timer, $time) {
-                $timer = Timer::once(function () use ($resolve) {
+                $timer = Loop::timer($time, function () use ($resolve) {
                     $resolve($this);
-                }, $time);
+                });
             },
             function () use (&$timer) {
                 $timer->cancel();

@@ -1,9 +1,10 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\Await;
-use Icicle\Loop\Events\Poll;
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Events\AwaitInterface;
+use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\PollInterface;
+use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\InvalidArgumentException;
 use Icicle\Loop\Structures\TimerQueue;
@@ -62,9 +63,9 @@ class SelectLoop extends AbstractLoop
     
     /**
      */
-    public function __construct($interval = self::INTERVAL)
+    public function __construct(EventFactoryInterface $eventFactory = null, $interval = self::INTERVAL)
     {
-        parent::__construct();
+        parent::__construct($eventFactory);
         
         $this->timerQueue = new TimerQueue();
         
@@ -77,7 +78,7 @@ class SelectLoop extends AbstractLoop
             }
         }
         
-        $this->timer = $this->createTimer($interval, true, function () {
+        $this->timer = $this->createTimer(function () {
             $time = microtime(true);
             foreach ($this->timeouts as $id => $timeout) { // Look for sockets that have timed out.
                 if ($timeout <= $time && isset($this->polls[$id])) {
@@ -89,7 +90,7 @@ class SelectLoop extends AbstractLoop
                     $callback($poll->getResource(), true);
                 }
             }
-        });
+        }, $interval, true);
         
         $this->timer->unreference();
     }
@@ -191,23 +192,15 @@ class SelectLoop extends AbstractLoop
         $id = (int) $resource;
         
         if (!isset($this->polls[$id])) {
-            $this->polls[$id] = new Poll($this, $resource, $callback);
+            $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
         } else {
             $this->polls[$id]->set($callback);
         }
         
         return $this->polls[$id];
-        
-/*
-        $poll = new Poll($this, $resource, $callback);
-        
-        $this->polls[(int) $resource] = $poll;
-        
-        return $poll;
-*/
     }
     
-    public function addPoll(Poll $poll, $timeout = null)
+    public function addPoll(PollInterface $poll, $timeout = null)
     {
         $resource = $poll->getResource();
         $id = (int) $resource;
@@ -231,7 +224,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function cancelPoll(Poll $poll)
+    public function cancelPoll(PollInterface $poll)
     {
         $id = (int) $poll->getResource();
         
@@ -244,7 +237,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isPollPending(Poll $poll)
+    public function isPollPending(PollInterface $poll)
     {
         $id = (int) $poll->getResource();
         
@@ -254,7 +247,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function freePoll(Poll $poll)
+    public function freePoll(PollInterface $poll)
     {
         $id = (int) $poll->getResource();
         
@@ -265,7 +258,7 @@ class SelectLoop extends AbstractLoop
         }
     }
     
-    public function isPollFreed(Poll $poll)
+    public function isPollFreed(PollInterface $poll)
     {
         $id = (int) $poll->getResource();
         
@@ -280,22 +273,15 @@ class SelectLoop extends AbstractLoop
         $id = (int) $resource;
         
         if (!isset($this->awaits[$id])) {
-            $this->awaits[$id] = new Await($this, $resource, $callback);
+            $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
         } else {
             $this->awaits[$id]->set($callback);
         }
         
         return $this->awaits[$id];
-/*
-        $await = new Await($this, $resource, $callback);
-        
-        $this->awaits[(int) $resource] = $await;
-        
-        return $await;
-*/
     }
     
-    public function addAwait(Await $await, $timeout = null)
+    public function addAwait(AwaitInterface $await, $timeout = null)
     {
         $resource = $await->getResource();
         $id = (int) $resource;
@@ -310,7 +296,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function cancelAwait(Await $await)
+    public function cancelAwait(AwaitInterface $await)
     {
         $id = (int) $await->getResource();
         
@@ -322,7 +308,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isAwaitPending(Await $await)
+    public function isAwaitPending(AwaitInterface $await)
     {
         $id = (int) $await->getResource();
         
@@ -332,7 +318,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function freeAwait(Await $await)
+    public function freeAwait(AwaitInterface $await)
     {
         $id = (int) $await->getResource();
         
@@ -342,7 +328,7 @@ class SelectLoop extends AbstractLoop
         }
     }
     
-    public function isAwaitFreed(Await $await)
+    public function isAwaitFreed(AwaitInterface $await)
     {
         $id = (int) $await->getResource();
         
@@ -352,9 +338,9 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function createTimer($interval, $periodic, callable $callback, array $args = [])
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = [])
     {
-        $timer = new Timer($this, $interval, $periodic, $callback, $args);
+        $timer = $this->getEventFactory()->createTimer($this, $callback, $interval, $periodic, $args);
         
         $this->timerQueue->add($timer);
         
@@ -364,7 +350,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function cancelTimer(Timer $timer)
+    public function cancelTimer(TimerInterface $timer)
     {
         $this->timerQueue->remove($timer);
     }
@@ -372,7 +358,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function isTimerPending(Timer $timer)
+    public function isTimerPending(TimerInterface $timer)
     {
         return $this->timerQueue->contains($timer);
     }
@@ -380,7 +366,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function unreferenceTimer(Timer $timer)
+    public function unreferenceTimer(TimerInterface $timer)
     {
         $this->timerQueue->unreference($timer);
     }
@@ -388,7 +374,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function referenceTimer(Timer $timer)
+    public function referenceTimer(TimerInterface $timer)
     {
         $this->timerQueue->reference($timer);
     }

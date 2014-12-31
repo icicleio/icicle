@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Promise;
+namespace Icicle\Promise\Structures;
 
 use Countable;
 use SplQueue;

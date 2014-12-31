@@ -3,7 +3,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\LoopInterface;
 
-class Timer implements EventInterface
+class Timer implements TimerInterface
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
@@ -34,12 +34,13 @@ class Timer implements EventInterface
     private $periodic;
     
     /**
+     * @param   LoopInterface $loop
      * @param   callable $callback Function called when the interval expires.
      * @param   int|float $interval Number of seconds until the callback function is called.
      * @param   bool $periodic True to repeat the timer, false to only run it once.
      * @param   array|null $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(LoopInterface $loop, $interval, $periodic = false, callable $callback, array $args = [])
+    public function __construct(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = [])
     {
         $this->loop = $loop;
         $this->interval = (float) $interval;

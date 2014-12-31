@@ -1,8 +1,9 @@
 <?php
-namespace Icicle\Promise;
+namespace Icicle\Promise\Structures;
 
 use Exception;
 use Icicle\Loop\Loop;
+use Icicle\Promise\Promise;
 
 class RejectedPromise extends ResolvedPromise
 {

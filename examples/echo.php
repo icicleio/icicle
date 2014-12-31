@@ -20,13 +20,11 @@ $coroutine = Coroutine::call(function (Server $server) {
             while ($client->isReadable()) {
                 $data = (yield $client->read());
                 
-                yield $client->write("Binary: ".bin2hex($data)."\n");
-                
-                if ("exit\n" === $data) {
+                if ("exit\n" === (string) $data) {
                     yield $client->write("Goodbye!\n");
                     $client->close();
                 } else {
-                    yield $client->write("Plaintext: ".$data);
+                    yield $client->write($data);
                 }
             }
         } catch (Exception $e) {

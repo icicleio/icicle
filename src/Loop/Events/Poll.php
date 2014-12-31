@@ -57,6 +57,14 @@ class Poll implements PollInterface
     /**
      * {@inheritdoc}
      */
+    public function isFreed()
+    {
+        return $this->loop->isPollFreed($this);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
     public function cancel()
     {
         $this->loop->cancelPoll($this);

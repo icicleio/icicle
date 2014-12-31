@@ -48,12 +48,12 @@ class Stream extends Socket implements DuplexStreamInterface
     private $writable = true;
     
     /**
-     * @var Poll|null
+     * @var PollInterface|null
      */
     private $poll;
     
     /**
-     * @var Await|null
+     * @var AwaitInterface|null
      */
     private $await;
     
