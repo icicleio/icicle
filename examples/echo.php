@@ -20,7 +20,7 @@ $coroutine = Coroutine::call(function (Server $server) {
             while ($client->isReadable()) {
                 $data = (yield $client->read());
                 
-                if ("exit\n" === (string) $data) {
+                if ("exit\n" === $data) {
                     yield $client->write("Goodbye!\n");
                     $client->close();
                 } else {

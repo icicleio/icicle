@@ -157,7 +157,7 @@ class Stream extends Socket implements DuplexStreamInterface
                 }
             }
             
-            $this->deferred->resolve(new Buffer($data));
+            $this->deferred->resolve($data);
             $this->deferred = null;
         };
         
