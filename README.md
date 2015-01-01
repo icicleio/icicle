@@ -191,8 +191,8 @@ Some example code using coroutines to create an asynchronous echo server.
 ``` php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\Client;
-use Icicle\StreamSocket\Server;
+use Icicle\Socket\Client;
+use Icicle\Socket\Server;
 
 $coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (Client $client) {
