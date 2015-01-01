@@ -1,10 +1,9 @@
 <?php
-namespace Icicle\StreamSocket;
+namespace Icicle\Socket;
 
 use Icicle\Socket\Exception\InvalidArgumentException;
-use Icicle\Socket\SocketInterface;
 
-abstract class Socket implements SocketInterface
+abstract class Socket
 {
     /**
      * @var     resource

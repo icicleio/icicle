@@ -5,8 +5,8 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\Client;
-use Icicle\StreamSocket\Server;
+use Icicle\Socket\Client;
+use Icicle\Socket\Server;
 
 // Connect using `nc localhost 60000`.
 

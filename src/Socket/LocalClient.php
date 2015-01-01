@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\StreamSocket;
+namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Promise\Promise;

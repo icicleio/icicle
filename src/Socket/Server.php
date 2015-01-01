@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\StreamSocket;
+namespace Icicle\Socket;
 
 use Icicle\Loop\Loop;
 use Icicle\Promise\DeferredPromise;
