@@ -36,9 +36,17 @@ class Poll implements PollInterface
         $this->callback = $callback;
     }
     
-    public function set(callable $callback)
+    public function setCallback(callable $callback)
     {
         $this->callback = $callback;
+    }
+    
+    /**
+     * @return  callable
+     */
+    public function getCallback()
+    {
+        return $this->callback;
     }
     
     public function listen($timeout = null)
@@ -84,13 +92,5 @@ class Poll implements PollInterface
     public function getResource()
     {
         return $this->resource;
-    }
-    
-    /**
-     * @return  callable
-     */
-    public function getCallback()
-    {
-        return $this->callback;
     }
 }

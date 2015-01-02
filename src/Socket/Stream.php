@@ -18,16 +18,7 @@ use SplQueue;
 
 class Stream extends Socket implements DuplexStreamInterface
 {
-    const NO_TIMEOUT = null;
-    const DEFAULT_TIMEOUT = 60;
-    const MIN_TIMEOUT = 0.001;
-    
     const CHUNK_SIZE = 8192; // 8kB
-    
-    /**
-     * @var float
-     */
-    private $timeout;
     
     /**
      * @var DeferredPromise|null
@@ -59,17 +50,10 @@ class Stream extends Socket implements DuplexStreamInterface
     
     /**
      * @param   resource $socket
-     * @param   int $timeout
      */
-    public function __construct($socket, $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct($socket)
     {
         parent::__construct($socket);
-        
-        $this->timeout = (float) $timeout;
-        
-        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
-            $this->timeout = self::MIN_TIMEOUT;
-        }
         
         stream_set_read_buffer($socket, 0);
         stream_set_write_buffer($socket, 0);
@@ -114,7 +98,7 @@ class Stream extends Socket implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function read($length = null)
+    public function read($length = null, $timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -164,10 +148,10 @@ class Stream extends Socket implements DuplexStreamInterface
         if (null === $this->poll) {
             $this->poll = Loop::poll($this->getResource(), $onRead);
         } else {
-            $this->poll->set($onRead);
+            $this->poll->setCallback($onRead);
         }
         
-        $this->poll->listen($this->timeout);
+        $this->poll->listen($timeout);
         
         $this->deferred = new DeferredPromise(function () {
             $this->poll->cancel();
@@ -395,33 +379,6 @@ class Stream extends Socket implements DuplexStreamInterface
     }
 */
     
-    /**
-     * {@inheritdoc}
-     */
-    public function getTimeout()
-    {
-        return $this->timeout;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function setTimeout($timeout)
-    {
-        $this->timeout = (float) $timeout;
-        
-        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
-            $this->timeout = self::MIN_TIMEOUT;
-        }
-        
-        $loop = Loop::getInstance();
-        
-        if ($loop->isReadableSocketScheduled($this)) {
-            $loop->unscheduleReadableSocket($this);
-            $loop->scheduleReadableSocket($this);
-        }
-    }
-    
     public function pipe(WritableStreamInterface $stream, $endOnClose = true)
     {
         if (null !== $this->deferred) {
@@ -460,7 +417,7 @@ class Stream extends Socket implements DuplexStreamInterface
         if (null === $this->poll) {
             $this->poll = Loop::poll($this->getResource(), $onRead);
         } else {
-            $this->poll->cancel($onRead);
+            $this->poll->setCallback($onRead);
         }
         
         $this->poll->listen();

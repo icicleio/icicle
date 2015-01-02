@@ -93,9 +93,9 @@ abstract class Socket
         
         if (false === $name) {
             $error = error_get_last();
-            $message = 'Could not get socket name.';
+            $message = 'Could not get socket name';
             if (null !== $error) {
-                $message .= " [Errno: {$error['type']}] {$error['message']}";
+                $message .= "; Errno: {$error['type']}; {$error['message']}";
             }
             throw new InvalidArgumentException($message);
         }

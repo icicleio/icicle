@@ -5,15 +5,15 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\Client;
-use Icicle\StreamSocket\Server;
+use Icicle\Socket\Client;
+use Icicle\Socket\Server;
 
 $server = Server::create('localhost', 8080, ['backlog' => 1024]);
 
 $coroutine = Coroutine::async(function (Server $server) {
     $coroutine = Coroutine::async(function (Client $client) {
         try {
-            yield $client->ready();
+            //yield $client->ready();
             
             $data = (yield $client->read());
             
@@ -30,8 +30,6 @@ $coroutine = Coroutine::async(function (Server $server) {
             
             yield $client->write($data);
             
-        } catch (Exception $e) {
-            echo "Client error: {$e->getMessage()}\n";
         } finally {
             $client->close();
         }
@@ -41,7 +39,7 @@ $coroutine = Coroutine::async(function (Server $server) {
         try {
             $coroutine(yield $server->accept());
         } catch (Exception $exception) {
-            echo "Error: {$exception->getMessage()}\n";
+            echo "Error: Could not accept client: {$exception->getMessage()}";
         }
     }
 });
@@ -49,5 +47,7 @@ $coroutine = Coroutine::async(function (Server $server) {
 $coroutine($server)->cleanup(function () use ($server) {
     $server->close();
 });
+
+Loop::schedule(function () { echo "Server started.\n"; });
 
 Loop::run();

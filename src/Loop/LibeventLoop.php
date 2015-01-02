@@ -321,7 +321,7 @@ class LibeventLoop extends AbstractLoop
             throw new ResourceBusyException('An await has already been created for that resource.');
         }
         
-        return $this->await[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
+        return $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
     }
     
     /**
@@ -332,7 +332,7 @@ class LibeventLoop extends AbstractLoop
         $id = (int) $await->getResource();
         
         if (!isset($this->awaits[$id]) || $await !== $this->awaits[$id]) {
-            throw new FreedException('Poll has been freed.');
+            throw new FreedException('Await has been freed.');
         }
         
         if (!isset($this->writeEvents[$id])) {

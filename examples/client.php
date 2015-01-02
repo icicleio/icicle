@@ -5,22 +5,23 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\LocalClient;
+use Icicle\Socket\LocalClient;
 
 // Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (LocalClient $client) {
+$coroutine = Coroutine::create(function () {
+    $start = microtime(true);
     
-    yield $client->ready();
+    $client = (yield LocalClient::connect('localhost', 60000));
     
     $buffer = '';
     
-    for ($i = 0; $i < 1000; ++$i) {
+    for ($i = 0; $i < 100000; ++$i) {
         $buffer .= 'a';
     }
     
-    for ($i = 0; $i < 1000; ++$i) {
-        /* yield */ $client->write($buffer . "\n");
+    for ($i = 0; $i < 100; ++$i) {
+        $client->write($buffer . "\n");
         $data = (yield $client->read());
         
         echo "{$i}) Got message of length: " . strlen($data) . "\n";
@@ -28,7 +29,8 @@ $coroutine = Coroutine::call(function (LocalClient $client) {
     
     yield $client->end("exit\n");
     
-}, LocalClient::create('localhost', 60000));
+    yield microtime(true) - $start;
+});
 
 $coroutine->then(
     function ($value) {

@@ -13,7 +13,7 @@ use Icicle\Socket\Server;
 $coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (Client $client) {
         try {
-            yield $client->ready();
+            //yield $client->ready();
             
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
@@ -28,6 +28,7 @@ $coroutine = Coroutine::call(function (Server $server) {
                 }
             }
         } catch (Exception $e) {
+            echo "{$e->getMessage()}\n";
             $client->close();
         }
     });

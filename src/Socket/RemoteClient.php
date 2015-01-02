@@ -10,11 +10,6 @@ use Icicle\Socket\Exception\FailureException;
 class RemoteClient extends Client
 {
     /**
-     * @var     PromiseInterface
-     */
-    private $promise;
-    
-    /**
      * @var     int
      */
     private $remoteAddress = 0;
@@ -36,82 +31,72 @@ class RemoteClient extends Client
     
     /**
      * @param   resource $socket
-     * @param   bool $secure
-     * @param   float $timeout
      */
-    public function __construct($socket, $secure = false, $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct($socket)
     {
-        parent::__construct($socket, $secure, $timeout);
-        
-        if ($secure) {
-            $start = microtime(true);
-            $enable = function () use (&$enable, $socket, $start) {
-                $result = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
-                
-                if (false === $result) {
-                    throw new FailureException('Failed to enable crypto.');
-                }
-                
-                if (0 === $result) {
-                    $this->promise = $this->poll()->then($enable);
-                    return $this->promise;
-                }
-                
-                return microtime(true) - $start;
-            };
-            
-            $this->promise = $this->poll()->then($enable);
-            
-            $this->promise->otherwise(function (Exception $exception) {
-                $this->close($exception);
-            });
-        } else {
-            $this->promise = Promise::resolve(0);
-        }
+        parent::__construct($socket);
         
         list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
         list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
     }
     
     /**
-     * @return  PromiseInterface
+     * @return  PromiseInterface Fulfilled when crypto has been enabled.
      */
-    public function ready()
+    public function enableCrypto()
     {
-        return $this->promise;
+        $start = microtime(true);
         
-/*
-        if (null !== $this->promise) {
-            return $this->promise;
-        }
+        $enable = function () use (&$enable, $start) {
+            $result = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            
+            if (false === $result) {
+                $message = 'Failed to enable crypto';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= "; Errno: {$error['type']}; {$error['message']}";
+                }
+                throw new FailureException($message);
+            }
+            
+            if (0 === $result) {
+                return $this->poll()->then($enable);
+            }
+            
+            return microtime(true) - $start;
+        };
         
-        if ($this->isOpen()) {
-            return Promise::resolve($this);
-        }
-        
-        return Promise::reject(new ClosedException('The client disconnected.'));
-*/
+        return $this->poll()->then($enable);
     }
     
-/*
-    public function read($length = null)
+    /**
+     * @return  PromiseInterface Fulfilled when crypto has been disabled.
+     */
+    public function disableCrypto()
     {
-        if (null !== $this->promise) {
-            return Promise::reject(new BusyException('Client is not ready, call ready() before read().'));
-        }
+        $start = microtime(true);
         
-        return parent::read($length);
-    }
-    
-    public function write($data = null)
-    {
-        if (null !== $this->promise) {
-            return Promise::reject(new BusyException('Client is not ready, call ready() before write().'));
-        }
+        $disable = function () use (&$disable, $start) {
+            $result = @stream_socket_enable_crypto($socket, false, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            
+            if (false === $result) {
+                $message = 'Failed to disable crypto';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= "; Errno: {$error['type']}; {$error['message']}";
+                }
+                throw new FailureException($message);
+            }
+            
+            if (0 === $result) {
+                return $this->poll()->then($disable);
+            }
+            
+            return microtime(true) - $start;
+        };
         
-        return parent::write($data);
+        return $this->await()->then($disable);
     }
-*/
     
     /**
      * Returns the remote IP as a string representation, such as '127.0.0.1'.

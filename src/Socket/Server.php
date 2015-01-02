@@ -13,30 +13,21 @@ use Icicle\Socket\Exception\UnavailableException;
 
 class Server extends Socket
 {
-    const NO_TIMEOUT = null;
-    const DEFAULT_TIMEOUT = 60;
-    const MIN_TIMEOUT = 0.001;
-    
     const DEFAULT_BACKLOG = SOMAXCONN;
     
     /**
      * Listening hostname or IP address.
+     *
      * @var int
      */
     private $address;
     
     /**
      * Listening port.
+     *
      * @var int
      */
     private $port;
-    
-    /**
-     * True if using SSL/TLS, false otherwise.
-     *
-     * @var bool
-     */
-    private $secure;
     
     /**
      * @var DeferredPromise
@@ -44,16 +35,15 @@ class Server extends Socket
     private $deferred;
     
     /**
-     * @var float
-     */
-    private $timeout = self::NO_TIMEOUT;
-    
-    /**
      * @var PollInterface|null
      */
     private $poll;
     
     /**
+     * Creates a server on the given host and port.
+     *
+     * Note: Current CA file in PEM format can be downloaded from http://curl.haxx.se/ca/cacert.pem
+     *
      * @param   string $host
      * @param   int $port
      * @param   array $options
@@ -85,8 +75,6 @@ class Server extends Socket
                 throw new InvalidArgumentException('No file found at given PEM path.');
             }
             
-            $secure = true;
-            
             $context['ssl'] = [];
             $context['ssl']['local_cert'] = $pem;
             $context['ssl']['disable_compression'] = true;
@@ -96,8 +84,6 @@ class Server extends Socket
             if (null !== $passphrase) {
                 $context['ssl']['passphrase'] = $passphrase;
             }
-        } else {
-            $secure = false;
         }
         
         $context = stream_context_create($context);
@@ -109,18 +95,16 @@ class Server extends Socket
             throw new FailureException("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
         }
         
-        return new static($socket, $secure);
+        return new static($socket);
     }
     
     /**
      * @param   resource $socket
      * @param   bool $secure
      */
-    public function __construct($socket, $secure = false)
+    public function __construct($socket)
     {
         parent::__construct($socket);
-        
-        $this->secure = $secure;
         
         list($this->address, $this->port) = self::parseSocketName($socket, false);
     }
@@ -182,7 +166,7 @@ class Server extends Socket
                     return;
                 }
                 
-                $this->deferred->resolve(new RemoteClient($client, $this->secure));
+                $this->deferred->resolve(new RemoteClient($client));
                 $this->deferred = null;
             };
             
@@ -197,16 +181,6 @@ class Server extends Socket
         });
         
         return $this->deferred->getPromise();
-    }
-    
-    /**
-     * Determines if the server is using SSL/TLS.
-     *
-     * @return  bool
-     */
-    public function isSecure()
-    {
-        return $this->secure;
     }
     
     /**
@@ -227,69 +201,6 @@ class Server extends Socket
     public function getPort()
     {
         return $this->port;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function onRead()
-    {
-        $socket = $this->getResource();
-        
-        if (@feof($socket)) {
-            $exception = new ClosedException('The server closed unexpectedly.');
-            $this->deferred->reject($exception);
-            $this->deferred = null;
-            $this->close($exception);
-            return;
-        }
-        
-        $client = @stream_socket_accept($socket, 0);
-        
-        if (!$client) {
-            $this->deferred->reject(new AcceptException('Error when accepting client.'));
-            $this->deferred = null;
-            return;
-        }
-        
-        $this->deferred->resolve(new RemoteClient($client, $this->secure));
-        $this->deferred = null;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function onTimeout()
-    {
-        $this->deferred->reject(new TimeoutException('The server timed out.'));
-        $this->deferred = null;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function getTimeout()
-    {
-        return $this->timeout;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function setTimeout($timeout)
-    {
-        $this->timeout = (float) $timeout;
-        
-        if (self::NO_TIMEOUT !== $this->timeout && self::MIN_TIMEOUT > $this->timeout) {
-            $this->timeout = self::MIN_TIMEOUT;
-        }
-        
-        $loop = Loop::getInstance();
-        
-        if ($loop->isReadableSocketScheduled($this)) {
-            $loop->unscheduleReadableSocket($this);
-            $loop->scheduleReadableSocket($this);
-        }
     }
     
     /**

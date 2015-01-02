@@ -9,6 +9,7 @@ use Icicle\Loop\Events\TimerInterface;
 
 interface LoopInterface extends EventEmitterInterface
 {
+    const NO_TIMEOUT = null;
     const MIN_TIMEOUT = 0.001;
     
     /**

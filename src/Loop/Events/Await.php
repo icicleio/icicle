@@ -34,9 +34,17 @@ class Await implements AwaitInterface
     /**
      * {@inheritdoc}
      */
-    public function set(callable $callback)
+    public function setCallback(callable $callback)
     {
         $this->callback = $callback;
+    }
+    
+    /**
+     * @return  callable
+     */
+    public function getCallback()
+    {
+        return $this->callback;
     }
     
     /**
@@ -85,13 +93,5 @@ class Await implements AwaitInterface
     public function getResource()
     {
         return $this->resource;
-    }
-    
-    /**
-     * @return  callable
-     */
-    public function getCallback()
-    {
-        return $this->callback;
     }
 }

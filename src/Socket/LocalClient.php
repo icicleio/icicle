@@ -2,6 +2,8 @@
 namespace Icicle\Socket;
 
 use Exception;
+use Icicle\Loop\Loop;
+use Icicle\Promise\DeferredPromise;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
@@ -12,11 +14,6 @@ class LocalClient extends Client
     const DEFAULT_CONNECT_TIMEOUT = 30;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
-    
-    /**
-     * @var     PromiseInterface
-     */
-    private $promise;
     
     /**
      * @var     int
@@ -41,16 +38,11 @@ class LocalClient extends Client
     /**
      * @param   string $host
      * @param   int $port
-     * @param   bool $secure Use SSL/TLS
-     * @param   float $timeout
      * @param   array $options
      *
-     * @return  LocalClient
-     *
-     * @throws  InvalidArgumentException Thrown if CA file path given does not exist.
-     * @throws  FailureException Thrown if the client socket could not be created.
+     * @return  PromiseInterface Fulfilled with a LocalClient object once the connection is established.
      */
-    public static function create($host, $port, $secure = false, $timeout = self::DEFAULT_TIMEOUT, array $options = [])
+    public static function connect($host, $port, array $options = [])
     {
         if (false !== strpos($host, ':')) {
             $host = '[' . trim($host, '[]') . ']';
@@ -81,7 +73,7 @@ class LocalClient extends Client
         
         if (null !== $cafile) {
             if (!file_exists($cafile)) {
-                throw new InvalidArgumentException('No file exists at path given for cafile.');
+                return Promise::reject(new InvalidArgumentException('No file exists at path given for cafile.'));
             }
             
             $context['ssl']['cafile'] = $cafile;
@@ -93,100 +85,89 @@ class LocalClient extends Client
         $socket = @stream_socket_client($uri, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not connect to {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            return Promise::reject(new FailureException("Could not connect to {$host}:{$port}; Errno: {$errno}; {$errstr}"));
         }
         
-        return new static($socket, $secure, $timeout);
+        $deferred = new DeferredPromise();
+        
+        $await = Loop::await($socket, function () use (&$await, $socket, $deferred) {
+            $await->free();
+            $deferred->resolve(new static($socket));
+        });
+        
+        $await->listen();
+        
+        return $deferred->getPromise();
     }
     
     /**
      * @param   resource $socket
-     * @param   bool $secure
-     * @param   float $timeout
      */
-    public function __construct($socket, $secure = false, $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct($socket)
     {
-        parent::__construct($socket, $secure, $timeout);
+        parent::__construct($socket);
         
+        list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
+        list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
+    }
+    
+    /**
+     * @return  PromiseInterface Fulfilled when crypto has been enabled.
+     */
+    public function enableCrypto()
+    {
         $start = microtime(true);
         
-        if ($secure) {
-            $enable = function () use (&$enable, $socket, $host, $port, $start) {
-                $result = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-                
-                if (false === $result) {
-                    throw new FailureException("Could not connect to {$host}:{$port}: Failed to enable crypto.");
-                }
-                
-                if (0 === $result) {
-                    $this->promise = $this->poll()->then($enable);
-                    return $this->promise;
-                }
-                
-                return microtime(true) - $start;
-            };
+        $enable = function () use (&$enable, $start) {
+            $result = @stream_socket_enable_crypto($this->getResource(), true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
             
-            $this->promise = $this->await()->then($enable);
-        } else {
-            $this->promise = $this->await()->then(function () use ($start) {
-                return microtime(true) - $start;
-            });
-        }
-        
-        $this->promise->done(
-            function () use ($socket) {
-                list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
-                list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
-            },
-            function (Exception $exception) {
-                $this->close($exception);
+            if (false === $result) {
+                $message = 'Failed to enable crypto';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= "; Errno: {$error['type']}; {$error['message']}";
+                }
+                throw new FailureException($message);
             }
-        );
+            
+            if (0 === $result) {
+                return $this->poll()->then($enable);
+            }
+            
+            return microtime(true) - $start;
+        };
         
-/*
-        $this->promise = $this->promise->tap(function () use ($socket) {
-            list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
-            list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
-        });
-*/
+        return $this->await()->then($enable);
     }
     
-    public function ready()
+    /**
+     * @return  PromiseInterface Fulfilled when crypto has been disabled.
+     */
+    public function disableCrypto()
     {
-        return $this->promise;
+        $start = microtime(true);
         
-/*
-        if (null !== $this->promise) {
-            return $this->promise;
-        }
+        $disable = function () use (&$disable, $start) {
+            $result = @stream_socket_enable_crypto($this->getResource(), false, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            
+            if (false === $result) {
+                $message = 'Failed to disable crypto';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= "; Errno: {$error['type']}; {$error['message']}";
+                }
+                throw new FailureException($message);
+            }
+            
+            if (0 === $result) {
+                return $this->poll()->then($disable);
+            }
+            
+            return microtime(true) - $start;
+        };
         
-        if ($this->isOpen()) {
-            return Promise::resolve($this);
-        }
-        
-        return Promise::reject(new ClosedException('The client disconnected.'));
-*/
+        return $this->poll()->then($disable);
     }
-    
-/*
-    public function read($length = null)
-    {
-        if (null !== $this->promise) {
-            return Promise::reject(new BusyException('Client is not ready, call ready() before read().'));
-        }
-        
-        return parent::read($length);
-    }
-    
-    public function write($data = null)
-    {
-        if (null !== $this->promise) {
-            return Promise::reject(new BusyException('Client is not ready, call ready() before write().'));
-        }
-        
-        return parent::write($data);
-    }
-*/
     
     /**
      * Returns the remote IP as a string representation, such as '127.0.0.1'.
