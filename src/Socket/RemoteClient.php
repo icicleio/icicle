@@ -48,7 +48,7 @@ class RemoteClient extends Client
         $start = microtime(true);
         
         $enable = function () use (&$enable, $start) {
-            $result = @stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            $result = @stream_socket_enable_crypto($this->getResource(), true, STREAM_CRYPTO_METHOD_TLS_SERVER);
             
             if (false === $result) {
                 $message = 'Failed to enable crypto';
@@ -77,7 +77,7 @@ class RemoteClient extends Client
         $start = microtime(true);
         
         $disable = function () use (&$disable, $start) {
-            $result = @stream_socket_enable_crypto($socket, false, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            $result = @stream_socket_enable_crypto($this->getResource(), false, STREAM_CRYPTO_METHOD_TLS_SERVER);
             
             if (false === $result) {
                 $message = 'Failed to disable crypto';

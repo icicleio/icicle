@@ -55,7 +55,7 @@ class Server extends Socket
      */
     public static function create($host, $port, array $options = null)
     {
-        if (false !== strpos($host, ':')) {
+        if (false !== strpos($host, ':')) { // IPv6 address
             $host = '[' . trim($host, '[]') . ']';
         }
         
@@ -88,7 +88,7 @@ class Server extends Socket
         
         $context = stream_context_create($context);
         
-        $uri = "tcp://{$host}:{$port}";
+        $uri = sprintf('tcp://%s:%d', $host, $port);
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         
         if (!$socket || $errno) {
@@ -153,12 +153,12 @@ class Server extends Socket
         
         if (null === $this->poll) {
             $onRead = function ($resource) {
-                if (@feof($socket)) {
+                if (@feof($resource)) {
                     $this->close(new ClosedException('The server closed unexpectedly.'));
                     return;
                 }
                 
-                $client = @stream_socket_accept($resource, 0);
+                $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
                 
                 if (!$client) {
                     $this->deferred->reject(new AcceptException('Error when accepting client.'));

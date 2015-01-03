@@ -292,9 +292,11 @@ class LibeventLoop extends AbstractLoop
                 event_free($this->readEvents[$id]);
                 unset($this->readEvents[$id]);
                 
-                $this->pending[$id] &= ~EV_READ;
-                if (0 === $this->pending[$id]) {
-                    unset($this->pending[$id]);
+                if (isset($this->pending[$id])) {
+                    $this->pending[$id] &= ~EV_READ;
+                    if (0 === $this->pending[$id]) {
+                        unset($this->pending[$id]);
+                    }
                 }
             }
         }
@@ -389,9 +391,11 @@ class LibeventLoop extends AbstractLoop
                 event_free($this->writeEvents[$id]);
                 unset($this->writeEvents[$id]);
                 
-                $this->pending[$id] &= ~EV_WRITE;
-                if (0 === $this->pending[$id]) {
-                    unset($this->pending[$id]);
+                if (isset($this->pending[$id])) {
+                    $this->pending[$id] &= ~EV_WRITE;
+                    if (0 === $this->pending[$id]) {
+                        unset($this->pending[$id]);
+                    }
                 }
             }
         }

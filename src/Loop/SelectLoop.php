@@ -7,6 +7,7 @@ use Icicle\Loop\Events\PollInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\InvalidArgumentException;
+use Icicle\Loop\Exception\ResourceBusyException;
 use Icicle\Loop\Structures\TimerQueue;
 
 class SelectLoop extends AbstractLoop
@@ -128,7 +129,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function select($timeout)
     {
-        if (count($this->read) || count($this->write)) { // Use stream_select() if there are any streams in the loop.
+        if ($this->read || $this->write) { // Use stream_select() if there are any streams in the loop.
             $seconds = (int) floor($timeout);
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
             
@@ -191,7 +192,7 @@ class SelectLoop extends AbstractLoop
         $id = (int) $resource;
         
         if (isset($this->polls[$id])) {
-            throw new LogicException('A poll has already been created for this resource.');
+            throw new ResourceBusyException('A poll has already been created for this resource.');
         }
         
         return $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
@@ -280,7 +281,7 @@ class SelectLoop extends AbstractLoop
         $id = (int) $resource;
         
         if (isset($this->awaits[$id])) {
-            throw new LogicException('An await has already been created for this resource.');
+            throw new ResourceBusyException('An await has already been created for this resource.');
         }
         
         return $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);

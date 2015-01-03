@@ -13,18 +13,17 @@ use Icicle\Socket\Server;
 $coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (Client $client) {
         try {
-            //yield $client->ready();
-            
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
             while ($client->isReadable()) {
                 $data = (yield $client->read());
                 
-                if ("exit\n" === $data) {
-                    yield $client->write("Goodbye!\n");
-                    $client->close();
+                $data = trim($data, "\n");
+                
+                if ("exit" === $data) {
+                    yield $client->end("Goodbye!\n");
                 } else {
-                    yield $client->write($data);
+                    yield $client->write("Echo: {$data}\n");
                 }
             }
         } catch (Exception $e) {
@@ -32,6 +31,8 @@ $coroutine = Coroutine::call(function (Server $server) {
             $client->close();
         }
     });
+    
+    echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
     
     while ($server->isOpen()) {
         $handler(yield $server->accept());

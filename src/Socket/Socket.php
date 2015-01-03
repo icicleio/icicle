@@ -105,7 +105,7 @@ abstract class Socket
         $address = trim(substr($name, 0, $colon), '[]');
         $port = (int) substr($name, $colon + 1);
         
-        if (false !== strpos($address, ':')) {
+        if (false !== strpos($address, ':')) { // IPv6 address
             $address = '[' . trim($address, '[]') . ']';
         }
         

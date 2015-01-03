@@ -79,7 +79,7 @@ class Stream extends Socket implements DuplexStreamInterface
             }
             
             if (null === $exception) {
-                $exception = new ClosedException('The socket was closed.');
+                $exception = new ClosedException('The connection was closed.');
             }
             
             if (null !== $this->deferred) {
@@ -120,12 +120,12 @@ class Stream extends Socket implements DuplexStreamInterface
         
         $onRead = function ($resource, $expired) use ($length) {
             if ($expired) {
-                $this->deferred->reject(new TimeoutException('The stream timed out.'));
+                $this->deferred->reject(new TimeoutException('The connection timed out.'));
                 $this->deferred = null;
                 return;
             }
             
-            if (@feof($resource)) { // Socket closed, so close stream.
+            if (@feof($resource)) { // Connection closed, so close stream.
                 $this->close(new ClosedException('Connection reset by peer or reached EOF.'));
                 return;
             }

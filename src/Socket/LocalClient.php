@@ -42,7 +42,7 @@ class LocalClient extends Client
      *
      * @return  PromiseInterface Fulfilled with a LocalClient object once the connection is established.
      */
-    public static function connect($host, $port, array $options = [])
+    public static function connect($host, $port, $udp = false, array $options = [])
     {
         if (false !== strpos($host, ':')) {
             $host = '[' . trim($host, '[]') . ']';
@@ -81,11 +81,11 @@ class LocalClient extends Client
         
         $context = stream_context_create($context);
         
-        $uri = "tcp://{$host}:{$port}";
+        $uri = sprintf('%s://%s:%d', ($udp ? 'udp' : 'tcp'), $host, $port);
         $socket = @stream_socket_client($uri, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT, $context);
         
         if (!$socket || $errno) {
-            return Promise::reject(new FailureException("Could not connect to {$host}:{$port}; Errno: {$errno}; {$errstr}"));
+            return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
         }
         
         $deferred = new DeferredPromise();

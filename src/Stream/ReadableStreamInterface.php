@@ -8,6 +8,8 @@ interface ReadableStreamInterface extends StreamInterface
      *          Use null to read as much data as possible.
      *
      * @return  PromiseInterface
+     * @resolve string
+     * @reject  BusyException|UnreadableException
      *
      * @api
      */
@@ -18,6 +20,8 @@ interface ReadableStreamInterface extends StreamInterface
      * actually consuming any data.
      *
      * @return  PromiseInterface
+     * @resolve string Empty string
+     * @reject  BusyException|UnreadableException
      *
      * @api
      */

@@ -102,6 +102,10 @@ class Buffer implements ArrayAccess, Countable, IteratorAggregate
             $offset = 0;
         }
         
+        if (0 === $offset && strlen($this->data) <= $length) {
+            return $this->data;
+        }
+        
         $result = (string) substr($this->data, $offset, $length);
         
         return $result;

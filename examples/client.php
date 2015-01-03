@@ -27,7 +27,13 @@ $coroutine = Coroutine::create(function () {
         echo "{$i}) Got message of length: " . strlen($data) . "\n";
     }
     
-    yield $client->end("exit\n");
+    //yield $client->end("exit\n");
+    
+    for ($i = 0; $client->isReadable(); ++$i) {
+        $data = (yield $client->read(1000, 1));
+        
+        echo "{$i}) Got message of length: " . strlen($data) . "\n";
+    }
     
     yield microtime(true) - $start;
 });
