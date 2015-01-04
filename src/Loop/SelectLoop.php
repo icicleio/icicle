@@ -12,8 +12,6 @@ use Icicle\Loop\Structures\TimerQueue;
 
 class SelectLoop extends AbstractLoop
 {
-    const INTERVAL = 0.1;
-    
     const MICROSEC_PER_SEC = 1e6;
     const NANOSEC_PER_SEC = 1e9;
     
@@ -28,9 +26,9 @@ class SelectLoop extends AbstractLoop
     private $read = [];
     
     /**
-     * @var float[int]
+     * @var TimerInterface[int]
      */
-    private $timeouts = [];
+    private $pollTimers = [];
     
     /**
      * @var AwaitInterface[int]
@@ -43,14 +41,24 @@ class SelectLoop extends AbstractLoop
     private $write = [];
     
     /**
+     * @var TimerInterface[int]
+     */
+    private $awaitTimers = [];
+    
+    /**
      * @var TimerQueue
      */
     private $timerQueue;
     
     /**
-     * @var TimerInterface
+     * @var Closure
      */
-    private $timer;
+    private $pollTimerCallback;
+    
+    /**
+     * @var Closure
+     */
+    private $awaitTimerCallback;
     
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
@@ -64,9 +72,8 @@ class SelectLoop extends AbstractLoop
     
     /**
      * @param   EventFactoryInterface|null $eventFactory
-     * @param   int|float $interval Interval between checking for timed-out sockets.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null, $interval = self::INTERVAL)
+    public function __construct(EventFactoryInterface $eventFactory = null)
     {
         parent::__construct($eventFactory);
         
@@ -81,20 +88,23 @@ class SelectLoop extends AbstractLoop
             }
         }
         
-        $this->timer = $this->createTimer(function () {
-            $time = microtime(true);
-            foreach ($this->timeouts as $id => $timeout) { // Look for sockets that have timed out.
-                if ($timeout <= $time && isset($this->polls[$id])) {
-                    unset($this->read[$id]);
-                    unset($this->timeouts[$id]);
-                    
-                    $callback = $this->polls[$id]->getCallback();
-                    $callback($this->polls[$id]->getResource(), true);
-                }
-            }
-        }, $interval, true);
+        $this->pollTimerCallback = function (PollInterface $poll) {
+            $resource = $poll->getResource();
+            $id = (int) $resource;
+            unset($this->read[$id]);
+            unset($this->pollTimers[$id]);
+            
+            $poll->call($resource, true);
+        };
         
-        $this->timer->unreference();
+        $this->awaitTimerCallback = function (AwaitInterface $await) {
+            $resource = $await->getResource();
+            $id = (int) $resource;
+            unset($this->write[$id]);
+            unset($this->awaitTimers[$id]);
+            
+            $await->call($resource, true);
+        };
     }
     
     /**
@@ -123,7 +133,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param   float $timeout
+     * @param   int|float|null $timeout
      *
      * @return  bool
      */
@@ -146,16 +156,19 @@ class SelectLoop extends AbstractLoop
             }
             
             // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
-            $count = @stream_select($read, $write, $except, $seconds, $microseconds);
+            $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
             
             if ($count) {
                 foreach ($read as $id => $resource) {
                     if (isset($this->polls[$id], $this->read[$id])) { // Poll may have been removed from a previous call.
                         unset($this->read[$id]);
-                        unset($this->timeouts[$id]);
                         
-                        $callback = $this->polls[$id]->getCallback();
-                        $callback($resource, false);
+                        if (isset($this->pollTimers[$id])) {
+                            $this->pollTimers[$id]->cancel();
+                            unset($this->pollTimers[$id]);
+                        }
+                        
+                        $this->polls[$id]->call($resource, false);
                     }
                 }
                 
@@ -163,12 +176,16 @@ class SelectLoop extends AbstractLoop
                     if (isset($this->awaits[$id], $this->write[$id])) { // Await may have been removed from a previous call.
                         unset($this->write[$id]);
                         
-                        $callback = $this->awaits[$id]->getCallback();
-                        $callback($resource);
+                        if (isset($this->awaitTimers[$id])) {
+                            $this->awaitTimers[$id]->cancel();
+                            unset($this->awaitTimers[$id]);
+                        }
+                        
+                        $this->awaits[$id]->call($resource, false);
                     }
                 }
             }
-        } elseif (0 !== $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
+        } elseif (0 < $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
             $seconds = (int) floor($timeout);
             $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
         
@@ -196,16 +213,6 @@ class SelectLoop extends AbstractLoop
         }
         
         return $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
-        
-/*
-        if (!isset($this->polls[$id])) {
-            $this->polls[$id] = $this->getEventFactory()->createPoll($this, $resource, $callback);
-        } else {
-            $this->polls[$id]->set($callback);
-        }
-        
-        return $this->polls[$id];
-*/
     }
     
     public function listenPoll(PollInterface $poll, $timeout = null)
@@ -225,7 +232,7 @@ class SelectLoop extends AbstractLoop
                 $timeout = self::MIN_TIMEOUT;
             }
             
-            $this->timeouts[$id] = microtime(true) + $timeout;
+            $this->pollTimers[$id] = $this->createTimer($this->pollTimerCallback, $timeout, false, [$poll]);
         }
     }
     
@@ -238,7 +245,11 @@ class SelectLoop extends AbstractLoop
         
         if (isset($this->polls[$id]) && $poll === $this->polls[$id]) {
             unset($this->read[$id]);
-            unset($this->timeouts[$id]);
+            
+            if (isset($this->pollTimers[$id])) {
+                $this->pollTimers[$id]->cancel();
+                unset($this->pollTimers[$id]);
+            }
         }
     }
     
@@ -262,7 +273,11 @@ class SelectLoop extends AbstractLoop
         if (isset($this->polls[$id]) && $poll === $this->polls[$id]) {
             unset($this->polls[$id]);
             unset($this->read[$id]);
-            unset($this->timeouts[$id]);
+            
+            if (isset($this->pollTimers[$id])) {
+                $this->pollTimers[$id]->cancel();
+                unset($this->pollTimers[$id]);
+            }
         }
     }
     
@@ -285,16 +300,6 @@ class SelectLoop extends AbstractLoop
         }
         
         return $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
-        
-/*
-        if (!isset($this->awaits[$id])) {
-            $this->awaits[$id] = $this->getEventFactory()->createAwait($this, $resource, $callback);
-        } else {
-            $this->awaits[$id]->set($callback);
-        }
-        
-        return $this->awaits[$id];
-*/
     }
     
     public function listenAwait(AwaitInterface $await, $timeout = null)
@@ -307,6 +312,15 @@ class SelectLoop extends AbstractLoop
         }
         
         $this->write[$id] = $resource;
+        
+        if (null !== $timeout) {
+            $timeout = (float) $timeout;
+            if (self::MIN_TIMEOUT > $timeout) {
+                $timeout = self::MIN_TIMEOUT;
+            }
+            
+            $this->awaitTimers[$id] = $this->createTimer($this->awaitTimerCallback, $timeout, false, [$await]);
+        }
     }
     
     /**
@@ -318,6 +332,11 @@ class SelectLoop extends AbstractLoop
         
         if (isset($this->awaits[$id]) && $await === $this->awaits[$id]) {
             unset($this->write[$id]);
+            
+            if (isset($this->awaitTimers[$id])) {
+                $this->awaitTimers[$id]->cancel();
+                unset($this->awaitTimers[$id]);
+            }
         }
     }
     
@@ -341,6 +360,11 @@ class SelectLoop extends AbstractLoop
         if (isset($this->awaits[$id]) && $await === $this->awaits[$id]) {
             unset($this->awaits[$id]);
             unset($this->write[$id]);
+            
+            if (isset($this->awaitTimers[$id])) {
+                $this->awaitTimers[$id]->cancel();
+                unset($this->awaitTimers[$id]);
+            }
         }
     }
     
@@ -354,7 +378,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = [])
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
     {
         $timer = $this->getEventFactory()->createTimer($this, $callback, $interval, $periodic, $args);
         
@@ -401,10 +425,11 @@ class SelectLoop extends AbstractLoop
         
         $this->polls = [];
         $this->read = [];
-        $this->timeouts = [];
+        $this->pollTimers = [];
         
         $this->awaits = [];
         $this->write = [];
+        $this->awaitTimers = [];
         
         $this->timerQueue->clear();
         

@@ -129,9 +129,13 @@ class LazyPromise implements PromiseInterface
      *
      * @return  LazyPromise
      */
-    public static function create(callable $promisor, array $args = [])
+    public static function create(callable $promisor, array $args = null)
     {
         return new static(function () use ($promisor, $args) {
+            if (empty($args)) {
+                return $promisor();
+            }
+            
             return call_user_func_array($promisor, $args);
         });
     }

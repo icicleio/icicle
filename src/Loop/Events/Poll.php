@@ -22,8 +22,9 @@ class Poll implements PollInterface
     private $callback;
     
     /**
-     * @param   callable $callback Function called when the interval expires.
-     * @param   array $args Optional array of arguments to pass the callback function.
+     * @param   LoopInterface $loop
+     * @param   resource $resource
+     * @param   callable $callback
      */
     public function __construct(LoopInterface $loop, $resource, callable $callback)
     {
@@ -36,19 +37,42 @@ class Poll implements PollInterface
         $this->callback = $callback;
     }
     
+    /**
+     * {@inheritdoc}
+     */
+    public function call($resource, $expired = false)
+    {
+        $callback = $this->callback;
+        $callback($resource, $expired);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function __invoke($resource, $expired = false)
+    {
+        $this->call($resource, $expired);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
     public function setCallback(callable $callback)
     {
         $this->callback = $callback;
     }
     
     /**
-     * @return  callable
+     * {@inheritdoc}
      */
     public function getCallback()
     {
         return $this->callback;
     }
     
+    /**
+     * {@inheritdoc}
+     */
     public function listen($timeout = null)
     {
         $this->loop->listenPoll($this, $timeout);

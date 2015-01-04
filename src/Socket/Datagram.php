@@ -87,7 +87,6 @@ class Datagram extends Socket
     {
         parent::__construct($socket);
         
-        stream_set_blocking($socket, 0);
         stream_set_read_buffer($socket, 0);
         stream_set_write_buffer($socket, 0);
         stream_set_chunk_size($socket, self::CHUNK_SIZE);
@@ -244,7 +243,7 @@ class Datagram extends Socket
                 return;
             }
             
-            $this->deferred->resolve('');
+            $this->deferred->resolve();
             $this->deferred = null;
         };
         

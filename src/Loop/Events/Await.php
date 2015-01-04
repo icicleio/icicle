@@ -21,8 +21,9 @@ class Await implements AwaitInterface
     private $callback;
     
     /**
-     * @param   callable $callback Function called when the interval expires.
-     * @param   array $args Optional array of arguments to pass the callback function.
+     * @param   LoopInterface $loop
+     * @param   resource $resource
+     * @param   callable $callback
      */
     public function __construct(LoopInterface $loop, $resource, callable $callback)
     {
@@ -34,13 +35,30 @@ class Await implements AwaitInterface
     /**
      * {@inheritdoc}
      */
+    public function call($resource, $expired = false)
+    {
+        $callback = $this->callback;
+        $callback($resource, $expired);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function __invoke($resource, $expired = false)
+    {
+        $this->call($resource, $expired);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
     public function setCallback(callable $callback)
     {
         $this->callback = $callback;
     }
     
     /**
-     * @return  callable
+     * {@inheritdoc}
      */
     public function getCallback()
     {
@@ -50,9 +68,9 @@ class Await implements AwaitInterface
     /**
      * {@inheritdoc}
      */
-    public function listen()
+    public function listen($timeout = null)
     {
-        $this->loop->listenAwait($this);
+        $this->loop->listenAwait($this, $timeout);
     }
     
     /**

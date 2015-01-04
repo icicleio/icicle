@@ -1,11 +1,6 @@
 <?php
 namespace Icicle\Socket;
 
-use Exception;
-use Icicle\Promise\Promise;
-use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\InvalidArgumentException;
-
 abstract class Client extends Stream
 {
     /**

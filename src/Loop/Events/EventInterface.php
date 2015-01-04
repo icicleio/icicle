@@ -12,9 +12,4 @@ interface EventInterface
      * @return  callable
      */
     public function getCallback();
-    
-    /**
-     * @return  LoopInterface
-     */
-    //public function getLoop();
 }

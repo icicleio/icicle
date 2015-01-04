@@ -35,6 +35,23 @@ class Immediate implements ImmediateInterface
     /**
      * {@inheritdoc}
      */
+    public function call()
+    {
+        $callback = $this->callback;
+        $callback();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function __invoke()
+    {
+        $this->call();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
     public function isPending()
     {
         return $this->loop->isImmediatePending($this);

@@ -71,7 +71,7 @@ interface LoopInterface extends EventEmitterInterface
      * @param   callable $callback
      * @param   array $args Array of arguments to be passed to the callback function.
      */
-    public function schedule(callable $callback, array $args = []);
+    public function schedule(callable $callback, array $args = null);
     
     /**
      * Adds the socket or stream resource to the loop and begins listening for data.
@@ -172,7 +172,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  TimerInterface
      */
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = []);
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null);
     
     /**
      * Removes the timer from the loop.
@@ -198,7 +198,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  ImmediateInterface
      */
-    public function createImmediate(callable $callback, array $args = []);
+    public function createImmediate(callable $callback, array $args = null);
     
     /**
      * Removes the immediate from the loop.

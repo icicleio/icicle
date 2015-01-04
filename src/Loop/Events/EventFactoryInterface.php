@@ -32,7 +32,7 @@ interface EventFactoryInterface
      *
      * @return  TimerInterface
      */
-    public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = []);
+    public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null);
     
     /**
      * @param   LoopInterface $loop
@@ -40,5 +40,5 @@ interface EventFactoryInterface
      *
      * @return  ImmediateInterface
      */
-    public function createImmediate(LoopInterface $loop, callable $callback);
+    public function createImmediate(LoopInterface $loop, callable $callback, array $args = null);
 }

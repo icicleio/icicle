@@ -308,10 +308,14 @@ class Coroutine implements CoroutineInterface
      *
      * @throws  InvalidCallableException Thrown if the callable throws an exception or does not return a Generator.
      */
-    public static function create(callable $worker, array $args = [])
+    public static function create(callable $worker, array $args = null)
     {
         try {
-            $generator = call_user_func_array($worker, $args);
+            if (empty($args)) {
+                $generator = $worker();
+            } else {
+                $generator = call_user_func_array($worker, $args);
+            }
         } catch (Exception $exception) {
             throw new InvalidCallableException('The callable threw an exception.', $worker, $exception);
         }

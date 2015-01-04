@@ -2,7 +2,7 @@
 namespace Icicle\Socket;
 
 use Icicle\Loop\Loop;
-use Icicle\Promise\DeferredPromise;
+use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\AcceptException;
 use Icicle\Socket\Exception\ClosedException;
@@ -30,7 +30,7 @@ class Server extends Socket
     private $port;
     
     /**
-     * @var DeferredPromise
+     * @var Deferred
      */
     private $deferred;
     
@@ -175,7 +175,7 @@ class Server extends Socket
         
         $this->poll->listen();
         
-        $this->deferred = new DeferredPromise(function () {
+        $this->deferred = new Deferred(function () {
             $this->poll->cancel();
             $this->deferred = null;
         });

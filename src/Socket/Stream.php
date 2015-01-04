@@ -3,7 +3,7 @@ namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Promise\DeferredPromise;
+use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
@@ -21,13 +21,13 @@ class Stream extends Socket implements DuplexStreamInterface
     const CHUNK_SIZE = 8192; // 8kB
     
     /**
-     * @var DeferredPromise|null
+     * @var Deferred|null
      */
     private $deferred;
     
     /**
      * Queue of data to write and promises to resolve when that data is written (or fails to write).
-     * Data is stored as an array: [Buffer, int, DeferredPromise].
+     * Data is stored as an array: [Buffer, int, int|float|null, Deferred].
      *
      * @var SplQueue
      */
@@ -87,7 +87,7 @@ class Stream extends Socket implements DuplexStreamInterface
             }
             
             while (!$this->writeQueue->isEmpty()) {
-                list( , , $deferred) = $this->writeQueue->shift();
+                list( , , , $deferred) = $this->writeQueue->shift();
                 $deferred->reject($exception);
             }
         }
@@ -153,7 +153,7 @@ class Stream extends Socket implements DuplexStreamInterface
         
         $this->poll->listen($timeout);
         
-        $this->deferred = new DeferredPromise(function () {
+        $this->deferred = new Deferred(function () {
             $this->poll->cancel();
             $this->deferred = null;
         });
@@ -164,9 +164,9 @@ class Stream extends Socket implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function poll()
+    public function poll($timeout = null)
     {
-        return $this->read(0);
+        return $this->read(0, $timeout);
     }
     
     /**
@@ -180,7 +180,7 @@ class Stream extends Socket implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function write($data = null)
+    public function write($data = null, $timeout = null)
     {
         if (!$this->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is no longer writable.'));
@@ -206,12 +206,17 @@ class Stream extends Socket implements DuplexStreamInterface
             $written = 0;
         }
         
-        $deferred = new DeferredPromise();
-        $this->writeQueue->push([$data, $written, $deferred]);
+        $deferred = new Deferred();
+        $this->writeQueue->push([$data, $written, $timeout, $deferred]);
         
         if (null === $this->await) {
-            $onWrite = function ($resource) use (&$onWrite) {
-                list($data, $previous, $deferred) = $this->writeQueue->shift();
+            $onWrite = function ($resource, $expired) {
+                if ($expired) {
+                    $this->close(new TimeoutException('Writing to the socket timed out.'));
+                    return;
+                }
+                
+                list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
                 
                 $written = @fwrite($resource, $data, self::CHUNK_SIZE);
                 
@@ -228,11 +233,12 @@ class Stream extends Socket implements DuplexStreamInterface
                 if ($data->isEmpty()) {
                     $deferred->resolve($written);
                 } else {
-                    $this->writeQueue->unshift([$data, $written, $deferred]);
+                    $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
                 }
                 
                 if (!$this->writeQueue->isEmpty()) {
-                    $this->await->listen();
+                    list( , , $timeout) = $this->writeQueue->top();
+                    $this->await->listen($timeout);
                 }
             };
             
@@ -240,7 +246,7 @@ class Stream extends Socket implements DuplexStreamInterface
         }
         
         if (!$this->await->isPending()) {
-            $this->await->listen();
+            $this->await->listen($timeout);
         }
         
         return $deferred->getPromise();
@@ -249,9 +255,9 @@ class Stream extends Socket implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function end($data = null)
+    public function end($data = null, $timeout = null)
     {
-        $promise = $this->write($data);
+        $promise = $this->write($data, $timeout);
         
         $this->writable = false;
         
@@ -263,9 +269,9 @@ class Stream extends Socket implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function await()
+    public function await($timeout = null)
     {
-        return $this->write();
+        return $this->write(null, $timeout);
     }
     
     /**
@@ -422,7 +428,7 @@ class Stream extends Socket implements DuplexStreamInterface
         
         $this->poll->listen();
         
-        $this->deferred = new DeferredPromise(function () {
+        $this->deferred = new Deferred(function () {
             $this->poll->cancel();
             $this->deferred = null;
         });

@@ -31,7 +31,7 @@ class CallableQueue implements Countable
      * @param   callable $callback
      * @param   array $args
      */
-    public function insert(callable $callback, array $args = [])
+    public function insert(callable $callback, array $args = null)
     {
         if (!empty($args)) {
             $callback = function () use ($callback, $args) {

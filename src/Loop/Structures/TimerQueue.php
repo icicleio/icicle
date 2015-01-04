@@ -60,16 +60,6 @@ class TimerQueue implements Countable
     public function remove(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
-            $queue = $this->queue;
-            $this->queue = new SplPriorityQueue();
-            
-            while (!$queue->isEmpty()) {
-                $object = $queue->extract();
-                if ($object !== $timer) {
-                    $this->queue->insert($object, -$this->timers[$object]);
-                }
-            }
-            
             $this->timers->detach($timer);
         }
     }
@@ -120,26 +110,30 @@ class TimerQueue implements Countable
     }
     
     /**
-     * Calculates the time remaining until the top timer is ready. Returns false if no timers are in the queue, otherwise a
+     * Calculates the time remaining until the top timer is ready. Returns null if no timers are in the queue, otherwise a
      * non-negative value is returned.
      *
-     * @return  int|float|bool
+     * @return  int|float|null
      */
     public function getInterval()
     {
-        if ($this->queue->isEmpty()) {
-            return false;
+        while (!$this->queue->isEmpty()) {
+            $timer = $this->queue->top();
+            
+            if ($this->timers->contains($timer)) {
+                $timeout = $this->timers[$timer] - microtime(true);
+                
+                if (0 > $timeout) {
+                    return 0;
+                }
+                
+                return $timeout;
+            } else {
+                $this->queue->extract(); // Timer was removed from queue.
+            }
         }
         
-        $timer = $this->queue->top();
-        
-        $timeout = $this->timers[$timer] - microtime(true);
-        
-        if (0 > $timeout) {
-            return 0;
-        }
-        
-        return $timeout;
+        return null;
     }
     
     /**
@@ -154,25 +148,28 @@ class TimerQueue implements Countable
         while (!$this->queue->isEmpty()) {
             $timer = $this->queue->top();
             
-            if ($this->timers[$timer] > microtime(true)) { // Timer at top of queue has not expired.
-                return $count;
-            }
-            
-            // Remove and execute timer. Replace timer if persistent.
-            $this->queue->extract();
-            
-            if ($timer->isPeriodic()) {
-                $this->timers[$timer] += $timer->getInterval();
-                $this->queue->insert($timer, -$this->timers[$timer]);
+            if ($this->timers->contains($timer)) {
+                if ($this->timers[$timer] > microtime(true)) { // Timer at top of queue has not expired.
+                    return $count;
+                }
+                
+                // Remove and execute timer. Replace timer if persistent.
+                $this->queue->extract();
+                
+                if ($timer->isPeriodic()) {
+                    $this->timers[$timer] += $timer->getInterval();
+                    $this->queue->insert($timer, -$this->timers[$timer]);
+                } else {
+                    $this->timers->detach($timer);
+                }
+                
+                // Execute the timer.
+                $timer->call();
+                
+                ++$count;
             } else {
-                $this->timers->detach($timer);
+                $this->queue->extract(); // Timer was removed from queue.
             }
-            
-            // Execute the timer.
-            $callback = $timer->getCallback();
-            $callback();
-            
-            ++$count;
         }
         
         return $count;

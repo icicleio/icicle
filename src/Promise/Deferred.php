@@ -3,7 +3,7 @@ namespace Icicle\Promise;
 
 use Exception;
 
-class DeferredPromise implements PromisorInterface
+class Deferred implements PromisorInterface
 {
     /**
      * @var     Promise

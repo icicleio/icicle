@@ -27,7 +27,7 @@ class EventFactory implements EventFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = [])
+    public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null)
     {
         return new Timer($loop, $callback, $interval, $periodic, $args);
     }
@@ -35,7 +35,7 @@ class EventFactory implements EventFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function createImmediate(LoopInterface $loop, callable $callback, array $args = [])
+    public function createImmediate(LoopInterface $loop, callable $callback, array $args = null)
     {
         return new Immediate($loop, $callback, $args);
     }

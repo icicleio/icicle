@@ -3,7 +3,7 @@ namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Promise\DeferredPromise;
+use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
@@ -88,7 +88,7 @@ class LocalClient extends Client
             return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
         }
         
-        $deferred = new DeferredPromise();
+        $deferred = new Deferred();
         
         $await = Loop::await($socket, function () use (&$await, $socket, $deferred) {
             $await->free();

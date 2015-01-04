@@ -115,14 +115,12 @@ class LibeventLoop extends AbstractLoop
         
         $this->readCallback = function ($resource, $what, PollInterface $poll) {
             $this->pending[(int) $resource] &= ~EV_READ;
-            $callback = $poll->getCallback();
-            $callback($resource, EV_TIMEOUT & $what);
+            $poll->call($resource, EV_TIMEOUT & $what);
         };
         
         $this->writeCallback = function ($resource, $what, AwaitInterface $await) {
             $this->pending[(int) $resource] &= ~EV_WRITE;
-            $callback = $await->getCallback();
-            $callback($resource);
+            $await->call($resource, EV_TIMEOUT & $what);
         };
         
         $this->timerCallback = function ($resource, $what, TimerInterface $timer) {
@@ -133,8 +131,7 @@ class LibeventLoop extends AbstractLoop
                 event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
             }
             
-            $callback = $timer->getCallback();
-            $callback();
+            $timer->call();
         };
     }
     
@@ -345,7 +342,15 @@ class LibeventLoop extends AbstractLoop
             $this->writeEvents[$id] = $event;
         }
         
-        event_add($this->writeEvents[$id]);
+        if (null !== $timeout) {
+            $timeout = (float) $timeout;
+            if (self::MIN_TIMEOUT > $timeout) {
+                $timeout = self::MIN_TIMEOUT;
+            }
+            event_add($this->writeEvents[$id], $timeout * self::MICROSEC_PER_SEC);
+        } else {
+            event_add($this->writeEvents[$id]);
+        }
         
         if (!isset($this->pending[$id])) {
             $this->pending[$id] = EV_WRITE;
@@ -414,7 +419,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = [])
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
     {
         $timer = $this->getEventFactory()->createTimer($this, $callback, $interval, $periodic, $args);
         

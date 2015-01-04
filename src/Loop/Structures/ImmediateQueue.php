@@ -55,13 +55,6 @@ class ImmediateQueue implements Countable
     public function remove(ImmediateInterface $immediate)
     {
         if ($this->immediates->contains($immediate)) {
-            foreach ($this->queue as $key => $value) {
-                if ($value === $immediate) {
-                    unset($this->queue[$key]);
-                    break;
-                }
-            }
-            
             $this->immediates->detach($immediate);
         }
     }
@@ -101,17 +94,19 @@ class ImmediateQueue implements Countable
      */
     public function tick()
     {
-        if ($this->queue->isEmpty()) {
-            return false;
+        while (!$this->queue->isEmpty()) {
+            $immediate = $this->queue->shift();
+            
+            if ($this->immediates->contains($immediate)) {
+                $this->immediates->detach($immediate);
+                
+                // Execute the immediate.
+                $immediate->call();
+                
+                return true;
+            }
         }
         
-        $immediate = $this->queue->shift();
-        $this->immediates->detach($immediate);
-        
-        // Execute the immediate.
-        $callback = $immediate->getCallback();
-        $callback();
-        
-        return true;
+        return false;
     }
 }

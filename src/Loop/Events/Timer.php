@@ -40,7 +40,7 @@ class Timer implements TimerInterface
      * @param   bool $periodic True to repeat the timer, false to only run it once.
      * @param   array|null $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = [])
+    public function __construct(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null)
     {
         $this->loop = $loop;
         $this->interval = (float) $interval;
@@ -57,6 +57,23 @@ class Timer implements TimerInterface
         if (self::MIN_INTERVAL > $this->interval) {
             $this->interval = self::MIN_INTERVAL;
         }
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function call()
+    {
+        $callback = $this->callback;
+        $callback();
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function __invoke()
+    {
+        $this->call();
     }
     
     /**

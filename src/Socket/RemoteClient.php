@@ -10,24 +10,29 @@ use Icicle\Socket\Exception\FailureException;
 class RemoteClient extends Client
 {
     /**
-     * @var     int
+     * @var int
      */
     private $remoteAddress = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $remotePort = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $localAddress = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $localPort = 0;
+    
+    /**
+     * @var int
+     */
+    private $crypto = 0;
     
     /**
      * @param   resource $socket
@@ -41,14 +46,19 @@ class RemoteClient extends Client
     }
     
     /**
-     * @return  PromiseInterface Fulfilled when crypto has been enabled.
+     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER
+     *
+     * @return  PromiseInterface(float) Fulfilled with the number of seconds elapsed while enabling crypto.
+     *
+     * @throws  FailureException Rejected if crypto could not be enabled.
      */
-    public function enableCrypto()
+    public function enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER)
     {
         $start = microtime(true);
+        $method = (int) $method;
         
-        $enable = function () use (&$enable, $start) {
-            $result = @stream_socket_enable_crypto($this->getResource(), true, STREAM_CRYPTO_METHOD_TLS_SERVER);
+        $enable = function () use (&$enable, $start, $method) {
+            $result = @stream_socket_enable_crypto($this->getResource(), true, $method);
             
             if (false === $result) {
                 $message = 'Failed to enable crypto';
@@ -63,6 +73,8 @@ class RemoteClient extends Client
                 return $this->poll()->then($enable);
             }
             
+            $this->crypto = $method;
+            
             return microtime(true) - $start;
         };
         
@@ -70,14 +82,20 @@ class RemoteClient extends Client
     }
     
     /**
-     * @return  PromiseInterface Fulfilled when crypto has been disabled.
+     * @return  PromiseInterface(float) Fulfilled with the number of seconds elapsed while disabling crypto.
+     *
+     * @throws  
      */
     public function disableCrypto()
     {
+        if (0 === $this->crypto) {
+            return Promise::reject(new FailureException('Crypto was not enabled on the stream.'));
+        }
+        
         $start = microtime(true);
         
         $disable = function () use (&$disable, $start) {
-            $result = @stream_socket_enable_crypto($this->getResource(), false, STREAM_CRYPTO_METHOD_TLS_SERVER);
+            $result = @stream_socket_enable_crypto($this->getResource(), false, $this->crypto);
             
             if (false === $result) {
                 $message = 'Failed to disable crypto';
@@ -96,6 +114,14 @@ class RemoteClient extends Client
         };
         
         return $this->await()->then($disable);
+    }
+    
+    /**
+     * @return  bool
+     */
+    public function cryptoEnabled()
+    {
+        return 0 !== $this->crypto;
     }
     
     /**
