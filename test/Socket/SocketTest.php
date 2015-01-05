@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Socket;
 
-use Icicle\StreamSocket\Socket;
+use Icicle\Socket\Socket;
 use Icicle\Tests\TestCase;
 
 class SocketTest extends TestCase
@@ -10,7 +10,7 @@ class SocketTest extends TestCase
     
     public function setUp()
     {
-        $this->socket = $this->getMockForAbstractClass('Icicle\StreamSocket\Socket', [fopen('php://memory', 'r+')]);
+        $this->socket = $this->getMockForAbstractClass('Icicle\Socket\Socket', [fopen('php://memory', 'r+')]);
     }
     
     public function testIsOpen()
@@ -28,7 +28,7 @@ class SocketTest extends TestCase
      */
     public function testConstructWithNonResource()
     {
-        $this->getMockForAbstractClass('Icicle\StreamSocket\Socket', [1]);
+        $this->getMockForAbstractClass('Icicle\Socket\Socket', [1]);
     }
     
     /**

@@ -68,7 +68,7 @@ class PromiseTest extends TestCase
     
     public function testResolve()
     {
-        $this->assertTrue($this->promise === Promise::resolve($this->promise));
+        $this->assertSame($this->promise, Promise::resolve($this->promise));
         
         $value = 'test';
         $fulfilled = Promise::resolve($value);
@@ -117,6 +117,19 @@ class PromiseTest extends TestCase
     /**
      * @depends testResolveCallableWithValue
      */
+    public function testThenReturnsPromiseAfterFulfilled()
+    {
+        $value = 'test';
+        $this->resolve($value);
+        
+        Loop::run();
+        
+        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
+    }
+    
+    /**
+     * @depends testResolveCallableWithValue
+     */
     public function testResolveMakesPromiseImmutable()
     {
         $value1 = 'test1';
@@ -137,28 +150,6 @@ class PromiseTest extends TestCase
         
         $this->assertTrue($this->promise->isFulfilled());
         $this->assertSame($value1, $this->promise->getResult());
-    }
-    
-    public function testRejectMakesPromiseImmutable()
-    {
-        $exception1 = new Exception();
-        $exception2 = new Exception();
-        $value = 'test';
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($exception1));
-        
-        $this->promise->done($this->createCallback(0), $callback);
-        
-        $this->reject($exception1);
-        $this->resolve($value);
-        $this->reject($exception2);
-        
-        Loop::run();
-        
-        $this->assertTrue($this->promise->isRejected());
-        $this->assertSame($exception1, $this->promise->getResult());
     }
     
     /**
@@ -324,6 +315,44 @@ class PromiseTest extends TestCase
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
         $this->assertSame($exception, $this->promise->getResult());
+    }
+    
+    /**
+     * @depends testRejectCallable
+     */
+    public function testThenReturnsPromiseAfterRejected()
+    {
+        $exception = new Exception();
+        $this->reject($exception);
+        
+        Loop::run();
+        
+        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
+    }
+    
+    /**
+     * @depends testRejectCallable
+     */
+    public function testRejectMakesPromiseImmutable()
+    {
+        $exception1 = new Exception();
+        $exception2 = new Exception();
+        $value = 'test';
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception1));
+        
+        $this->promise->done($this->createCallback(0), $callback);
+        
+        $this->reject($exception1);
+        $this->resolve($value);
+        $this->reject($exception2);
+        
+        Loop::run();
+        
+        $this->assertTrue($this->promise->isRejected());
+        $this->assertSame($exception1, $this->promise->getResult());
     }
     
     /**
@@ -1086,16 +1115,70 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testCancellation
-     * @depends testThenReturnsNewPromise
      */
-    public function testCancellingChildDoesNotCancelParent()
+    public function testCancellingOnlyChildCancelsParent()
     {
         $child = $this->promise->then();
         
         $child->cancel();
         
-        $this->assertTrue($this->promise->isPending());
+        Loop::run();
+        
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($this->promise->isRejected());
         $this->assertTrue($child->isRejected());
+    }
+    
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellingSiblingChildDoesNotCancelParent()
+    {
+        $child1 = $this->promise->then();
+        $child2 = $this->promise->then();
+        
+        $child1->cancel();
+        
+        Loop::run();
+        
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($child1->isRejected());
+        $this->assertTrue($child2->isPending());
+    }
+    
+    /**
+     * @depends testCancellingSiblingChildDoesNotCancelParent
+     */
+    public function testCancellingAllChildrenCancelsParent()
+    {
+        $child1 = $this->promise->then();
+        $child2 = $this->promise->then();
+        
+        $child1->cancel();
+        $child2->cancel();
+        
+        Loop::run();
+        
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($child1->isRejected());
+        $this->assertTrue($child2->isRejected());
+    }
+    
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellingParentCancelsAllChildren()
+    {
+        $child1 = $this->promise->then();
+        $child2 = $this->promise->then();
+        
+        $this->promise->cancel();
+        
+        Loop::run();
+        
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($child1->isRejected());
+        $this->assertTrue($child2->isRejected());
     }
     
     /**
@@ -1109,10 +1192,12 @@ class PromiseTest extends TestCase
         
         $this->resolve($promise);
         
-        $this->promise->cancel();
+        $this->promise->cancel($exception);
+        
+        Loop::run();
         
         $this->assertTrue($promise->isRejected());
-        $this->assertInstanceOf('Icicle\Promise\Exception\CancelledException', $promise->getResult());
+        $this->assertSame($exception, $promise->getResult());
     }
     
     /**
@@ -1213,6 +1298,7 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testResolveCallableWithValue
+     * @depends testCancellation
      */
     public function testCancelDelayBeforeFulfilled()
     {
@@ -1233,6 +1319,7 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testResolveCallableWithValue
+     * @depends testCancellation
      */
     public function testCancelDelayAfterFulfilled()
     {
@@ -1249,6 +1336,25 @@ class PromiseTest extends TestCase
         
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isFulfilled());
+    }
+    
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayWithSiblingPromise()
+    {
+        $time = 0.1;
+        
+        $delayed = $this->promise->delay($time);
+        $sibling = $this->promise->then();
+        
+        $delayed->cancel();
+        
+        Loop::run();
+        
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
     }
     
     /**
@@ -1364,6 +1470,7 @@ class PromiseTest extends TestCase
     }
     
     /**
+     * @depends testTimeout
      * @depends testCancellation
      */
     public function testCancelTimeout()
@@ -1377,6 +1484,25 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
         
         $this->assertTrue($timeout->isRejected());
+        $this->assertTrue($this->promise->isRejected());
+    }
+    
+    /**
+     * @depends testCancelTimeout
+     */
+    public function testCancelTimeoutOnSibling()
+    {
+        $time = 0.1;
+        
+        $timeout = $this->promise->timeout($time);
+        $sibling = $this->promise->then();
+        
+        $timeout->cancel();
+        
+        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        
+        $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
     }
 }

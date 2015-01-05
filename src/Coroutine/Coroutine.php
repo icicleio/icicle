@@ -10,7 +10,6 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Promise\PromiseTrait;
-use Icicle\Promise\PromisorInterface;
 
 class Coroutine implements CoroutineInterface
 {

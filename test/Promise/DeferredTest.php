@@ -3,13 +3,13 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Promise\DeferredPromise;
+use Icicle\Promise\Deferred;
 use Icicle\Tests\TestCase;
 
 /**
  * @requires PHP 5.4
  */
-class DeferredPromiseTest extends TestCase
+class DeferredTest extends TestCase
 {
     public function tearDown()
     {
@@ -18,7 +18,7 @@ class DeferredPromiseTest extends TestCase
     
     public function testResolve()
     {
-        $deferred = new DeferredPromise();
+        $deferred = new Deferred();
         
         $value = 'test';
         
@@ -37,7 +37,7 @@ class DeferredPromiseTest extends TestCase
     
     public function testReject()
     {
-        $deferred = new DeferredPromise();
+        $deferred = new Deferred();
         
         $exception = new Exception();
         
@@ -62,7 +62,7 @@ class DeferredPromiseTest extends TestCase
         $onCancelled->method('__invoke')
                     ->with($this->identicalTo($exception));
         
-        $deferred = new DeferredPromise($onCancelled);
+        $deferred = new Deferred($onCancelled);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

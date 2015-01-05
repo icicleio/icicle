@@ -3,7 +3,7 @@ namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Promise\DeferredPromise;
+use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\InvalidArgumentException;
@@ -28,7 +28,7 @@ class Datagram extends Socket
     private $port;
     
     /**
-     * @var DeferredPromise|null
+     * @var Deferred|null
      */
     private $deferred;
     
@@ -210,7 +210,7 @@ class Datagram extends Socket
         
         $this->poll->listen();
         
-        $this->deferred = new DeferredPromise(function () {
+        $this->deferred = new Deferred(function () {
             $this->poll->cancel();
             $this->deferred = null;
         });
@@ -255,7 +255,7 @@ class Datagram extends Socket
         
         $this->poll->listen();
         
-        $this->deferred = new DeferredPromise(function () {
+        $this->deferred = new Deferred(function () {
             $this->poll->cancel();
             $this->deferred = null;
         });
@@ -313,7 +313,7 @@ class Datagram extends Socket
             $written = 0;
         }
         
-        $deferred = new DeferredPromise();
+        $deferred = new Deferred();
         $this->writeQueue->push([$data, $written, $peer, $deferred]);
         
         if (null === $this->await) {

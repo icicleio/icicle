@@ -5,6 +5,7 @@ use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Promise;
+use Icicle\Promise\PromiseInterface;
 
 class FulFilledPromise extends ResolvedPromise
 {
@@ -33,7 +34,7 @@ class FulFilledPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onFulfilled) {
-            return $this;
+            return new static($this->value);
         }
         
         return new Promise(function ($resolve, $reject) use ($onFulfilled) {

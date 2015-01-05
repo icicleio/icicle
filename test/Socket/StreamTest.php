@@ -3,7 +3,7 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\Stream;
+use Icicle\Socket\Stream;
 use Icicle\Tests\TestCase;
 
 class StreamTest extends TestCase
@@ -38,23 +38,6 @@ class StreamTest extends TestCase
         $writable = new Stream($sockets[1], self::TIMEOUT);
         
         return [$readable, $writable];
-    }
-    
-    public function testGetTimeout()
-    {
-        $stream = new Stream(fopen('php://memory', 'r+'), self::TIMEOUT);
-        
-        $this->assertSame(self::TIMEOUT, $stream->getTimeout());
-    }
-    
-    /**
-     * @depends testGetTimeout
-     */
-    public function testConstructMinTimeout()
-    {
-        $stream = new Stream(fopen('php://memory', 'r+'), -1);
-        
-        $this->assertSame(Stream::MIN_TIMEOUT, $stream->getTimeout());
     }
     
     public function testRead()
@@ -244,7 +227,7 @@ class StreamTest extends TestCase
         
         Loop::run();
         
-        $promise = $readable->read();
+        $promise = $readable->read(null, self::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -263,7 +246,7 @@ class StreamTest extends TestCase
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $writable->read(); // Nothing to read on this stream.
+        $promise = $writable->read(null, self::TIMEOUT); // Nothing to read on this stream.
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

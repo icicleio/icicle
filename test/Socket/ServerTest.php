@@ -3,8 +3,8 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\LocalClient;
-use Icicle\StreamSocket\Server;
+use Icicle\Socket\LocalClient;
+use Icicle\Socket\Server;
 use Icicle\Tests\TestCase;
 
 class ServerTest extends TestCase
@@ -52,11 +52,11 @@ class ServerTest extends TestCase
         
         $promise = $server->accept();
         
-        $client = LocalClient::create(self::HOST_IPv4, self::PORT);
+        $client = LocalClient::connect(self::HOST_IPv4, self::PORT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -124,6 +124,8 @@ class ServerTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
+        
+        $server->close();
     }
     
     /**
@@ -144,6 +146,8 @@ class ServerTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::tick();
+        
+        $server->close();
     }
     
     /**
@@ -157,11 +161,11 @@ class ServerTest extends TestCase
         
         $promise2 = $server->accept();
         
-        $client = LocalClient::create(self::HOST_IPv4, self::PORT);
+        $client = LocalClient::connect(self::HOST_IPv4, self::PORT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
         
         $promise1->done($callback, $this->createCallback(0));
         
@@ -172,6 +176,8 @@ class ServerTest extends TestCase
         $promise2->done($this->createCallback(0), $callback);
         
         Loop::run();
+        
+        $server->close();
     }
     
     /**
@@ -191,13 +197,15 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\StreamSocket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
         
         $promise->done($callback, $this->createCallback(0));
         
         fclose($socket);
         
         Loop::run();
+        
+        $server->close();
     }
     
     /**
@@ -228,7 +236,7 @@ class ServerTest extends TestCase
         
         $promise = $server->accept();
         
-        $client = LocalClient::create('localhost', self::PORT, true);
+        $client = LocalClient::connect('localhost', self::PORT, true);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

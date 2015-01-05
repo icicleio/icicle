@@ -1,10 +1,8 @@
 <?php
-namespace Icicle\Tests\Promise;
+namespace Icicle\Tests\Promise\Structures;
 
-use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\FulfilledPromise;
 use Icicle\Promise\Promise;
+use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Tests\TestCase;
 
 /**

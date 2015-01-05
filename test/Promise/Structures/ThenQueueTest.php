@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Tests\Promise;
+namespace Icicle\Tests\Promise\Structures;
 
-use Icicle\Promise\ThenQueue;
+use Icicle\Promise\Structures\ThenQueue;
 use Icicle\Tests\TestCase;
 
 /**

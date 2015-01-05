@@ -20,20 +20,19 @@
         <testsuite name="Icicle Structures">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Structures</directory>
         </testsuite>
+<!--
         <testsuite name="Icicle Loop">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Loop</directory>
         </testsuite>
-        <testsuite name="Icicle Timer">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Timer</directory>
-        </testsuite>
+-->
         <testsuite name="Icicle Promise">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Promise</directory>
         </testsuite>
         <testsuite name="Icicle Coroutine">
             <directory phpVersion="5.5.0" phpVersionOperator=">=">test/Coroutine</directory>
         </testsuite>
-        <testsuite name="Icicle Stream Socket">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/StreamSocket</directory>
+        <testsuite name="Icicle Socket">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Socket</directory>
         </testsuite>
     </testsuites>
     <filter>

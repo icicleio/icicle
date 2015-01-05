@@ -26,7 +26,7 @@ class RejectedPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onRejected) {
-            return $this;
+            return new static($this->exception);
         }
         
         return new Promise(function ($resolve, $reject) use ($onRejected) {
@@ -59,7 +59,7 @@ class RejectedPromise extends ResolvedPromise
      */
     public function delay($time)
     {
-        return $this;
+        return $this->then();
     }
     
     /**
