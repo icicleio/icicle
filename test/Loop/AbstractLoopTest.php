@@ -2,6 +2,8 @@
 namespace Icicle\Tests\Loop;
 
 use Exception;
+use Icicle\Loop\Events\EventFactory;
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\LogicException;
 use Icicle\Tests\TestCase;
 
@@ -10,16 +12,18 @@ use Icicle\Tests\TestCase;
  */
 abstract class AbstractLoopTest extends TestCase
 {
-    const TIMEOUT = 1; // Should be equal to or greater than SelectLoop timeout interval.
+    const TIMEOUT = 0.1;
     const RUNTIME = 0.05; // Allowed deviation from projected runtimes.
     const MICROSEC_PER_SEC = 1e6;
     const WRITE_STRING = '1234567890';
+    const RESOURCE = 1;
+    const CHUNK_SIZE = 8192;
     
     protected $loop;
     
     public function setUp()
     {
-        $this->loop = $this->createLoop();
+        $this->loop = $this->createLoop($this->createEventFactory());
     }
     
     /**
@@ -27,7 +31,7 @@ abstract class AbstractLoopTest extends TestCase
      *
      * @return  LoopInterface
      */
-    abstract public function createLoop();
+    abstract public function createLoop(EventFactoryInterface $eventFactory);
     
 /*
     public function createSockets($timeout = self::TIMEOUT)
@@ -68,6 +72,29 @@ abstract class AbstractLoopTest extends TestCase
     }
 */
     
+    public function createEventFactory()
+    {
+        return new EventFactory();
+/*
+        $factory = $this->getMockBuilder('Icicle\Loop\Events\EventFactory')
+                     ->getMock();
+        
+        $factory->method('createPoll')
+                ->will($this->returnValue($this->createPoll()));
+        
+        $factory->method('createAwait')
+                ->will($this->returnValue($this->createAwait()));
+        
+        $factory->method('createImmediate')
+                ->will($this->returnValue($this->createImmediate()));
+        
+        $factory->method('createTimer')
+                ->will($this->returnValue($this->createTimer()));
+        
+        return $factory;
+*/
+    }
+    
     public function createSockets($timeout = self::TIMEOUT)
     {
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
@@ -78,16 +105,26 @@ abstract class AbstractLoopTest extends TestCase
     
     public function createPoll()
     {
-        return $this->getMockBuilder('Icicle\Loop\Events\Poll')
-                    ->disableOriginalConstructor()
-                    ->getMock();
+        $poll = $this->getMockBuilder('Icicle\Loop\Events\Poll')
+                     ->disableOriginalConstructor()
+                     ->getMock();
+        
+        $poll->method('getCallback')
+             ->will($this->returnValue($this->createEmptyCallback()));
+        
+        return $poll;
     }
     
     public function createAwait()
     {
-        return $this->getMockBuilder('Icicle\Loop\Events\Await')
-                    ->disableOriginalConstructor()
-                    ->getMock();
+        $await = $this->getMockBuilder('Icicle\Loop\Events\Await')
+                      ->disableOriginalConstructor()
+                      ->getMock();
+        
+        $await->method('getCallback')
+              ->will($this->returnValue($this->createEmptyCallback()));
+        
+        return $await;
     }
     
     public function createImmediate()
@@ -119,226 +156,96 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME); // An empty loop should not block.
     }
     
-    public function testScheduleReadableSocket()
+    public function testCreatePoll()
     {
         list($socket) = $this->createSockets();
         
-        $this->loop->scheduleReadableSocket($socket);
+        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->assertTrue($this->loop->isReadableSocketScheduled($socket));
-        
-        $socket->expects($this->once())
-               ->method('onRead');
-        
-        $this->loop->tick(false); // Should call onRead()
-        
-        $this->assertFalse($this->loop->isReadableSocketScheduled($socket));
-        
-        $this->loop->tick(false); // Should not call onRead()
+        $this->assertInstanceOf('Icicle\Loop\Events\PollInterface', $poll);
     }
     
     /**
-     * @depends testScheduleReadableSocket
+     * @depends testCreatePoll
      */
-    public function testRescheduleReadableSocket()
+    public function testListenPoll()
     {
         list($socket) = $this->createSockets();
         
-        $this->loop->scheduleReadableSocket($socket);
+        $callback = $this->createCallback(1);
         
-        $this->assertTrue($this->loop->isReadableSocketScheduled($socket));
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $socket->expects($this->exactly(2))
-               ->method('onRead');
+        $poll = $this->loop->createPoll($socket, $callback);
         
-        $this->loop->tick(false); // Should call onRead()
+        $this->loop->listenPoll($poll);
         
-        $this->loop->scheduleReadableSocket($socket);
+        $this->assertTrue($this->loop->isPollPending($poll));
         
-        $this->assertTrue($this->loop->isReadableSocketScheduled($socket));
-        
-        $this->loop->tick(false); // Should call onRead() again.
-    }
-    
-    public function testScheduleWritableSocket()
-    {
-        list( , $socket) = $this->createSockets();
-        
-        $this->loop->scheduleWritableSocket($socket);
-        
-        $this->assertTrue($this->loop->isWritableSocketScheduled($socket));
-        
-        $socket->expects($this->once())
-               ->method('onWrite');
-        
-        $this->loop->tick(false); // Should call onWrite()
-        
-        $this->assertFalse($this->loop->isWritableSocketScheduled($socket));
-        
-        $this->loop->tick(false); // Should not call onWrite()
+        $this->loop->tick(false); // Should invoke callback.
     }
     
     /**
-     * @depends testScheduleWritableSocket
+     * @depends testListenPoll
      */
-    public function testRescheduleWritableSocket()
-    {
-        list( , $socket) = $this->createSockets();
-        
-        $this->loop->scheduleWritableSocket($socket);
-        
-        $this->assertTrue($this->loop->isWritableSocketScheduled($socket));
-        
-        $socket->expects($this->exactly(2))
-               ->method('onWrite');
-        
-        $this->loop->tick(false); // Should call onWrite()
-        
-        $this->loop->scheduleWritableSocket($socket);
-        
-        $this->assertTrue($this->loop->isWritableSocketScheduled($socket));
-        
-        $this->loop->tick(false); // Should not call onWrite()
-    }
-    
-    /**
-     * @depends testScheduleReadableSocket
-     */
-    public function testUnscheduleReadableSocket()
+    public function testCancelPoll()
     {
         list($socket) = $this->createSockets();
         
-        $this->loop->scheduleReadableSocket($socket);
+        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->loop->unscheduleReadableSocket($socket);
+        $this->loop->listenPoll($poll);
         
-        $this->assertFalse($this->loop->isReadableSocketScheduled($socket));
+        $this->loop->cancelPoll($poll);
         
-        $socket->expects($this->never())
-               ->method('onRead');
+        $this->assertFalse($this->loop->isPollPending($poll));
         
-        $this->loop->tick(false); // Should not call onRead()
+        $this->loop->tick(false); // Should invoke callback.
     }
     
     /**
-     * @depends testScheduleWritableSocket
+     * @depends testListenPoll
      */
-    public function testUnscheduleWritableSocket()
-    {
-        list( , $socket) = $this->createSockets();
-        
-        $this->loop->scheduleWritableSocket($socket);
-        
-        $this->loop->unscheduleWritableSocket($socket);
-        
-        $this->assertFalse($this->loop->isWritableSocketScheduled($socket));
-        
-        $socket->expects($this->never())
-               ->method('onWrite');
-        
-        $this->loop->tick(false); // Should not call onWrite()
-    }
-    
-    /**
-     * @depends testScheduleReadableSocket
-     * @depends testScheduleWritableSocket
-     */
-    public function testRemoveSocket()
+    public function testRelistenPoll()
     {
         list($socket) = $this->createSockets();
         
-        $this->loop->scheduleReadableSocket($socket);
-        $this->loop->scheduleWritableSocket($socket);
+        $callback = $this->createCallback(2);
         
-        $this->loop->removeSocket($socket);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $this->assertFalse($this->loop->isReadableSocketScheduled($socket));
-        $this->assertFalse($this->loop->isWritableSocketScheduled($socket));
+        $poll = $this->loop->createPoll($socket, $callback);
         
-        $socket->expects($this->never())
-               ->method('onRead');
+        $this->loop->listenPoll($poll);
         
-        $socket->expects($this->never())
-               ->method('onWrite');
+        $this->assertTrue($this->loop->isPollPending($poll));
         
-        $this->loop->tick(false);
+        $this->loop->tick(false); // Should invoke callback.
+        
+        $this->loop->listenPoll($poll);
+        
+        $this->assertTrue($this->loop->isPollPending($poll));
+        
+        $this->loop->tick(false); // Should invoke callback.
     }
     
     /**
-     * @medium
-     * @depends testNoBlockingOnEmptyLoop
-     * @depends testScheduleReadableSocket
+     * @depends testListenPoll
      */
-    public function testTimeout()
+    public function testListenPollWithTimeout()
     {
         list($readable, $writable) = $this->createSockets();
         
-        $readable->method('getTimeout')
-                 ->will($this->returnValue(self::TIMEOUT));
-        $readable->expects($this->once())
-                 ->method('onRead');
-        $readable->expects($this->never())
-                 ->method('onTimeout');
+        $callback = $this->createCallback(1);
         
-        $this->loop->scheduleReadableSocket($readable);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($writable), $this->identicalTo(true));
         
-        $writable->method('getTimeout')
-                 ->will($this->returnValue(self::TIMEOUT));
-        $writable->expects($this->never())
-                 ->method('onRead');
-        $writable->expects($this->once())
-                 ->method('onTimeout');
+        $poll = $this->loop->createPoll($writable, $callback);
         
-        $this->loop->scheduleReadableSocket($writable);
-        
-        $this->loop->tick(false); // Should call onRead on $readable.
-        
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
-        
-        $this->loop->tick(false); // Should call onTimeout on $writable.
-        
-        $this->assertTrue($this->loop->isEmpty());
-        
-        list( , $socket) = $this->createSockets();
-        
-        $socket->method('getTimeout')
-               ->will($this->returnValue(self::TIMEOUT * 2));
-        $socket->expects($this->never())
-               ->method('onRead');
-        $socket->expects($this->once())
-               ->method('onTimeout');
-        
-        $this->loop->scheduleReadableSocket($socket);
-        
-        usleep(self::TIMEOUT * 2 * self::MICROSEC_PER_SEC);
-        
-        $this->loop->tick(false); // Should call onTimeout.
-        
-        $this->assertTrue($this->loop->isEmpty());
-        
-        $this->loop->scheduleReadableSocket($socket);
-        
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
-        
-        $this->loop->tick(false); // Should not call onTimeout.
-        
-        $this->assertFalse($this->loop->isEmpty());
-    }
-    
-    /**
-     * @medium
-     * @depends testTimeout
-     */
-    public function testNoTimeout()
-    {
-        list( , $socket) = $this->createSockets();
-        
-        $socket->method('getTimeout')
-               ->will($this->returnValue(0));
-        $socket->expects($this->never())
-               ->method('onTimeout');
-        
-        $this->loop->scheduleReadableSocket($socket);
+        $this->loop->listenPoll($poll, self::TIMEOUT);
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
@@ -346,45 +253,150 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @depends testScheduleReadableSocket
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @depends testListenPoll
+     * @expectedException Icicle\Loop\Exception\FreedException
      */
-    public function testRunThrowsAfterThrownExceptionFromReadableSocketCallback()
+    public function testFreePoll()
     {
         list($socket) = $this->createSockets();
         
-        $this->loop->scheduleReadableSocket($socket);
+        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $exception = new LogicException();
+        $this->assertFalse($this->loop->isPollFreed($poll));
         
-        $socket->method('onRead')
-               ->will($this->throwException($exception));
+        $this->loop->freePoll($poll);
         
-        try {
-            $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
-            $this->assertSame($exception, $e);
-            $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
-            throw $e;
-        }
+        $this->assertTrue($this->loop->isPollFreed($poll));
         
-        $this->fail('Loop should not catch exceptions thrown from socket callbacks.');
+        $this->loop->listenPoll($poll);
     }
     
-    /**
-     * @depends testScheduleWritableSocket
-     * @expectedException Icicle\Loop\Exception\LogicException
-     */
-    public function testRunThrowsAfterThrownExceptionFromWritableSocketCallback()
+    public function testCreateAwait()
     {
         list( , $socket) = $this->createSockets();
         
-        $this->loop->scheduleWritableSocket($socket);
+        $await = $this->loop->createAwait($socket, $this->createCallback(0));
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\AwaitInterface', $await);
+    }
+    
+    /**
+     * @depends testCreateAwait
+     */
+    public function testListenAwait()
+    {
+        list( , $socket) = $this->createSockets();
+        
+        $callback = $this->createCallback(1);
+        
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+        
+        $await = $this->loop->createAwait($socket, $callback);
+        
+        $this->loop->listenAwait($await);
+        
+        $this->assertTrue($this->loop->isAwaitPending($await));
+        
+        $this->loop->tick(false); // Should invoke callback.
+    }
+    
+    /**
+     * @depends testListenAwait
+     */
+    public function testRelistenAwait()
+    {
+        list($socket) = $this->createSockets();
+        
+        $callback = $this->createCallback(2);
+        
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+        
+        $await = $this->loop->createAwait($socket, $callback);
+        
+        $this->loop->listenAwait($await);
+        
+        $this->assertTrue($this->loop->isAwaitPending($await));
+        
+        $this->loop->tick(false); // Should invoke callback.
+        
+        $this->loop->listenAwait($await);
+        
+        $this->assertTrue($this->loop->isAwaitPending($await));
+        
+        $this->loop->tick(false); // Should invoke callback.
+    }
+    
+    /**
+     * @depends testListenPoll
+     */
+/*
+    public function testListenAwaitWithTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+        
+        $length = strlen(self::WRITE_STRING);
+        
+        //while (0 < fwrite($writable, self::WRITE_STRING, self::CHUNK_SIZE));
+        
+        $callback = $this->createCallback(1);
+        
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($writable), $this->identicalTo(true));
+        
+        $await = $this->loop->createAwait($writable, $callback);
+        
+        $this->loop->listenAwait($await);
+        
+        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+        
+        $this->loop->tick(false);
+        
+        $this->loop->listenAwait($await, self::TIMEOUT);
+        
+        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+        
+        $this->loop->tick(false);
+    }
+*/
+    
+    /**
+     * @depends testListenAwait
+     * @expectedException Icicle\Loop\Exception\FreedException
+     */
+    public function testFreeAwait()
+    {
+        list($socket) = $this->createSockets();
+        
+        $await = $this->loop->createAwait($socket, $this->createCallback(0));
+        
+        $this->assertFalse($this->loop->isAwaitFreed($await));
+        
+        $this->loop->freeAwait($await);
+        
+        $this->assertTrue($this->loop->isAwaitFreed($await));
+        
+        $this->loop->listenAwait($await);
+    }
+    
+    /**
+     * @depends testListenPoll
+     * @expectedException Icicle\Loop\Exception\LogicException
+     */
+    public function testRunThrowsAfterThrownExceptionFromPollCallback()
+    {
+        list($socket) = $this->createSockets();
         
         $exception = new LogicException();
         
-        $socket->method('onWrite')
-               ->will($this->throwException($exception));
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->will($this->throwException($exception));
+        
+        $poll = $this->loop->createPoll($socket, $callback);
+        
+        $this->loop->listenPoll($poll);
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
@@ -394,7 +406,36 @@ abstract class AbstractLoopTest extends TestCase
             throw $e;
         }
         
-        $this->fail('Loop should not catch exceptions thrown from socket callbacks.');
+        $this->fail('Loop should not catch exceptions thrown from poll callbacks.');
+    }    
+    
+    /**
+     * @depends testListenAwait
+     * @expectedException Icicle\Loop\Exception\LogicException
+     */
+    public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
+    {
+        list( , $socket) = $this->createSockets();
+        
+        $exception = new LogicException();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->will($this->throwException($exception));
+        
+        $await = $this->loop->createAwait($socket, $callback);
+        
+        $this->loop->listenAwait($await);
+        
+        try {
+            $this->loop->run(); // Exception should be thrown from loop.
+        } catch (Exception $e) {
+            $this->assertSame($exception, $e);
+            $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
+            throw $e;
+        }
+        
+        $this->fail('Loop should not catch exceptions thrown from await callbacks.');
     }
     
     public function testSchedule()
@@ -518,82 +559,39 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertSame(true, $this->loop->run());
     }
     
-    public function testAddImmediate()
+    public function testCreateImmediate()
     {
-        $immediate = $this->createImmediate();
-        $immediate->expects($this->once())
-                  ->method('call');
+        $immediate = $this->loop->createImmediate($this->createCallback(1));
         
-        $this->loop->addImmediate($immediate);
+        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
         
         $this->assertTrue($this->loop->isImmediatePending($immediate));
         
-        $this->loop->tick(false);
-        
-        $this->assertFalse($this->loop->isImmediatePending($immediate));
+        $this->loop->tick(false); // Should invoke immediate callback.
     }
     
     /**
-     * @depends testAddImmediate
-     */
-    public function testAddSameImmediate()
-    {
-        $immediate = $this->createImmediate();
-        $immediate->expects($this->exactly(2))
-                  ->method('call');
-        
-        $this->loop->addImmediate($immediate);
-        
-        $this->loop->tick(false);
-        
-        $this->loop->addImmediate($immediate);
-        
-        $this->loop->tick(false);
-    }
-    
-    /**
-     * @depends testAddImmediate
+     * @depends testCreateImmediate
      */
     public function testCancelImmediate()
     {
-        $immediate1 = $this->createImmediate();
-        $immediate1->expects($this->never())
-                   ->method('call');
+        $immediate = $this->loop->createImmediate($this->createCallback(0));
         
-        $immediate2 = $this->createImmediate();
-        $immediate2->expects($this->once())
-                   ->method('call');
+        $this->loop->cancelImmediate($immediate);
         
-        $this->loop->addImmediate($immediate1);
-        $this->loop->addImmediate($immediate2);
-        $this->loop->cancelImmediate($immediate1);
-        
-        $this->assertFalse($this->loop->isImmediatePending($immediate1));
-        $this->assertTrue($this->loop->isImmediatePending($immediate2));
+        $this->assertFalse($this->loop->isImmediatePending($immediate));
         
         $this->loop->tick(false);
     }
     
     /**
-     * @depends testAddImmediate
+     * @depends testCreateImmediate
      */
     public function testOneImmediatePerTick()
     {
-        $immediate1 = $this->createImmediate();
-        $immediate1->expects($this->once())
-                   ->method('call');
-        
-        $immediate2 = $this->createImmediate();
-        $immediate2->expects($this->once())
-                   ->method('call');
-        
-        $immediate3 = $this->createImmediate();
-        $immediate3->expects($this->never())
-                   ->method('call');
-        
-        $this->loop->addImmediate($immediate1);
-        $this->loop->addImmediate($immediate2);
-        $this->loop->addImmediate($immediate3);
+        $immediate1 = $this->loop->createImmediate($this->createCallback(1));
+        $immediate2 = $this->loop->createImmediate($this->createCallback(1));
+        $immediate3 = $this->loop->createImmediate($this->createCallback(0));
         
         $this->loop->tick(false);
         
@@ -608,18 +606,18 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @depends testAddImmediate
+     * @depends testCreateImmediate
      * @expectedException Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromImmediateCallback()
     {
         $exception = new LogicException();
         
-        $immediate = $this->createImmediate();
-        $immediate->method('call')
-                  ->will($this->throwException($exception));
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->will($this->throwException($exception));
         
-        $this->loop->addImmediate($immediate);
+        $immediate = $this->loop->createImmediate($callback);
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
@@ -633,16 +631,11 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
      * @depends testNoBlockingOnEmptyLoop
      */
-    public function testAddTimer()
+    public function testCreateTimer()
     {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, false);
         
         $this->assertTrue($this->loop->isTimerPending($timer));
         
@@ -650,53 +643,11 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testAddTimer
-     */
-    public function testAddSameTimer()
-    {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
-        $this->loop->addTimer($timer);
-        $this->loop->addTimer($timer);
-        $this->loop->addTimer($timer);
-        
-        $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);
-    }
-    
-    /**
-     * @medium
-     * @depends testAddTimer
-     */
-    public function testAddTimerAfterTimeout()
-    {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->exactly(2))
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
-        
-        $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);
-        
-        $this->loop->addTimer($timer);
-        
-        $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);
-    }
-    
-    /**
-     * @medium
-     * @depends testAddTimer
+     * @depends testCreateTimer
      */
     public function testOverdueTimer()
     {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, false);
         
         usleep(self::TIMEOUT * 3 * self::MICROSEC_PER_SEC);
         
@@ -708,11 +659,8 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testUnreferenceTimer()
     {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->never())
-              ->method('call');
+        $timer = $this->loop->createTimer($this->createCallback(0), self::TIMEOUT, false);
         
-        $this->loop->addTimer($timer);
         $this->loop->unreferenceTimer($timer);
         
         $this->assertTrue($this->loop->isEmpty());
@@ -721,16 +669,12 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
      * @depends testUnreferenceTimer
      */
     public function testReferenceTimer()
     {
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, false);
         
-        $this->loop->addTimer($timer);
         $this->loop->unreferenceTimer($timer);
         $this->loop->referenceTimer($timer);
         
@@ -740,16 +684,11 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testAddTimer
+     * @depends testCreateTimer
      */
-    public function testAddPeriodicTimer()
+    public function testCreatePeriodicTimer()
     {
-        $timer = $this->createTimer(true);
-        $timer->expects($this->exactly(2))
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($this->createCallback(2), self::TIMEOUT, true);
         
         $this->assertTrue($this->loop->isTimerPending($timer));
         
@@ -763,16 +702,11 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testAddTimer
+     * @depends testCreatePeriodicTimer
      */
     public function testCancelTimer()
     {
-        $timer = $this->createTimer(true);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, true);
         
         $this->assertTrue($this->loop->isTimerPending($timer));
         
@@ -790,43 +724,42 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
      * @depends testCancelTimer
+     * @depends testCreatePeriodicTimer
      */
     public function testTimerWithSelfCancel()
     {
         $iterations = 3;
         
-        $timer = $this->createTimer(true);
-        $timer->expects($this->exactly($iterations))
-              ->method('call')
-              ->will($this->returnCallback(function () use ($timer, $iterations) {
-                  static $count = 0;
-                  ++$count;
-                  if ($iterations === $count) {
-                      $this->loop->cancelTimer($timer);
-                  }
-              }));
+        $callback = $this->createCallback($iterations);
+        $callback->method('__invoke')
+                 ->will($this->returnCallback(function () use (&$timer, $iterations) {
+                     static $count = 0;
+                     ++$count;
+                     if ($iterations === $count) {
+                         $this->loop->cancelTimer($timer);
+                    }
+                 }));
         
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($callback, self::TIMEOUT, true);
         
         $this->loop->run();
     }
     
     /**
      * @medium
-     * @depends testAddTimer
+     * @depends testCreateTimer
      * @expectedException Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromTimerCallback()
     {
         $exception = new LogicException();
         
-        $timer = $this->createTimer(false);
-        $timer->method('call')
-                  ->will($this->throwException($exception));
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->will($this->throwException($exception));
         
-        $this->loop->addTimer($timer);
+        $timer = $this->loop->createTimer($callback, self::TIMEOUT, false);
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
@@ -1042,35 +975,25 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testScheduleReadableSocket
-     * @depends testScheduleWritableSocket
-     * @depends testAddImmediate
-     * @depends testAddTimer
+     * @depends testCreatePoll
+     * @depends testCreateAwait
+     * @depends testCreateImmediate
+     * @depends testCreateTimer
+     * @depends testSchedule
      */
     public function testIsEmpty()
     {
         list($readable, $writable) = $this->createSockets();
         
-        $readable->expects($this->once())
-                 ->method('onRead');
+        $poll = $this->loop->createPoll($readable, $this->createCallback(1));
+        $await = $this->loop->createAwait($writable, $this->createCallback(1));
+        $immediate = $this->loop->createImmediate($this->createCallback(1));
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, false);
         
-        $writable->expects($this->once())
-                 ->method('onWrite');
-        
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $immediate = $this->createImmediate();
-        $immediate->expects($this->once())
-                  ->method('call');
-        
-        $this->loop->scheduleReadableSocket($readable);
-        $this->loop->scheduleWritableSocket($writable);
-        $this->loop->addTimer($timer);
-        $this->loop->addImmediate($immediate);
         $this->loop->schedule($this->createCallback(1));
+        
+        $this->loop->listenPoll($poll);
+        $this->loop->listenAwait($await);
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
@@ -1080,83 +1003,60 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testScheduleReadableSocket
-     * @depends testScheduleWritableSocket
-     * @depends testAddImmediate
-     * @depends testAddTimer
+     * @depends testCreatePoll
+     * @depends testCreateAwait
+     * @depends testCreateImmediate
+     * @depends testCreatePeriodicTimer
+     * @depends testSchedule
      */
     public function testClear()
     {
         list($readable, $writable) = $this->createSockets();
         
-        $timer = $this->createTimer(false);
-        $timer->expects($this->never())
-              ->method('call');
+        $poll = $this->loop->createPoll($readable, $this->createCallback(0));
+        $await = $this->loop->createAwait($readable, $this->createCallback(0));
+        $immediate = $this->loop->createImmediate($this->createCallback(0));
+        $timer = $this->loop->createTimer($this->createCallback(0), self::TIMEOUT, true);
         
-        $immediate = $this->createImmediate();
-        $immediate->expects($this->never())
-                  ->method('call');
-        
-        $this->loop->scheduleReadableSocket($readable);
-        $this->loop->scheduleWritableSocket($writable);
-        $this->loop->addTimer($timer);
-        $this->loop->addImmediate($immediate);
         $this->loop->schedule($this->createCallback(0));
         
         $this->loop->clear();
         
         $this->assertTrue($this->loop->isEmpty());
         
-        $this->assertFalse($this->loop->isReadableSocketScheduled($readable));
-        $this->assertFalse($this->loop->isWritableSocketScheduled($writable));
+        $this->assertFalse($this->loop->isPollPending($poll));
+        $this->assertFalse($this->loop->isAwaitPending($await));
         $this->assertFalse($this->loop->isTimerPending($timer));
         $this->assertFalse($this->loop->isImmediatePending($immediate));
         
-        $this->loop->scheduleReadableSocket($readable);
-        $this->loop->scheduleWritableSocket($writable);
-        
-        $readable->expects($this->once())
-                 ->method('onRead');
-        
-        $writable->expects($this->once())
-                 ->method('onWrite');
+        $this->assertTrue($this->loop->isPollFreed($poll));
+        $this->assertTrue($this->loop->isAwaitFreed($await));
         
         $this->loop->tick(false);
     }
     
     /**
-     * @medium
-     * @depends testScheduleReadableSocket
-     * @depends testScheduleWritableSocket
-     * @depends testAddImmediate
-     * @depends testAddTimer
+     * @depends testCreatePoll
+     * @depends testCreateAwait
+     * @depends testCreateImmediate
+     * @depends testCreatePeriodicTimer
+     * @depends testSchedule
      */
     public function testReInit()
     {
         list($readable, $writable) = $this->createSockets();
         
-        $readable->expects($this->once())
-                 ->method('onRead');
+        $poll = $this->loop->createPoll($readable, $this->createCallback(1));
+        $await = $this->loop->createAwait($writable, $this->createCallback(1));
+        $immediate = $this->loop->createImmediate($this->createCallback(1));
+        $timer = $this->loop->createTimer($this->createCallback(1), self::TIMEOUT, false);
         
-        $writable->expects($this->once())
-                 ->method('onWrite');
-        
-        $timer = $this->createTimer(false);
-        $timer->expects($this->once())
-              ->method('call');
-        
-        $immediate = $this->createImmediate();
-        $immediate->expects($this->once())
-                  ->method('call');
-        
-        $this->loop->scheduleReadableSocket($readable);
-        $this->loop->scheduleWritableSocket($writable);
-        $this->loop->addTimer($timer);
-        $this->loop->addImmediate($immediate);
         $this->loop->schedule($this->createCallback(1));
         
-        $this->loop->reInit();
+        $this->loop->listenPoll($poll);
+        $this->loop->listenAwait($await);
+        
+        $this->loop->reInit(); // Calling this function should not cancel any pending events.
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         

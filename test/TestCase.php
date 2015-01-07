@@ -13,7 +13,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      *
      * @param   int $count Number of times the callback should be called.
      *
-     * @return  callable Object that is callable.
+     * @return  callable Object that is callable and expects to be called the given number of times.
      */
     public function createCallback($count)
     {

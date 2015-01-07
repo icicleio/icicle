@@ -20,11 +20,9 @@
         <testsuite name="Icicle Structures">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Structures</directory>
         </testsuite>
-<!--
         <testsuite name="Icicle Loop">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Loop</directory>
         </testsuite>
--->
         <testsuite name="Icicle Promise">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Promise</directory>
         </testsuite>

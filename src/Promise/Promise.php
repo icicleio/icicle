@@ -149,7 +149,9 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onFulfilled->insert($resolve);
+                    $this->onFulfilled->insert(function () use ($resolve) {
+                        $resolve($this->result);
+                    });
                 }
                 
                 if (null !== $onRejected) {
@@ -161,7 +163,9 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onRejected->insert($reject);
+                    $this->onRejected->insert(function () use ($resolve) {
+                        $resolve($this->result);
+                    });
                 }
             },
             function (Exception $exception) {

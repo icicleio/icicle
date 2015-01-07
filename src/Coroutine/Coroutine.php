@@ -63,7 +63,7 @@ class Coroutine implements CoroutineInterface
                  * @param   mixed $value The value to send to the Generator.
                  * @param   Exception|null $exception If not null, the Exception object will be thrown into the Generator.
                  */
-                $this->worker = $worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
+                $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
                     if (!$this->promise->isPending()) { // Coroutine may have been cancelled.
                         return;
@@ -112,8 +112,10 @@ class Coroutine implements CoroutineInterface
                 /**
                  * @param   Exception $exception Exception to be thrown into the generator.
                  */
-                $this->pitch = function (Exception $exception) use ($worker) {
-                    $worker(null, $exception);
+                $this->pitch = function (Exception $exception) {
+                    if (null !== ($worker = $this->worker)) { // Coroutine may have been closed.
+                        $worker(null, $exception);
+                    }
                 };
                 
                 Loop::schedule($this->worker);
@@ -168,7 +170,7 @@ class Coroutine implements CoroutineInterface
                 if ($this->current instanceof PromiseInterface) {
                     $this->current->done($this->worker, $this->pitch);
                 } else {
-                    Loop::immediate($this->worker, $this->current);
+                    Loop::schedule($this->worker, $this->current);
                 }
                 
                 $this->ready = false;

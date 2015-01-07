@@ -101,11 +101,11 @@ class EventLoop extends AbstractLoop
         }
         
         $this->socketCallback = function ($resource, $what, SocketEventInterface $event) {
-            $event->call($resource, Event::TIMEOUT & $what);
+            $event->call($resource, 0 !== (Event::TIMEOUT & $what));
         };
         
         $this->timerCallback = function ($_, $what, TimerInterface $timer) {
-            if (!$this->timers[$timer]->pending(Event::TIMEOUT)) {
+            if (!$this->timers[$timer]->pending) {
                 $this->timers[$timer]->free();
                 unset($this->timers[$timer]);
             }

@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Tests\Loop;
 
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\LibeventLoop;
 use Icicle\Socket\Stream;
 
@@ -9,9 +10,9 @@ use Icicle\Socket\Stream;
  */
 class LibeventLoopTest extends AbstractLoopTest
 {
-    public function createLoop()
+    public function createLoop(EventFactoryInterface $eventFactory)
     {
-        return new LibeventLoop();
+        return new LibeventLoop($eventLoop);
     }
     
     public function testEnabled()

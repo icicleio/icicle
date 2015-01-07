@@ -115,12 +115,12 @@ class LibeventLoop extends AbstractLoop
         
         $this->readCallback = function ($resource, $what, PollInterface $poll) {
             $this->pending[(int) $resource] &= ~EV_READ;
-            $poll->call($resource, EV_TIMEOUT & $what);
+            $poll->call($resource, 0 !== (EV_TIMEOUT & $what));
         };
         
         $this->writeCallback = function ($resource, $what, AwaitInterface $await) {
             $this->pending[(int) $resource] &= ~EV_WRITE;
-            $await->call($resource, EV_TIMEOUT & $what);
+            $await->call($resource, 0 !== (EV_TIMEOUT & $what));
         };
         
         $this->timerCallback = function ($resource, $what, TimerInterface $timer) {

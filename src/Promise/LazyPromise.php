@@ -8,16 +8,21 @@ class LazyPromise implements PromiseInterface
     use PromiseTrait;
     
     /**
-     * @var callable|PromiseInterface
+     * @var PromiseInterface|null
      */
     private $promise;
+    
+    /**
+     * @var callable|null
+     */
+    private $promisor;
     
     /**
      * @param   callable $promisor
      */
     public function __construct(callable $promisor)
     {
-        $this->promise = $promisor;
+        $this->promisor = $promisor;
     }
     
     /**
@@ -25,8 +30,9 @@ class LazyPromise implements PromiseInterface
      */
     protected function getPromise()
     {
-        if (!$this->promise instanceof PromiseInterface) {
-            $promisor = $this->promise;
+        if (null === $this->promise) {
+            $promisor = $this->promisor;
+            $this->promisor = null;
             
             try {
                 $this->promise = Promise::resolve($promisor());

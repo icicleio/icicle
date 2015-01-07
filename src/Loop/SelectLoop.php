@@ -432,8 +432,5 @@ class SelectLoop extends AbstractLoop
         $this->awaitTimers = [];
         
         $this->timerQueue->clear();
-        
-        $this->timerQueue->add($this->timer);
-        $this->timerQueue->unreference($this->timer);
     }
 }
