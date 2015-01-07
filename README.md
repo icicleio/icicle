@@ -197,8 +197,6 @@ use Icicle\Socket\Server;
 $coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (Client $client) {
         try {
-            yield $client->ready();
-            
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
             while ($client->isReadable()) {

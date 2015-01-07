@@ -266,9 +266,11 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
+/*
         Loop::tick(); // Get to first yield statement.
         
         $this->assertTrue($coroutine->isPending());
+*/
         
         $coroutine->cancel($exception);
         
@@ -298,9 +300,11 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
+/*
         Loop::tick(); // Get to first yield statement.
         
         $this->assertTrue($coroutine->isPending());
+*/
         
         $coroutine->cancel($exception);
         
@@ -333,9 +337,11 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
+/*
         Loop::tick(); // Get to first yield statement.
         
         $this->assertTrue($coroutine->isPending());
+*/
         
         $coroutine->cancel(); // Uses default cancellation exception.
         

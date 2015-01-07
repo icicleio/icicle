@@ -326,7 +326,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    public function listenAwait(AwaitInterface $await)
+    public function listenAwait(AwaitInterface $await, $timeout = null)
     {
         $id = (int) $await->getResource();
         

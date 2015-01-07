@@ -594,7 +594,8 @@ class Promise implements PromiseInterface
     /**
      * Maps the callback to each promise as it is fulfilled. Returns a promise that is fulfilled with an array of values only
      * if all promises are fulfilled and the callback never throws an exception. Callback may return a promise whose resolution
-     * value will determine the resolution value of the promise returned by this function.
+     * value will determine the value in the array that resolves the promise returned by this function. If the callback throws an
+     * exception, that exception is used to reject the promise returned by this function.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $value) : mixed

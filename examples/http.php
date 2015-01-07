@@ -13,8 +13,6 @@ $server = Server::create('localhost', 8080, ['backlog' => 1024]);
 $coroutine = Coroutine::async(function (Server $server) {
     $coroutine = Coroutine::async(function (Client $client) {
         try {
-            //yield $client->ready();
-            
             $data = (yield $client->read());
             
             $microtime = sprintf("%0.4f", microtime(true));

@@ -15,9 +15,9 @@ class FulFilledPromise extends ResolvedPromise
     private $value;
     
     /**
-     * @param   mixed $value Anything other than a PromiseInterface or PromisorInterface object.
+     * @param   mixed $value Anything other than a PromiseInterface object.
      *
-     * @throws  TypeException Thrown if a PromiseInterface or PromisorInterface is given as the value.
+     * @throws  TypeException Thrown if a PromiseInterface is given as the value.
      */
     public function __construct($value)
     {

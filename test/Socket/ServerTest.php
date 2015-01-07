@@ -11,7 +11,7 @@ class ServerTest extends TestCase
 {
     const HOST_IPv4 = '127.0.0.1';
     const HOST_IPv6 = '[::1]';
-    const PORT = 8080;
+    const PORT = 51337;
     
     public function tearDown()
     {
@@ -41,6 +41,8 @@ class ServerTest extends TestCase
     public function testCreateInvalidHost()
     {
         $server = Server::create('invalid.host', self::PORT);
+        
+        $server->close();
     }
     
     /**
@@ -61,6 +63,8 @@ class ServerTest extends TestCase
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
+        
+        $server->close();
     }
     
     /**
