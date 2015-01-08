@@ -266,12 +266,6 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-/*
-        Loop::tick(); // Get to first yield statement.
-        
-        $this->assertTrue($coroutine->isPending());
-*/
-        
         $coroutine->cancel($exception);
         
         $callback = $this->createCallback(1);
@@ -299,12 +293,6 @@ class CoroutineTest extends TestCase
         };
         
         $coroutine = new Coroutine($generator());
-        
-/*
-        Loop::tick(); // Get to first yield statement.
-        
-        $this->assertTrue($coroutine->isPending());
-*/
         
         $coroutine->cancel($exception);
         
@@ -336,12 +324,6 @@ class CoroutineTest extends TestCase
         };
         
         $coroutine = new Coroutine($generator());
-        
-/*
-        Loop::tick(); // Get to first yield statement.
-        
-        $this->assertTrue($coroutine->isPending());
-*/
         
         $coroutine->cancel(); // Uses default cancellation exception.
         
@@ -775,7 +757,7 @@ class CoroutineTest extends TestCase
         Loop::run();
         
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+        $this->assertSame(1, $coroutine->getResult());
     }
     
     /**

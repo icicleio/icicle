@@ -12,7 +12,7 @@ class LibeventLoopTest extends AbstractLoopTest
 {
     public function createLoop(EventFactoryInterface $eventFactory)
     {
-        return new LibeventLoop($eventLoop);
+        return new LibeventLoop($eventFactory);
     }
     
     public function testEnabled()
