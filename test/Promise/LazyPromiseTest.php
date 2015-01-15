@@ -4,6 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\LazyPromise;
+use Icicle\Promise\Promise;
 use Icicle\Tests\TestCase;
 
 /**
@@ -147,18 +148,114 @@ class LazyPromiseTest extends TestCase
     /**
      * @depends testPromisorCalledWhenDoneCalled
      */
-    public function testCall()
+    public function testCallWithoutArguments()
     {
         $value = 'test';
+        
+        $promisor = function () use ($value) { return $value; };
+        
+        $lazy = LazyPromise::call($promisor);
+        
+        $this->assertInstanceOf('Icicle\Promise\LazyPromise', $lazy);
+        $this->assertFalse($lazy->isPending());
+        $this->assertSame($value, $lazy->getResult());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        $lazy = LazyPromise::call($callback, $value);
+        $lazy->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPromisorCalledWhenDoneCalled
+     */
+    public function testCallWithArguments()
+    {
+        $value = 'test';
+        
+        $promisor = function ($value) { return $value; };
+        
+        $lazy = LazyPromise::call($promisor, $value);
         
         $this->assertInstanceOf('Icicle\Promise\LazyPromise', $lazy);
+        $this->assertFalse($lazy->isPending());
+        $this->assertSame($value, $lazy->getResult());
         
-        $lazy->done();
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($value));
+        
+        $lazy->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPromisorCalledWhenDoneCalled
+     */
+    public function testPromisorReturnsFulfilledPromise()
+    {
+        $value = 'test';
+        $promise = Promise::resolve($value);
+        
+        $promisor = function () use ($promise) { return $promise; };
+        
+        $lazy = new LazyPromise($promisor);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($value));
+        
+        $lazy->done($callback, $this->createCallback(0));
+        
+        $this->assertFalse($lazy->isPending());
+        $this->assertTrue($lazy->isFulfilled());
+        $this->assertSame($value, $lazy->getResult());
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPromisorCalledWhenDoneCalled
+     */
+    public function testPromisorReturnsRejectedPromise()
+    {
+        $exception = new Exception();
+        $promise = Promise::reject($exception);
+        
+        $promisor = function () use ($promise) { return $promise; };
+        
+        $lazy = new LazyPromise($promisor);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception));
+        
+        $lazy->done($this->createCallback(0), $callback);
+        
+        $this->assertFalse($lazy->isPending());
+        $this->assertTrue($lazy->isRejected());
+        $this->assertSame($exception, $lazy->getResult());
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPromisorCalledWhenDoneCalled
+     */
+    public function testPromisorReturnsPendingPromise()
+    {
+        $promise = new Promise(function () {});
+        
+        $promisor = function () use ($promise) { return $promise; };
+        
+        $lazy = new LazyPromise($promisor);
+        
+        $lazy->done($this->createCallback(0), $this->createCallback(0));
+        
+        $this->assertTrue($lazy->isPending());
     }
 }

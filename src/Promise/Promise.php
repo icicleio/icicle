@@ -445,14 +445,15 @@ class Promise implements PromiseInterface
         return new static(function ($resolve) use ($promises) {
             $pending = count($promises);
             
-            foreach ($promises as $key => $promise) {
-                $promises[$key] = $promise = static::resolve($promise);
-                
-                $promise->after(function () use (&$promises, &$pending, $resolve) {
-                    if (0 === --$pending) {
-                        $resolve($promises);
-                    }
-                });
+            $after = function () use (&$promises, &$pending, $resolve) {
+                if (0 === --$pending) {
+                    $resolve($promises);
+                }
+            };
+            
+            foreach ($promises as &$promise) {
+                $promise = static::resolve($promise);
+                $promise->after($after);
             }
         });
     }
@@ -651,18 +652,21 @@ class Promise implements PromiseInterface
         
         return new static(function ($resolve, $reject) use ($promises, $callback, $initial) {
             $pending = count($promises);
-            $callback = static::lift($callback);
             $carry = static::resolve($initial);
+            $carry->otherwise($reject);
+            
+            $onFulfilled = function ($value) use (&$carry, &$pending, $callback, $resolve, $reject) {
+                $carry = $carry->then(function ($carry) use ($callback, $value) {
+                    return $callback($carry, $value);
+                });
+                $carry->otherwise($reject);
+                
+                if (0 === --$pending) {
+                    $resolve($carry);
+                }
+            };
             
             foreach ($promises as $promise) {
-                $onFulfilled = function ($value) use (&$carry, &$pending, $callback, $resolve, $reject) {
-                    $carry = $callback($carry, $value);
-                    $carry->otherwise($reject);
-                    if (0 === --$pending) {
-                        $resolve($carry);
-                    }
-                };
-                
                 static::resolve($promise)->done($onFulfilled, $reject);
             }
         });
@@ -689,7 +693,7 @@ class Promise implements PromiseInterface
                 try {
                     if ($predicate($value)) { // Resolve promise if predicate returns true.
                         $resolve($value);
-                    } else { // Otherwise use result of $worker in promise context (so promises returned by $worker delay iteration).
+                    } else {
                         static::resolve($worker($value))->done($callback, $reject);
                     }
                 } catch (Exception $exception) {

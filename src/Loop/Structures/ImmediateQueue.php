@@ -74,7 +74,7 @@ class ImmediateQueue implements Countable
      */
     public function isEmpty()
     {
-        return 0 === $this->count();
+        return 0 === $this->queue->count();
     }
     
     /**
