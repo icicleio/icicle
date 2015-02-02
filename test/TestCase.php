@@ -1,10 +1,13 @@
 <?php
 namespace Icicle\Tests;
 
+use PHPUnit_Framework_MockObject_Stub;
+use PHPUnit_Framework_TestCase;
+
 /**
  * Abstract test class with methods for creating callbacks and asserting runtimes.
  */
-abstract class TestCase extends \PHPUnit_Framework_TestCase
+abstract class TestCase extends PHPUnit_Framework_TestCase
 {
     const RUNTIME_PRECISION = 2; // Number of decimals to use in runtime calculations/comparisons.
     
@@ -12,14 +15,20 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * Creates a callback that must be called $count times or the test will fail.
      *
      * @param   int $count Number of times the callback should be called.
+     * @param   PHPUnit_Framework_MockObject_Stub $will If given, defines what the callback should return.
      *
      * @return  callable Object that is callable and expects to be called the given number of times.
      */
-    public function createCallback($count)
+    public function createCallback($count, PHPUnit_Framework_MockObject_Stub $will = null)
     {
         $mock = $this->getMock('Icicle\Tests\Stub\CallbackStub');
-        $mock->expects($this->exactly($count))
-             ->method('__invoke');
+        
+        $method = $mock->expects($this->exactly($count))
+                       ->method('__invoke');
+        
+        if (null !== $will) {
+            $method->will($will);
+        }
         
         return $mock;
     }

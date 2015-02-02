@@ -18,44 +18,57 @@ class PromiseMapTest extends TestCase
     
     public function testEmptyArray()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo([]));
+        $values = [];
         
-        Promise::map([], $this->createCallback(0))
-            ->done($callback, $this->createCallback(0));
+        $result = Promise::map($values, $this->createCallback(0));
         
-        Loop::run();
+        $this->assertSame($result, $values);
     }
     
     public function testValuesArray()
     {
         $values = [1, 2, 3];
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->equalTo([2, 3, 4]));
+        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+            return $value + 1;
+        }));
         
-        Promise::map($values, function ($value) { return $value + 1; })
-               ->done($callback, $this->createCallback(0));
+        $result = Promise::map($values, $callback);
         
         Loop::run();
+        
+        $this->assertTrue(is_array($result));
+        
+        foreach ($result as $key => $promise) {
+            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertSame($values[$key] + 1, $promise->getResult());
+        }
     }
     
+    /**
+     * @depends testValuesArray
+     */
     public function testFulfilledPromisesArray()
     {
         $promises = [Promise::resolve(1), Promise::resolve(2), Promise::resolve(3)];
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->equalTo([2, 3, 4]));
+        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+            return $value + 1;
+        }));
         
-        Promise::map($promises, function ($value) { return $value + 1; })
-               ->done($callback, $this->createCallback(0));
+        $result = Promise::map($promises, $callback);
         
         Loop::run();
+        
+        foreach ($result as $key => $promise) {
+            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+        }
     }
     
+    /**
+     * @depends testValuesArray
+     */
     public function testPendingPromisesArray()
     {
         $promises = [
@@ -64,44 +77,69 @@ class PromiseMapTest extends TestCase
             Promise::resolve(3)->delay(0.1)
         ];
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->equalTo([2, 3, 4]));
+        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+            return $value + 1;
+        }));
         
-        Promise::map($promises, function ($value) { return $value + 1; })
-               ->done($callback, $this->createCallback(0));
+        $result = Promise::map($promises, $callback);
         
-        Loop::run();
-    }
-    
-    public function testRejectOnFirstRejected()
-    {
-        $exception = new Exception();
-        $promises = [Promise::resolve(1), Promise::resolve(2), Promise::reject($exception)];
-        
-        $mapper = function ($value) { return $value; };
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
-        
-        Promise::map($promises, $mapper)->done($this->createCallback(0), $callback);
+        foreach ($result as $key => $promise) {
+            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertTrue($promise->isPending());
+        }
         
         Loop::run();
+        
+        foreach ($result as $key => $promise) {
+            $this->assertTrue($promise->isFulfilled());
+            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+        }
     }
     
-    public function testCallbackThrowingExceptionRejectsPromise()
+    /**
+     * @depends testValuesArray
+     */
+    public function testRejectedPromisesArray()
     {
         $exception = new Exception();
         
-        $mapper = function () use ($exception) { throw $exception; };
+        $promises = [
+            Promise::reject($exception),
+            Promise::reject($exception),
+            Promise::reject($exception)
+        ];
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+        $result = Promise::map($promises, $this->createCallback(0));
         
-        Promise::map([1, 2, 3], $mapper)->done($this->createCallback(0), $callback);
+        foreach ($result as $key => $promise) {
+            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertTrue($promise->isRejected());
+            $this->assertSame($exception, $promise->getResult());
+        }
+    }
+    
+    /**
+     * @depends testRejectedPromisesArray
+     */
+    public function testCallbackThrowingExceptionRejectsPromises()
+    {
+        $values = [1, 2, 3];
+        $exception = new Exception();
+        
+        $callback = $this->createCallback(3, $this->throwException($exception));
+        
+        $result = Promise::map($values, $callback);
+        
+        foreach ($result as $key => $promise) {
+            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertTrue($promise->isPending());
+        }
         
         Loop::run();
+        
+        foreach ($result as $key => $promise) {
+            $this->assertTrue($promise->isRejected());
+            $this->assertSame($exception, $promise->getResult());
+        }
     }
 }

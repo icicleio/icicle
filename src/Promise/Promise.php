@@ -597,44 +597,32 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Maps the callback to each promise as it is fulfilled. Returns a promise that is fulfilled with an array of values only
-     * if all promises are fulfilled and the callback never throws an exception. Callback may return a promise whose resolution
-     * value will determine the value in the array that resolves the promise returned by this function. If the callback throws an
-     * exception, that exception is used to reject the promise returned by this function.
+     * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return callback value.
+     * of the callback function. The callback may return promises or throw exceptions to reject promises in the array. If a
+     * promise in the passed array rejects, the callback will not be called and the promise in the array is rejected for the same
+     * reason. Tip: Use join() or settle() method to determine when all promises in the array have been resolved.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $value) : mixed
      *
-     * @return  PromiseInterface
+     * @return  PromiseInterface[] Array of promises resolved with the result of the mapped function.
      *
      * @api
      */
     public static function map(array $promises, callable $callback)
     {
-        if (empty($promises)) {
-            return static::resolve([]);
+        $results = [];
+        
+        foreach ($promises as $key => $promise) {
+            $results[$key] = static::resolve($promise)->then($callback);
         }
         
-        return new static(function ($resolve, $reject) use ($promises, $callback) {
-            $pending = count($promises);
-            $values = [];
-            
-            foreach ($promises as $key => $promise) {
-                $onFulfilled = function ($value) use ($key, &$values, &$pending, $resolve) {
-                    $values[$key] = $value;
-                    if (0 === --$pending) {
-                        $resolve($values);
-                    }
-                };
-                
-                static::resolve($promise)->then($callback)->done($onFulfilled, $reject);
-            }
-        });
+        return $results;
     }
     
     /**
-     * Reduce function similar to array_reduce(), only it works on promises and/or values. The callback function may return a promise
-     * or value and the initial value may also be a promise or value.
+     * Reduce function similar to array_reduce(), only it works on promises and/or values. The callback function may return a
+     * promise or value and the initial value may also be a promise or value.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $carry, mixed $value) : mixed Called for each fulfilled promise value.
