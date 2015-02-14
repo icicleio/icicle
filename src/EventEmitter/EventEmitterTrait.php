@@ -172,7 +172,7 @@ trait EventEmitterTrait
             return spl_object_hash($listener); // Closure or callable object.
         }
         
-        if (is_array($listener)) { // Concatenating :: to match against string of format ClassName::staticMethod.
+        if (is_array($listener)) {
             return (is_object($listener[0]) ? spl_object_hash($listener[0]) : $listener[0]) . '::' . $listener[1]; // Object/static method.
         }
         

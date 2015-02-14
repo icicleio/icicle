@@ -6,6 +6,8 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise\Promise;
 use Icicle\Tests\TestCase;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * @requires PHP 5.4
@@ -42,6 +44,8 @@ class PromiseTest extends TestCase
         $reject = $this->reject;
         $reject($exception);
     }
+    
+    public function exceptionHandler(RuntimeException $exception) {}
     
     public function testResolverThrowingRejectsPromise()
     {
@@ -934,21 +938,31 @@ class PromiseTest extends TestCase
     /**
      * @depends testCapture
      */
-    public function testCaptureWithFilter()
+    public function testCaptureWithTypeHint()
     {
-        $child1 = $this->promise->capture($this->createCallback(0), function () { return false; });
+        $value = 'test';
         
-        $child2 = $this->promise->capture($this->createCallback(1), function () { return true; });
+        $child1 = $this->promise->capture(function (InvalidArgumentException $exception) {});
+        $child2 = $this->promise->capture(function (RuntimeException $exception) use ($value) { return $value; });
+        $child3 = $this->promise->capture([$this, 'exceptionHandler']); // Typehinted method.
+        $child4 = $child1->capture(function (RuntimeException $exception) use ($value) { return $value; });
         
-        $exception = new Exception();
+        $exception = new RuntimeException();
         $this->reject($exception);
         
         Loop::run();
         
         $this->assertTrue($child1->isRejected());
         $this->assertSame($exception, $child1->getResult());
+        
         $this->assertTrue($child2->isFulfilled());
-        $this->assertNull($child2->getResult());
+        $this->assertSame($value, $child2->getResult());
+        
+        $this->assertTrue($child3->isFulfilled());
+        $this->assertNull($child3->getResult());
+        
+        $this->assertTrue($child4->isFulfilled());
+        $this->assertSame($value, $child4->getResult());
     }
     
     /**

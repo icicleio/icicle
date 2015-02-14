@@ -641,13 +641,13 @@ class Promise implements PromiseInterface
         return new static(function ($resolve, $reject) use ($promises, $callback, $initial) {
             $pending = count($promises);
             $carry = static::resolve($initial);
-            $carry->otherwise($reject);
+            $carry->done(null, $reject);
             
             $onFulfilled = function ($value) use (&$carry, &$pending, $callback, $resolve, $reject) {
                 $carry = $carry->then(function ($carry) use ($callback, $value) {
                     return $callback($carry, $value);
                 });
-                $carry->otherwise($reject);
+                $carry->done(null, $reject);
                 
                 if (0 === --$pending) {
                     $resolve($carry);

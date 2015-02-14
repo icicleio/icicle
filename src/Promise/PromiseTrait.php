@@ -1,7 +1,10 @@
 <?php
 namespace Icicle\Promise;
 
+use Closure;
 use Exception;
+use ReflectionFunction;
+use ReflectionMethod;
 
 trait PromiseTrait
 {
@@ -16,18 +19,30 @@ trait PromiseTrait
     /**
      * {@inheritdoc}
      */
-    public function capture(callable $onRejected, callable $typeFilter = null)
+    public function capture(callable $onRejected)
     {
-        if (null === $typeFilter) {
-            return $this->then(null, $onRejected);
-        }
-        
-        return $this->then(null, function (Exception $exception) use ($onRejected, $typeFilter) {
-            if ($typeFilter($exception)) {
+        return $this->then(null, function (Exception $exception) use ($onRejected) {
+            if (is_array($onRejected)) { // Methods passed as an array.
+                $reflection = new ReflectionMethod($onRejected[0], $onRejected[1]);
+            } elseif (is_object($onRejected) && !$onRejected instanceof Closure) { // Callable objects that are not Closures.
+                $reflection = new ReflectionMethod($onRejected, '__invoke');
+            } else { // Everything else (note method names delimited by :: do not work with $callable() syntax).
+                $reflection = new ReflectionFunction($onRejected);
+            }
+            
+            $parameters = $reflection->getParameters();
+            
+            if (empty($parameters)) { // No parameters defined.
+                return $onRejected($exception); // Providing argument in case func_get_args() is used in function.
+            }
+            
+            $class = $parameters[0]->getClass();
+            
+            if (null === $class || $class->isInstance($exception)) { // No typehint or matching typehint.
                 return $onRejected($exception);
             }
             
-            return $this; // $this is now a rejected promise.
+            return $this; // Typehint does not match. $this is now a rejected promise.
         });
     }
     
@@ -37,14 +52,6 @@ trait PromiseTrait
     public function after(callable $onResolved)
     {
         $this->done($onResolved, $onResolved);
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function otherwise(callable $onRejected)
-    {
-        $this->done(null, $onRejected);
     }
     
     /**

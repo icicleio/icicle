@@ -77,18 +77,17 @@ interface PromiseInterface
     public function always(callable $onResolved);
     
     /**
-     * Assigns a callback function that is called when the promise is rejected. The $typeFilter parameter may be
-     * used to only handle certain types of exceptions. $typeFilter should be a function accepting an Exception
-     * and returning a boolean, indicating if $onRejected should be called or if the exception should be re-thrown.
+     * Assigns a callback function that is called when the promise is rejected. If a typehint is defined on the callable
+     * (ex: function (RuntimeException $exception) {}), then the function will only be called if the exception is an instance
+     * of the typehinted exception.
      *
      * @param   callable $onRejected
-     * @param   callable|null $typeFilter
      *
      * @return  PromiseInterface
      *
      * @api
      */
-    public function capture(callable $onRejected, callable $typeFilter = null);
+    public function capture(callable $onRejected);
     
     /**
      * Assigns a callback to be called if the promise is fulfilled or rejected. Returned values are ignored and
@@ -100,17 +99,6 @@ interface PromiseInterface
      * @api
      */
     public function after(callable $onResolved);
-    
-    /**
-     * Assigns a callback function that is called when the promise is rejected. The callback function's return
-     * value is ignored and thrown exceptions are rethrown in an uncatchable way.
-     * Shortcut to calling PromiseInterface::done(null, $onRejected)
-     *
-     * @param   callable $onRejected
-     *
-     * @api
-     */
-    public function otherwise(callable $onRejected);
     
     /**
      * Calls the given function with the value used to fulfill the promise, then fulfills the returned promise with
