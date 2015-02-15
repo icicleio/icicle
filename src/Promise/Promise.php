@@ -365,8 +365,8 @@ class Promise implements PromiseInterface
     /**
      * Wraps the given callable $worker in a promise aware function that takes the same number of arguments as $worker, but
      * those arguments may be promises for the future argument value or just values. The returned function will return a
-     * promise for the return value of $worker and will never throw. The $worker function will not be called until each promise
-     * given as an argument is fulfilled. If any promise provided as an argument rejects, the promise returned by the
+     * promise for the return value of $worker and will never throw. The $worker function will not be called until each
+     * promise given as an argument is fulfilled. If any promise provided as an argument rejects, the promise returned by the
      * returned function will be rejected for the same reason. The promise is fulfilled with the return value of $worker or
      * rejected if $worker throws.
      *
@@ -426,9 +426,9 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Returns a promise that is resolved when all promises are resolved. The returned promise will not reject by itself (only
-     * if cancelled). Returned promise is fulfilled with an array of resolved promises, with keys identical and corresponding
-     * to the original given array.
+     * Returns a promise that is resolved when all promises are resolved. The returned promise will not reject by itself
+     * (only if cancelled). Returned promise is fulfilled with an array of resolved promises, with keys identical and
+     * corresponding to the original given array.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
@@ -597,10 +597,10 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return callback value.
-     * of the callback function. The callback may return promises or throw exceptions to reject promises in the array. If a
-     * promise in the passed array rejects, the callback will not be called and the promise in the array is rejected for the same
-     * reason. Tip: Use join() or settle() method to determine when all promises in the array have been resolved.
+     * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return callback
+     * value of the callback function. The callback may return promises or throw exceptions to reject promises in the array.
+     * If a promise in the passed array rejects, the callback will not be called and the promise in the array is rejected for
+     * the same reason. Tip: Use join() or settle() method to determine when all promises in the array have been resolved.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $value) : mixed
@@ -662,9 +662,10 @@ class Promise implements PromiseInterface
     
     /**
      * Calls $worker using the return value of the previous call until $predicate returns true. $seed is used as the initial
-     * parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If $worker or $predicate
-     * throws an exception, the promise is rejected using that exception. The call stack is cleared before each call to $worker
-     * to avoid filling the call stack. If $worker returns a promise, iteration waits for the returned promise to be resolved.
+     * parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If $worker or
+     * $predicate throws an exception, the promise is rejected using that exception. The call stack is cleared before each
+     * call to $worker to avoid filling the call stack. If $worker returns a promise, iteration waits for the returned
+     * promise to be resolved.
      *
      * @param   callable $worker (mixed $value) : mixed Called with the previous return value on each interation.
      * @param   callable $predicate (mixed $value) : bool Return true to stop iteration and fulfill promise.

@@ -168,14 +168,14 @@ trait EventEmitterTrait
      */
     protected function getListenerIndex(callable $listener)
     {
-        if (is_object($listener)) {
-            return spl_object_hash($listener); // Closure or callable object.
+        if (is_object($listener)) { // Closure or callable object.
+            return spl_object_hash($listener);
         }
         
-        if (is_array($listener)) {
-            return (is_object($listener[0]) ? spl_object_hash($listener[0]) : $listener[0]) . '::' . $listener[1]; // Object/static method.
+        if (is_array($listener)) { // Object/static method.
+            return (is_object($listener[0]) ? spl_object_hash($listener[0]) : $listener[0]) . '::' . $listener[1];
         }
         
-        return $listener; // Function or static method name.
+        return $listener; // Named function.
     }
 }
