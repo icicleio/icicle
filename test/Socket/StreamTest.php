@@ -9,7 +9,7 @@ use Icicle\Tests\TestCase;
 class StreamTest extends TestCase
 {
     const TIMEOUT = 0.1;
-    const WRITE_STRING = '1234567890';
+    const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
     
     protected $readStream;
     
@@ -173,7 +173,7 @@ class StreamTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->callback(function ($param) {
-                     return '' === (string) $param;
+                     return empty($param);
                  }));
         
         $promise->done($callback, $this->createCallback(0));
@@ -427,7 +427,7 @@ class StreamTest extends TestCase
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $writable->write();
+        $promise = $writable->write(self::WRITE_STRING);
         
         $writable->close();
         
@@ -435,9 +435,9 @@ class StreamTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
+                 ->with($this->identicalTo(strlen(self::WRITE_STRING)));
         
-        $promise->done($this->createCallback(0), $callback);
+        $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
     }

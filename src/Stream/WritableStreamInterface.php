@@ -7,13 +7,13 @@ interface WritableStreamInterface extends StreamInterface
      * Queues data to be sent on the stream. The promise returned is fulfilled once the data has
      * successfully been written to the stream.
      *
-     * @param   string|null $data
+     * @param   string $data
      *
      * @return  PromiseInterface
      *
      * @api
      */
-    public function write($data = null);
+    public function write($data);
     
     /**
      * Returns a promise that is fulfilled when the stream is ready to receive data.
