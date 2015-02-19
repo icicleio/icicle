@@ -35,6 +35,7 @@ class ServerTest extends TestCase
     }
     
     /**
+     * @medium
      * @depends testCreate
      * @expectedException Icicle\Socket\Exception\FailureException
      */

@@ -249,9 +249,11 @@ class Stream extends Socket implements DuplexStreamInterface
         
         $this->writable = false;
         
-        return $promise->cleanup(function () {
+        $promise->after(function () {
             $this->close(new ClosedException('The stream was ended.'));
         });
+        
+        return $promise;
     }
     
     /**
