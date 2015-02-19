@@ -41,18 +41,11 @@ interface ReadableStreamInterface extends StreamInterface
      * Pipes data read on this stream into the given writable stream destination.
      *
      * @param   WritableStreamInterface $stream
-     * @param   bool $autoEnd
+     * @param   bool $endOnClose Set to true to automatically end the writable stream when the readable stream closes.
      *
      * @return  PromiseInterface
      *
      * @api
      */
-    //public function pipe(WritableStreamInterface $stream, $end = true);
-    
-    /**
-     * Stops piping data from this stream to the current destination.
-     *
-     * @api
-     */
-    //public function unpipe();
+    public function pipe(WritableStreamInterface $stream, $endOnClose = true);
 }

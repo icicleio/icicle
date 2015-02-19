@@ -216,8 +216,8 @@ class Process implements ProcessInterface
     }
     
     /**
-     * Sends a signal to stop the process, first sending SIGTERM then sending SIGKILL after $timeout seconds if the process does
-     * not stop. Cannot be used if PHP was compiled with --enable-sigchild.
+     * Sends a signal to stop the process, first sending SIGTERM then sending SIGKILL after $timeout seconds if the process
+     * does not stop. Cannot be used if PHP was compiled with --enable-sigchild.
      *
      * @param   int|float $timeout Number of seconds after sending SIGTERM to wait before sending SIGKILL.
      */
@@ -285,10 +285,13 @@ class Process implements ProcessInterface
             $this->deferred->reject(new FailedException($this));
         }
         
-        $this->stdin->close(); // Close only the outgoing pipe. Readable pipes will close themselves when empty or on destruct.
+        $this->stdin->close(); // Close only writable pipe. Readable pipes will close themselves when empty or on destruct.
     }
     
     /**
+     * Returns the PID of the child process. Value is only meaningful if the process has been started and PHP was not
+     * compiled with --enable-sigchild.
+     *
      * @return  int
      */
     public function getPid()
@@ -297,6 +300,8 @@ class Process implements ProcessInterface
     }
     
     /**
+     * Returns the command to execute.
+     *
      * @return  string The command to execute.
      */
     public function getCommand()
@@ -305,6 +310,8 @@ class Process implements ProcessInterface
     }
     
     /**
+     * Sets the command to execute.
+     *
      * @param   string $command The command to execute.
      *
      * @return  self
@@ -417,30 +424,51 @@ class Process implements ProcessInterface
         return is_resource($this->process);
     }
     
-    public function read($length = null)
-    {
-        if (null === $this->stdout) {
-            throw new LogicException('The process has not been started.');
-        }
-        
-        return $this->stdout->read($length);
-    }
-    
-    public function write($data)
+    /**
+     * Gets the process input stream (STDIN).
+     *
+     * @return  Stream
+     *
+     * @throws  LogicException Thrown if the process has not been started.
+     */
+    public function getInputStream()
     {
         if (null === $this->stdin) {
             throw new LogicException('The process has not been started.');
         }
         
-        return $this->stdin->write($data);
+        return $this->stdin;
     }
     
-    public function error($length = null)
+    /**
+     * Gets the process output stream (STDOUT).
+     *
+     * @return  Stream
+     *
+     * @throws  LogicException Thrown if the process has not been started.
+     */
+    public function getOutputStream()
+    {
+        if (null === $this->stdout) {
+            throw new LogicException('The process has not been started.');
+        }
+        
+        return $this->stdout;
+    }
+    
+    /**
+     * Gets the process error stream (STDERR).
+     *
+     * @return  Stream
+     *
+     * @throws  LogicException Thrown if the process has not been started.
+     */
+    public function getErrorStream()
     {
         if (null === $this->stderr) {
             throw new LogicException('The process has not been started.');
         }
         
-        return $this->stderr->read($length);
+        return $this->stderr;
     }
 }
