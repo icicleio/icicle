@@ -12,12 +12,17 @@ use Icicle\Socket\LocalClient;
 
 $coroutine = Coroutine::create(function () {
     try {
-        $client = (yield LocalClient::connect('www.google.com', 443));
+        $client = (yield LocalClient::connect('google.com', 443, 'tcp', ['cn' => '*.google.com']));
         
-        yield $client->enableCrypto();
+        echo "Connected.\n";
         
-        yield $client->write("GET / HTTP/1.0\r\n");
-        yield $client->write("Host: www.google.com\r\n");
+        $time = (yield $client->enableCrypto());
+        
+        echo "Crypto enabled in {$time} seconds.\n";
+        
+        yield $client->write("GET / HTTP/1.1\r\n");
+        yield $client->write("Host: google.com\r\n");
+        yield $client->write("Connection: close\r\n");
         yield $client->write("\r\n");
         
         while ($client->isReadable()) {
@@ -27,8 +32,10 @@ $coroutine = Coroutine::create(function () {
     } catch (ClosedException $e) {
         // Connection ended normally.
     } finally {
-        yield $client->close();
+        $client->close();
     }
+    
+    echo "\n";
 });
 
 $coroutine->capture(function (Exception $exception) {

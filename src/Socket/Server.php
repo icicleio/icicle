@@ -35,9 +35,14 @@ class Server extends Socket
     private $deferred;
     
     /**
-     * @var PollInterface|null
+     * @var PollInterface
      */
     private $poll;
+    
+    /**
+     * @var Closure
+     */
+    private $onCancelled;
     
     /**
      * Creates a server on the given host and port.
@@ -100,13 +105,35 @@ class Server extends Socket
     
     /**
      * @param   resource $socket
-     * @param   bool $secure
      */
     public function __construct($socket)
     {
         parent::__construct($socket);
         
         list($this->address, $this->port) = self::parseSocketName($socket, false);
+        
+        $this->poll = Loop::poll($socket, function ($resource) {
+            if (@feof($resource)) {
+                $this->close(new ClosedException('The server closed unexpectedly.'));
+                return;
+            }
+            
+            $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
+            
+            if (!$client) {
+                $this->deferred->reject(new AcceptException('Error when accepting client.'));
+                $this->deferred = null;
+                return;
+            }
+            
+            $this->deferred->resolve(new RemoteClient($client));
+            $this->deferred = null;
+        });
+        
+        $this->onCancelled = function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        };
     }
     
     /**
@@ -115,15 +142,9 @@ class Server extends Socket
     public function close(Exception $exception = null)
     {
         if ($this->isOpen()) {
-            if (null !== $this->poll) {
-                $this->poll->free();
-            }
+            $this->poll->free();
             
             if (null !== $this->deferred) {
-                if (null !== $this->poll) {
-                    $this->poll->cancel();
-                }
-                
                 if (null === $exception) {
                     $exception = new ClosedException('The server has closed.');
                 }
@@ -151,34 +172,9 @@ class Server extends Socket
             return Promise::reject(new ClosedException('The server has been closed.'));
         }
         
-        if (null === $this->poll) {
-            $onRead = function ($resource) {
-                if (@feof($resource)) {
-                    $this->close(new ClosedException('The server closed unexpectedly.'));
-                    return;
-                }
-                
-                $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
-                
-                if (!$client) {
-                    $this->deferred->reject(new AcceptException('Error when accepting client.'));
-                    $this->deferred = null;
-                    return;
-                }
-                
-                $this->deferred->resolve(new RemoteClient($client));
-                $this->deferred = null;
-            };
-            
-            $this->poll = Loop::poll($this->getResource(), $onRead);
-        }
-        
         $this->poll->listen();
         
-        $this->deferred = new Deferred(function () {
-            $this->poll->cancel();
-            $this->deferred = null;
-        });
+        $this->deferred = new Deferred($this->onCancelled);
         
         return $this->deferred->getPromise();
     }

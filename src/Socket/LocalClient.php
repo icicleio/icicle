@@ -3,9 +3,7 @@ namespace Icicle\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
-use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\InvalidArgumentException;
 
@@ -14,35 +12,22 @@ class LocalClient extends Client
     const DEFAULT_CONNECT_TIMEOUT = 30;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
+    const DEFAULT_PROTOCOL = 'tcp';
     
     /**
-     * @var     int
+     * @var int
      */
-    private $remoteAddress = 0;
+    private $crypto = 0;
     
     /**
-     * @var     int
-     */
-    private $remotePort = 0;
-    
-    /**
-     * @var     int
-     */
-    private $localAddress = 0;
-    
-    /**
-     * @var     int
-     */
-    private $localPort = 0;
-    
-    /**
-     * @param   string $host
-     * @param   int $port
+     * @param   string $host Hostname or IP address.
+     * @param   int $port Port number.
+     * @param   string $protocol Protocol to use (e.g.: tcp, udp, s3), tcp by default.
      * @param   array $options
      *
      * @return  PromiseInterface Fulfilled with a LocalClient object once the connection is established.
      */
-    public static function connect($host, $port, $udp = false, array $options = [])
+    public static function connect($host, $port, $protocol = self::DEFAULT_PROTOCOL, array $options = null)
     {
         if (false !== strpos($host, ':')) {
             $host = '[' . trim($host, '[]') . ']';
@@ -81,45 +66,40 @@ class LocalClient extends Client
         
         $context = stream_context_create($context);
         
-        $uri = sprintf('%s://%s:%d', ($udp ? 'udp' : 'tcp'), $host, $port);
+        $uri = sprintf('%s://%s:%d', $protocol, $host, $port);
         $socket = @stream_socket_client($uri, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT, $context);
         
         if (!$socket || $errno) {
             return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
         }
         
-        $deferred = new Deferred();
-        
-        $await = Loop::await($socket, function () use (&$await, $socket, $deferred) {
-            $await->free();
-            $deferred->resolve(new static($socket));
+        return new Promise(function ($resolve, $reject) use ($socket, $timeout) {
+            $await = Loop::await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
+                $await->free();
+                
+                if ($expired) {
+                    $reject(new FailureException('Connection attempt timed out.'));
+                } else {
+                    $resolve(new static($resource));
+                }
+            });
+            
+            $await->listen($timeout);
         });
-        
-        $await->listen();
-        
-        return $deferred->getPromise();
     }
     
     /**
-     * @param   resource $socket
+     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER
+     *
+     * @return  PromiseInterface Fulfilled with the number of seconds elapsed while enabling crypto.
      */
-    public function __construct($socket)
-    {
-        parent::__construct($socket);
-        
-        list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
-        list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
-    }
-    
-    /**
-     * @return  PromiseInterface Fulfilled when crypto has been enabled.
-     */
-    public function enableCrypto()
+    public function enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_CLIENT)
     {
         $start = microtime(true);
+        $method = (int) $method;
         
-        $enable = function () use (&$enable, $start) {
-            $result = @stream_socket_enable_crypto($this->getResource(), true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        $enable = function () use (&$enable, $start, $method) {
+            $result = @stream_socket_enable_crypto($this->getResource(), true, $method);
             
             if (false === $result) {
                 $message = 'Failed to enable crypto';
@@ -134,6 +114,8 @@ class LocalClient extends Client
                 return $this->poll()->then($enable);
             }
             
+            $this->crypto = $method;
+            
             return microtime(true) - $start;
         };
         
@@ -145,10 +127,14 @@ class LocalClient extends Client
      */
     public function disableCrypto()
     {
+        if (0 === $this->crypto) {
+            return Promise::reject(new FailureException('Crypto was not enabled on the stream.'));
+        }
+        
         $start = microtime(true);
         
         $disable = function () use (&$disable, $start) {
-            $result = @stream_socket_enable_crypto($this->getResource(), false, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            $result = @stream_socket_enable_crypto($this->getResource(), false, $this->crypto);
             
             if (false === $result) {
                 $message = 'Failed to disable crypto';
@@ -163,45 +149,19 @@ class LocalClient extends Client
                 return $this->poll()->then($disable);
             }
             
+            $this->crypto = 0;
+            
             return microtime(true) - $start;
         };
         
-        return $this->poll()->then($disable);
+        return $this->await()->then($disable);
     }
     
     /**
-     * Returns the remote IP as a string representation, such as '127.0.0.1'.
-     * @return  string
+     * @return  bool
      */
-    public function getRemoteAddress()
+    public function isCryptoEnabled()
     {
-        return $this->remoteAddress;
-    }
-    
-    /**
-     * Returns the remote port number.
-     * @return  int
-     */
-    public function getRemotePort()
-    {
-        return $this->remotePort;
-    }
-    
-    /**
-     * Returns the remote IP as a string representation, such as '127.0.0.1'.
-     * @return  string
-     */
-    public function getLocalAddress()
-    {
-        return $this->localAddress;
-    }
-    
-    /**
-     * Returns the local port number.
-     * @return  int
-     */
-    public function getLocalPort()
-    {
-        return $this->remotePort;
+        return 0 !== $this->crypto;
     }
 }

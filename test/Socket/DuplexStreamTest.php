@@ -3,10 +3,10 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Stream;
+use Icicle\Socket\DuplexStream;
 use Icicle\Tests\TestCase;
 
-class StreamTest extends TestCase
+class DuplexStreamTest extends TestCase
 {
     const TIMEOUT = 0.1;
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
@@ -34,8 +34,8 @@ class StreamTest extends TestCase
     {
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         fwrite($sockets[1], self::WRITE_STRING); // Make $sockets[0] readable.
-        $readable = new Stream($sockets[0], self::TIMEOUT);
-        $writable = new Stream($sockets[1], self::TIMEOUT);
+        $readable = new DuplexStream($sockets[0], self::TIMEOUT);
+        $writable = new DuplexStream($sockets[1], self::TIMEOUT);
         
         return [$readable, $writable];
     }
@@ -499,7 +499,7 @@ class StreamTest extends TestCase
         
         $buffer = '';
         
-        for ($i = 0; $i < Stream::CHUNK_SIZE + 1; ++$i) {
+        for ($i = 0; $i < DuplexStream::CHUNK_SIZE + 1; ++$i) {
             $buffer .= '1';
         }
         

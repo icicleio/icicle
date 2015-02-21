@@ -8,7 +8,8 @@ use Icicle\Process\Exception\LogicException;
 use Icicle\Process\Exception\RuntimeException;
 use Icicle\Process\Exception\TerminatedException;
 use Icicle\Promise\Deferred;
-use Icicle\Socket\Stream;
+use Icicle\Socket\ReadableStream;
+use Icicle\Socket\WritableStream;
 
 class Process implements ProcessInterface
 {
@@ -90,24 +91,6 @@ class Process implements ProcessInterface
     private $deferred;
     
     /**
-     * Determines if PHP was compiled with the '--enable-sigchild' option.
-     *
-     * @return  bool
-     *
-     * @see     Symfony\Component\Process\Process::isSigchildEnabled()
-     */
-    public static function isSigchildEnabled()
-    {
-        if (null === self::$sigchildEnabled) {
-            ob_start();
-            phpinfo(INFO_GENERAL);
-            self::$sigchildEnabled = false !== strpos(ob_get_clean(), '--enable-sigchild');
-        }
-        
-        return self::$sigchildEnabled;
-    }
-    
-    /**
      * @param   string $command Command to run.
      * @param   string|null $cwd Working directory or use null to use the working directory of the current PHP process.
      * @param   array|null $env Environment variables or use null to inherit from the current PHP process.
@@ -136,7 +119,9 @@ class Process implements ProcessInterface
             $this->setOptions($options);
         }
         
-        $this->deferred = new Deferred();
+        $this->deferred = new Deferred(function () {
+            $this->stop();
+        });
     }
     
     /**
@@ -195,12 +180,12 @@ class Process implements ProcessInterface
                 self::$processes[$this->pid] = $this;
             }
             
-            $this->stdin = new Stream($pipes[0]);
-            $this->stdout = new Stream($pipes[1]);
-            $this->stderr = new Stream($pipes[2]);
+            $this->stdin = new WritableStream($pipes[0]);
+            $this->stdout = new ReadableStream($pipes[1]);
+            $this->stderr = new ReadableStream($pipes[2]);
             
             if (isset($pipes[3])) {
-                $stream = new Stream($pipes[3]);
+                $stream = new ReadableStream($pipes[3]);
                 $stream->read()->done(
                     function ($exitCode) {
                         $this->close((int) $exitCode);
@@ -427,7 +412,7 @@ class Process implements ProcessInterface
     /**
      * Gets the process input stream (STDIN).
      *
-     * @return  Stream
+     * @return  WritableStream
      *
      * @throws  LogicException Thrown if the process has not been started.
      */
@@ -443,7 +428,7 @@ class Process implements ProcessInterface
     /**
      * Gets the process output stream (STDOUT).
      *
-     * @return  Stream
+     * @return  ReadableStream
      *
      * @throws  LogicException Thrown if the process has not been started.
      */
@@ -459,7 +444,7 @@ class Process implements ProcessInterface
     /**
      * Gets the process error stream (STDERR).
      *
-     * @return  Stream
+     * @return  ReadableStream
      *
      * @throws  LogicException Thrown if the process has not been started.
      */
@@ -470,5 +455,23 @@ class Process implements ProcessInterface
         }
         
         return $this->stderr;
+    }
+    
+    /**
+     * Determines if PHP was compiled with the '--enable-sigchild' option.
+     *
+     * @return  bool
+     *
+     * @see     Symfony\Component\Process\Process::isSigchildEnabled()
+     */
+    public static function isSigchildEnabled()
+    {
+        if (null === self::$sigchildEnabled) {
+            ob_start();
+            phpinfo(INFO_GENERAL);
+            self::$sigchildEnabled = false !== strpos(ob_get_clean(), '--enable-sigchild');
+        }
+        
+        return self::$sigchildEnabled;
     }
 }

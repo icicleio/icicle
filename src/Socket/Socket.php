@@ -5,6 +5,8 @@ use Icicle\Socket\Exception\InvalidArgumentException;
 
 abstract class Socket
 {
+    const CHUNK_SIZE = 8192;
+    
     /**
      * @var     resource
      */

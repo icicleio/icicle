@@ -17,6 +17,8 @@ $coroutine = Coroutine::call(function (Process $process) {
     
     echo "PID: {$process->getPid()}\n";
     
+    $process->getOutputStream()->write('test');
+    
     while ($process->isRunning()) {
         $data = (yield $process->getOutputStream()->read());
         

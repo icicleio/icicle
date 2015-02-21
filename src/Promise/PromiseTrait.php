@@ -9,6 +9,22 @@ use ReflectionMethod;
 trait PromiseTrait
 {
     /**
+     * @param   callable $onFulfilled
+     * @param   callable $onRejected
+     *
+     * @return  PromiseInterface
+     */
+    abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
+    
+    /**
+     * @param   callable $onFulfilled
+     * @param   callable $onRejected
+     *
+     * @return  PromiseInterface
+     */
+    abstract public function done(callable $onFulfilled = null, callable $onRejected = null);
+    
+    /**
      * {@inheritdoc}
      */
     public function always(callable $onResolved)
