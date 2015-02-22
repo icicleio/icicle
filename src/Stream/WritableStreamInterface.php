@@ -11,6 +11,12 @@ interface WritableStreamInterface extends StreamInterface
      *
      * @return  PromiseInterface
      *
+     * @resolve int Number of bytes written to the stream.
+     *
+     * @reject  UnwritableException If the stream is no longer writable.
+     * @reject  FailureException If writing to the stream fails.
+     * @reject  ClosedException If the stream has been closed.
+     *
      * @api
      */
     public function write($data);
@@ -19,6 +25,12 @@ interface WritableStreamInterface extends StreamInterface
      * Returns a promise that is fulfilled when the stream is ready to receive data.
      *
      * @return  PromiseInterface
+     *
+     * @resolve int Always resolves with 0.
+     *
+     * @reject  UnwritableException If the stream is no longer writable.
+     * @reject  FailureException If writing to the stream fails.
+     * @reject  ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -30,6 +42,12 @@ interface WritableStreamInterface extends StreamInterface
      * @param   string|null $data
      *
      * @return  PromiseInterface
+     *
+     * @resolve int Number of bytes written to the stream.
+     *
+     * @reject  UnwritableException If the stream is no longer writable.
+     * @reject  FailureException If writing to the stream fails.
+     * @reject  ClosedException If the stream has been closed.
      *
      * @api
      */

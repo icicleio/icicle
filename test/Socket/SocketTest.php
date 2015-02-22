@@ -100,7 +100,7 @@ class SocketTest extends TestCase
         fclose($server);
         fclose($client);
         
-        $this->setExpectedException('Icicle\Socket\Exception\InvalidArgumentException');
+        $this->setExpectedException('Icicle\Socket\Exception\FailureException');
         
         list($address, $port) = Socket::parseSocketName($this->socket, false);
     }

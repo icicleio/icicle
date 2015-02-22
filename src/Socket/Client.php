@@ -1,7 +1,9 @@
 <?php
 namespace Icicle\Socket;
 
-abstract class Client extends DuplexStream
+use Exception;
+
+abstract class Client extends DuplexStream implements ClientInterface
 {
     /**
      * @var     int
@@ -23,22 +25,6 @@ abstract class Client extends DuplexStream
      */
     private $localPort = 0;
     
-    /**
-     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER
-     *
-     * @return  PromiseInterface Fulfilled with the number of seconds elapsed while enabling crypto.
-     */
-    abstract public function enableCrypto($method);
-    
-    /**
-     * @return  PromiseInterface Fulfilled with the number of seconds elapsed while disabling crypto.
-     */
-    abstract public function disableCrypto();
-    
-    /**
-     * @return  bool
-     */
-    abstract public function isCryptoEnabled();
     
     /**
      * @param   resource $socket
@@ -47,12 +33,17 @@ abstract class Client extends DuplexStream
     {
         parent::__construct($socket);
         
-        list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
-        list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
+        try {
+            list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
+            list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
+        } catch (Exception $exception) {
+            $this->close($exception);
+        }
     }
     
     /**
-     * Returns the remote IP as a string representation, such as '127.0.0.1'.
+     * Returns the remote IP as a string representation.
+     *
      * @return  string
      */
     public function getRemoteAddress()
@@ -62,6 +53,7 @@ abstract class Client extends DuplexStream
     
     /**
      * Returns the remote port number.
+     *
      * @return  int
      */
     public function getRemotePort()
@@ -70,7 +62,8 @@ abstract class Client extends DuplexStream
     }
     
     /**
-     * Returns the remote IP as a string representation, such as '127.0.0.1'.
+     * Returns the remote IP as a string representation.
+     *
      * @return  string
      */
     public function getLocalAddress()
@@ -80,10 +73,11 @@ abstract class Client extends DuplexStream
     
     /**
      * Returns the local port number.
+     *
      * @return  int
      */
     public function getLocalPort()
     {
-        return $this->remotePort;
+        return $this->localPort;
     }
 }

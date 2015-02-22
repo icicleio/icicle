@@ -2,8 +2,10 @@
 namespace Icicle\Socket;
 
 use Icicle\Socket\Exception\InvalidArgumentException;
+use Icicle\Socket\Exception\FailureException;
+use Icicle\Stream\StreamInterface;
 
-abstract class Socket
+abstract class Socket implements SocketInterface, StreamInterface
 {
     const CHUNK_SIZE = 8192;
     
@@ -79,13 +81,13 @@ abstract class Socket
     }
     
     /**
-     * Parses the IP address and port of a network socket. Calls stream_socket_get_name() and then parses
-     * the returned string.
+     * Parses the IP address and port of a network socket. Calls stream_socket_get_name() and then parses the returned
+     * string.
      *
      * @param   resource $socket
-     * @param   bool $peer True for remote ip and port, false for local ip and port.
+     * @param   bool $peer True for remote IP and port, false for local IP and port.
      *
-     * @return  [int, int]
+     * @return  [string, int] IP address and port pair.
      *
      * @throws  FailureException Thrown if getting the socket name fails.
      */
@@ -99,7 +101,7 @@ abstract class Socket
             if (null !== $error) {
                 $message .= "; Errno: {$error['type']}; {$error['message']}";
             }
-            throw new InvalidArgumentException($message);
+            throw new FailureException($message);
         }
         
         $colon = strrpos($name, ':');

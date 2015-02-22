@@ -161,6 +161,8 @@ trait ReadableStreamTrait
         
         return new Promise(
             function ($resolve, $reject) use (&$promise, $stream, $endOnClose, $timeout) {
+                $bytes = 0;
+                
                 $reject = function (Exception $exception) use (&$promise, $reject) {
                     $reject($exception);
                     $promise->cancel($exception);
@@ -173,9 +175,13 @@ trait ReadableStreamTrait
                     };
                 }
                 
-                $handler = function ($data) use (&$handler, &$promise, $reject, $stream, $timeout) {
+                $handler = function ($data) use (&$handler, &$promise, &$bytes, $resolve, $reject, $stream, $timeout) {
                     if (!empty($data)) {
+                        $bytes += strlen($data);
                         $promise = $stream->write($data);
+                        $promise->done(null, function () use (&$bytes, $resolve) {
+                            $resolve($bytes);
+                        });
                     }
                     $promise = $promise->then(function () use ($timeout) {
                         return $this->read(null, $timeout);

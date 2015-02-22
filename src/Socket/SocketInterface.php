@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Stream;
+namespace Icicle\Socket;
 
-interface StreamInterface
+interface SocketInterface
 {
     /**
      * Determines if the stream is still open.

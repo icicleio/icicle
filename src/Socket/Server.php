@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Socket;
 
+use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
@@ -110,8 +111,6 @@ class Server extends Socket
     {
         parent::__construct($socket);
         
-        list($this->address, $this->port) = self::parseSocketName($socket, false);
-        
         $this->poll = Loop::poll($socket, function ($resource) {
             if (@feof($resource)) {
                 $this->close(new ClosedException('The server closed unexpectedly.'));
@@ -134,6 +133,12 @@ class Server extends Socket
             $this->poll->cancel();
             $this->deferred = null;
         };
+        
+        try {
+            list($this->address, $this->port) = self::parseSocketName($socket, false);
+        } catch (Exception $exception) {
+            $this->close($exception);
+        }
     }
     
     /**

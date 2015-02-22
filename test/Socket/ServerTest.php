@@ -24,6 +24,8 @@ class ServerTest extends TestCase
         
         $this->assertSame(self::HOST_IPv4, $server->getAddress());
         $this->assertSame(self::PORT, $server->getPort());
+        
+        $server->close();
     }
     
     public function testCreateIPv6()
@@ -32,6 +34,8 @@ class ServerTest extends TestCase
         
         $this->assertSame(self::HOST_IPv6, $server->getAddress());
         $this->assertSame(self::PORT, $server->getPort());
+        
+        $server->close();
     }
     
     /**
