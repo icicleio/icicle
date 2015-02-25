@@ -1,12 +1,11 @@
 <?php
 namespace Icicle\Loop\Structures;
 
-use Countable;
 use Icicle\Loop\Events\ImmediateInterface;
 use SplObjectStorage;
 use SplQueue;
 
-class ImmediateQueue implements Countable
+class ImmediateQueue implements \Countable
 {
     /**
      * @var     SplQueue

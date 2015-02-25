@@ -1,13 +1,11 @@
 <?php
 namespace Icicle\Structures;
 
-use Icicle\Structures\Exception\InvalidArgumentException;
 use Icicle\Structures\Exception\InvalidIteratorException;
-use Iterator;
 
 /**
  */
-class BufferIterator implements Iterator
+class BufferIterator implements \SeekableIterator
 {
     /**
      * @var     Buffer
@@ -98,8 +96,9 @@ class BufferIterator implements Iterator
      */
     public function seek($position)
     {
-        if (!is_int($position)) {
-            throw new InvalidArgumentException('The position must be an integer.');
+        $position = (int) $position;
+        if (0 > $position) {
+            $position = 0;
         }
         
         $this->current = $position;
@@ -114,10 +113,6 @@ class BufferIterator implements Iterator
     {
         if (!$this->valid()) {
             throw new InvalidIteratorException('The iterator is not valid!');
-        }
-        
-        if (!is_string($data)) {
-            throw new InvalidArgumentException('The data must be a string.');
         }
         
         $this->buffer[$this->current] = $this->buffer[$this->current] . $data;

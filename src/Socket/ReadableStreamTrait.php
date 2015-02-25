@@ -26,11 +26,6 @@ trait ReadableStreamTrait
     private $poll;
     
     /**
-     * @var Closure
-     */
-    private $onCancelled;
-    
-    /**
      * @var int
      */
     private $length = 0;
@@ -70,7 +65,7 @@ trait ReadableStreamTrait
             }
             
             if (0 === $this->length) {
-                $data = '';
+                $data = null;
             } else {
                 $data = @fread($resource, $this->length);
                 
@@ -83,11 +78,6 @@ trait ReadableStreamTrait
             $this->deferred->resolve($data);
             $this->deferred = null;
         });
-        
-        $this->onCancelled = function () {
-            $this->poll->cancel();
-            $this->deferred = null;
-        };
     }
     
     /**
@@ -129,7 +119,10 @@ trait ReadableStreamTrait
         
         $this->poll->listen($timeout);
         
-        $this->deferred = new Deferred($this->onCancelled);
+        $this->deferred = new Deferred(function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        });
         
         return $this->deferred->getPromise();
     }
@@ -159,26 +152,14 @@ trait ReadableStreamTrait
             return Promise::reject(new UnwritableException('The stream is not writable.'));
         }
         
-        return new Promise(
-            function ($resolve, $reject) use (&$promise, $stream, $endOnClose, $timeout) {
+        $result = new Promise(
+            function ($resolve, $reject) use (&$promise, $stream, $timeout) {
                 $bytes = 0;
-                
-                $reject = function (Exception $exception) use (&$promise, $reject) {
-                    $reject($exception);
-                    $promise->cancel($exception);
-                };
-                
-                if ($endOnClose) {
-                    $reject = function (Exception $exception) use ($reject, $stream, $timeout) {
-                        $reject($exception);
-                        $stream->end(null, $timeout);
-                    };
-                }
                 
                 $handler = function ($data) use (&$handler, &$promise, &$bytes, $resolve, $reject, $stream, $timeout) {
                     if (!empty($data)) {
                         $bytes += strlen($data);
-                        $promise = $stream->write($data);
+                        $promise = $stream->write($data, $timeout);
                         $promise->done(null, function () use (&$bytes, $resolve) {
                             $resolve($bytes);
                         });
@@ -196,5 +177,13 @@ trait ReadableStreamTrait
                 $promise->cancel($exception);
             }
         );
+        
+        if ($endOnClose) {
+            $result->done(null, function () use ($stream) {
+                $stream->end();
+            });
+        }
+        
+        return $result;
     }
 }

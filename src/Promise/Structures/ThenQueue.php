@@ -1,10 +1,9 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Countable;
 use SplQueue;
 
-class ThenQueue implements Countable
+class ThenQueue implements \Countable
 {
     /**
      * @var     SplQueue

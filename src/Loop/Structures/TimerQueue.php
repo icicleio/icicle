@@ -1,12 +1,11 @@
 <?php
 namespace Icicle\Loop\Structures;
 
-use Countable;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
-class TimerQueue implements Countable
+class TimerQueue implements \Countable
 {
     /**
      * @var SplPriorityQueue

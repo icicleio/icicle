@@ -24,7 +24,7 @@ interface ReadableStreamInterface extends StreamInterface
      *
      * @return  PromiseInterface
      *
-     * @resolve string Empty string.
+     * @resolve null
      *
      * @reject  BusyException If a read was already pending on the stream.
      * @reject  UnreadableException If the stream is no longer readable.

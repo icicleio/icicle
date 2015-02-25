@@ -1,13 +1,9 @@
 <?php
 namespace Icicle\Structures;
 
-use ArrayAccess;
-use Countable;
-use IteratorAggregate;
-
 /**
  */
-class Buffer implements ArrayAccess, Countable, IteratorAggregate
+class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
      * @var     string
@@ -19,7 +15,7 @@ class Buffer implements ArrayAccess, Countable, IteratorAggregate
      *
      * @param   string $data
      */
-    public function __construct($data = '')
+    public function __construct($data = null)
     {
         $this->data = (string) $data;
     }

@@ -1,9 +1,7 @@
 <?php
 namespace Icicle\Structures;
 
-use Countable;
-
-class CallableSet implements Countable
+class CallableSet implements \Countable
 {
     /**
      * @var callable[]

@@ -1,10 +1,9 @@
 <?php
 namespace Icicle\Structures;
 
-use Countable;
 use SplQueue;
 
-class CallableQueue implements Countable
+class CallableQueue implements \Countable
 {
     /**
      * @var     SplQueue
