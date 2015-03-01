@@ -212,9 +212,8 @@ class Stream implements DuplexStreamInterface
         
         $result = new Promise(
             function ($resolve, $reject) use (&$promise, $stream) {
-                $bytes = 0;
-                
-                $handler = function ($data) use (&$handler, &$promise, &$bytes, $resolve, $reject, $stream) {
+                $handler = function ($data) use (&$handler, &$promise, $resolve, $reject, $stream) {
+                    static $bytes = 0;
                     if (!empty($data)) {
                         $bytes += strlen($data);
                         $promise = $stream->write($data);

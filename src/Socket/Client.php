@@ -6,22 +6,22 @@ use Exception;
 abstract class Client extends DuplexStream implements ClientInterface
 {
     /**
-     * @var     int
+     * @var int
      */
     private $remoteAddress = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $remotePort = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $localAddress = 0;
     
     /**
-     * @var     int
+     * @var int
      */
     private $localPort = 0;
     
@@ -62,7 +62,7 @@ abstract class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * Returns the remote IP as a string representation.
+     * Returns the local IP as a string representation.
      *
      * @return  string
      */

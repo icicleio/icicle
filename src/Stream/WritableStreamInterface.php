@@ -4,8 +4,8 @@ namespace Icicle\Stream;
 interface WritableStreamInterface extends StreamInterface
 {
     /**
-     * Queues data to be sent on the stream. The promise returned is fulfilled once the data has
-     * successfully been written to the stream.
+     * Queues data to be sent on the stream. The promise returned is fulfilled once the data has successfully been written
+     * to the stream.
      *
      * @param   string $data
      *
@@ -22,7 +22,7 @@ interface WritableStreamInterface extends StreamInterface
     public function write($data);
     
     /**
-     * Returns a promise that is fulfilled when the stream is ready to receive data.
+     * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
      *
      * @return  PromiseInterface
      *

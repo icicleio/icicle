@@ -2,7 +2,7 @@
 namespace Icicle\Socket;
 
 use Exception;
-use Icicle\Stream\Exception\ClosedException;
+use Icicle\Socket\Exception\ClosedException;
 use Icicle\Stream\ReadableStreamInterface;
 
 class ReadableStream extends Socket implements ReadableStreamInterface

@@ -8,7 +8,7 @@ interface ServerInterface extends SocketInterface
      *
      * @return  PromiseInterface
      *
-     * @resolve RemoteClient
+     * @resolve ClientInterface
      *
      * @reject  AcceptException If an error occurs when accepting the client.
      * @reject  UnavailableException If an accept request was already pending on the server.

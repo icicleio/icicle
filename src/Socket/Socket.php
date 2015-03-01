@@ -7,9 +7,11 @@ use Icicle\Stream\StreamInterface;
 
 abstract class Socket implements SocketInterface, StreamInterface
 {
-    const CHUNK_SIZE = 8192;
+    const CHUNK_SIZE = 8192; // 8kB
     
     /**
+     * Stream socket resource.
+     *
      * @var     resource
      */
     private $socket;
@@ -96,10 +98,10 @@ abstract class Socket implements SocketInterface, StreamInterface
         $name = @stream_socket_get_name($socket, (bool) $peer);
         
         if (false === $name) {
+            $message = 'Could not get socket name.';
             $error = error_get_last();
-            $message = 'Could not get socket name';
             if (null !== $error) {
-                $message .= "; Errno: {$error['type']}; {$error['message']}";
+                $message .= " Errno: {$error['type']}; {$error['message']}";
             }
             throw new FailureException($message);
         }

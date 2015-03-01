@@ -6,6 +6,7 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
+use Icicle\Socket\Exception\EofException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
@@ -29,6 +30,11 @@ trait ReadableStreamTrait
      * @var int
      */
     private $length = 0;
+    
+    /**
+     * @return  resource Socket resource.
+     */
+    abstract protected function getResource();
     
     /**
      * Determines if the stream is still open.
@@ -60,7 +66,7 @@ trait ReadableStreamTrait
             }
             
             if (@feof($resource)) { // Connection closed, so close stream.
-                $this->close(new ClosedException('Connection reset by peer or reached EOF.'));
+                $this->close(new EofException('Connection reset by peer or reached EOF.'));
                 return;
             }
             
@@ -69,10 +75,16 @@ trait ReadableStreamTrait
             } else {
                 $data = @fread($resource, $this->length);
                 
+                // @codeCoverageIgnoreStart
                 if (false === $data) { // Reading failed, so close stream.
-                    $this->close(new FailureException('Reading from the socket failed.'));
+                    $message = 'Failed to write to stream.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    $this->close(new FailureException($message));
                     return;
-                }
+                } // @codeCoverageIgnoreEnd
             }
             
             $this->deferred->resolve($data);
@@ -154,9 +166,9 @@ trait ReadableStreamTrait
         
         $result = new Promise(
             function ($resolve, $reject) use (&$promise, $stream, $timeout) {
-                $bytes = 0;
-                
-                $handler = function ($data) use (&$handler, &$promise, &$bytes, $resolve, $reject, $stream, $timeout) {
+                $handler = function ($data) use (&$handler, &$promise, $resolve, $reject, $stream, $timeout) {
+                    static $bytes = 0;
+                    
                     if (!empty($data)) {
                         $bytes += strlen($data);
                         $promise = $stream->write($data, $timeout);
@@ -164,9 +176,11 @@ trait ReadableStreamTrait
                             $resolve($bytes);
                         });
                     }
+                    
                     $promise = $promise->then(function () use ($timeout) {
                         return $this->read(null, $timeout);
                     });
+                    
                     $promise->done($handler, $reject);
                 };
                 

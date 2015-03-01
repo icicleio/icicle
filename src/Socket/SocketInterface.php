@@ -4,7 +4,7 @@ namespace Icicle\Socket;
 interface SocketInterface
 {
     /**
-     * Determines if the stream is still open.
+     * Determines if the socket is still open.
      *
      * @return bool
      *
@@ -13,7 +13,7 @@ interface SocketInterface
     public function isOpen();
     
     /**
-     * Closes the stream, making it unreadable or unwritable.
+     * Closes the socket, making it unreadable or unwritable.
      *
      * @api
      */

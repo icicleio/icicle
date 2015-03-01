@@ -52,6 +52,7 @@ class SocketTest extends TestCase
     /**
      * @depends testIsOpen
      */
+/*
     public function testIdAvailableAfterClose()
     {
         $id = $this->socket->getId();
@@ -61,6 +62,7 @@ class SocketTest extends TestCase
         $this->assertFalse($this->socket->isOpen());
         $this->assertEquals($id, $this->socket->getId());
     }
+*/
     
     public function testParseSocketName()
     {

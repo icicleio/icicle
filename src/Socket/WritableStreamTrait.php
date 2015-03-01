@@ -65,7 +65,12 @@ trait WritableStreamTrait
             $written = @fwrite($resource, $data, self::CHUNK_SIZE);
             
             if (false === $written || (0 === $written && !$data->isEmpty())) {
-                $exception = new FailureException('Failed to write to stream.');
+                $message = 'Failed to write to stream.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $exception = new FailureException($message);
                 $deferred->reject($exception);
                 $this->close($exception);
                 return;
@@ -114,11 +119,20 @@ trait WritableStreamTrait
         
         $data = new Buffer($data);
         
-        if ($this->writeQueue->isEmpty() && !$data->isEmpty()) {
+        if ($this->writeQueue->isEmpty()/*  && !$data->isEmpty() */) {
+            if ($data->isEmpty()) {
+                return Promise::resolve(0);
+            }
+            
             $written = @fwrite($this->getResource(), $data, self::CHUNK_SIZE);
             
             if (false === $written) {
-                $exception = new FailureException('Failed to write to stream.');
+                $message = 'Failed to write to stream.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $exception = new FailureException($message);
                 $this->close($exception);
                 return Promise::reject($exception);
             }
@@ -163,7 +177,18 @@ trait WritableStreamTrait
      */
     public function await($timeout = null)
     {
-        return $this->write(null, $timeout);
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+        }
+        
+        $deferred = new Deferred();
+        $this->writeQueue->push([new Buffer(), 0, $timeout, $deferred]);
+        
+        if (!$this->await->isPending()) {
+            $this->await->listen($timeout);
+        }
+        
+        return $deferred->getPromise();
     }
     
     /**

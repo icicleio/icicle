@@ -12,7 +12,7 @@ use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
 
-class Server extends Socket
+class Server extends Socket implements ServerInterface
 {
     const DEFAULT_BACKLOG = SOMAXCONN;
     
