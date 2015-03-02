@@ -76,27 +76,21 @@ trait ReadableStreamTrait
             }
             
             if (0 === $this->length) {
-                $this->deferred->resolve();
-                $this->deferred = null;
-                return;
-            }
-            
-            if (null !== $this->pattern) {
                 $data = null;
+            } elseif (null !== $this->pattern) {
                 $offset = -strlen($this->pattern);
+                $data = null;
                 
                 for ($length = 0;
-                    $length < $this->length &&
-                    false !== ($byte = fgetc($resource)) &&
-                    substr($data .= $byte, $offset) !== $this->pattern;
+                    $length < $this->length
+                        && false !== ($byte = fgetc($resource))
+                        && substr($data .= $byte, $offset) !== $this->pattern;
                     ++$length);
-                
-                $this->deferred->resolve($data);
-                $this->deferred = null;
-                return;
+            } else {
+                $data = fread($resource, $this->length);
             }
             
-            $this->deferred->resolve(fread($resource, $this->length));
+            $this->deferred->resolve($data);
             $this->deferred = null;
         });
     }
