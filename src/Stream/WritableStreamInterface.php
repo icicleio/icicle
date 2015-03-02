@@ -14,7 +14,6 @@ interface WritableStreamInterface extends StreamInterface
      * @resolve int Number of bytes written to the stream.
      *
      * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  FailureException If writing to the stream fails.
      * @reject  ClosedException If the stream has been closed.
      *
      * @api
@@ -29,7 +28,6 @@ interface WritableStreamInterface extends StreamInterface
      * @resolve int Always resolves with 0.
      *
      * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  FailureException If writing to the stream fails.
      * @reject  ClosedException If the stream has been closed.
      *
      * @api
@@ -46,7 +44,6 @@ interface WritableStreamInterface extends StreamInterface
      * @resolve int Number of bytes written to the stream.
      *
      * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  FailureException If writing to the stream fails.
      * @reject  ClosedException If the stream has been closed.
      *
      * @api

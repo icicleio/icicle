@@ -119,7 +119,7 @@ trait WritableStreamTrait
         
         $data = new Buffer($data);
         
-        if ($this->writeQueue->isEmpty()/*  && !$data->isEmpty() */) {
+        if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
                 return Promise::resolve(0);
             }

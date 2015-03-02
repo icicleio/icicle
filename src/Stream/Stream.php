@@ -43,6 +43,11 @@ class Stream implements DuplexStreamInterface
     private $length;
     
     /**
+     * @var string|null
+     */
+    private $pattern;
+    
+    /**
      * Initializes object structures.
      */
     public function __construct()
@@ -81,12 +86,29 @@ class Stream implements DuplexStreamInterface
      */
     public function read($length = null)
     {
+        return $this->readTo(null, $length);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function readTo($pattern, $length = null)
+    {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
         }
         
         if (!$this->isReadable()) {
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        }
+        
+        if (null === $pattern) {
+            $this->pattern = null;
+        } else {
+            $this->pattern = (string) $pattern;
+            if (!strlen($this->pattern)) {
+                $this->pattern = null;
+            }
         }
         
         $this->length = $length;
@@ -99,6 +121,14 @@ class Stream implements DuplexStreamInterface
         }
         
         if (!$this->buffer->isEmpty()) {
+            if (null !== $this->pattern && ($position = $this->buffer->search($this->pattern))) {
+                if (null === $this->length || $position < $this->length) {
+                    return Promise::resolve($this->buffer->remove($position + strlen($this->pattern)));
+                }
+                
+                return Promise::resolve($this->buffer->remove($this->length));
+            }
+            
             if (null === $this->length) {
                 return Promise::resolve($this->buffer->drain());
             }
@@ -156,7 +186,13 @@ class Stream implements DuplexStreamInterface
             $this->buffer->push($data);
             
             if (null !== $this->deferred) {
-                if (null === $this->length) {
+                if (null !== $this->pattern && ($position = $this->buffer->search($this->pattern))) {
+                    if (null === $this->length || $position < $this->length) {
+                        $this->deferred->resolve($this->buffer->remove($position + strlen($this->pattern)));
+                    } else {
+                        $this->deferred->resolve($this->buffer->remove($this->length));
+                    }
+                } elseif (null === $this->length) {
                     $this->deferred->resolve($this->buffer->drain());
                 } else {
                     $this->deferred->resolve($this->buffer->remove($this->length));

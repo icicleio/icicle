@@ -32,6 +32,11 @@ trait ReadableStreamTrait
     private $length = 0;
     
     /**
+     * @var string|null
+     */
+    private $pattern;
+    
+    /**
      * @return  resource Socket resource.
      */
     abstract protected function getResource();
@@ -65,29 +70,33 @@ trait ReadableStreamTrait
                 return;
             }
             
-            if (@feof($resource)) { // Connection closed, so close stream.
+            if (feof($resource)) { // Connection closed, so close stream.
                 $this->close(new EofException('Connection reset by peer or reached EOF.'));
                 return;
             }
             
             if (0 === $this->length) {
-                $data = null;
-            } else {
-                $data = @fread($resource, $this->length);
-                
-                // @codeCoverageIgnoreStart
-                if (false === $data) { // Reading failed, so close stream.
-                    $message = 'Failed to write to stream.';
-                    $error = error_get_last();
-                    if (null !== $error) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
-                    }
-                    $this->close(new FailureException($message));
-                    return;
-                } // @codeCoverageIgnoreEnd
+                $this->deferred->resolve();
+                $this->deferred = null;
+                return;
             }
             
-            $this->deferred->resolve($data);
+            if (null !== $this->pattern) {
+                $data = null;
+                $offset = -strlen($this->pattern);
+                
+                for ($length = 0;
+                    $length < $this->length &&
+                    false !== ($byte = fgetc($resource)) &&
+                    substr($data .= $byte, $offset) !== $this->pattern;
+                    ++$length);
+                
+                $this->deferred->resolve($data);
+                $this->deferred = null;
+                return;
+            }
+            
+            $this->deferred->resolve(fread($resource, $this->length));
             $this->deferred = null;
         });
     }
@@ -112,12 +121,29 @@ trait ReadableStreamTrait
      */
     public function read($length = null, $timeout = null)
     {
+        return $this->readTo(null, $length, $timeout);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function readTo($pattern, $length = null, $timeout = null)
+    {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
         }
         
         if (!$this->isReadable()) {
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        }
+        
+        if (null === $pattern) {
+            $this->pattern = null;
+        } else {
+            $this->pattern = (string) $pattern;
+            if (!strlen($this->pattern)) {
+                $this->pattern = null;
+            }
         }
         
         if (null === $length) {

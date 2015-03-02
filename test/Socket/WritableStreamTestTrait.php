@@ -30,7 +30,7 @@ trait WritableStreamTestTrait
         
         $data = fread($readable->getResource(), self::CHUNK_SIZE);
         
-        $this->assertSame($data, $string);
+        $this->assertSame($string, $data);
         
         Loop::run();
     }
@@ -124,6 +124,24 @@ trait WritableStreamTestTrait
     /**
      * @depends testWrite
      */
+    public function testWriteEmptyString()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $writable->write('');
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(0));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testWrite
+     */
     public function testEnd()
     {
         list($readable, $writable) = $this->createStreams();
@@ -141,6 +159,12 @@ trait WritableStreamTestTrait
         $this->assertTrue($writable->isOpen());
         
         Loop::run();
+        
+        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        
+        $this->assertSame(self::WRITE_STRING . self::WRITE_STRING, $data);
+        
+        $this->assertFalse($writable->isOpen());
     }
     
     /**
@@ -167,6 +191,72 @@ trait WritableStreamTestTrait
                  ->with($this->identicalTo(strlen($buffer)));
         
         $promise->done($callback, $this->createCallback(0));
+        
+        $this->assertTrue($promise->isPending());
+        
+        stream_set_blocking($readable->getResource(), 0);
+        
+        while ($promise->isPending()) {
+            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            Loop::tick();
+        }
+    }
+    
+    /**
+     * @depends testEnd
+     * @depends testWriteAfterPendingWrite
+     */
+    public function testEndAfterPendingWrite()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        do { // Write until a pending promise is returned.
+            $promise = $writable->write(self::WRITE_STRING);
+        } while (!$promise->isPending());
+        
+        $promise = $writable->end(self::WRITE_STRING);
+        
+        $this->assertFalse($writable->isWritable());
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(strlen(self::WRITE_STRING)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        $this->assertTrue($promise->isPending());
+        
+        stream_set_blocking($readable->getResource(), 0);
+        
+        while ($promise->isPending()) {
+            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            Loop::tick();
+        }
+        
+        $this->assertFalse($writable->isOpen());
+    }
+    
+    /**
+     * @depends testWriteEmptyString
+     * @depends testWriteAfterPendingWrite
+     */
+    public function testWriteEmptyStringAfterPendingWrite()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        do { // Write until a pending promise is returned.
+            $promise = $writable->write(self::WRITE_STRING);
+        } while (!$promise->isPending());
+        
+        $promise = $writable->write('');
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(0));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        $this->assertTrue($promise->isPending());
         
         stream_set_blocking($readable->getResource(), 0);
         

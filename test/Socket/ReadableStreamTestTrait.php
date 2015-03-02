@@ -20,9 +20,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) {
-                     return self::WRITE_STRING === (string) $param;
-                 }));
+                 ->with($this->identicalTo(self::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -84,9 +82,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) {
-                     return self::WRITE_STRING === (string) $param;
-                 }));
+                 ->with($this->identicalTo(self::WRITE_STRING));
         
         $promise1->done($callback, $this->createCallback(0));
         
@@ -112,9 +108,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) use ($length) {
-                     return substr(self::WRITE_STRING, 0, $length) === (string) $param;
-                 }));
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $length)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -124,9 +118,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) use ($length) {
-                     return substr(self::WRITE_STRING, $length, $length) === (string) $param;
-                 }));
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, $length, $length)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -177,41 +169,17 @@ trait ReadableStreamTestTrait
         $promise = $readable->read();
         
         $this->assertTrue($promise->isPending());
-    }
-    
-    /**
-     * @medium
-     * @depends testRead
-     */
-    public function testDrainThenRead()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $promise = $readable->read();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) {
-                     return self::WRITE_STRING === (string) $param;
-                 }));
+                 ->with($this->identicalTo(self::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
-        
-        $promise = $readable->read(null, self::TIMEOUT);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
     }
     
     /**
-     * @medium
      * @depends testRead
      */
     public function testReadOnEmptyStream()
@@ -229,6 +197,425 @@ trait ReadableStreamTestTrait
                  ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
         
         $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadOnEmptyStream
+     */
+    public function testDrainThenRead()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $promise = $readable->read(null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $string = "This is a string to write.\n";
+        
+        $written = fwrite($writable->getResource(), $string);
+        
+        $this->assertSame($written, strlen($string));
+        
+        $promise = $readable->read(null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($string));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testRead
+     */
+    public function testReadTo()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $pattern = substr(self::WRITE_STRING, $offset, 1);
+        
+        $promise = $readable->readTo($pattern);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $offset + 1)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToMultibytePattern()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $length = 3;
+        $pattern = substr(self::WRITE_STRING, $offset, $length);
+        
+        $promise = $readable->readTo($pattern);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $offset + $length)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadToMultibytePattern
+     */
+    public function testReadToNoMatchInStream()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $pattern = "!@#!";
+        
+        $promise = $readable->readTo($pattern);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $promise = $readable->readTo($pattern);
+        
+        Loop::tick();
+        
+        $this->assertTrue($promise->isPending());
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToEmptyPattern()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->readTo('');
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToAfterClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $readable->close();
+        
+        $this->assertFalse($readable->isReadable());
+        
+        $promise = $readable->readTo("\0");
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToThenClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->readTo("\0");
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        $readable->close();
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testSimultaneousReadTo()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise1 = $readable->readTo("\0");
+        
+        $promise2 = $readable->readTo("\0");
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise1->done($callback, $this->createCallback(0));
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceof('Icicle\Stream\Exception\BusyException'));
+        
+        $promise2->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToWithLength()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 10;
+        $length = 5;
+        $pattern = substr(self::WRITE_STRING, $offset, 1);
+        
+        $promise = $readable->readTo($pattern, $length);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $length)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $promise = $readable->readTo($pattern);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, $length, $offset - $length + 1)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToWithInvalidLength()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $pattern = substr(self::WRITE_STRING, $offset, 1);
+        
+        $promise = $readable->readTo($pattern, -1);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->callback(function ($param) {
+                     return empty($param);
+                 }));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testCancelReadTo()
+    {
+        $exception = new Exception();
+        
+        list($readable, $writable) = $this->createStreams();
+        
+        $pattern = substr(self::WRITE_STRING, 0, 1);
+        
+        $promise = $readable->readTo($pattern);
+        
+        $promise->cancel($exception);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $promise = $readable->readTo($pattern);
+        
+        $this->assertTrue($promise->isPending());
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($pattern));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToOnEmptyStream()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->read(); // Drain stream.
+        
+        Loop::tick();
+        
+        $promise = $readable->readTo("\n", null, self::TIMEOUT); // Nothing to read on this stream.
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadToOnEmptyStream
+     */
+    public function testDrainThenReadTo()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $pattern = "\n";
+        
+        $promise = $readable->read();
+        
+        Loop::run();
+        
+        $promise = $readable->readTo($pattern, null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $string1 = "This is a string to write.\n";
+        $string2 = "This part should not be read.\n";
+        
+        $written = fwrite($writable->getResource(), $string1 . $string2);
+        
+        $this->assertSame($written, strlen($string1) + strlen($string2));
+        
+        $promise = $readable->readTo($pattern, null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($string1));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadAfterReadTo()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $pattern = substr(self::WRITE_STRING, $offset, 1);
+        
+        $promise = $readable->readTo($pattern);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $offset + 1)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, $offset + 1)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadAfterCancelledReadTo()
+    {
+        $exception = new Exception();
+        
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $pattern = substr(self::WRITE_STRING, $offset, 1);
+        
+        $promise = $readable->readTo($pattern);
+        
+        $promise->cancel($exception);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
     }
@@ -336,7 +723,7 @@ trait ReadableStreamTestTrait
              ->will($this->returnCallback(function ($data) {
                  static $count = 0;
                  ++$count;
-                 $this->assertSame($data, self::WRITE_STRING);
+                 $this->assertSame(self::WRITE_STRING, $data);
                  if (3 > $count) {
                      return Promise::resolve(strlen($data));
                  } else {
@@ -359,7 +746,7 @@ trait ReadableStreamTestTrait
         Loop::tick();
         
         $this->assertTrue($promise->isFulfilled());
-        $this->assertSame($promise->getResult(), strlen(self::WRITE_STRING) * 3);
+        $this->assertSame(strlen(self::WRITE_STRING) * 3, $promise->getResult());
     }
     
     public function testPipeOnUnwritableStream()
@@ -397,7 +784,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame($data, self::WRITE_STRING);
+                 $this->assertSame(self::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
@@ -432,7 +819,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame($data, self::WRITE_STRING);
+                 $this->assertSame(self::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
@@ -467,7 +854,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame($data, self::WRITE_STRING);
+                 $this->assertSame(self::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
@@ -508,7 +895,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame($data, self::WRITE_STRING);
+                 $this->assertSame(self::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
