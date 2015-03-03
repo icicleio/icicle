@@ -45,7 +45,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function isEmpty()
     {
-        return empty($this->data);
+        return 0 === strlen($this->data);
     }
     
     /**

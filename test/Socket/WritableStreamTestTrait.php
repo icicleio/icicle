@@ -128,6 +128,8 @@ trait WritableStreamTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
+        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        
         $promise = $writable->write('');
         
         $callback = $this->createCallback(1);
@@ -137,6 +139,20 @@ trait WritableStreamTestTrait
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
+        
+        $promise = $writable->write('0');
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(1));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $data = fread($readable->getResource(), 1);
+        
+        $this->assertSame('0', $data);
     }
     
     /**

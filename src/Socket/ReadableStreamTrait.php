@@ -8,6 +8,7 @@ use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\EofException;
 use Icicle\Socket\Exception\FailureException;
+use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Stream\Exception\UnreadableException;
@@ -34,7 +35,7 @@ trait ReadableStreamTrait
     /**
      * @var string|null
      */
-    private $pattern;
+    private $char;
     
     /**
      * @return  resource Socket resource.
@@ -73,17 +74,16 @@ trait ReadableStreamTrait
             $data = null;
             
             if (0 !== $this->length) {
-                if (null !== $this->pattern) {
-                    $length = strlen($this->pattern);
+                if (null !== $this->char) {
+                    $length = strlen($this->char);
                     $offset = -$length;
                     
-                    $i = 0;
-                    while ($i < $this->length) {
+                    for ($i = 0; $i < $this->length; ++$i) {
                         if (false === ($byte = fgetc($resource))) {
                             break;
                         }
                         $data .= $byte;
-                        if (++$i >= $length && 0 === substr_compare($data, $this->pattern, $offset, $length)) {
+                        if ($byte === $this->char) {
                             break;
                         }
                     }
@@ -128,7 +128,7 @@ trait ReadableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function readTo($pattern, $length = null, $timeout = null)
+    public function readTo($char, $length = null, $timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -138,12 +138,13 @@ trait ReadableStreamTrait
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
         }
         
-        if (null === $pattern) {
-            $this->pattern = null;
+        if (null === $char) {
+            $this->char = null;
         } else {
-            $this->pattern = (string) $pattern;
-            if (!strlen($this->pattern)) {
-                $this->pattern = null;
+            $this->char = (string) $char;
+            if (1 !== strlen($this->char)) {
+                $this->char = null;
+                return Promise::reject(new InvalidArgumentException('Parameter $char may only be a single byte or null.'));
             }
         }
         
@@ -185,33 +186,67 @@ trait ReadableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $timeout = null)
+    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $timeout = null)
+    {
+        return $this->pipeTo($stream, null, $endOnClose, $length, $timeout);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function pipeTo(WritableStreamInterface $stream, $char, $endOnClose = true, $length = null, $timeout = null)
     {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
         }
         
+        if (null !== $length) {
+            $length = (int) $length;
+            if (0 > $length) {
+                return Promise::resolve(0);
+            }
+        }
+        
         $result = new Promise(
-            function ($resolve, $reject) use (&$promise, $stream, $timeout) {
-                $handler = function ($data) use (&$handler, &$promise, $resolve, $reject, $stream, $timeout) {
+            function ($resolve, $reject) use (&$promise, $stream, $char, $length, $timeout) {
+                $handler = function ($data) use (
+                    &$handler,
+                    &$promise,
+                    &$length,
+                    $stream,
+                    $char,
+                    $timeout,
+                    $resolve,
+                    $reject
+                ) {
                     static $bytes = 0;
                     
-                    if (!empty($data)) {
-                        $bytes += strlen($data);
-                        $promise = $stream->write($data, $timeout);
-                        $promise->done(null, function () use (&$bytes, $resolve) {
-                            $resolve($bytes);
-                        });
+                    $count = strlen($data);
+                    $bytes += $count;
+                    
+                    $promise = $stream->write($data, $timeout);
+                    
+                    if (null !== $char && $data[$count - 1] === $char) {
+                        $resolve($bytes);
+                        return;
                     }
                     
-                    $promise = $promise->then(function () use ($timeout) {
-                        return $this->read(null, $timeout);
+                    if (null !== $length && 0 >= $length -= $count) {
+                        $resolve($bytes);
+                        return;
+                    }
+                    
+                    $promise->done(null, function () use ($bytes, $resolve) {
+                        $resolve($bytes);
                     });
                     
+                    $promise = $promise->then(function () use ($char, $length, $timeout) {
+                        return $this->readTo($char, $length, $timeout);
+                    });
                     $promise->done($handler, $reject);
                 };
                 
-                $promise = $this->read(null, $timeout);
+                $promise = $this->readTo($char, $length, $timeout);
                 $promise->done($handler, $reject);
             },
             function (Exception $exception) use (&$promise) {
@@ -221,7 +256,9 @@ trait ReadableStreamTrait
         
         if ($endOnClose) {
             $result->done(null, function () use ($stream) {
-                $stream->end();
+                if (!$this->isOpen()) {
+                    $stream->end();
+                }
             });
         }
         
