@@ -14,7 +14,9 @@ trait WritableStreamTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        $readable->read();
+        
+        Loop::run(); // Empty the readable buffer.
         
         $string = "{'New String\0To Write'}\r\n";
         
@@ -28,9 +30,13 @@ trait WritableStreamTestTrait
         
         Loop::run();
         
-        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        $promise = $readable->read();
         
-        $this->assertSame($string, $data);
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($string));
+        
+        $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
     }
@@ -128,7 +134,9 @@ trait WritableStreamTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        $readable->read();
+        
+        Loop::run(); // Empty the readable buffer.
         
         $promise = $writable->write('');
         
@@ -148,11 +156,15 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
+        $promise = $readable->read(1);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo('0'));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
         Loop::run();
-        
-        $data = fread($readable->getResource(), 1);
-        
-        $this->assertSame('0', $data);
     }
     
     /**
@@ -176,9 +188,15 @@ trait WritableStreamTestTrait
         
         Loop::run();
         
-        $data = fread($readable->getResource(), self::CHUNK_SIZE);
+        $promise = $readable->read();
         
-        $this->assertSame(self::WRITE_STRING . self::WRITE_STRING, $data);
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING . self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
         
         $this->assertFalse($writable->isOpen());
     }
@@ -210,10 +228,8 @@ trait WritableStreamTestTrait
         
         $this->assertTrue($promise->isPending());
         
-        stream_set_blocking($readable->getResource(), 0);
-        
         while ($promise->isPending()) {
-            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            $readable->read(); // Pull more data out of the buffer.
             Loop::tick();
         }
     }
@@ -242,10 +258,8 @@ trait WritableStreamTestTrait
         
         $this->assertTrue($promise->isPending());
         
-        stream_set_blocking($readable->getResource(), 0);
-        
         while ($promise->isPending()) {
-            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            $readable->read(); // Pull more data out of the buffer.
             Loop::tick();
         }
         
@@ -274,10 +288,8 @@ trait WritableStreamTestTrait
         
         $this->assertTrue($promise->isPending());
         
-        stream_set_blocking($readable->getResource(), 0);
-        
         while ($promise->isPending()) {
-            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            $readable->read(); // Pull more data out of the buffer.
             Loop::tick();
         }
     }
@@ -296,7 +308,7 @@ trait WritableStreamTestTrait
         // Extra write to ensure queue is not empty when write callback is called.
         $promise = $writable->write(self::WRITE_STRING);
         
-        fclose($readable->getResource()); // Close other end of pipe.
+        $readable->close(); // Close other end of pipe.
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -325,10 +337,8 @@ trait WritableStreamTestTrait
         
         $promise->done($this->createCallback(1), $this->createCallback(0));
         
-        stream_set_blocking($readable->getResource(), 0);
-        
         while ($promise->isPending()) {
-            $data = fread($readable->getResource(), self::CHUNK_SIZE); // Pull more data out of the buffer.
+            $readable->read(); // Pull more data out of the buffer.
             Loop::tick();
         }
     }
@@ -369,27 +379,6 @@ trait WritableStreamTestTrait
         $promise->done($this->createCallback(0), $callback);
         
         $writable->close();
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testWrite
-     */
-    public function testWriteFailure()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        // Use fclose() manually since $writable->close() will prevent behavior to be tested.
-        fclose($writable->getResource());
-        
-        $promise = $writable->write(self::WRITE_STRING);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
-        
-        $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
     }

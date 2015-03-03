@@ -11,9 +11,9 @@ use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Structures\Buffer;
 
 /**
- * Serves as buffer that implements the stream interface, allowing consumers to be notified when data is available in the
- * buffer. This class by itself is not particularly useful, but it can be extended to add functionality upon reading or 
- * writing, as well as acting as an example of how stream classes can be implemented.
+ * Serves as buffer that implements the stream interface, allowing consumers to be notified when data is available in
+ * the buffer. This class by itself is not particularly useful, but it can be extended to add functionality upon reading 
+ * or writing, as well as acting as an example of how stream classes can be implemented.
  */
 class Stream implements DuplexStreamInterface
 {

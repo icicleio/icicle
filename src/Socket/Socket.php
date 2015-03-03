@@ -7,8 +7,6 @@ use Icicle\Stream\StreamInterface;
 
 abstract class Socket implements SocketInterface, StreamInterface
 {
-    const CHUNK_SIZE = 8192; // 8kB
-    
     /**
      * Stream socket resource.
      *

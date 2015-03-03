@@ -230,9 +230,13 @@ trait ReadableStreamTestTrait
         
         $string = "This is a string to write.\n";
         
-        $written = fwrite($writable->getResource(), $string);
+        $promise = $writable->write($string);
         
-        $this->assertSame($written, strlen($string));
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(strlen($string)));
+        
+        $promise->done($callback, $this->createCallback(0));
         
         $promise = $readable->read(null, self::TIMEOUT);
         
@@ -241,36 +245,6 @@ trait ReadableStreamTestTrait
                  ->with($this->identicalTo($string));
         
         $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testRead
-     */
-    public function testReadAfterEof()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        fclose($writable->getResource()); // Close other end of pipe.
-        
-        $promise = $readable->read();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
-        
-        $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run(); // Drain readable buffer.
-        
-        $promise = $readable->read();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
-        
-        $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
     }
@@ -297,23 +271,45 @@ trait ReadableStreamTestTrait
     }
     
     /**
+     * @depends testRead
+     */
+    public function testReadToIntegerByte()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 5;
+        $byte = unpack('C', substr(self::WRITE_STRING, $offset, 1));
+        $byte = $byte[1];
+        
+        $promise = $readable->readTo($byte);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $offset + 1)));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
      * @depends testReadTo
      */
-    public function testReadToMultibytePattern()
+    public function testReadToMultibyteString()
     {
         list($readable, $writable) = $this->createStreams();
         
         $offset = 5;
         $length = 3;
-        $char = substr(self::WRITE_STRING, $offset, $length);
+        $string = substr(self::WRITE_STRING, $offset, $length);
         
-        $promise = $readable->readTo($char);
+        $promise = $readable->readTo($string);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\InvalidArgumentException'));
+                 ->with($this->identicalTo(substr(self::WRITE_STRING, 0, $offset + 1)));
         
-        $promise->done($this->createCallback(0), $callback);
+        $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
     }
@@ -347,7 +343,7 @@ trait ReadableStreamTestTrait
     /**
      * @depends testReadTo
      */
-    public function testReadToEmptyPattern()
+    public function testReadToEmptyString()
     {
         list($readable, $writable) = $this->createStreams();
         
@@ -355,9 +351,9 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\InvalidArgumentException'));
+                 ->with($this->identicalTo(self::WRITE_STRING));
         
-        $promise->done($this->createCallback(0), $callback);
+        $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
     }
@@ -569,9 +565,7 @@ trait ReadableStreamTestTrait
         $string1 = "This is a string to write.\n";
         $string2 = "This part should not be read.\n";
         
-        $written = fwrite($writable->getResource(), $string1 . $string2);
-        
-        $this->assertSame($written, strlen($string1) + strlen($string2));
+        $writable->write($string1 . $string2);
         
         $promise = $readable->readTo($char, null, self::TIMEOUT);
         
@@ -646,36 +640,6 @@ trait ReadableStreamTestTrait
                  ->with($this->identicalTo(self::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testReadTo
-     */
-    public function testReadToAfterEof()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        fclose($writable->getResource()); // Close other end of pipe.
-        
-        $promise = $readable->readTo("\0");
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
-        
-        $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run(); // Drain readable buffer.
-        
-        $promise = $readable->readTo("\0");
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
-        
-        $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
     }
@@ -772,12 +736,12 @@ trait ReadableStreamTestTrait
         Loop::tick();
         
         $this->assertTrue($promise->isPending());
-        fwrite($writable->getResource(), self::WRITE_STRING);
+        $writable->write(self::WRITE_STRING);
         
         Loop::tick();
         
         $this->assertTrue($promise->isPending());
-        fwrite($writable->getResource(), self::WRITE_STRING);
+        $writable->write(self::WRITE_STRING);
         
         Loop::tick();
         
@@ -979,7 +943,7 @@ trait ReadableStreamTestTrait
         
         $this->assertTrue($promise->isPending());
         
-        fwrite($writable->getResource(), self::WRITE_STRING);
+        $writable->write(self::WRITE_STRING);
         
         Loop::tick();
         
@@ -1118,5 +1082,327 @@ trait ReadableStreamTestTrait
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToIntegerByte()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $offset = 10;
+        $byte = unpack('C', substr(self::WRITE_STRING, $offset, 1));
+        $byte = $byte[1];
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) use ($offset) {
+                 $this->assertSame(substr(self::WRITE_STRING, 0, $offset + 1), $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $promise = $readable->pipeTo($mock, $byte);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($offset + 1));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToOnUnwritableStream()
+    {
+        list($readable) = $this->createStreams();
+        
+        $offset = 5;
+        $char = substr(self::WRITE_STRING, $offset, 1);
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(false));
+        
+        $promise = $readable->pipeTo($mock, $char);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToMultibyteString()
+    {
+        list($readable) = $this->createStreams();
+        
+        $offset = 5;
+        $length = 3;
+        $string = substr(self::WRITE_STRING, $offset, $length);
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $promise = $readable->pipeTo($mock, $string);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($offset + 1));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToEndOnClose()
+    {
+        list($readable) = $this->createStreams();
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) {
+                 $this->assertSame(self::WRITE_STRING, $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->once())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, '!', true);
+        
+        $promise->done($this->createCallback(0), $this->createCallback(1));
+        
+        Loop::tick();
+        
+        $this->assertTrue($promise->isPending());
+        
+        $readable->close();
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToDoNotEndOnClose()
+    {
+        list($readable) = $this->createStreams();
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) {
+                 $this->assertSame(self::WRITE_STRING, $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, '!', false);
+        
+        $promise->done($this->createCallback(0), $this->createCallback(1));
+        
+        Loop::tick();
+        
+        $this->assertTrue($promise->isPending());
+        
+        $readable->close();
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToWithLength()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $length = 8;
+        $offset = 10;
+        $char = substr(self::WRITE_STRING, $offset, 1);
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) use ($length) {
+                 $this->assertSame(substr(self::WRITE_STRING, 0, $length), $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, $char, false, $length);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($length));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::tick();
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) use ($offset, $length) {
+                 $this->assertSame(substr(self::WRITE_STRING, $length, $offset - $length + 1), $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, $char, false, strlen(self::WRITE_STRING));
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($offset - $length + 1));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::tick();
+        
+        $this->assertFalse($promise->isPending());
+    }
+    
+    /**
+     * @depends testPipeToWithLength
+     */
+    public function testPipeToWithInvalidLength()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->never())
+             ->method('write');
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, '!', false, -1);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(0));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::tick();
+    }
+    
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToTimeout()
+    {
+        list($readable) = $this->createStreams();
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) {
+                 $this->assertSame(self::WRITE_STRING, $data);
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, '!', false, null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $this->assertTrue($readable->isOpen());
+    }
+    
+    /**
+     * @depends testPipeToWithLength
+     * @depends testPipeToTimeout
+     */
+    public function testPipeToWithLengthTimeout()
+    {
+        list($readable) = $this->createStreams();
+        
+        $length = 8;
+        
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+        
+        $mock->method('isWritable')
+             ->will($this->returnValue(true));
+        
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) use ($length) {
+                 return Promise::resolve(strlen($data));
+             }));
+        
+        $mock->expects($this->never())
+             ->method('end');
+        
+        $promise = $readable->pipeTo($mock, '!', false, strlen(self::WRITE_STRING) + 1, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $this->assertTrue($readable->isOpen());
     }
 }

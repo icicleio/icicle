@@ -8,9 +8,9 @@ use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\EofException;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\InvalidArgumentException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\WritableStreamInterface;
@@ -35,7 +35,7 @@ trait ReadableStreamTrait
     /**
      * @var string|null
      */
-    private $char;
+    private $byte;
     
     /**
      * @return  resource Socket resource.
@@ -74,8 +74,8 @@ trait ReadableStreamTrait
             $data = null;
             
             if (0 !== $this->length) {
-                if (null !== $this->char) {
-                    $length = strlen($this->char);
+                if (null !== $this->byte) {
+                    $length = strlen($this->byte);
                     $offset = -$length;
                     
                     for ($i = 0; $i < $this->length; ++$i) {
@@ -83,7 +83,7 @@ trait ReadableStreamTrait
                             break;
                         }
                         $data .= $byte;
-                        if ($byte === $this->char) {
+                        if ($byte === $this->byte) {
                             break;
                         }
                     }
@@ -128,7 +128,7 @@ trait ReadableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function readTo($char, $length = null, $timeout = null)
+    public function readTo($byte, $length = null, $timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -138,14 +138,11 @@ trait ReadableStreamTrait
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
         }
         
-        if (null === $char) {
-            $this->char = null;
+        if (null === $byte) {
+            $this->byte = null;
         } else {
-            $this->char = (string) $char;
-            if (1 !== strlen($this->char)) {
-                $this->char = null;
-                return Promise::reject(new InvalidArgumentException('Parameter $char may only be a single byte or null.'));
-            }
+            $this->byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
+            $this->byte = strlen($this->byte) ? $this->byte[0] : null;
         }
         
         if (null === $length) {
@@ -194,7 +191,7 @@ trait ReadableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function pipeTo(WritableStreamInterface $stream, $char, $endOnClose = true, $length = null, $timeout = null)
+    public function pipeTo(WritableStreamInterface $stream, $byte, $endOnClose = true, $length = null, $timeout = null)
     {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
@@ -207,14 +204,19 @@ trait ReadableStreamTrait
             }
         }
         
+        if ($byte !== null) {
+            $byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
+            $byte = strlen($byte) ? $byte[0] : null;
+        }
+        
         $result = new Promise(
-            function ($resolve, $reject) use (&$promise, $stream, $char, $length, $timeout) {
+            function ($resolve, $reject) use (&$promise, $stream, $byte, $length, $timeout) {
                 $handler = function ($data) use (
                     &$handler,
                     &$promise,
                     &$length,
                     $stream,
-                    $char,
+                    $byte,
                     $timeout,
                     $resolve,
                     $reject
@@ -226,7 +228,7 @@ trait ReadableStreamTrait
                     
                     $promise = $stream->write($data, $timeout);
                     
-                    if (null !== $char && $data[$count - 1] === $char) {
+                    if (null !== $byte && $data[$count - 1] === $byte) {
                         $resolve($bytes);
                         return;
                     }
@@ -236,17 +238,20 @@ trait ReadableStreamTrait
                         return;
                     }
                     
-                    $promise->done(null, function () use ($bytes, $resolve) {
-                        $resolve($bytes);
-                    });
+                    $promise = $promise->then(
+                        function () use ($byte, $length, $timeout) {
+                            return $this->readTo($byte, $length, $timeout);
+                        },
+                        function (Exception $exception) use ($bytes, $resolve) {
+                            $resolve($bytes);
+                            throw $exception;
+                        }
+                    );
                     
-                    $promise = $promise->then(function () use ($char, $length, $timeout) {
-                        return $this->readTo($char, $length, $timeout);
-                    });
                     $promise->done($handler, $reject);
                 };
                 
-                $promise = $this->readTo($char, $length, $timeout);
+                $promise = $this->readTo($byte, $length, $timeout);
                 $promise->done($handler, $reject);
             },
             function (Exception $exception) use (&$promise) {
