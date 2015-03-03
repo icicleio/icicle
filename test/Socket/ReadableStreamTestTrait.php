@@ -248,6 +248,36 @@ trait ReadableStreamTestTrait
     /**
      * @depends testRead
      */
+    public function testReadAfterEof()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        fclose($writable->getResource()); // Close other end of pipe.
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run(); // Drain readable buffer.
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testRead
+     */
     public function testReadTo()
     {
         list($readable, $writable) = $this->createStreams();
@@ -621,6 +651,36 @@ trait ReadableStreamTestTrait
     }
     
     /**
+     * @depends testReadTo
+     */
+    public function testReadToAfterEof()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        fclose($writable->getResource()); // Close other end of pipe.
+        
+        $promise = $readable->readTo("\0");
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run(); // Drain readable buffer.
+        
+        $promise = $readable->readTo("\0");
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
      * @depends testRead
      */
     public function testPoll()
@@ -678,30 +738,6 @@ trait ReadableStreamTestTrait
         $promise->done($this->createCallback(0), $callback);
         
         $readable->close();
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testRead
-     */
-    public function testReadAfterEof()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $promise = $readable->read();
-        
-        Loop::run(); // Drain readable buffer.
-        
-        $promise = $readable->read();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        fclose($writable->getResource()); // Close other end of pipe.
         
         Loop::run();
     }

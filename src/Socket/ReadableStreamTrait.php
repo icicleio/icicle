@@ -70,24 +70,31 @@ trait ReadableStreamTrait
                 return;
             }
             
-            if (feof($resource)) { // Connection closed, so close stream.
-                $this->close(new EofException('Connection reset by peer or reached EOF.'));
-                return;
+            $data = null;
+            
+            if (0 !== $this->length) {
+                if (null !== $this->pattern) {
+                    $length = strlen($this->pattern);
+                    $offset = -$length;
+                    
+                    $i = 0;
+                    while ($i < $this->length) {
+                        if (false === ($byte = fgetc($resource))) {
+                            break;
+                        }
+                        $data .= $byte;
+                        if (++$i >= $length && 0 === substr_compare($data, $this->pattern, $offset, $length)) {
+                            break;
+                        }
+                    }
+                } elseif (!feof($resource)) {
+                    $data = fread($resource, $this->length);
+                }
             }
             
-            if (0 === $this->length) {
-                $data = null;
-            } elseif (null !== $this->pattern) {
-                $offset = -strlen($this->pattern);
-                $data = null;
-                
-                for ($length = 0;
-                    $length < $this->length
-                        && false !== ($byte = fgetc($resource))
-                        && substr($data .= $byte, $offset) !== $this->pattern;
-                    ++$length);
-            } else {
-                $data = fread($resource, $this->length);
+            if (null === $data && feof($resource)) { // Close only if no data was read and at EOF.
+                $this->close(new EofException('Connection reset by peer or reached EOF.'));
+                return;
             }
             
             $this->deferred->resolve($data);
@@ -164,7 +171,7 @@ trait ReadableStreamTrait
      */
     public function poll($timeout = null)
     {
-        return $this->read(0, $timeout);
+        return $this->readTo(null, 0, $timeout);
     }
     
     /**
