@@ -2,7 +2,7 @@
 namespace Icicle\Socket;
 
 use Exception;
-use Icicle\Socket\Exception\ClosedException;
+use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\WritableStreamInterface;
 
 class WritableStream extends Socket implements WritableStreamInterface

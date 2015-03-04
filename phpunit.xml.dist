@@ -29,6 +29,9 @@
         <testsuite name="Icicle Coroutine">
             <directory phpVersion="5.5.0" phpVersionOperator=">=">test/Coroutine</directory>
         </testsuite>
+        <testsuite name="Icicle Stream">
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Stream</directory>
+        </testsuite>
         <testsuite name="Icicle Socket">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Socket</directory>
         </testsuite>

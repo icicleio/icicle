@@ -4,15 +4,16 @@ namespace Icicle\Tests\Socket;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
 use Icicle\Socket\WritableStream;
+use Icicle\Tests\Stream\WritableBufferedStreamTestTrait;
+use Icicle\Tests\Stream\WritableStreamTestTrait;
 
 class WritableStreamTest extends StreamTest
 {
-    use WritableStreamTestTrait;
+    use WritableStreamTestTrait, WritableBufferedStreamTestTrait, WritableSocketTestTrait;
     
     public function createStreams()
     {
         list($read, $write) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-        fwrite($write, self::WRITE_STRING); // Make $read readable.
         
         $readable = $this->getMockBuilder('Icicle\Socket\ReadableStream')
                          ->disableOriginalConstructor()
@@ -44,21 +45,4 @@ class WritableStreamTest extends StreamTest
         return [$readable, $writable];
     }
     
-    public function testWriteFailure()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        // Use fclose() manually since $writable->close() will prevent behavior to be tested.
-        fclose($writable->getResource());
-        
-        $promise = $writable->write(self::WRITE_STRING);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
 }
