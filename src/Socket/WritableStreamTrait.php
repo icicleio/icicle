@@ -62,27 +62,31 @@ trait WritableStreamTrait
             
             list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
             
-            // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-            $written = @fwrite($resource, $data, self::CHUNK_SIZE);
-            
-            if (false === $written || (0 === $written && !$data->isEmpty())) {
-                $message = 'Failed to write to stream.';
-                $error = error_get_last();
-                if (null !== $error) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+            if (!$data->isEmpty()) {
+                // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
+                $written = @fwrite($resource, $data, self::CHUNK_SIZE);
+                
+                if (false === $written || 0 === $written) {
+                    $message = 'Failed to write to stream.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    $exception = new FailureException($message);
+                    $deferred->reject($exception);
+                    $this->close($exception);
+                    return;
                 }
-                $exception = new FailureException($message);
-                $deferred->reject($exception);
-                $this->close($exception);
-                return;
-            }
-            
-            if ($data->isEmpty()) {
-                $deferred->resolve($written + $previous);
+                
+                if ($data->getLength() <= $written) {
+                    $deferred->resolve($written + $previous);
+                } else {
+                    $data->remove($written);
+                    $written += $previous;
+                    $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
+                }
             } else {
-                $written += $previous;
-                $data->remove($written);
-                $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
+                $deferred->resolve($previous);
             }
             
             if (!$this->writeQueue->isEmpty()) {
@@ -139,7 +143,7 @@ trait WritableStreamTrait
                 return Promise::reject($exception);
             }
             
-            if ($data->getLength() === $written) {
+            if ($data->getLength() <= $written) {
                 return Promise::resolve($written);
             }
             

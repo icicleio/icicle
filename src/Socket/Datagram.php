@@ -41,19 +41,9 @@ class Datagram extends Socket
     private $await;
     
     /**
-     * @var Closure
-     */
-    private $onCancelled;
-    
-    /**
      * @var SplQueue
      */
     private $writeQueue;
-    
-    /**
-     * @var bool
-     */
-    private $writable = true;
     
     /**
      * @var int
@@ -64,6 +54,10 @@ class Datagram extends Socket
      * @param   string $host
      * @param   int $port
      * @param   array $options
+     *
+     * @return  Datagram
+     *
+     * @throws  FailureException Thrown if creating the datagram fails.
      */
     public static function create($host, $port, array $options = [])
     {
@@ -99,8 +93,6 @@ class Datagram extends Socket
         stream_set_write_buffer($socket, 0);
         stream_set_chunk_size($socket, self::CHUNK_SIZE);
         
-        list($this->address, $this->port) = self::parseSocketName($socket, false);
-        
         $this->writeQueue = new SplQueue();
         
         $this->poll = Loop::poll($socket, function ($resource, $expired) {
@@ -124,7 +116,12 @@ class Datagram extends Socket
             $data = @stream_socket_recvfrom($resource, $this->length, 0, $peer);
             
             if (false === $data) { // Reading failed, so close datagram.
-                $this->close(new FailureException('Reading from the datagram failed.'));
+                $message = 'Failed to read from datagram.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $this->close(new FailureException($message));
                 return;
             }
             
@@ -144,22 +141,30 @@ class Datagram extends Socket
         $this->await = Loop::await($socket, function ($resource) use (&$onWrite) {
             list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
             
-            $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
-            
-            if (false === $written || 0 >= $written) {
-                $exception = new FailureException('Failed to write to datagram.');
-                $deferred->reject($exception);
-                $this->close($exception);
-                return;
-            }
-            
-            $data->remove($written);
-            $written += $previous;
-            
-            if ($data->isEmpty()) {
-                $deferred->resolve($written);
+            if (!$data->isEmpty()) {
+                $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
+                
+                if (false === $written || 0 >= $written) {
+                    $message = 'Failed to write to datagram.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    $exception = new FailureException($message);
+                    $deferred->reject($exception);
+                    $this->close($exception);
+                    return;
+                }
+                
+                if ($data->getLength() <= $written) {
+                    $deferred->resolve($written + $previous);
+                } else {
+                    $data->remove($written);
+                    $written += $previous;
+                    $this->writeQueue->unshift([$data, $written, $peer, $deferred]);
+                }
             } else {
-                $this->writeQueue->unshift([$data, $written, $peer, $deferred]);
+                $deferred->resolve($previous);
             }
             
             if (!$this->writeQueue->isEmpty()) {
@@ -167,10 +172,11 @@ class Datagram extends Socket
             }
         });
         
-        $this->onCancelled = function () {
-            $this->poll->cancel();
-            $this->deferred = null;
-        };
+        try {
+            list($this->address, $this->port) = self::parseSocketName($socket, false);
+        } catch (Exception $exception) {
+            $this->close($exception);
+        }
     }
     
     /**
@@ -178,25 +184,21 @@ class Datagram extends Socket
      */
     public function close(Exception $exception = null)
     {
-        if ($this->isOpen()) {
-            $this->writable = false;
-            
-            $this->poll->free();
-            $this->await->free();
-            
-            if (null === $exception) {
-                $exception = new ClosedException('The connection was closed.');
-            }
-            
-            if (null !== $this->deferred) {
-                $this->deferred->reject($exception);
-                $this->deferred = null;
-            }
-            
-            while (!$this->writeQueue->isEmpty()) {
-                list( , , , $deferred) = $this->writeQueue->shift();
-                $deferred->reject($exception);
-            }
+        $this->poll->free();
+        $this->await->free();
+        
+        if (null === $exception) {
+            $exception = new ClosedException('The datagram was closed.');
+        }
+        
+        if (null !== $this->deferred) {
+            $this->deferred->reject($exception);
+            $this->deferred = null;
+        }
+        
+        while (!$this->writeQueue->isEmpty()) {
+            list( , , , $deferred) = $this->writeQueue->shift();
+            $deferred->reject($exception);
         }
         
         parent::close();
@@ -222,15 +224,21 @@ class Datagram extends Socket
      * @param   int|null $length
      *
      * @return  PromiseInterface
+     *
+     * @resolve [string, int, string] Array containing the senders remote address, remote port, and data received.
+     *
+     * @reject  BusyException If a read was already pending on the datagram.
+     * @reject  UnreadableException If the datagram is no longer readable.
+     * @reject  ClosedException If the datagram has been closed.
      */
-    public function read($length = null)
+    public function receive($length = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on stream.'));
+            return Promise::reject(new BusyException('Already waiting on datagram.'));
         }
         
-        if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        if (!$this->isOpen()) {
+            return Promise::reject(new UnavailableException('The datagram is no longer readable.'));
         }
         
         if (null === $length) {
@@ -244,7 +252,10 @@ class Datagram extends Socket
         
         $this->poll->listen();
         
-        $this->deferred = new Deferred($this->onCancelled);
+        $this->deferred = new Deferred(function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        });
         
         return $this->deferred->getPromise();
     }
@@ -254,15 +265,7 @@ class Datagram extends Socket
      */
     public function poll()
     {
-        return $this->read(0);
-    }
-    
-    /**
-     * @return  bool
-     */
-    public function isReadable()
-    {
-        return $this->isOpen();
+        return $this->receive(0);
     }
     
     /**
@@ -270,17 +273,13 @@ class Datagram extends Socket
      * @param   int $port
      * @param   string|null $data
      */
-    public function write($address, $port, $data)
+    public function send($address, $port, $data)
     {
-        if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The datagram is no longer writable.'));
+        if (!$this->isOpen()) {
+            return Promise::reject(new UnavailableException('The datagram is no longer writable.'));
         }
         
         $data = new Buffer($data);
-        
-        if ($data->isEmpty()) {
-            return Promise::resolve(0);
-        }
         
         if (is_int($address)) {
             $address = long2ip($address);
@@ -291,15 +290,24 @@ class Datagram extends Socket
         $peer = sprintf('%s:%d', $address, $port);
         
         if ($this->writeQueue->isEmpty()) {
+            if ($data->isEmpty()) {
+                return Promise::resolve(0);
+            }
+            
             $written = @stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
             
             if (false === $written || -1 === $written) {
-                $exception = new FailureException('Failed to write to datagram.');
+                $message = 'Failed to write to datagram.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $exception = new FailureException($message);
                 $this->close($exception);
                 return Promise::reject($exception);
             }
             
-            if ($data->getLength() === $written) {
+            if ($data->getLength() <= $written) {
                 return Promise::resolve($written);
             }
             
@@ -319,18 +327,21 @@ class Datagram extends Socket
     }
     
     /**
-     * {@inheritdoc}
+     * @return  PromiseInterface
      */
-    public function await($timeout = null)
+    public function await()
     {
-        return Promise::resolve(0);
-    }
-    
-    /**
-     * @return  bool
-     */
-    public function isWritable()
-    {
-        return $this->writable;
+        if (!$this->isOpen()) {
+            return Promise::reject(new UnavailableException('The datagram is no longer writable.'));
+        }
+        
+        $deferred = new Deferred();
+        $this->writeQueue->push([new Buffer(), 0, null, $deferred]);
+        
+        if (!$this->await->isPending()) {
+            $this->await->listen();
+        }
+        
+        return $deferred->getPromise();
     }
 }

@@ -13,10 +13,10 @@ $coroutine = Coroutine::call(function (Datagram $datagram) {
     echo "Echo datagram running on {$datagram->getAddress()}:{$datagram->getPort()}\n";
     
     try {
-        while ($datagram->isReadable()) {
-            list($address, $port, $data) = (yield $datagram->read());
+        while ($datagram->isOpen()) {
+            list($address, $port, $data) = (yield $datagram->receive());
             $data = trim($data, "\n");
-            yield $datagram->write($address, $port, "Echo: {$data}\n");
+            yield $datagram->send($address, $port, "Echo: {$data}\n");
         }
     } catch (Exception $e) {
         echo "{$e->getMessage()}\n";
