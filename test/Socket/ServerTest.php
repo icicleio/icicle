@@ -14,30 +14,34 @@ class ServerTest extends TestCase
     const TIMEOUT = 0.1;
     const CONNECT_TIMEOUT = 1;
     const CERT_HEADER = '-----BEGIN CERTIFICATE-----';
-
+    
+    protected $server;
+    
     public function tearDown()
     {
         Loop::clear();
+        
+        if ($this->server instanceof Server) {
+            $this->server->close();
+        }
     }
     
     public function testCreate()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $this->assertSame(self::HOST_IPv4, $server->getAddress());
-        $this->assertSame(self::PORT, $server->getPort());
+        $this->assertSame(self::HOST_IPv4, $this->server->getAddress());
+        $this->assertSame(self::PORT, $this->server->getPort());
         
-        $server->close();
+        $this->server->close();
     }
     
     public function testCreateIPv6()
     {
-        $server = Server::create(self::HOST_IPv6, self::PORT);
+        $this->server = Server::create(self::HOST_IPv6, self::PORT);
         
-        $this->assertSame(self::HOST_IPv6, $server->getAddress());
-        $this->assertSame(self::PORT, $server->getPort());
-        
-        $server->close();
+        $this->assertSame(self::HOST_IPv6, $this->server->getAddress());
+        $this->assertSame(self::PORT, $this->server->getPort());
     }
     
     /**
@@ -47,16 +51,16 @@ class ServerTest extends TestCase
      */
     public function testCreateInvalidHost()
     {
-        $server = Server::create('invalid.host', self::PORT);
+        $this->server = Server::create('invalid.host', self::PORT);
         
-        $server->close();
+        $this->server->close();
     }
     
-    public function testWithInvalidSocketType()
+    public function testInvalidSocketType()
     {
-        $server = new Server(fopen('php://memory', 'r+'));
+        $this->server = new Server(fopen('php://memory', 'r+'));
         
-        $this->assertFalse($server->isOpen());
+        $this->assertFalse($this->server->isOpen());
     }
     
     /**
@@ -64,9 +68,9 @@ class ServerTest extends TestCase
      */
     public function testAccept()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $client = stream_socket_client(
             'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -83,8 +87,6 @@ class ServerTest extends TestCase
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
-        
-        $server->close();
     }
     
     /**
@@ -92,9 +94,9 @@ class ServerTest extends TestCase
      */
     public function testAcceptWithTimeout()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept(self::TIMEOUT);
+        $promise = $this->server->accept(self::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -103,8 +105,6 @@ class ServerTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
-        
-        $server->close();
     }
 
     
@@ -113,11 +113,11 @@ class ServerTest extends TestCase
      */
     public function testAcceptAfterClose()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $server->close();
+        $this->server->close();
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -133,11 +133,11 @@ class ServerTest extends TestCase
      */
     public function testAcceptThenClose()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
-        $server->close();
+        $this->server->close();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -154,11 +154,11 @@ class ServerTest extends TestCase
 /*
     public function testAcceptAfterEof()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
-        fclose($server->getResource());
+        fclose($this->server->getResource());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -176,7 +176,7 @@ class ServerTest extends TestCase
         
         Loop::run();
         
-        $server->close();
+        $this->server->close();
     }
 */
     
@@ -187,9 +187,9 @@ class ServerTest extends TestCase
     {
         $exception = new Exception();
         
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $promise->cancel($exception);
         
@@ -200,8 +200,6 @@ class ServerTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
-        
-        $server->close();
     }
     
     /**
@@ -209,11 +207,11 @@ class ServerTest extends TestCase
      */
     public function testAcceptOnClosedSocket()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        fclose($server->getResource());
+        fclose($this->server->getResource());
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -222,8 +220,6 @@ class ServerTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::tick();
-        
-        $server->close();
     }
     
     /**
@@ -231,11 +227,11 @@ class ServerTest extends TestCase
      */
     public function testSimultaneousAccept()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise1 = $server->accept();
+        $promise1 = $this->server->accept();
         
-        $promise2 = $server->accept();
+        $promise2 = $this->server->accept();
         
         $client = stream_socket_client(
             'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -247,7 +243,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\ClientInterface'));
         
         $promise1->done($callback, $this->createCallback(0));
         
@@ -258,8 +254,6 @@ class ServerTest extends TestCase
         $promise2->done($this->createCallback(0), $callback);
         
         Loop::run();
-        
-        $server->close();
     }
     
     /**
@@ -267,9 +261,9 @@ class ServerTest extends TestCase
      */
     public function testAcceptOnClosedClient()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $client = stream_socket_client(
             'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -292,8 +286,6 @@ class ServerTest extends TestCase
         fclose($client);
         
         Loop::run();
-        
-        $server->close();
     }
     
     /**
@@ -402,9 +394,9 @@ class ServerTest extends TestCase
             $path
         );
         
-        $server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
         
-        $promise = $server->accept();
+        $promise = $this->server->accept();
         
         $client = stream_socket_client(
             'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -423,8 +415,6 @@ class ServerTest extends TestCase
         Loop::run();
         
         unlink($path);
-        
-        $server->close();
     }
     
     /**
@@ -432,6 +422,6 @@ class ServerTest extends TestCase
      */
     public function testCreateWithInvalidPemPath()
     {
-        $server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => 'invalid/pem.pem']);
+        $this->server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => 'invalid/pem.pem']);
     }
 }

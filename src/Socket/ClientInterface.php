@@ -4,28 +4,20 @@ namespace Icicle\Socket;
 interface ClientInterface extends SocketInterface
 {
     /**
-     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER
+     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)
+     *          clients, STREAM_CRYPTO_METHOD_TLS_CLIENT for outgoing (local) clients.
      *
-     * @return  PromiseInterface Fulfilled with the number of seconds elapsed while enabling crypto.
+     * @return  PromiseInterface
      *
-     * @resolve float Number of seconds elapsed while enabling crypto.
+     * @resolve self
      *
      * @reject  FailureException If enabling crypto fails.
+     * @reject  ClosedException If the client has been closed.
+     * @reject  BusyException If the client was already busy waiting to read.
      *
      * @api
      */
     public function enableCrypto($method);
-    
-    /**
-     * @return  PromiseInterface Fulfilled with the number of seconds elapsed while disabling crypto.
-     *
-     * @resolve float Number of seconds elapsed while disabling crypto.
-     *
-     * @reject  FailureException If disabling crypto fails.
-     *
-     * @api
-     */
-    public function disableCrypto();
     
     /**
      * Determines if cyrpto has been enabled.

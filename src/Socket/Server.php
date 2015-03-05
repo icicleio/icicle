@@ -132,7 +132,7 @@ class Server extends Socket implements ServerInterface
                 return;
             } // @codeCoverageIgnoreEnd
             
-            $this->deferred->resolve(new RemoteClient($client));
+            $this->deferred->resolve(new Client($client));
             $this->deferred = null;
         });
         
@@ -255,16 +255,15 @@ class Server extends Socket implements ServerInterface
         $cert = openssl_csr_new($dn, $privkey);
         $cert = openssl_csr_sign($cert, null, $privkey, 365);
         
-        $pem = [];
-        openssl_x509_export($cert, $pem[0]);
+        openssl_x509_export($cert, $cert);
         
         if (!is_null($passphrase)) {
-            openssl_pkey_export($privkey, $pem[1], $passphrase);
+            openssl_pkey_export($privkey, $privkey, $passphrase);
         } else {
-            openssl_pkey_export($privkey, $pem[1]);
+            openssl_pkey_export($privkey, $privkey);
         }
         
-        $pem = implode($pem);
+        $pem = $cert . $privkey;
         
         if (is_null($path)) {
             return $pem;
