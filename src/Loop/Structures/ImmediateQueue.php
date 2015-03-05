@@ -27,6 +27,7 @@ class ImmediateQueue implements \Countable
     
     /**
      * Adds the timer to the queue.
+     *
      * @param   ImmediateInterface $immediate
      */
     public function add(ImmediateInterface $immediate)
@@ -39,7 +40,9 @@ class ImmediateQueue implements \Countable
     
     /**
      * Determines if the timer is in the queue.
+     *
      * @param   ImmediateInterface $immediate
+     *
      * @return  bool
      */
     public function contains(ImmediateInterface $immediate)
@@ -49,6 +52,7 @@ class ImmediateQueue implements \Countable
     
     /**
      * Removes the immediate from the queue.
+     *
      * @param   ImmediateInterface $immediate
      */
     public function remove(ImmediateInterface $immediate)
@@ -60,20 +64,22 @@ class ImmediateQueue implements \Countable
     
     /**
      * Returns the number of immediates in the queue.
+     *
      * @return  int
      */
     public function count()
     {
-        return $this->queue->count();
+        return $this->immediates->count();
     }
     
     /**
      * Determines if the queue is empty.
+     *
      * @return  bool
      */
     public function isEmpty()
     {
-        return 0 === $this->queue->count();
+        return 0 === $this->immediates->count();
     }
     
     /**

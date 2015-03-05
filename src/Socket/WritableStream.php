@@ -25,13 +25,11 @@ class WritableStream extends Socket implements WritableStreamInterface
      */
     public function close(Exception $exception = null)
     {
-        if ($this->isOpen()) {
-            if (null === $exception) {
-                $exception = new ClosedException('The connection was closed.');
-            }
-            
-            $this->free($exception);
+        if (null === $exception) {
+            $exception = new ClosedException('The connection was closed.');
         }
+        
+        $this->free($exception);
         
         parent::close();
     }

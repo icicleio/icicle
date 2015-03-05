@@ -3,7 +3,6 @@ namespace Icicle\Tests\Socket;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\LocalClient;
 use Icicle\Socket\Server;
 use Icicle\Tests\TestCase;
 
@@ -12,7 +11,10 @@ class ServerTest extends TestCase
     const HOST_IPv4 = '127.0.0.1';
     const HOST_IPv6 = '[::1]';
     const PORT = 51337;
-    
+    const TIMEOUT = 0.1;
+    const CONNECT_TIMEOUT = 1;
+    const CERT_HEADER = '-----BEGIN CERTIFICATE-----';
+
     public function tearDown()
     {
         Loop::clear();
@@ -50,6 +52,13 @@ class ServerTest extends TestCase
         $server->close();
     }
     
+    public function testWithInvalidSocketType()
+    {
+        $server = new Server(fopen('php://memory', 'r+'));
+        
+        $this->assertFalse($server->isOpen());
+    }
+    
     /**
      * @depends testCreate
      */
@@ -59,11 +68,17 @@ class ServerTest extends TestCase
         
         $promise = $server->accept();
         
-        $client = LocalClient::connect(self::HOST_IPv4, self::PORT);
+        $client = stream_socket_client(
+            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
+            $errno,
+            $errstr,
+            self::CONNECT_TIMEOUT,
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+        );
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -71,6 +86,27 @@ class ServerTest extends TestCase
         
         $server->close();
     }
+    
+    /**
+     * @depends testCreate
+     */
+    public function testAcceptWithTimeout()
+    {
+        $server = Server::create(self::HOST_IPv4, self::PORT);
+        
+        $promise = $server->accept(self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+        
+        $server->close();
+    }
+
     
     /**
      * @depends testAccept
@@ -112,6 +148,37 @@ class ServerTest extends TestCase
         Loop::run();
     }
     
+    /**
+     * @depends testAccept
+     */
+/*
+    public function testAcceptAfterEof()
+    {
+        $server = Server::create(self::HOST_IPv4, self::PORT);
+        
+        $promise = $server->accept();
+        
+        fclose($server->getResource());
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        $client = stream_socket_client(
+            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
+            $errno,
+            $errstr,
+            self::CONNECT_TIMEOUT,
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+        );
+        
+        Loop::run();
+        
+        $server->close();
+    }
+*/
     
     /**
      * @depends testAccept
@@ -170,7 +237,13 @@ class ServerTest extends TestCase
         
         $promise2 = $server->accept();
         
-        $client = LocalClient::connect(self::HOST_IPv4, self::PORT);
+        $client = stream_socket_client(
+            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
+            $errno,
+            $errstr,
+            self::CONNECT_TIMEOUT,
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+        );
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -198,19 +271,25 @@ class ServerTest extends TestCase
         
         $promise = $server->accept();
         
-        $socket = @stream_socket_client('tcp://' . self::HOST_IPv4 . ':' . self::PORT, $errno, $errstr, 1, STREAM_CLIENT_CONNECT);
+        $client = stream_socket_client(
+            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
+            $errno,
+            $errstr,
+            self::CONNECT_TIMEOUT,
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+        );
         
-        if (!$socket || $errno) {
+        if (!$client || $errno) {
             $this->fail("Could not create client socket. [Errno {$errno}] {$errstr}");
         }
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
         
-        fclose($socket);
+        fclose($client);
         
         Loop::run();
         
@@ -218,10 +297,94 @@ class ServerTest extends TestCase
     }
     
     /**
+     * @medium
+     * @require extension openssl
+     */
+    public function testGenerateCertToString()
+    {
+        $cert = Server::generateCert(
+            'US',
+            'MN',
+            'Minneapolis',
+            'Icicle',
+            'Security',
+            'localhost',
+            'hello@icicle.io'
+        );
+        
+        $this->assertSame(self::CERT_HEADER, substr($cert, 0, strlen(self::CERT_HEADER)));
+        
+        $cert = Server::generateCert(
+            'US',
+            'MN',
+            'Minneapolis',
+            'Icicle',
+            'Security',
+            'localhost',
+            'hello@icicle.io',
+            'icicle'
+        );
+        
+        $this->assertSame(self::CERT_HEADER, substr($cert, 0, strlen(self::CERT_HEADER)));
+    }
+    
+    /**
+     * @medium
+     * @require extension openssl
+     */
+    public function testGenerateCertToFile()
+    {
+        $path = tempnam(sys_get_temp_dir(), 'Icicle');
+        
+        $cert = Server::generateCert(
+            'US',
+            'MN',
+            'Minneapolis',
+            'Icicle',
+            'Security',
+            'localhost',
+            'hello@icicle.io',
+            null,
+            $path
+        );
+        
+        $this->assertGreaterThan(0, $cert);
+        
+        $contents = file_get_contents($path);
+        
+        $this->assertSame(self::CERT_HEADER, substr($contents, 0, strlen(self::CERT_HEADER)));
+        
+        unlink($path);
+        
+        $path = tempnam(sys_get_temp_dir(), 'Icicle');
+        
+        $cert = Server::generateCert(
+            'US',
+            'MN',
+            'Minneapolis',
+            'Icicle',
+            'Security',
+            'localhost',
+            'hello@icicle.io',
+            'icicle',
+            $path
+        );
+        
+        $this->assertGreaterThan(0, $cert);
+        
+        $contents = file_get_contents($path);
+        
+        $this->assertSame(self::CERT_HEADER, substr($contents, 0, strlen(self::CERT_HEADER)));
+        
+        unlink($path);
+    }
+    
+    /**
+     * @medium
      * @require extension openssl
      * @depends testCreate
+     * @depends testGenerateCertToFile
      */
-/*
     public function testCreateWithPem()
     {
         $path = tempnam(sys_get_temp_dir(), 'Icicle');
@@ -239,32 +402,36 @@ class ServerTest extends TestCase
             $path
         );
         
-        $server = Server::create('localhost', self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
-        
-        $this->assertTrue($server->isSecure());
+        $server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
         
         $promise = $server->accept();
         
-        $client = LocalClient::connect('localhost', self::PORT, true);
+        $client = stream_socket_client(
+            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
+            $errno,
+            $errstr,
+            self::CONNECT_TIMEOUT,
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+        );
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\RemoteClient'));
+                 ->with($this->isInstanceOf('Icicle\Socket\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
+        
+        unlink($path);
+        
+        $server->close();
     }
-*/
     
     /**
-     * @depends testCreateWithPem
      * @expectedException Icicle\Socket\Exception\InvalidArgumentException
      */
-/*
-    public function testCreateWithInvalidPem()
+    public function testCreateWithInvalidPemPath()
     {
         $server = Server::create(self::HOST_IPv4, self::PORT, ['pem' => 'invalid/pem.pem']);
     }
-*/
 }

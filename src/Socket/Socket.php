@@ -3,9 +3,8 @@ namespace Icicle\Socket;
 
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Stream\StreamInterface;
 
-abstract class Socket implements SocketInterface, StreamInterface
+abstract class Socket implements SocketInterface
 {
     /**
      * Stream socket resource.

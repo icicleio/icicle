@@ -41,11 +41,6 @@ class Server extends Socket implements ServerInterface
     private $poll;
     
     /**
-     * @var Closure
-     */
-    private $onCancelled;
-    
-    /**
      * Creates a server on the given host and port.
      *
      * Note: Current CA file in PEM format can be downloaded from http://curl.haxx.se/ca/cacert.pem
@@ -111,28 +106,35 @@ class Server extends Socket implements ServerInterface
     {
         parent::__construct($socket);
         
-        $this->poll = Loop::poll($socket, function ($resource) {
-            if (@feof($resource)) {
+        $this->poll = Loop::poll($socket, function ($resource, $expired) {
+            if ($expired) {
+                $this->close(new TimeoutException('Client accept timed out.'));
+                return;
+            }
+            
+            if (!$this->isOpen()) {
                 $this->close(new ClosedException('The server closed unexpectedly.'));
                 return;
             }
             
+            // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
             $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
             
+            // @codeCoverageIgnoreStart
             if (!$client) {
-                $this->deferred->reject(new AcceptException('Error when accepting client.'));
+                $message = 'Could not accept client.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $this->deferred->reject(new AcceptException($message));
                 $this->deferred = null;
                 return;
-            }
+            } // @codeCoverageIgnoreEnd
             
             $this->deferred->resolve(new RemoteClient($client));
             $this->deferred = null;
         });
-        
-        $this->onCancelled = function () {
-            $this->poll->cancel();
-            $this->deferred = null;
-        };
         
         try {
             list($this->address, $this->port) = self::parseSocketName($socket, false);
@@ -146,17 +148,15 @@ class Server extends Socket implements ServerInterface
      */
     public function close(Exception $exception = null)
     {
-        if ($this->isOpen()) {
-            $this->poll->free();
-            
-            if (null !== $this->deferred) {
-                if (null === $exception) {
-                    $exception = new ClosedException('The server has closed.');
-                }
-                
-                $this->deferred->reject($exception);
-                $this->deferred = null;
+        $this->poll->free();
+        
+        if (null !== $this->deferred) {
+            if (null === $exception) {
+                $exception = new ClosedException('The server has closed.');
             }
+            
+            $this->deferred->reject($exception);
+            $this->deferred = null;
         }
         
         parent::close();
@@ -165,9 +165,11 @@ class Server extends Socket implements ServerInterface
     /**
      * Accepts incoming client connections.
      *
+     * @param   int|float|null $timeout
+     *
      * @return  PromiseInterface
      */
-    public function accept()
+    public function accept($timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new UnavailableException('Already waiting on server.'));
@@ -177,9 +179,12 @@ class Server extends Socket implements ServerInterface
             return Promise::reject(new ClosedException('The server has been closed.'));
         }
         
-        $this->poll->listen();
+        $this->poll->listen($timeout);
         
-        $this->deferred = new Deferred($this->onCancelled);
+        $this->deferred = new Deferred(function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        });
         
         return $this->deferred->getPromise();
     }
@@ -214,10 +219,10 @@ class Server extends Socket implements ServerInterface
      * @param   string $section Organizational Unit (eg, section)
      * @param   string $domain Common Name (hostname or domain)
      * @param   string $email Email Address
-     * @param   string $passphrase Optional passphrase, NULL for none.
-     * @param   string $path Path to write PEM file. If NULL, the PEM is returned.
+     * @param   string|null $passphrase Optional passphrase, null for none.
+     * @param   string|null $path Path to write PEM file. If null, the PEM is returned as a string.
      *
-     * @return  string|int|bool Returns the PEM if $path was NULL, or the number of bytes written to $path,
+     * @return  string|int|bool Returns the PEM if $path was null, or the number of bytes written to $path,
      *          of false if the file could not be written.
      */
     public static function generateCert(
@@ -231,9 +236,10 @@ class Server extends Socket implements ServerInterface
         $passphrase = null,
         $path = null
     ) {
+        // @codeCoverageIgnoreStart
         if (!extension_loaded('openssl')) {
             throw new LogicException('The OpenSSL extension must be loaded to create a certificate.');
-        }
+        } // @codeCoverageIgnoreEnd
         
         $dn = [
             'countryName' => $country,
@@ -245,7 +251,7 @@ class Server extends Socket implements ServerInterface
             'emailAddress' => $email
         ];
         
-        $privkey = openssl_pkey_new();
+        $privkey = openssl_pkey_new(['private_key_bits' => 2048]);
         $cert = openssl_csr_new($dn, $privkey);
         $cert = openssl_csr_sign($cert, null, $privkey, 365);
         
@@ -262,8 +268,8 @@ class Server extends Socket implements ServerInterface
         
         if (is_null($path)) {
             return $pem;
-        } else {
-            return file_put_contents($path, $pem);
         }
+        
+        return file_put_contents($path, $pem);
     }
 }

@@ -62,6 +62,7 @@ trait WritableStreamTrait
             
             list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
             
+            // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
             $written = @fwrite($resource, $data, self::CHUNK_SIZE);
             
             if (false === $written || (0 === $written && !$data->isEmpty())) {
@@ -124,6 +125,7 @@ trait WritableStreamTrait
                 return Promise::resolve(0);
             }
             
+            // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
             $written = @fwrite($this->getResource(), $data, self::CHUNK_SIZE);
             
             if (false === $written) {

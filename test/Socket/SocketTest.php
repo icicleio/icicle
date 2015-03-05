@@ -13,6 +13,11 @@ class SocketTest extends TestCase
         $this->socket = $this->getMockForAbstractClass('Icicle\Socket\Socket', [fopen('php://memory', 'r+')]);
     }
     
+    public function tearDown()
+    {
+        $this->socket = null; // Added so Socket::__destruct() is called while testing.
+    }
+    
     public function testIsOpen()
     {
         $this->assertTrue($this->socket->isOpen());
@@ -48,21 +53,6 @@ class SocketTest extends TestCase
         $this->assertInternalType('integer', $id);
         $this->assertGreaterThan(0, $id);
     }
-    
-    /**
-     * @depends testIsOpen
-     */
-/*
-    public function testIdAvailableAfterClose()
-    {
-        $id = $this->socket->getId();
-        
-        $this->socket->close();
-        
-        $this->assertFalse($this->socket->isOpen());
-        $this->assertEquals($id, $this->socket->getId());
-    }
-*/
     
     public function testParseSocketName()
     {

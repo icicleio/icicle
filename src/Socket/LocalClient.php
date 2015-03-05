@@ -22,17 +22,22 @@ class LocalClient extends Client
     /**
      * @param   string $host Hostname or IP address.
      * @param   int $port Port number.
-     * @param   string $protocol Protocol to use (e.g.: tcp, udp, s3), tcp by default.
      * @param   array $options
      *
      * @return  PromiseInterface Fulfilled with a LocalClient object once the connection is established.
+     *
+     * @resolve LocalClient
+     *
+     * @reject  FailureException If connecting fails.
+     * @reject  InvalidArgumentException If a CA file does not exist at the path given.
      */
-    public static function connect($host, $port, $protocol = self::DEFAULT_PROTOCOL, array $options = null)
+    public static function connect($host, $port, array $options = null)
     {
         if (false !== strpos($host, ':')) {
             $host = '[' . trim($host, '[]') . ']';
         }
         
+        $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
         $allowSelfSigned = isset($options['allow_self_signed']) ? (bool) $options['allow_self_signed'] : self::DEFAULT_ALLOW_SELF_SIGNED;
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;

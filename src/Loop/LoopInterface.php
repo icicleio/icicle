@@ -191,6 +191,21 @@ interface LoopInterface extends EventEmitterInterface
     public function isTimerPending(TimerInterface $timer);
     
     /**
+     * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
+     *
+     * @param   TimerInterface $timer
+     */
+    public function unreferenceTimer(TimerInterface $timer);
+    
+    /**
+     * References a timer if it was previously unreferenced. That is, if the timer is pending the loop will continue
+     * running.
+     *
+     * @param   TimerInterface $timer
+     */
+    public function referenceTimer(TimerInterface $timer);
+    
+    /**
      * Creates an immediate object connected to the loop.
      *
      * @param   callable $callback

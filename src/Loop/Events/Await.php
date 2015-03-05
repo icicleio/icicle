@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Loop\Events;
 
+use Icicle\Loop\Exception\InvalidArgumentException;
 use Icicle\Loop\LoopInterface;
 
 class Await implements AwaitInterface
@@ -27,6 +28,10 @@ class Await implements AwaitInterface
      */
     public function __construct(LoopInterface $loop, $resource, callable $callback)
     {
+        if (!is_resource($resource)) {
+            throw new InvalidArgumentException('Must provide a socket or stream resource.');
+        }
+        
         $this->loop = $loop;
         $this->resource = $resource;
         $this->callback = $callback;

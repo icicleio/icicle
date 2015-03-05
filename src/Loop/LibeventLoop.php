@@ -228,6 +228,7 @@ class LibeventLoop extends AbstractLoop
         }
         
         if (!isset($this->readEvents[$id])) {
+            $resource = $poll->getResource();
             $event = event_new();
             event_set($event, $poll->getResource(), EV_READ, $this->readCallback, $poll);
             event_base_set($event, $this->base);
