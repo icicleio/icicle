@@ -148,7 +148,7 @@ class ClientTest extends TestCase
      */
     public function testConnectTimeout()
     {
-        $promise = Client::connect('8.8.8.8', 8080, ['timeout' => 1]);
+        $promise = Client::connect('8.8.8.8', 80, ['timeout' => 1]);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

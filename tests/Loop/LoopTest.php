@@ -7,6 +7,14 @@ use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase
 {
+    const TIMEOUT = 0.1;
+    const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
+    
+    public function createSockets()
+    {
+        return stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+    }
+    
     public function testInit()
     {
         $loop = new SelectLoop();
@@ -32,9 +40,7 @@ class LoopTest extends TestCase
      */
     public function testSchedule()
     {
-        $callback = $this->createCallback(1);
-        
-        Loop::schedule($callback);
+        Loop::schedule($this->createCallback(1));
         
         Loop::tick(true);
     }
@@ -42,7 +48,7 @@ class LoopTest extends TestCase
     /**
      * @depends testSchedule
      */
-    public function testScheduleWithArgumetns()
+    public function testScheduleWithArguments()
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -51,6 +57,129 @@ class LoopTest extends TestCase
         Loop::schedule($callback, 1, 2, 3.14, 'test');
         
         Loop::tick(true);
+    }
+    
+    public function testPoll()
+    {
+        list($readable, $writable) = $this->createSockets();
+        
+        fwrite($writable, self::WRITE_STRING);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($readable, false);
+        
+        $poll = Loop::poll($readable, $callback);
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\PollInterface', $poll);
+        
+        $poll->listen();
+        
+        Loop::run();
+    }
+    
+    public function testAwait()
+    {
+        list($readable, $writable) = $this->createSockets();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($writable, false);
+        
+        $await = Loop::await($writable, $callback);
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\AwaitInterface', $await);
+        
+        $await->listen();
+        
+        Loop::run();
+    }
+    
+    public function testTimer()
+    {
+        $timer = Loop::timer(self::TIMEOUT, $this->createCallback(1));
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testTimer
+     */
+    public function testTimerWithArguments()
+    {
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with(1, 2, 3.14, 'test');
+        
+        $timer = Loop::timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        
+        Loop::tick(true);
+    }
+    
+    public function testPeriodic()
+    {
+        $callback = $this->createCallback(1);
+        
+        $callback = function () use (&$timer, $callback) {
+            $callback();
+            $timer->cancel();
+        };
+        
+        $timer = Loop::periodic(self::TIMEOUT, $callback);
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPeriodic
+     */
+    public function testPeriodicWithArguments()
+    {
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with(1, 2, 3.14, 'test');
+        
+        $callback = function (/* ...$args */) use (&$timer, $callback) {
+            $timer->cancel();
+            call_user_func_array($callback, func_get_args());
+        };
+        
+        $timer = Loop::periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        
+        Loop::run();
+    }
+    
+    public function testImmediate()
+    {
+        $immediate = Loop::immediate($this->createCallback(1));
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testImmediate
+     */
+    public function testImmediateWithArguments()
+    {
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with(1, 2, 3.14, 'test');
+        
+        $immediate = Loop::immediate($callback, 1, 2, 3.14, 'test');
+        
+        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
+        
+        Loop::run();
     }
     
     /**
