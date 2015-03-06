@@ -60,7 +60,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function call()
     {
@@ -69,7 +69,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function __invoke()
     {
@@ -77,7 +77,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPending()
     {
@@ -85,7 +85,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancel()
     {
@@ -93,7 +93,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function unreference()
     {
@@ -101,7 +101,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function reference()
     {
@@ -109,7 +109,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getInterval()
     {
@@ -117,7 +117,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPeriodic()
     {
@@ -125,7 +125,7 @@ class Timer implements TimerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getCallback()
     {

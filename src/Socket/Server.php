@@ -144,7 +144,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function close(Exception $exception = null)
     {

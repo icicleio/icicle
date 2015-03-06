@@ -149,7 +149,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isEmpty()
     {
@@ -169,7 +169,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function dispatch($blocking)
     {
@@ -183,7 +183,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createPoll($resource, callable $callback)
     {
@@ -197,7 +197,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function listenPoll(PollInterface $poll, $timeout = null)
     {
@@ -223,7 +223,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelPoll(PollInterface $poll)
     {
@@ -235,7 +235,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPollPending(PollInterface $poll)
     {
@@ -245,7 +245,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function freePoll(PollInterface $poll)
     {
@@ -262,7 +262,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPollFreed(PollInterface $poll)
     {
@@ -272,7 +272,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createAwait($resource, callable $callback)
     {
@@ -286,7 +286,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function listenAwait(AwaitInterface $await, $timeout = null)
     {
@@ -312,7 +312,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelAwait(AwaitInterface $await)
     {
@@ -324,7 +324,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isAwaitPending(AwaitInterface $await)
     {
@@ -334,7 +334,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function freeAwait(AwaitInterface $await)
     {
@@ -351,7 +351,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isAwaitFreed(AwaitInterface $await)
     {
@@ -361,7 +361,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
     {
@@ -382,7 +382,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelTimer(TimerInterface $timer)
     {
@@ -393,7 +393,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isTimerPending(TimerInterface $timer)
     {
@@ -401,7 +401,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function unreferenceTimer(TimerInterface $timer)
     {
@@ -409,7 +409,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function referenceTimer(TimerInterface $timer)
     {
@@ -417,7 +417,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function clear()
     {

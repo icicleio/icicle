@@ -118,7 +118,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function read($length = null, $timeout = null)
     {
@@ -126,7 +126,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function readTo($byte, $length = null, $timeout = null)
     {
@@ -165,7 +165,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function poll($timeout = null)
     {
@@ -173,7 +173,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isReadable()
     {
@@ -181,7 +181,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $timeout = null)
     {
@@ -189,7 +189,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function pipeTo(WritableStreamInterface $stream, $byte, $endOnClose = true, $length = null, $timeout = null)
     {

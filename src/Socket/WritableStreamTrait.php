@@ -114,7 +114,7 @@ trait WritableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function write($data, $timeout = null)
     {
@@ -163,7 +163,7 @@ trait WritableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function end($data = null, $timeout = null)
     {
@@ -179,7 +179,7 @@ trait WritableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function await($timeout = null)
     {
@@ -198,7 +198,7 @@ trait WritableStreamTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isWritable()
     {

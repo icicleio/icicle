@@ -83,7 +83,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function tick($blocking = true)
     {
@@ -96,7 +96,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function run()
     {
@@ -123,7 +123,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isRunning()
     {
@@ -131,7 +131,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function stop()
     {
@@ -139,7 +139,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function schedule(callable $callback, array $args = null)
     {
@@ -147,7 +147,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function maxScheduleDepth($depth = null)
     {
@@ -155,7 +155,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createImmediate(callable $callback, array $args = null)
     {
@@ -167,7 +167,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelImmediate(ImmediateInterface $immediate)
     {
@@ -175,7 +175,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isImmediatePending(ImmediateInterface $immediate)
     {
@@ -265,7 +265,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function clear()
     {

@@ -28,7 +28,7 @@ trait EventEmitterTrait
 */
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function addListener($event, callable $listener, $once = false)
     {
@@ -53,7 +53,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function on($event, callable $listener)
     {
@@ -61,7 +61,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function once($event, callable $listener)
     {
@@ -69,7 +69,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function removeListener($event, callable $listener)
     {
@@ -86,7 +86,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function off($event, callable $listener)
     {
@@ -94,7 +94,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function removeAllListeners($event = null)
     {
@@ -114,7 +114,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getListeners($event)
     {
@@ -126,7 +126,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getListenerCount($event)
     {
@@ -138,7 +138,7 @@ trait EventEmitterTrait
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     protected function emit($event /* , ...$args */)
     {

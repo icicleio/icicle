@@ -38,7 +38,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function call($resource, $expired = false)
     {
@@ -47,7 +47,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function __invoke($resource, $expired = false)
     {
@@ -55,7 +55,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function setCallback(callable $callback)
     {
@@ -63,7 +63,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getCallback()
     {
@@ -71,7 +71,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function listen($timeout = null)
     {
@@ -79,7 +79,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPending()
     {
@@ -87,7 +87,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isFreed()
     {
@@ -95,7 +95,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancel()
     {
@@ -103,7 +103,7 @@ class Await implements AwaitInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function free()
     {

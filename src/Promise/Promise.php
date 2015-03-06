@@ -128,7 +128,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -177,7 +177,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -203,7 +203,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancel(Exception $exception = null)
     {
@@ -220,7 +220,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function timeout($timeout, Exception $exception = null)
     {
@@ -258,7 +258,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function delay($time)
     {
@@ -293,7 +293,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPending()
     {
@@ -301,7 +301,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isFulfilled()
     {
@@ -309,7 +309,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isRejected()
     {
@@ -317,7 +317,7 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResult()
     {

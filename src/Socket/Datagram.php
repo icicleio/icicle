@@ -180,7 +180,7 @@ class Datagram extends Socket
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function close(Exception $exception = null)
     {

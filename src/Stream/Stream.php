@@ -56,7 +56,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isOpen()
     {
@@ -64,7 +64,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function close(Exception $exception = null)
     {
@@ -82,7 +82,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function read($length = null)
     {
@@ -90,7 +90,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function readTo($byte, $length = null)
     {
@@ -142,7 +142,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isReadable()
     {
@@ -150,7 +150,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function poll()
     {
@@ -158,7 +158,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function write($data)
     {
@@ -201,7 +201,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function end($data = null)
     {
@@ -217,7 +217,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function await()
     {
@@ -225,7 +225,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isWritable()
     {
@@ -233,7 +233,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null)
     {
@@ -241,7 +241,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function pipeTo(WritableStreamInterface $stream, $byte, $endOnClose = true, $length = null)
     {

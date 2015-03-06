@@ -9,7 +9,7 @@ use Icicle\Loop\LoopInterface;
 class EventFactory implements EventFactoryInterface
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createPoll(LoopInterface $loop, $resource, callable $callback)
     {
@@ -17,7 +17,7 @@ class EventFactory implements EventFactoryInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createAwait(LoopInterface $loop, $resource, callable $callback)
     {
@@ -25,7 +25,7 @@ class EventFactory implements EventFactoryInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null)
     {
@@ -33,7 +33,7 @@ class EventFactory implements EventFactoryInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createImmediate(LoopInterface $loop, callable $callback, array $args = null)
     {

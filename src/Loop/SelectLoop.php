@@ -108,12 +108,12 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function reInit() { /* Nothing to be done after fork. */ }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     protected function dispatch($blocking)
     {
@@ -194,7 +194,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isEmpty()
     {
@@ -202,7 +202,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createPoll($resource, callable $callback)
     {
@@ -237,7 +237,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelPoll(PollInterface $poll)
     {
@@ -254,7 +254,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPollPending(PollInterface $poll)
     {
@@ -264,7 +264,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function freePoll(PollInterface $poll)
     {
@@ -289,7 +289,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createAwait($resource, callable $callback)
     {
@@ -324,7 +324,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelAwait(AwaitInterface $await)
     {
@@ -341,7 +341,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isAwaitPending(AwaitInterface $await)
     {
@@ -351,7 +351,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function freeAwait(AwaitInterface $await)
     {
@@ -376,7 +376,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
     {
@@ -388,7 +388,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancelTimer(TimerInterface $timer)
     {
@@ -396,7 +396,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isTimerPending(TimerInterface $timer)
     {
@@ -404,7 +404,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function unreferenceTimer(TimerInterface $timer)
     {
@@ -412,7 +412,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function referenceTimer(TimerInterface $timer)
     {

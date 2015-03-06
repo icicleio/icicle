@@ -151,7 +151,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function pause()
     {
@@ -159,7 +159,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function resume()
     {
@@ -179,7 +179,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPaused()
     {
@@ -187,7 +187,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function cancel(Exception $exception = null)
     {
@@ -195,7 +195,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -203,7 +203,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -211,7 +211,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function timeout($timeout, Exception $exception = null)
     {
@@ -219,7 +219,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function delay($time)
     {
@@ -227,7 +227,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isPending()
     {
@@ -235,7 +235,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isFulfilled()
     {
@@ -243,7 +243,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isRejected()
     {
@@ -251,7 +251,7 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResult()
     {
