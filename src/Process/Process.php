@@ -414,7 +414,7 @@ class Process implements ProcessInterface
      *
      * @return  WritableStream
      *
-     * @throws  LogicException Thrown if the process has not been started.
+     * @throws  LogicException If the process has not been started.
      */
     public function getInputStream()
     {
@@ -430,7 +430,7 @@ class Process implements ProcessInterface
      *
      * @return  ReadableStream
      *
-     * @throws  LogicException Thrown if the process has not been started.
+     * @throws  LogicException If the process has not been started.
      */
     public function getOutputStream()
     {
@@ -446,7 +446,7 @@ class Process implements ProcessInterface
      *
      * @return  ReadableStream
      *
-     * @throws  LogicException Thrown if the process has not been started.
+     * @throws  LogicException If the process has not been started.
      */
     public function getErrorStream()
     {

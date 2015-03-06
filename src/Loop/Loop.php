@@ -15,7 +15,7 @@ abstract class Loop
      *
      * @param   LoopInterface $loop
      *
-     * @throws  InitializedException Thrown if another loop has been set or created.
+     * @throws  InitializedException If another loop has been set or created.
      *
      * @api
      */

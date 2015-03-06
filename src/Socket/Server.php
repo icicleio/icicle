@@ -51,8 +51,8 @@ class Server extends Socket implements ServerInterface
      *
      * @return  Server
      *
-     * @throws  InvalidArgumentException Thrown if PEM file path given does not exist.
-     * @throws  FailureException Thrown if the server socket could not be created.
+     * @throws  InvalidArgumentException If PEM file path given does not exist.
+     * @throws  FailureException If the server socket could not be created.
      */
     public static function create($host, $port, array $options = null)
     {

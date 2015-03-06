@@ -20,13 +20,6 @@ trait EventEmitterTrait
         }
     }
     
-/*
-    protected function removeEvent($event)
-    {
-        unset($this->listeners[$event]);
-    }
-*/
-    
     /**
      * @inheritdoc
      */

@@ -12,7 +12,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -26,7 +26,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -41,7 +41,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -55,7 +55,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -69,7 +69,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -82,7 +82,7 @@ interface EventEmitterInterface
      *
      * @return  self
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -95,7 +95,7 @@ interface EventEmitterInterface
      *
      * @return  callable[string] Array of event listeners.
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -108,7 +108,7 @@ interface EventEmitterInterface
      *
      * @return  int Number of listeners defined.
      *
-     * @throws  InvalidEventException Thrown if the event name does not exist.
+     * @throws  InvalidEventException If the event name does not exist.
      *
      * @api
      */

@@ -16,7 +16,7 @@ abstract class Socket implements SocketInterface
     /**
      * @param   resource $socket PHP stream socket resource.
      *
-     * @throws  InvalidArgumentException Thrown if a non-resource is given.
+     * @throws  InvalidArgumentException If a non-resource is given.
      */
     public function __construct($socket)
     {
@@ -88,7 +88,7 @@ abstract class Socket implements SocketInterface
      *
      * @return  [string, int] IP address and port pair.
      *
-     * @throws  FailureException Thrown if getting the socket name fails.
+     * @throws  FailureException If getting the socket name fails.
      */
     public static function parseSocketName($socket, $peer = true)
     {

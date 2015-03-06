@@ -57,7 +57,7 @@ class Datagram extends Socket
      *
      * @return  Datagram
      *
-     * @throws  FailureException Thrown if creating the datagram fails.
+     * @throws  FailureException If creating the datagram fails.
      */
     public static function create($host, $port, array $options = [])
     {

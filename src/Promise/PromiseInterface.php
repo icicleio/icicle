@@ -160,7 +160,7 @@ interface PromiseInterface
      *
      * @return  mixed
      *
-     * @throws  UnresolvedException Thrown if the promise has not been resolved.
+     * @throws  UnresolvedException If the promise has not been resolved.
      *
      * @api
      */

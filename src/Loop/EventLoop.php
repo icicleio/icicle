@@ -75,7 +75,7 @@ class EventLoop extends AbstractLoop
     /**
      * @param   EventFactoryInterface|null $eventFactory
      *
-     * @throws  UnsupportedException Thrown if the event extension is not loaded.
+     * @throws  UnsupportedException If the event extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null)
     {

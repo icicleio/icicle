@@ -270,7 +270,7 @@ class Coroutine implements CoroutineInterface
          *
          * @return  Coroutine
          *
-         * @throws  InvalidCallableException Thrown if the callable throws an exception or does not return a Generator.
+         * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
          */
         return function (/* ...$args */) use ($worker) {
             return static::create($worker, func_get_args());
@@ -283,7 +283,7 @@ class Coroutine implements CoroutineInterface
      *
      * @return  Coroutine
      *
-     * @throws  InvalidCallableException Thrown if the callable throws an exception or does not return a Generator.
+     * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
      */
     public static function call(callable $worker /* , ...$args */)
     {
@@ -298,7 +298,7 @@ class Coroutine implements CoroutineInterface
      *
      * @return  Coroutine
      *
-     * @throws  InvalidCallableException Thrown if the callable throws an exception or does not return a Generator.
+     * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
      */
     public static function create(callable $worker, array $args = null)
     {
