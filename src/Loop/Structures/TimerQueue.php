@@ -2,7 +2,6 @@
 namespace Icicle\Loop\Structures;
 
 use Icicle\Loop\Events\TimerInterface;
-use Icicle\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
 class TimerQueue implements \Countable

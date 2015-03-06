@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Structures;
+namespace Icicle\Stream\Structures;
 
 /**
  */

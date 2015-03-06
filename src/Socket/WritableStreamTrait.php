@@ -9,7 +9,7 @@ use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnwritableException;
-use Icicle\Structures\Buffer;
+use Icicle\Stream\Structures\Buffer;
 use SplQueue;
 
 trait WritableStreamTrait

@@ -1,39 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.1/phpunit.xsd"
-        backupGlobals="false"
-        backupStaticAttributes="false"
-        bootstrap="test/bootstrap.php"
-        colors="true"
-        convertErrorsToExceptions="true"
-        convertNoticesToExceptions="true"
-        convertWarningsToExceptions="true"
-        processIsolation="false"
-        stopOnFailure="false"
-        strict="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.1/phpunit.xsd"
+    backupGlobals="false"
+    backupStaticAttributes="false"
+    bootstrap="tests/bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    strict="true"
 >
     <testsuites>
         <testsuite name="Icicle EventEmitter">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/EventEmitter</directory>
-        </testsuite>
-        <testsuite name="Icicle Structures">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Structures</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/EventEmitter</directory>
         </testsuite>
         <testsuite name="Icicle Loop">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Loop</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Loop</directory>
         </testsuite>
         <testsuite name="Icicle Promise">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Promise</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Promise</directory>
         </testsuite>
         <testsuite name="Icicle Coroutine">
-            <directory phpVersion="5.5.0" phpVersionOperator=">=">test/Coroutine</directory>
+            <directory phpVersion="5.5.0" phpVersionOperator=">=">tests/Coroutine</directory>
         </testsuite>
         <testsuite name="Icicle Stream">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Stream</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Stream</directory>
         </testsuite>
         <testsuite name="Icicle Socket">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">test/Socket</directory>
+            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Socket</directory>
         </testsuite>
     </testsuites>
     <filter>

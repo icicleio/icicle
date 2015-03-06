@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Tests\Structures;
+namespace Icicle\Tests\Loop\Structures;
 
-use Icicle\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Structures\UnreferencableObjectStorage;
 use Icicle\Tests\TestCase;
 
 class UnreferencableObjectStorageTest extends TestCase

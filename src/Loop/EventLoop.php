@@ -11,7 +11,7 @@ use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
 use Icicle\Loop\Exception\UnsupportedException;
-use Icicle\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Structures\UnreferencableObjectStorage;
 
 class EventLoop extends AbstractLoop
 {

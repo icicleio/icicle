@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Tests\Structures;
+namespace Icicle\Tests\Loop\Structures;
 
-use Icicle\Structures\CallableQueue;
+use Icicle\Loop\Structures\CallableQueue;
 use Icicle\Tests\TestCase;
 
 class CallableQueueTest extends TestCase

@@ -8,7 +8,7 @@ use Icicle\Stream\Exception\BusyException;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
-use Icicle\Structures\Buffer;
+use Icicle\Stream\Structures\Buffer;
 
 /**
  * Serves as buffer that implements the stream interface, allowing consumers to be notified when data is available in

@@ -8,8 +8,8 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\ImmediateInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
+use Icicle\Loop\Structures\CallableQueue;
 use Icicle\Loop\Structures\ImmediateQueue;
-use Icicle\Structures\CallableQueue;
 
 abstract class AbstractLoop implements LoopInterface
 {

@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Structures;
+namespace Icicle\Stream\Structures;
 
-use Icicle\Structures\Exception\InvalidIteratorException;
+use Icicle\Stream\Exception\LogicException;
 
 /**
  */
@@ -112,7 +112,7 @@ class BufferIterator implements \SeekableIterator
     public function insert($data)
     {
         if (!$this->valid()) {
-            throw new InvalidIteratorException('The iterator is not valid!');
+            throw new LogicException('The iterator is not valid!');
         }
         
         $this->buffer[$this->current] = $this->buffer[$this->current] . $data;
@@ -126,7 +126,7 @@ class BufferIterator implements \SeekableIterator
     public function replace($data)
     {
         if (!$this->valid()) {
-            throw new InvalidIteratorException('The iterator is not valid!');
+            throw new LogicException('The iterator is not valid!');
         }
         
         $temp = $this->buffer[$this->current];
@@ -142,7 +142,7 @@ class BufferIterator implements \SeekableIterator
     public function remove()
     {
         if (!$this->valid()) {
-            throw new InvalidIteratorException('The iterator is not valid!');
+            throw new LogicException('The iterator is not valid!');
         }
         
         $temp = $this->buffer[$this->current];
