@@ -16,12 +16,11 @@
         "event"
     ],
     "homepage": "http://icicle.io",
-    "license": "MIT",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "Aaron Piotrowski",
-            "email": "aaron@trowski.com",
-            "homepage": "http://trowski.com"
+            "email": "aaron@icicle.io",
         }
     ],
     "require": {
@@ -32,7 +31,7 @@
     },
     "suggest": {
         "ext-openssl": "Enables using SSL/TLS on stream sockets.",
-        "ext-pcntl": "Enables custom signal handling, process forking, and child process execution.",
+        "ext-pcntl": "Enables custom signal handling.",
         "ext-event": "Preferred extension for providing an event loop with better performance.",
         "ext-libevent": "Alternative extension that also provides an event loop with better performance."
     },
