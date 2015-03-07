@@ -29,9 +29,11 @@ class PromiseMapTest extends TestCase
     {
         $values = [1, 2, 3];
         
-        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+        $callback = $this->createCallback(3);
+        $callback = function ($value) use ($callback) {
+            $callback();
             return $value + 1;
-        }));
+        };
         
         $result = Promise::map($values, $callback);
         
@@ -52,9 +54,11 @@ class PromiseMapTest extends TestCase
     {
         $promises = [Promise::resolve(1), Promise::resolve(2), Promise::resolve(3)];
         
-        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+        $callback = $this->createCallback(3);
+        $callback = function ($value) use ($callback) {
+            $callback();
             return $value + 1;
-        }));
+        };
         
         $result = Promise::map($promises, $callback);
         
@@ -77,9 +81,11 @@ class PromiseMapTest extends TestCase
             Promise::resolve(3)->delay(0.1)
         ];
         
-        $callback = $this->createCallback(3, $this->returnCallback(function ($value) {
+        $callback = $this->createCallback(3);
+        $callback = function ($value) use ($callback) {
+            $callback();
             return $value + 1;
-        }));
+        };
         
         $result = Promise::map($promises, $callback);
         
@@ -126,7 +132,9 @@ class PromiseMapTest extends TestCase
         $values = [1, 2, 3];
         $exception = new Exception();
         
-        $callback = $this->createCallback(3, $this->throwException($exception));
+        $callback = $this->createCallback(3);
+        $callback->method('__invoke')
+                 ->will($this->throwException($exception));
         
         $result = Promise::map($values, $callback);
         

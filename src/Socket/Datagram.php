@@ -5,12 +5,14 @@ use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
+use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
+use Icicle\Socket\Exception\EofException;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
-use Icicle\Structures\Buffer;
+use Icicle\Stream\Structures\Buffer;
 use SplQueue;
 
 class Datagram extends Socket
@@ -102,11 +104,6 @@ class Datagram extends Socket
                 return;
             }
             
-            if (@feof($resource)) { // Datagram closed.
-                $this->close(new ClosedException('Datagram closed unexpectedly.'));
-                return;
-            }
-            
             if (0 === $this->length) {
                 $this->deferred->resolve([null, null, '']);
                 $this->deferred = null;
@@ -115,6 +112,8 @@ class Datagram extends Socket
             
             $data = @stream_socket_recvfrom($resource, $this->length, 0, $peer);
             
+            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+            // @codeCoverageIgnoreStart
             if (false === $data) { // Reading failed, so close datagram.
                 $message = 'Failed to read from datagram.';
                 $error = error_get_last();
@@ -123,11 +122,11 @@ class Datagram extends Socket
                 }
                 $this->close(new FailureException($message));
                 return;
-            }
+            } // @codeCoverageIgnoreEnd
             
             $colon = strrpos($peer, ':');
             
-            $address = trim(substr($peer, 0, $colon), '[]');
+            $address = substr($peer, 0, $colon);
             $port = (int) substr($peer, $colon + 1);
             
             if (false !== strpos($address, ':')) { // IPv6 address
@@ -144,6 +143,8 @@ class Datagram extends Socket
             if (!$data->isEmpty()) {
                 $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
                 
+                // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+                // @codeCoverageIgnoreStart
                 if (false === $written || 0 >= $written) {
                     $message = 'Failed to write to datagram.';
                     $error = error_get_last();
@@ -154,7 +155,7 @@ class Datagram extends Socket
                     $deferred->reject($exception);
                     $this->close($exception);
                     return;
-                }
+                } // @codeCoverageIgnoreEnd
                 
                 if ($data->getLength() <= $written) {
                     $deferred->resolve($written + $previous);
@@ -230,8 +231,10 @@ class Datagram extends Socket
      * @reject  BusyException If a read was already pending on the datagram.
      * @reject  UnreadableException If the datagram is no longer readable.
      * @reject  ClosedException If the datagram has been closed.
+     * @reject  TimeoutException If receiving times out.
+     * @reject  FailureExcpetion If receiving fails.
      */
-    public function receive($length = null)
+    public function receive($length = null, $timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on datagram.'));
@@ -250,7 +253,7 @@ class Datagram extends Socket
             }
         }
         
-        $this->poll->listen();
+        $this->poll->listen($timeout);
         
         $this->deferred = new Deferred(function () {
             $this->poll->cancel();
@@ -261,17 +264,37 @@ class Datagram extends Socket
     }
     
     /**
+     * @param   int|float|null $timeout
+     *
      * @return  PromiseInterface
+     *
+     * @resolve int Always resolves with 0.
+     *
+     * @reject  BusyException If the datagram was already waiting on a read.
+     * @reject  UnavailableException If the datagram is no longer readable.
+     * @reject  ClosedException If the datagram closes.
+     * @reject  TimeoutException If polling times out.
+     * @reject  FailureExcpetion If polling fails.
      */
-    public function poll()
+    public function poll($timeout = null)
     {
-        return $this->receive(0);
+        return $this->receive(0, $timeout);
     }
     
     /**
-     * @param   string $address
-     * @param   int $port
-     * @param   string|null $data
+     * @param   int|string $address IP address of receiver.
+     * @param   int $port Port of receiver.
+     * @param   string|null $data Data to send.
+     * @param   int|float|null $timeout
+     *
+     * @return  PromiseInterface
+     *
+     * @resolve int Number of bytes written.
+     *
+     * @reject  UnavailableException If the datagram is no longer writable.
+     * @reject  ClosedException If the datagram closes.
+     * @reject  TimeoutException If sending the data times out.
+     * @reject  FailureExcpetion If sending data fails.
      */
     public function send($address, $port, $data)
     {
@@ -296,6 +319,8 @@ class Datagram extends Socket
             
             $written = @stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
             
+            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+            // @codeCoverageIgnoreStart
             if (false === $written || -1 === $written) {
                 $message = 'Failed to write to datagram.';
                 $error = error_get_last();
@@ -305,7 +330,7 @@ class Datagram extends Socket
                 $exception = new FailureException($message);
                 $this->close($exception);
                 return Promise::reject($exception);
-            }
+            } // @codeCoverageIgnoreEnd
             
             if ($data->getLength() <= $written) {
                 return Promise::resolve($written);

@@ -64,20 +64,40 @@ class CallableQueueTest extends TestCase
     /**
      * @depends testInsert
      */
-    public function testInvoke()
+    public function testCall()
     {
         $this->queue->insert($this->createCallback(1));
+        $this->queue->insert($this->createCallback(1));
+        $this->queue->insert($this->createCallback(1));
         
-        $queue = $this->queue;
-        $queue();
+        $this->assertSame(3, $this->queue->call());
     }
     
     /**
-     * @depends testInsert
+     * @depends testCall
+     */
+    public function testInvoke()
+    {
+        $this->queue->insert($this->createCallback(1));
+        $this->queue->insert($this->createCallback(1));
+        
+        $queue = $this->queue;
+        $this->assertSame(2, $queue());
+    }
+    
+    /**
+     * @depends testCall
      */
     public function testMaxDepth()
     {
         $previous = $this->queue->maxDepth(1);
+        
+        $this->queue->insert($this->createCallback(1));
+        $this->queue->insert($this->createCallback(1));
+        
+        $this->queue->call();
+        
+        $this->assertSame(1, $previous = $this->queue->maxDepth(2));
         
         $this->queue->insert($this->createCallback(1));
         $this->queue->insert($this->createCallback(0));

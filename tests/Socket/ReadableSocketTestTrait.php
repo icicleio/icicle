@@ -39,7 +39,7 @@ trait ReadableSocketTestTrait
     }
     
     /**
-     * @depends testRead
+     * @depends testReadTo
      */
     public function testReadToAfterEof()
     {
@@ -64,6 +64,92 @@ trait ReadableSocketTestTrait
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testRead
+     */
+    public function testReadWithTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->read(null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToWithTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->readTo("\0", null, self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPoll
+     */
+    public function testPollAfterEof()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $writable->write(self::WRITE_STRING);
+        
+        fclose($writable->getResource()); // Close other end of pipe.
+        
+        $promise = $readable->read();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo(self::WRITE_STRING));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run(); // Drain readable buffer.
+        
+        $promise = $readable->poll();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testPoll
+     */
+    public function testPollWithTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $readable->poll(self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
         
         $promise->done($this->createCallback(0), $callback);
         

@@ -6,6 +6,7 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\AcceptException;
+use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
@@ -47,7 +48,13 @@ class Server extends Socket implements ServerInterface
      *
      * @param   string $host
      * @param   int $port
-     * @param   array $options
+     * @param   array $options {
+     *     @var int $backlog Connection backlog size. Note that operating system setting SOMAXCONN may set an upper
+     *          limit and may need to be changed to allow a larger backlog size.
+     *     @var string $pem Path to PEM file containing certificate and private key to enable SSL on client connections.
+     *     @var string $passphrase PEM passphrase if applicable.
+     *     @var string $name Name to use as SNI identifier. If not set, name will be guessed based on $host.
+     * }
      *
      * @return  Server
      *
@@ -81,6 +88,7 @@ class Server extends Socket implements ServerInterface
             $context['ssl']['disable_compression'] = true;
             $context['ssl']['SNI_enabled'] = true;
             $context['ssl']['SNI_server_name'] = $name;
+            $context['ssl']['peer_name'] = $name;
             
             if (null !== $passphrase) {
                 $context['ssl']['passphrase'] = $passphrase;
@@ -112,14 +120,10 @@ class Server extends Socket implements ServerInterface
                 return;
             }
             
-            if (!$this->isOpen()) {
-                $this->close(new ClosedException('The server closed unexpectedly.'));
-                return;
-            }
-            
             // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
             $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
             
+            // Having difficultly finding a test to cover this scenario, but it has been seen in production.
             // @codeCoverageIgnoreStart
             if (!$client) {
                 $message = 'Could not accept client.';
@@ -145,6 +149,8 @@ class Server extends Socket implements ServerInterface
     
     /**
      * @inheritdoc
+     *
+     * @param   Exception|null $exception Reason for closing.
      */
     public function close(Exception $exception = null)
     {
@@ -172,11 +178,11 @@ class Server extends Socket implements ServerInterface
     public function accept($timeout = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new UnavailableException('Already waiting on server.'));
+            return Promise::reject(new BusyException('Already waiting on server.'));
         }
         
         if (!$this->isOpen()) {
-            return Promise::reject(new ClosedException('The server has been closed.'));
+            return Promise::reject(new UnavailableException('The server has been closed.'));
         }
         
         $this->poll->listen($timeout);

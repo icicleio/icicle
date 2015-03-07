@@ -121,7 +121,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\UnavailableException'));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -147,38 +147,6 @@ class ServerTest extends TestCase
         
         Loop::run();
     }
-    
-    /**
-     * @depends testAccept
-     */
-/*
-    public function testAcceptAfterEof()
-    {
-        $this->server = Server::create(self::HOST_IPv4, self::PORT);
-        
-        $promise = $this->server->accept();
-        
-        fclose($this->server->getResource());
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        $client = stream_socket_client(
-            'tcp://' . self::HOST_IPv4 . ':' . self::PORT,
-            $errno,
-            $errstr,
-            self::CONNECT_TIMEOUT,
-            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
-        );
-        
-        Loop::run();
-        
-        $this->server->close();
-    }
-*/
     
     /**
      * @depends testAccept
@@ -215,7 +183,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\ClosedException'));
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\UnavailableException'));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -249,7 +217,7 @@ class ServerTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\UnavailableException'));
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\BusyException'));
         
         $promise2->done($this->createCallback(0), $callback);
         

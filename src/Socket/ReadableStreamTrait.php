@@ -211,16 +211,9 @@ trait ReadableStreamTrait
         
         $result = new Promise(
             function ($resolve, $reject) use (&$promise, $stream, $byte, $length, $timeout) {
-                $handler = function ($data) use (
-                    &$handler,
-                    &$promise,
-                    &$length,
-                    $stream,
-                    $byte,
-                    $timeout,
-                    $resolve,
-                    $reject
-                ) {
+                $handler = function ($data)
+                    use (&$handler, &$promise, &$length, $stream, $byte, $timeout, $resolve, $reject)
+                {
                     static $bytes = 0;
                     
                     $count = strlen($data);

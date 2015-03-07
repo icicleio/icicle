@@ -83,9 +83,7 @@ abstract class AbstractLoopTest extends TestCase
              ->will($this->returnValue($callback));
         
         $poll->method('call')
-             ->will($this->returnCallback(function ($resource, $expired) use ($callback) {
-                 $callback($resource, $expired);
-             }));
+             ->will($this->returnCallback($callback));
         
         $poll->method('cancel')
              ->will($this->returnCallback(function () use ($poll) {
@@ -107,9 +105,7 @@ abstract class AbstractLoopTest extends TestCase
               ->will($this->returnValue($callback));
         
         $await->method('call')
-              ->will($this->returnCallback(function ($resource, $expired) use ($callback) {
-                 $callback($resource, $expired);
-             }));
+              ->will($this->returnCallback($callback));
         
         $await->method('cancel')
               ->will($this->returnCallback(function () use ($await) {
@@ -134,9 +130,7 @@ abstract class AbstractLoopTest extends TestCase
                   ->will($this->returnValue($callback));
         
         $immediate->method('call')
-                  ->will($this->returnCallback(function () use ($callback) {
-                      $callback();
-                  }));
+                  ->will($this->returnCallback($callback));
         
         $immediate->method('cancel')
                   ->will($this->returnCallback(function () use ($immediate) {
@@ -161,9 +155,7 @@ abstract class AbstractLoopTest extends TestCase
               ->will($this->returnValue($callback));
         
         $timer->method('call')
-              ->will($this->returnCallback(function () use ($callback) {
-                  $callback();
-              }));
+              ->will($this->returnCallback($callback));
         
         $timer->method('getInterval')
               ->will($this->returnValue((float) $interval));

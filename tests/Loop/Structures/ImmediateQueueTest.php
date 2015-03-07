@@ -28,9 +28,7 @@ class ImmediateQueueTest extends TestCase
                   ->will($this->returnValue($callback));
         
         $immediate->method('call')
-                  ->will($this->returnCallback(function () use ($callback) {
-                      $callback();
-                  }));
+                  ->will($this->returnCallback($callback));
         
         return $immediate;
     }

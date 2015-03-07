@@ -62,28 +62,6 @@ trait WritableStreamTestTrait
     /**
      * @depends testWrite
      */
-    public function testWriteThenClose()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $promise = $writable->write(self::WRITE_STRING);
-        
-        $writable->close();
-        
-        $this->assertFalse($writable->isWritable());
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo(strlen(self::WRITE_STRING)));
-        
-        $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testWrite
-     */
     public function testWriteEmptyString()
     {
         list($readable, $writable) = $this->createStreams();

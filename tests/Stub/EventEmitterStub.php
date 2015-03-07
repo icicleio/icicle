@@ -8,6 +8,5 @@ class EventEmitterStub implements EventEmitterInterface
 {
     use EventEmitterTrait {
         createEvent as public;
-        emit as public;
     }
 }

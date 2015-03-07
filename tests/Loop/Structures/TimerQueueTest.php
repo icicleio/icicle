@@ -37,9 +37,7 @@ class TimerQueueTest extends TestCase
               ->will($this->returnValue($callback));
         
         $timer->method('call')
-              ->will($this->returnCallback(function () use ($callback) {
-                  $callback();
-              }));
+              ->will($this->returnCallback($callback));
         
         return $timer;
     }

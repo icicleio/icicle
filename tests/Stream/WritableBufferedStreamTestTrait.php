@@ -8,7 +8,7 @@ trait WritableBufferedStreamTestTrait
     /**
      * @depends testWrite
      */
-    public function testMultipleWritesThenClose()
+    public function testCloseAfterPendingWrite()
     {
         list($readable, $writable) = $this->createStreams();
         

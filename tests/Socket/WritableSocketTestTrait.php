@@ -45,4 +45,46 @@ trait WritableSocketTestTrait
         
         Loop::run();
     }
+    
+    /**
+     * @depends testAwait
+     */
+    public function testAwaitTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        do { // Write until a pending promise is returned.
+            $promise = $writable->write(self::WRITE_STRING, self::TIMEOUT);
+        } while (!$promise->isPending());
+        
+        $promise = $writable->await(self::TIMEOUT);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
+    
+    /**
+     * @depends testAwait
+     */
+    public function testAwaitThenClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+        
+        $promise = $writable->await();
+        
+        $writable->close();
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Stream\Exception\ClosedException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        Loop::run();
+    }
 }
