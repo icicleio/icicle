@@ -196,9 +196,9 @@ Scheduled functions will always be executed in the order scheduled. (Exact timin
 
 Streams represent a common promise-based API that may be implemented by classes that read or write sequences of binary data to facilitate interoperability. The stream component defines three interfaces, one of which should be used by all streams.
 
-`Icicle\Stream\ReadableStreamInterface`: Interface to be used by streams that are only readable.
-`Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
-`Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
+- `Icicle\Stream\ReadableStreamInterface`: Interface to be used by streams that are only readable.
+- `Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
+- `Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
 
 **[Streams API documentation](src/Stream)**
 
@@ -226,10 +226,8 @@ $handler = function (ClientInterface $client) use (&$handler, &$error, $server) 
     $client->end("Hello world!");
 };
 
-$error = function (Exception $e) use (&$handler, &$error) {
-    echo "Error accepting client: {$e->getMessage()}\n";
-    
-    $server->accept()->done($handler, $error);
+$error = function (Exception $e) {
+    echo "Error: {$e->getMessage()}\n";
 };
 
 $server->accept()->done($handler, $error);
@@ -260,12 +258,12 @@ $coroutine = Coroutine::call(function (Server $server) {
         yield $client->end("Hello world!");
     });
     
-    while ($server->isOpen()) {
-        try {
+    try {
+        while ($server->isOpen()) {
             $handler(yield $server->accept());
-        } catch (Exception $e) {
-            echo "Error accepting client: {$e->getMessage()}\n";
         }
+    } catch (Exception $e) {
+        echo "Error: {$e->getMessage()}\n";
     }
 }, Server::create('localhost', 60000));
 
@@ -280,7 +278,7 @@ Event emitters can create a set of events identified by an integer or string to 
 
 This implementation differs from other event emitter libraries by ensuring that a particular callback can only be registered once for a particular event identifier. An attempt to register a previously registered callback is a no-op.
 
-Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\InvalidEventException` is thrown.
+Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
 
 **[Event Emitter API documentation](src/Event)**
 

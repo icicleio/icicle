@@ -49,6 +49,7 @@ Callback functions registered to promises are always [invoked asynchronously](#a
     - [Child Promise Resolution](#child-promise-resolution)
     - [Asynchronous Callback Invocation](#asynchronous-callback-invocation)
     - [Promise Chaining](#promise-chaining)
+    - [Iterative Resolution](#iterative-resolution)
 - [Acknowledgements](#acknowledgements)
 
 #### Function prototypes
@@ -585,6 +586,48 @@ In the above example, the functions `doAsynchronousTask()` and `anotherAsynchron
 
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is used as a parameter to `anotherAsynchronousTask()`, which returns a new promise. The resolution of `$promise2` will then be determined by the resolution of this promise (`$promise2` will adopt the state of the promise returned by `anotherAsynchronousTask()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
+
+### Iterative Resolution
+
+Promise resolution is handled iteratively, so there is no concern of overflowing the call stack regardless of how deep the chain may have become. The example below demonstrates how a chain of 100 promises maintains a constant call stack size when the registered callbacks are invoked.
+
+``` php
+use Icicle\Loop\Loop;
+use Icicle\Promise\Deferred;
+
+$deferred = new Deferred();
+$promise = $deferred->getPromise();
+
+for ($i = 0; $i < 100; ++$i) {
+    $promise = $promise->then(function ($value) {
+        printf("%3d) %d\n", $value, xdebug_get_stack_depth()); // Stack size is constant
+        return ++$value;
+    });
+}
+
+$deferred->resolve(1);
+
+Loop::run();
+```
+
+When a promise is resolved with another promise the original promise transfers the responsibility of invoking registered callbacks to the promise used for resolution. A promise may be fulfilled any number of times with another promise, and the call stack will not overflow when the promise is eventually resolved.
+
+## Cancellation
+
+If a promise is still pending, the promise may be cancelled using the `cancel()` method ([see prototype for more information](#promiseinterface-cancel)). This immediately rejects the promise, and calls any cancellation callback that may have been provided when the promise was created.
+
+When cancelling a child promise (a promise returned by `then()` or other methods returning another promise), the parent promise is also cancelled if there are no other pending children. The parent process is only cancelled if all children are also cancelled.
+
+``` php
+$parent = new Promise(function ($resolve, $reject) { /* ... */ });
+
+$child1 = $parent->then();
+$child2 = $parent->then();
+
+$child1->cancel(); // Cancels only $child1.
+
+$child2->cancel(); // Cancels both $child2 and $parent.
+```
 
 ## Acknowledgements
 
