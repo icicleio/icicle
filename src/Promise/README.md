@@ -214,7 +214,7 @@ This static method returns a rejected promise using the given exception as the r
 
 ### PromiseInterface
 
-All promise objects implement `Icicle\Promise\PromiseInterface`, which provides a variety of functions for registering callbacks to receive the resolution value of a promise.
+All promise objects implement `Icicle\Promise\PromiseInterface`, which provides a variety of functions for registering callbacks to receive the resolution value of a promise. While the primary promise implementation is `Icicle\Promise\Promise`, several other classes in this component also implement `Icicle\Promise\PromiseInterface`.
 
 #### PromiseInterface->then()
 

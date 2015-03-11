@@ -19,15 +19,9 @@ $coroutine = Coroutine::call(function (Datagram $datagram) {
             yield $datagram->send($address, $port, "Echo: {$data}\n");
         }
     } catch (Exception $e) {
-        echo "{$e->getMessage()}\n";
+        echo "Error: {$e->getMessage()}\n";
         $datagram->close();
     }
 }, Datagram::create('localhost', 60000));
-
-$coroutine->capture(
-    function (Exception $exception) {
-        echo "Coroutine rejected with: {$exception->getMessage()}\n";
-    }
-);
 
 Loop::run();

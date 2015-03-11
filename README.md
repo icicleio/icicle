@@ -9,8 +9,8 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
 - [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or await for space to write.
+- [Streams](#streams): Common interface for reading and writing data.
 - [Sockets](#sockets): Implement asynchronous network and file operations.
-- [Streams](#streams): Common interface for reading and writing from sockets or transforming data.
 - [Event Emitters](#event-emitters): Allows objects to emit events that execute a set of registered callbacks.
 
 ##### Requirements
@@ -21,14 +21,14 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 The recommended way to install Icicle is with the [Composer](http://getcomposer.org/) package manager.
 
-Composer may be installed with the following command:
+Composer may be installed with the following command: (see the [Composer installation guide](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx) for more information.)
 ``` bash
 curl -sS https://getcomposer.org/installer | php
 ```
 
 Once installed, use Composer to install Icicle into your project directory.
 ``` bash
-composer.phar require icicle/icicle
+php composer.phar require icicle/icicle 0.1.*
 ```
 
 Require Composer's autoloader to use packages installed with Composer.
@@ -55,9 +55,11 @@ Promises are objects that act as placeholders for the future value of an asynchr
 
 Callback functions are the primary way of accessing the resolution value of promises. Unlike other APIs that use callbacks, **promises provide an execution context to callback functions, allowing callbacks to return values and throw exceptions**.
 
-The `then(callable $onFulfilled = null, callable $onRejected = null)` method is the primary way to register callbacks that receive either the value used to fulfill the promise or the exception used to reject the promise. A promise is returned by `then()`, which is resolved with the return value of a callback or rejected if a callback throws an exception.
+All promise objects implement a common interface: `Icicle\Promise\PromiseInterface`. While the primary promise implementation is `Icicle\Promise\Promise`, several other classes also implement `Icicle\Promise\PromiseInterface`.
 
-The `done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
+The `Icicle\Promise\PromiseInterface->then(callable $onFulfilled = null, callable $onRejected = null)` method is the primary way to register callbacks that receive either the value used to fulfill the promise or the exception used to reject the promise. A promise is returned by `then()`, which is resolved with the return value of a callback or rejected if a callback throws an exception.
+
+The `Icicle\Promise\PromiseInterface->done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
 
 *[More on using callbacks to interact with promises...](src/Promise#interacting-with-promises)*
 
@@ -115,7 +117,7 @@ When a coroutine yields a [promise](#promises), execution of the coroutine is in
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-The example below uses the `Coroutine` from a function creating a `Generator`.
+The example below uses the `Icicle\Coroutine\Coroutine::call()` method to create a `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`.
 
 ``` php
 use Icicle\Coroutine\Coroutine;
@@ -142,19 +144,19 @@ Loop::run();
 
 The example above does the same thing as the example section on [promises](#promises) above, but instead uses a coroutine to **structure asynchronous code like synchronous code** using a try/catch block, rather than creating and registering callback functions.
 
-A `Coroutine` object is also a [promise](#promises). The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Coroutine` and handled in the same way as a yielded coroutine.
+A `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
 **[Coroutine API documentation](src/Coroutine)**
 
 ## Loop
 
-The event loop schedules functions, runs timers, handles signals, and polls sockets for pending reads and available writes. There are several event loop implementations available depending on what PHP extensions are available. The `SelectLoop` class uses only core PHP functions, so it will work on any PHP installation, but is not as performant as some of the other available implementations. All event loops implement `LoopInterface` and provide the same features.
+The event loop schedules functions, runs timers, handles signals, and polls sockets for pending reads and available writes. There are several event loop implementations available depending on what PHP extensions are available. The `Icicle\Loop\SelectLoop` class uses only core PHP functions, so it will work on any PHP installation, but is not as performant as some of the other available implementations. All event loops implement `Icicle\Loop\LoopInterface` and provide the same features.
 
-The event loop should be accessed via the static methods of the `Loop` class. The `Loop::init()` method allows a specific or custom implementation of `LoopInterface` to be used as the event loop.
+The event loop should be accessed via the static methods of the `Icicle\Loop\Loop` facade class. The `Icicle\Loop\Loop::init()` method allows a specific or custom implementation of `Icicle\Loop\LoopInterface` to be used as the event loop.
 
-The `Loop::run()` method runs the event loop and will not return until the event loop is stopped or no further scheduled functions, timers, or sockets remain in the loop.
+The `Icicle\Loop\Loop::run()` method runs the event loop and will not return until the event loop is stopped or no events are pending in the loop.
 
-The following code demonstrates how functions may be scheduled to run later using the `Loop::schedule()` method.
+The following code demonstrates how functions may be scheduled to run later using the `Icicle\Loop\Loop::schedule()` method.
 
 ``` php
 use Icicle\Loop\Loop;
@@ -190,54 +192,140 @@ Scheduled functions will always be executed in the order scheduled. (Exact timin
 
 **[Loop API documentation](src/Loop)**
 
-## Sockets
-
-**[Sockets API documentation](src/Socket)**
-
 ## Streams
+
+Streams represent a common promise-based API that may be implemented by classes that read or write sequences of binary data to facilitate interoperability. The stream component defines three interfaces, one of which should be used by all streams.
+
+`Icicle\Stream\ReadableStreamInterface`: Interface to be used by streams that are only readable.
+`Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
+`Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
 
 **[Streams API documentation](src/Stream)**
 
-## Timers
+## Sockets
 
-**[Timers API documentation](src/Timer)**
+The socket component implements network sockets as promise-based streams, server, and datagram. Creating a server and accepting connections is very simple, requiring only a few lines of code.
+
+The example below implements HTTP server that responds to any request with `Hello world!` implemented using the promise-based server and client provided by the Socket component.
+
+``` php
+use Icicle\Loop\Loop;
+use Icicle\Socket\ClientInterface;
+use Icicle\Socket\Server;
+
+$server = Server::create('localhost', 60000);
+
+$handler = function (ClientInterface $client) use (&$handler, &$error, $server) {
+    $server->accept()->done($handler, $error);
+    
+    $client->write("HTTP/1.1 200 OK\r\n");
+    $client->write("Content-Length: 12\r\n");
+    $client->write("Connection: close\r\n");
+    $client->write("\r\n");
+    
+    $client->end("Hello world!");
+};
+
+$error = function (Exception $e) use (&$handler, &$error) {
+    echo "Error accepting client: {$e->getMessage()}\n";
+    
+    $server->accept()->done($handler, $error);
+};
+
+$server->accept()->done($handler, $error);
+
+echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
+
+Loop::run();
+
+```
+
+The example below shows the same HTTP server as above, instead implemented using a coroutine.
+
+``` php
+use Icicle\Coroutine\Coroutine;
+use Icicle\Loop\Loop;
+use Icicle\Socket\ClientInterface;
+use Icicle\Socket\Server;
+
+$coroutine = Coroutine::call(function (Server $server) {
+    echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
+    
+    $handler = Coroutine::async(function (ClientInterface $client) {
+        $client->write("HTTP/1.1 200 OK\r\n");
+        $client->write("Content-Length: 12\r\n");
+        $client->write("Connection: close\r\n");
+        $client->write("\r\n");
+        
+        yield $client->end("Hello world!");
+    });
+    
+    while ($server->isOpen()) {
+        try {
+            $handler(yield $server->accept());
+        } catch (Exception $e) {
+            echo "Error accepting client: {$e->getMessage()}\n";
+        }
+    }
+}, Server::create('localhost', 60000));
+
+Loop::run();
+```
+
+**[Sockets API documentation](src/Socket)**
 
 ## Event Emitters
+
+Event emitters can create a set of events identified by an integer or string to which other code can register callbacks that are invoked when the event occurs. Each event emitter should implement `Icicle\EventEmitter\EventEmitterInterface`, which can be done easily by using `Icicle\EventEmitter\EventEmitterTrait` in the class definition.
+
+This implementation differs from other event emitter libraries by ensuring that a particular callback can only be registered once for a particular event identifier. An attempt to register a previously registered callback is a no-op.
+
+Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\InvalidEventException` is thrown.
 
 **[Event Emitter API documentation](src/Event)**
 
 ## Example
 
-Some example code using coroutines to create an asynchronous echo server.
+The example below shows how the components outlined above can be combined to quickly create an asynchronous echo server, capable of simultaneously handling many clients.
 
 ``` php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Client;
+use Icicle\Socket\ClientInterface;
 use Icicle\Socket\Server;
 
+// Connect using \`nc localhost 60000\`.
+
 $coroutine = Coroutine::call(function (Server $server) {
-    $handler = Coroutine::async(function (Client $client) {
+    $handler = Coroutine::async(function (ClientInterface $client) {
         try {
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
             while ($client->isReadable()) {
                 $data = (yield $client->read());
                 
-                if ("exit\n" === $data) {
-                    yield $client->write("Goodbye!\n");
-                    $client->close();
+                $data = trim($data, "\n");
+                
+                if ("exit" === $data) {
+                    yield $client->end("Goodbye!\n");
                 } else {
-                    yield $client->write($data);
+                    yield $client->write("Echo: {$data}\n");
                 }
             }
         } catch (Exception $e) {
+            echo "Client error: {$e->getMessage()}\n";
             $client->close();
         }
     });
     
+    echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
+    
     while ($server->isOpen()) {
-        $handler(yield $server->accept());
+        try {
+            $handler(yield $server->accept());
+        } catch (Exception $e) {
+            echo "Error accepting client: {$e->getMessage()}\n";
+        }
     }
 }, Server::create('localhost', 60000));
 

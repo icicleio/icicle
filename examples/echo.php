@@ -5,13 +5,13 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Client;
+use Icicle\Socket\ClientInterface;
 use Icicle\Socket\Server;
 
 // Connect using `nc localhost 60000`.
 
 $coroutine = Coroutine::call(function (Server $server) {
-    $handler = Coroutine::async(function (Client $client) {
+    $handler = Coroutine::async(function (ClientInterface $client) {
         try {
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
@@ -27,7 +27,7 @@ $coroutine = Coroutine::call(function (Server $server) {
                 }
             }
         } catch (Exception $e) {
-            echo "{$e->getMessage()}\n";
+            echo "Client error: {$e->getMessage()}\n";
             $client->close();
         }
     });
@@ -35,7 +35,11 @@ $coroutine = Coroutine::call(function (Server $server) {
     echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
     
     while ($server->isOpen()) {
-        $handler(yield $server->accept());
+        try {
+            $handler(yield $server->accept());
+        } catch (Exception $e) {
+            echo "Error accepting client: {$e->getMessage()}\n";
+        }
     }
 }, Server::create('localhost', 60000));
 
