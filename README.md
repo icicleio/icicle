@@ -8,20 +8,42 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
 - [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
-- [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or available writes.
+- [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or await for space to write.
 - [Sockets](#sockets): Implement asynchronous network and file operations.
 - [Streams](#streams): Common interface for reading and writing from sockets or transforming data.
-- [Timers](#timers): Used to schedule functions for execution after an interval of time or after other available events are handled.
 - [Event Emitters](#event-emitters): Allows objects to emit events that execute a set of registered callbacks.
 
 ##### Requirements
 
 - PHP 5.4+ (PHP 5.5+ required for [coroutines](#coroutines)).
 
+##### Installation
+
+The recommended way to install Icicle is with the [Composer](http://getcomposer.org/) package manager.
+
+Composer may be installed with the following command:
+``` bash
+curl -sS https://getcomposer.org/installer | php
+```
+
+Once installed, use Composer to install Icicle into your project directory.
+``` bash
+composer.phar require icicle/icicle
+```
+
+Require Composer's autoloader to use packages installed with Composer.
+``` php
+require 'vendor/autoload.php';
+```
+
+##### Download
+
+Icicle may also be [downloaded as a zip package](archive/master.zip). It is compatible with any [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant autoloader when the `Icicle` namespace is loaded from the `src` directory.
+
 ##### Suggested
 
 - [openssl extension](http://php.net/manual/en/book.openssl.php): Enables using SSL/TLS on sockets.
-- [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling, process forking, and child process execution.
+- [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling.
 - [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
 - [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
 
@@ -67,7 +89,7 @@ $promise2->done(
 Loop::run();
 ```
 
-In the above example, the function `doAsynchronousTask()` and `anotherAsynchronousTask()` are functions that return a promise. $promise1 created by `doAsynchronousTask()` will either be fulfilled or rejected:
+In the above example, the functions `doAsynchronousTask()` and `anotherAsynchronousTask()` both return promises. `$promise1` created by `doAsynchronousTask()` will either be fulfilled or rejected:
 
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is used as a parameter to `anotherAsynchronousTask()`, which returns a new promise. The resolution of `$promise2` will then be determined by the resolution of this promise (`$promise2` will adopt the state of the promise returned by `anotherAsynchronousTask()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
@@ -89,11 +111,11 @@ In the above example, the function `doAsynchronousTask()` and `anotherAsynchrono
 
 Coroutines are interruptible functions implemented using [Generators](http://www.php.net/manual/en/language.generators.overview.php). A `Generator` usually uses the `yield` keyword to yield a value from a set to implement an iterator. Coroutines use the `yield` keyword to define interruption points. When a coroutine yields a value, execution of the coroutine is temporarily interrupted, allowing other tasks to be run, such as I/O, timers, or other coroutines.
 
-When a coroutine yields a [promise](#promises), execution of the coroutine is interrupted until the promise is resolved. If the promise is fulfilled with a value, the yield statement that yielded the promise will take on the resolved value. For example, `$value = (yield Promise::resolve(2.718));` will set `$value` to `2.718` when execution of the coroutine is resumed. If the promise is rejected, the exception used to reject the promise will be thrown into the function at the yield statement. For example, `yield Promise::reject(new Exception())` would behave identically to replacing the yield statement with `throw new Exception();`.
+When a coroutine yields a [promise](#promises), execution of the coroutine is interrupted until the promise is resolved. If the promise is fulfilled with a value, the yield statement that yielded the promise will take on the resolved value. For example, `$value = (yield Icicle\Promise\Promise::resolve(2.718));` will set `$value` to `2.718` when execution of the coroutine is resumed. If the promise is rejected, the exception used to reject the promise will be thrown into the function at the yield statement. For example, `yield Icicle\Promise\Promise::reject(new Exception());` would behave identically to replacing the yield statement with `throw new Exception();`.
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-The example below uses the `Coroutine::call()` method to create a `Coroutine` from a function creating a `Generator`.
+The example below uses the `Coroutine` from a function creating a `Generator`.
 
 ``` php
 use Icicle\Coroutine\Coroutine;
@@ -120,7 +142,7 @@ Loop::run();
 
 The example above does the same thing as the example section on [promises](#promises) above, but instead uses a coroutine to **structure asynchronous code like synchronous code** using a try/catch block, rather than creating and registering callback functions.
 
-A `Coroutine` is also a [promise](#promises). The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Coroutine` and handled in the same way as a yielded coroutine.
+A `Coroutine` object is also a [promise](#promises). The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Coroutine` and handled in the same way as a yielded coroutine.
 
 **[Coroutine API documentation](src/Coroutine)**
 

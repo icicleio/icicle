@@ -207,7 +207,10 @@ abstract class Loop
      */
     public static function addSignalHandler($signo, callable $listener, $once = false)
     {
-        static::getInstance()->addListener($signo, $listener, $once);
+        $instance = static::getInstance();
+        if ($instance->signalHandlingEnabled()) {
+            $instance->addListener($signo, $listener, $once);
+        }
     }
     
     /**
@@ -220,7 +223,10 @@ abstract class Loop
      */
     public static function removeSignalHandler($signo, callable $listener)
     {
-        static::getInstance()->removeListener($signo, $listener);
+        $instance = static::getInstance();
+        if ($instance->signalHandlingEnabled()) {
+            $instance->removeListener($signo, $listener);
+        }
     }
     
     /**
@@ -232,7 +238,10 @@ abstract class Loop
      */
     public static function removeAllSignalHandlers($signo = null)
     {
-        static::getInstance()->removeAllListeners($signo);
+        $instance = static::getInstance();
+        if ($instance->signalHandlingEnabled()) {
+            $instance->removeAllListeners($signo);
+        }
     }
     
     /**
@@ -254,25 +263,4 @@ abstract class Loop
     {
         static::getInstance()->reInit();
     }
-    
-    /**
-     * Provides access to any other methods of the LoopInterface object.
-     *
-     * @param   string $name
-     * @param   array $args
-     *
-     * @return  mixed
-     */
-/*
-    public static function __callStatic($name, array $args)
-    {
-        $method = [self::getInstance(), $name];
-        
-        if (!is_callable($method)) {
-            throw new LogicException();
-        }
-        
-        return call_user_func_array($method, $args);
-    }
-*/
 }

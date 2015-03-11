@@ -5,6 +5,8 @@ interface EventInterface
 {
     /**
      * @return  bool
+     *
+     * @api
      */
     public function isPending();
     
