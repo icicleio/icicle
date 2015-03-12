@@ -18,21 +18,22 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
     - [Calling Coroutines Within Another Coroutine](#calling-coroutines-within-another-coroutine)
 - [Creating Coroutines](#creating-coroutines)
     - [Coroutine Constructor](#coroutine-constructor)
-    - [async()](#coroutineasync)
-    - [call()](#coroutinecall)
+    - [async()](#async)
+    - [call()](#call)
 - [Cooperation](#cooperation)
 - [Controlling Execution](#controlling-execution)
-    - [pause()](#coroutine-pause)
-    - [resume()](#coroutine-resume)
-    - [isPaused()](#coroutine-ispaused)
-    - [cancel()](#coroutine-cancel)
+    - [pause()](#pause)
+    - [resume()](#resume)
+    - [isPaused()](#ispaused)
+    - [cancel()](#cancel)
+- [Corotuines as Promises](#coroutines-as-promises)
 
 #### Function prototypes
 
 Prototypes for object instance methods are described below using the following syntax:
 
 ``` php
-ReturnType ClassName->methodName(ArgumentType $arg1, ArgumentType $arg2)
+ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
@@ -241,9 +242,11 @@ The `Icicle\Coroutine\Coroutine` class contains different methods for creating a
 Coroutine->__construct(Generator $generator)
 ```
 
-As shown in the examples above, a `Icicle\Coroutine\Coroutine` instance can be created by passing a `Generator` to the constructor. Execution of the coroutine is begun asynchronously, after leaving the calling scope of the constructor (e.g. after the function returns).
+As shown in the examples above, a `Icicle\Coroutine\Coroutine` instance can be created by passing a `Generator` to the constructor. Execution of the coroutine is begun asynchronously, after leaving the calling scope of the constructor (e.g. after the function calling the constructor returns).
 
-### Coroutine::async()
+---
+
+### async()
 
 ``` php
 callable<Coroutine (mixed ...$args)> Coroutine::async(callable<Generator (mixed ...$args)> $callback)
@@ -270,7 +273,9 @@ Loop::run();
 
 The example above will output `{11}{21}{31}{12}{22}{32}{13}{23}{33}`, demonstrating how a generator function can be used to create multiple coroutines. This example also demonstrates the cooperative execution of coroutines.
 
-### Coroutine::call()
+---
+
+### call()
 
 ``` php
 Coroutine Coroutine::call(callable<Generator (mixed ...$args)> $callback, mixed ...$args)
@@ -278,7 +283,9 @@ Coroutine Coroutine::call(callable<Generator (mixed ...$args)> $callback, mixed 
 
 Calls the given callback function with the provided arguments. The callback function should return a `Generator` written to be a coroutine.
 
-### Coroutine::create()
+---
+
+### create()
 
 ``` php
 Coroutine Coroutine::create(callable<Generator (mixed ...$args)> $callback, mixed[] $args = null)
@@ -318,34 +325,46 @@ To create a coroutine to execute later, create the `Icicle\Coroutine\Coroutine` 
 
 `Icicle\Coroutine\Coroutine` objects have some methods for controlling execution once they are created.
 
-#### Coroutine->pause()
+#### pause()
 
 ``` php
-void Coroutine->pause()
+void $coroutineInterface->pause()
 ```
 
 Pauses the coroutine once it reaches a `yield` statement (if executing). If the coroutine was already at a `yield` statement (or has not begun execution), no further code will be executed until resumed with `resume()`. Any promises that the coroutine is currently waiting for will continue to do work to be resolved, but once resolved, the coroutine will not continue until resumed.
 
-#### Coroutine->resume()
+---
+
+#### resume()
 
 ``` php
-void Coroutine->resume()
+void $coroutineInterface->resume()
 ```
 
 Resumes the coroutine if it was paused. If the coroutine was waiting for a promise to resolve, the coroutine will not continue execution until the promise has resolved.
 
-#### Coroutine->isPaused()
+---
+
+#### isPaused()
 
 ``` php
-bool Coroutine->pause()
+bool $coroutineInterface->isPaused()
 ```
 
 Determines if the coroutine is currently paused. Note that true is only returned if the coroutine was explicitly paused. It does not return true if the coroutine is waiting for a promise to resolve.
 
-#### Coroutine->cancel()
+---
+
+#### cancel()
 
 ``` php
-void Coroutine->cancel(Exception $exception = null)
+void $coroutineInterface->cancel(Exception $exception = null)
 ```
 
 Cancels execution of the coroutine. Once the coroutine reaches a `yield` statement, the given exception is thrown into the coroutine. This continues until the contained coroutine (generator) is no longer valid or the exception is thrown from the coroutine. If no exception is given, an instance of `Icicle\Coroutine\Exception\CancelledException` will be used.
+
+## Coroutines as Promises
+
+`Icicle\Coroutine\Coroutine` implements `Icicle\Coroutine\CoroutineInterface`, which extends `Icicle\Promise\PromiseInterface`. Any methods available on promises are also available on coroutines and a coroutine can be treated just like any other promise.
+
+See the [Promise API documentation](../Promise) for the complete list of the methods available in `Icicle\Promise\PromiseInterface` and the other methods available for working with promises.

@@ -36,13 +36,15 @@ bool $streamInterface->isOpen()
 
 Determines if the stream is still open. A closed stream will be neither readable or writable.
 
+---
+
 #### close()
 
 ``` php
-bool $streamInterface->close(Exception $exception = null)
+void $streamInterface->close()
 ```
 
-Closes the stream. Once closed, a stream will no longer be readable or writable. Any pending promises will be rejected with the given exception, or `Icicle\Stream\Exception\ClosedException` if no exception is given.
+Closes the stream. Once closed, a stream will no longer be readable or writable.
 
 ## ReadableStreamInterface
 
@@ -61,6 +63,8 @@ Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pendi
 Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
+---
+
 #### readTo()
 
 ``` php
@@ -76,6 +80,8 @@ Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pendi
 Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
+---
+
 #### poll()
 
 ``` php
@@ -90,6 +96,8 @@ Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no l
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
 Returns a promise that is fulfilled when there is data immediately available on the stream without consuming any data.
+
+---
 
 #### pipe()
 
@@ -110,6 +118,8 @@ Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pendi
 Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
+---
+
 #### pipeTo()
 
 ``` php
@@ -129,6 +139,8 @@ Fulfilled | `int` | Fulfilled when the writable stream closes or `$length` bytes
 Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
 Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+---
 
 #### isReadable()
 
@@ -154,6 +166,8 @@ Fulfilled | `int` | Fulfilled with the number of bytes written when the data has
 Rejected | `Icicle\Stream\Exception\UnwritableException` | If the stream is no longer writable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
+---
+
 #### await()
 
 ``` php
@@ -170,6 +184,8 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### end()
 
+---
+
 ``` php
 PromiseInterface $writableStreamInterface->end(string|null $data = null)
 ```
@@ -181,6 +197,8 @@ Resolution | Type | Description
 Fulfilled | `int` | Fulfilled with the number of bytes written when the data has actually been written to the stream.
 Rejected | `Icicle\Stream\Exception\UnwritableException` | If the stream is no longer writable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+---
 
 #### isWritable()
 
