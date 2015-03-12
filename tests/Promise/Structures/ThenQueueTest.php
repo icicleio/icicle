@@ -9,55 +9,20 @@ use Icicle\Tests\TestCase;
  */
 class ThenQueueTest extends TestCase
 {
-    public function setUp()
-    {
-        $this->queue = new ThenQueue();
-    }
-    
-    public function testInsert()
-    {
-        $this->queue->insert($this->createCallback(0));
-        
-        $this->assertFalse($this->queue->isEmpty());
-        $this->assertSame(1, $this->queue->count());
-    }
-    
-    /**
-     * @depends testInsert
-     */
     public function testInvoke()
     {
+        $queue = new ThenQueue();
+        
         $value = 'test';
         
-        $callback = $this->createCallback(1);
+        $callback = $this->createCallback(3);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
+        $queue->push($callback);
+        $queue->push($callback);
+        $queue->push($callback);
         
-        $this->queue->insert($callback);
-        
-        $queue = $this->queue;
         $queue($value);
-    }
-    
-    /**
-     * @depends testInvoke
-     */
-    public function testClear()
-    {
-        $this->queue->insert($this->createCallback(0));
-        $this->queue->insert($this->createCallback(0));
-        
-        $this->assertFalse($this->queue->isEmpty());
-        $this->assertSame(2, $this->queue->count());
-        
-        $this->queue->clear();
-        
-        $this->assertTrue($this->queue->isEmpty());
-        $this->assertSame(0, $this->queue->count());
-        
-        $this->queue->insert($this->createCallback(1));
-        
-        $this->queue->__invoke(1);
     }
 }

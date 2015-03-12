@@ -147,7 +147,7 @@ class Promise implements PromiseInterface
         return new static(
             function ($resolve, $reject) use ($onFulfilled, $onRejected) {
                 if (null !== $onFulfilled) {
-                    $this->onFulfilled->insert(function ($value) use ($resolve, $reject, $onFulfilled) {
+                    $this->onFulfilled->push(function ($value) use ($resolve, $reject, $onFulfilled) {
                         try {
                             $resolve($onFulfilled($value));
                         } catch (Exception $exception) {
@@ -155,13 +155,13 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onFulfilled->insert(function () use ($resolve) {
+                    $this->onFulfilled->push(function () use ($resolve) {
                         $resolve($this->result);
                     });
                 }
                 
                 if (null !== $onRejected) {
-                    $this->onRejected->insert(function (Exception $exception) use ($resolve, $reject, $onRejected) {
+                    $this->onRejected->push(function (Exception $exception) use ($resolve, $reject, $onRejected) {
                         try {
                             $resolve($onRejected($exception));
                         } catch (Exception $exception) {
@@ -169,7 +169,7 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onRejected->insert(function () use ($resolve) {
+                    $this->onRejected->push(function () use ($resolve) {
                         $resolve($this->result);
                     });
                 }
@@ -195,13 +195,13 @@ class Promise implements PromiseInterface
             $this->result->done($onFulfilled, $onRejected);
         } else {
             if (null !== $onFulfilled) {
-                $this->onFulfilled->insert($onFulfilled);
+                $this->onFulfilled->push($onFulfilled);
             }
             
             if (null !== $onRejected) {
-                $this->onRejected->insert($onRejected);
+                $this->onRejected->push($onRejected);
             } else {
-                $this->onRejected->insert(function (Exception $exception) {
+                $this->onRejected->push(function (Exception $exception) {
                     throw $exception; // Rethrow exception in uncatchable way.
                 });
             }
@@ -250,8 +250,8 @@ class Promise implements PromiseInterface
                     $timer->cancel();
                 };
                 
-                $this->onFulfilled->insert($onResolved);
-                $this->onRejected->insert($onResolved);
+                $this->onFulfilled->push($onResolved);
+                $this->onRejected->push($onResolved);
             },
             function (Exception $exception) use (&$timer) {
                 $timer->cancel();
@@ -276,13 +276,13 @@ class Promise implements PromiseInterface
         
         return new static(
             function ($resolve) use (&$timer, $time) {
-                $this->onFulfilled->insert(function () use (&$timer, $time, $resolve) {
+                $this->onFulfilled->push(function () use (&$timer, $time, $resolve) {
                     $timer = Loop::timer($time, function () use ($resolve) {
                         $resolve($this->result);
                     });
                 });
                 
-                $this->onRejected->insert(function () use ($resolve) {
+                $this->onRejected->push(function () use ($resolve) {
                     $resolve($this->result);
                 });
             },
