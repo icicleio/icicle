@@ -63,17 +63,17 @@ class LazyPromise implements PromiseInterface
     /**
      * @inheritdoc
      */
-    public function cancel(Exception $exception = null)
+    public function cancel($reason = null)
     {
-        $this->getPromise()->cancel($exception);
+        $this->getPromise()->cancel($reason);
     }
     
     /**
      * @inheritdoc
      */
-    public function timeout($timeout, Exception $exception = null)
+    public function timeout($timeout, $reason = null)
     {
-        return $this->getPromise()->timeout($timeout, $exception);
+        return $this->getPromise()->timeout($timeout, $reason);
     }
     
     /**

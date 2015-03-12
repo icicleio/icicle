@@ -53,11 +53,11 @@ class Deferred implements PromisorInterface
     /**
      * Reject the promise the the given Exception.
      *
-     * @param   Exception $exception
+     * @param   mixed $reason
      */
-    public function reject(Exception $exception)
+    public function reject($reason = null)
     {
         $reject = $this->reject;
-        $reject($exception);
+        $reject($reason);
     }
 }

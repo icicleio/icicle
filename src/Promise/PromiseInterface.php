@@ -33,24 +33,24 @@ interface PromiseInterface
      * cancellation handler, then reject the promise with the given exception or a CancelledException if none is
      * given.
      *
-     * @param   Exception|null $exception
+     * @param   mixed $reason
      *
      * @api
      */
-    public function cancel(Exception $exception = null);
+    public function cancel($reason = null);
     
     /**
      * Returns a promise that is rejected in $timeout seconds if the promise is not resolved before that time.
      * When the promise resolves, the returned promise is fulfilled or rejected with the same value.
      *
      * @param   float $timeout
-     * @param   Exception|null $exception
+     * @param   mixed $reason
      *
      * @return  PromiseInterface
      *
      * @api
      */
-    public function timeout($timeout, Exception $exception = null);
+    public function timeout($timeout, $reason = null);
     
     /**
      * Returns a promise that is fulfilled $time seconds after this promise is fulfilled. If the promise is rejected,

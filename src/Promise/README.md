@@ -2,7 +2,7 @@
 
 Icicle implements promises based on the [Promises/A+](http://promisesaplus.com) specification, adding support for cancellation.
 
-Promises are objects that act as placeholders for the future value of an asynchronous operation. Pending promises may either be fulfilled with any value (including other promises, `null`, and exceptions) or rejected with an exception. Once a promise is fulfilled or rejected (resolved) with a value, the promise cannot becoming pending and the resolution value cannot change.
+Promises are objects that act as placeholders for the future value of an asynchronous operation. Pending promises may either be fulfilled with any value (including other promises, `null`, and exceptions) or rejected with any value. (Rejection values that are not exceptions are wrapped by an exception of type `Icicle\Promise\Exception\ReasonException` that has a `getReason()` method returning the original value.) Once a promise is fulfilled or rejected (resolved) with a value, the promise cannot becoming pending and the resolution value cannot change.
 
 Callback functions are the primary way of accessing the resolution value of promises. Unlike other APIs that use callbacks, **promises provide an execution context to callback functions, allowing callbacks to return values and throw exceptions**.
 
@@ -78,7 +78,7 @@ Promises can be created in a few different ways depending on your needs. All pro
 
 ### Promise
 
-When a `Icicle\Promise\Promise` object is created, it invokes a resolver function given to the constructor with the following prototype: `callable<void (callable (void (mixed $value = null) $resolve, callable (void (Exception $exception) $reject>`. The resolver function initiates the (asynchronous) computation, calling the `$resolve($value = null)` function with the resolution value or `$reject(Exception $exception)` with an exception. An optional cancellation function with the prototype `callable<void Exception $exception>` can also be provided that is called if the promise is cancelled.
+When a `Icicle\Promise\Promise` object is created, it invokes a resolver function given to the constructor with the following prototype: `callable<void (callable (void (mixed $value = null) $resolve, callable (void (Exception $exception) $reject>`. The resolver function initiates the (asynchronous) computation, calling the `$resolve($value = null)` function with the resolution value or `$reject(mixed $reason)` with an exception. An optional cancellation function with the prototype `callable<void Exception $exception>` can also be provided that is called if the promise is cancelled.
 
 ``` php
 use Icicle\Promise\Promise;
@@ -124,7 +124,7 @@ $promise = new Promise(
         
         $await = Loop::await($client, function ($client, $expired) use (&$await, $resolve, $reject) {
             if ($expired) {
-                $reject(new Exception('Connecting to the DNS server timed out.'));
+                $reject('Connecting to the DNS server timed out.');
             } else {
                 $resolve($client);
             }
@@ -161,7 +161,7 @@ $promise = $deferred->getPromise();
 
 `Icicle\Promise\Deferred` objects have only three methods other than the constructor:
 - `void Deferred->resolve(mixed $value = null)`: Resolves the encapsulated promise with the given value or promise.
-- `void Deferred->reject(Exception $exception)`: Rejects the encapsulated promise with the given exception.
+- `void Deferred->reject($reason = null)`: Rejects the encapsulated promise with the given exception.
 - `PromiseInterface Deferred->getPromise()`: Returns the encapsulated promise so it can be given to consumers.
 
 Other objects can be created that can act like a deferred by implementing `Icicle\Promise\PromisorInterface`.
@@ -198,7 +198,7 @@ $lazy->done(
 ### resolve()
 
 ``` php
-PromiseInterface Promise::resolve($value = null)
+PromiseInterface Promise::resolve(mixed $value = null)
 ```
 
 This static method returns a fulfilled promise using the given value. There are two possible outcomes depending on the type of the passed value: (1) `Icicle\Promise\PromiseInterface`: The promise is returned without modification. (2) All other types: A fulfilled promise is returned using the given value as the result.
@@ -206,10 +206,10 @@ This static method returns a fulfilled promise using the given value. There are 
 ### reject()
 
 ``` php
-PromiseInterface Promise::reject(Exception $exception)
+PromiseInterface Promise::reject(mixed $reason = null)
 ```
 
-This static method returns a rejected promise using the given exception as the rejection reason.
+This static method returns a rejected promise using the given reason. If `$reason` is not an exception, an instance of `Icicle\Promise\Exception\RejectedException` is created using the reason.
 
 ## Interacting with Promises
 
@@ -246,20 +246,20 @@ This method registers callbacks that should either consume promised values or ha
 #### cancel()
 
 ``` php
-void $promiseInterface->cancel(Exception $exception = null)
+void $promiseInterface->cancel(mixed $reason = null)
 ```
 
-Cancels the promise with the given exception (`Icicle\Promise\Exception\CancelledException` used if no exception is provided). Canceling a promise rejects the promise with the given exception and calls the cancellation callback if one was provided when the promise was created. The parent promise is also cancelled if no other children of that parent have been created.
+Cancels the promise with the given reason (If `$reason` is not an exception, an instance of `Icicle\Promise\Exception\CancelledException` is created using the reason.). Canceling a promise rejects the promise with the given exception and calls the cancellation callback if one was provided when the promise was created. The parent promise is also cancelled if no other children of that parent have been created.
 
 ---
 
 #### timeout()
 
 ``` php
-PromiseInterface $promiseInterface->timeout(float $timeout, Exception $exception = null)
+PromiseInterface $promiseInterface->timeout(float $timeout, mixed $reason = null)
 ```
 
-Returns a promise that is rejected in `$timeout` seconds with the given exception (or `Icicle\Promise\Exception\TimeoutException` if no exception is provided) if the promise is not resolved before that time. When the promise resolves, the returned promise is fulfilled or rejected with the same value.
+Returns a promise that is rejected in `$timeout` seconds with the given exception (If `$reason` is not an exception, an instance of `Icicle\Promise\Exception\TimeoutException` is created using the reason.) if the promise is not resolved before that time. When the promise resolves, the returned promise is fulfilled or rejected with the same value.
 
 ---
 

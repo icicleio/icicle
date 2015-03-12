@@ -189,9 +189,9 @@ class Coroutine implements CoroutineInterface
     /**
      * @inheritdoc
      */
-    public function cancel(Exception $exception = null)
+    public function cancel($reason = null)
     {
-        $this->promise->cancel($exception);
+        $this->promise->cancel($reason);
     }
     
     /**
@@ -213,9 +213,9 @@ class Coroutine implements CoroutineInterface
     /**
      * @inheritdoc
      */
-    public function timeout($timeout, Exception $exception = null)
+    public function timeout($timeout, $reason = null)
     {
-        return $this->promise->timeout($timeout, $exception);
+        return $this->promise->timeout($timeout, $reason);
     }
     
     /**

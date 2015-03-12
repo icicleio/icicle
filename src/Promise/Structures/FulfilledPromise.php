@@ -34,7 +34,7 @@ class FulFilledPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onFulfilled) {
-            return new static($this->value);
+            return $this;
         }
         
         return new Promise(function ($resolve, $reject) use ($onFulfilled) {

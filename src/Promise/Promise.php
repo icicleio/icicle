@@ -84,11 +84,11 @@ class Promise implements PromiseInterface
         /**
          * Rejects the promise with the given exception.
          *
-         * @param   Exception $exception
+         * @param   mixed $reason
          */
-        $reject = function (Exception $exception) {
+        $reject = function ($reason = null) {
             if (null === $this->result) {
-                $this->result = static::reject($exception);
+                $this->result = static::reject($reason);
                 $this->result->done($this->onFulfilled, $this->onRejected);
                 
                 $this->close();
@@ -135,6 +135,12 @@ class Promise implements PromiseInterface
         if (null !== $this->result) {
             return $this->result->then($onFulfilled, $onRejected);
         }
+        
+/*
+        if (null === $onFulfilled && null === $onRejected) {
+            return $this;
+        }
+*/
         
         ++$this->children;
         
@@ -205,38 +211,38 @@ class Promise implements PromiseInterface
     /**
      * @inheritdoc
      */
-    public function cancel(Exception $exception = null)
+    public function cancel($reason = null)
     {
         if (null !== $this->result) {
-            $this->result->cancel($exception);
+            $this->result->cancel($reason);
         } else {
-            if (null === $exception) {
-                $exception = new CancelledException('The promise was cancelled.');
+            if (!$reason instanceof Exception) {
+                $reason = new CancelledException($reason);
             }
             
             $onCancelled = $this->onCancelled;
-            $onCancelled($exception);
+            $onCancelled($reason);
         }
     }
     
     /**
      * @inheritdoc
      */
-    public function timeout($timeout, Exception $exception = null)
+    public function timeout($timeout, $reason = null)
     {
         if (null !== $this->result) {
-            return $this->result->timeout($timeout, $exception);
+            return $this->result->timeout($timeout, $reason);
         }
         
         ++$this->children;
         
         return new static(
-            function ($resolve) use (&$timer, $timeout, $exception) {
-                $timer = Loop::timer($timeout, function () use ($exception) {
-                    if (null === $exception) {
-                        $exception = new TimeoutException('The promise timed out.');
+            function ($resolve) use (&$timer, $timeout, $reason) {
+                $timer = Loop::timer($timeout, function () use ($reason) {
+                    if (!$reason instanceof Exception) {
+                        $reason = new TimeoutException($reason);
                     }
-                    $this->cancel($exception);
+                    $this->cancel($reason);
                 });
                 
                 $onResolved = function () use ($resolve, $timer) {
@@ -349,17 +355,17 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Create a new rejected promise using the given exception as the rejection reason.
+     * Create a new rejected promise using the given reason.
      *
-     * @param   Exception $exception
+     * @param   mixed $reason
      *
      * @return  PromiseInterface
      *
      * @api
      */
-    public static function reject(Exception $exception)
+    public static function reject($reason = null)
     {
-        return new RejectedPromise($exception);
+        return new RejectedPromise($reason);
     }
     
     /**

@@ -39,10 +39,10 @@ class PromiseTest extends TestCase
         $resolve($value);
     }
     
-    protected function reject(Exception $exception)
+    protected function reject($reason)
     {
         $reject = $this->reject;
-        $reject($exception);
+        $reject($reason);
     }
     
     public function exceptionHandler(RuntimeException $exception) {}
@@ -63,11 +63,6 @@ class PromiseTest extends TestCase
     public function testThenReturnsPromise()
     {
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
-    }
-    
-    public function testThenReturnsNewPromise()
-    {
-        $this->assertNotSame($this->promise, $this->promise->then());
     }
     
     public function testResolve()
@@ -97,6 +92,97 @@ class PromiseTest extends TestCase
         $this->assertFalse($rejected->isFulfilled());
         $this->assertTrue($rejected->isRejected());
         $this->assertSame($exception, $rejected->getResult());
+    }
+    
+    /**
+     * @depends testReject
+     */
+    public function testRejectWithValueReason()
+    {
+        $reason = 'String to reject promise.';
+        
+        $rejected = Promise::reject($reason);
+        
+        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $rejected);
+        
+        $this->assertFalse($rejected->isPending());
+        $this->assertFalse($rejected->isFulfilled());
+        $this->assertTrue($rejected->isRejected());
+        
+        $result = $rejected->getResult();
+        
+        $this->assertInstanceOf('Icicle\Promise\Exception\RejectedException', $result);
+        $this->assertSame($reason, $result->getReason());
+    }
+    
+    /**
+     * @depends testRejectWithValueReason
+     */
+    public function testRejectWithObjectReason()
+    {
+        $reason = new \stdClass();
+        
+        $rejected = Promise::reject($reason);
+        
+        $result = $rejected->getResult();
+        
+        $this->assertSame($reason, $result->getReason());
+    }
+    
+    /**
+     * @depends testRejectWithValueReason
+     */
+    public function testRejectWithArrayReason()
+    {
+        $reason = [1, 2, 3];
+        
+        $rejected = Promise::reject($reason);
+        
+        $result = $rejected->getResult();
+        
+        $this->assertSame($reason, $result->getReason());
+    }
+    
+    /**
+     * @depends testRejectWithValueReason
+     */
+    public function testRejectWithIntegerReason()
+    {
+        $reason = 404;
+        
+        $rejected = Promise::reject($reason);
+        
+        $result = $rejected->getResult();
+        
+        $this->assertSame($reason, $result->getReason());
+    }
+    
+    /**
+     * @depends testRejectWithValueReason
+     */
+    public function testRejectWithFloatReason()
+    {
+        $reason = 3.14159;
+        
+        $rejected = Promise::reject($reason);
+        
+        $result = $rejected->getResult();
+        
+        $this->assertSame($reason, $result->getReason());
+    }
+    
+    /**
+     * @depends testRejectWithValueReason
+     */
+    public function testRejectWithBooleanReason()
+    {
+        $reason = false;
+        
+        $rejected = Promise::reject($reason);
+        
+        $result = $rejected->getResult();
+        
+        $this->assertSame($reason, $result->getReason());
     }
     
     public function testResolveCallableWithValue()
@@ -324,6 +410,28 @@ class PromiseTest extends TestCase
     /**
      * @depends testRejectCallable
      */
+    public function testRejectCallableWithValueReason()
+    {
+        $reason = 'String to reject promise.';
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
+        
+        $this->promise->done($this->createCallback(0), $callback);
+        
+        $this->reject($reason);
+        
+        Loop::run();
+        
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($this->promise->isRejected());
+        $this->assertSame($reason, $this->promise->getResult()->getReason());
+    }
+    
+    /**
+     * @depends testRejectCallable
+     */
     public function testThenReturnsPromiseAfterRejected()
     {
         $exception = new Exception();
@@ -357,30 +465,6 @@ class PromiseTest extends TestCase
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertSame($exception1, $this->promise->getResult());
-    }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     */
-    public function testThenReturnsNewPromiseAfterFulfilled()
-    {
-        $this->resolve();
-        
-        $this->assertNotSame($this->promise, $child = $this->promise->then());
-        
-        $this->assertNotSame($child, $child->then());
-    }
-    
-    /**
-     * @depends testRejectCallable
-     */
-    public function testThenReturnsNewPromiseAfterRejected()
-    {
-        $this->reject(new Exception());
-        
-        $this->assertNotSame($this->promise, $child = $this->promise->then());
-        
-        $this->assertNotSame($child, $child->then());
     }
     
     /**
@@ -1110,6 +1194,32 @@ class PromiseTest extends TestCase
     /**
      * @depends testCancellation
      */
+    public function testCancellationWithValueReason()
+    {
+        $reason = 'String to cancel promise.';
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+        
+        $promise = new Promise(function () {}, $callback);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+        
+        $promise->done($this->createCallback(0), $callback);
+        
+        $promise->cancel($reason);
+        
+        Loop::run();
+        
+        $this->assertSame($reason, $promise->getResult()->getReason());
+    }
+    
+    /**
+     * @depends testCancellation
+     */
     public function testCancellingParentRejectsChild()
     {
         $callback = $this->createCallback(1);
@@ -1409,6 +1519,28 @@ class PromiseTest extends TestCase
         $timeout->done($this->createCallback(0), $callback);
         
         $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+    }
+    
+    /**
+     * @depends testTimeout
+     */
+    public function testTimeoutWithValueReason()
+    {
+        $time = 0.1;
+        $reason = 'String to timeout promise.';
+        
+        $timeout = $this->promise->timeout($time, $reason);
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+        
+        $timeout->done($this->createCallback(0), $callback);
+        
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        
+        $this->assertSame($reason, $this->promise->getResult()->getReason());
+        $this->assertSame($reason, $timeout->getResult()->getReason());
     }
     
     /**

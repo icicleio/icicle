@@ -12,7 +12,7 @@ abstract class ResolvedPromise implements PromiseInterface
     /**
      * @inheritdoc
      */
-    public function cancel(Exception $exception = null) {}
+    public function cancel($reason = null) {}
     
     /**
      * @inheritdoc
@@ -25,8 +25,8 @@ abstract class ResolvedPromise implements PromiseInterface
     /**
      * @inheritdoc
      */
-    public function timeout($timeout, Exception $exception = null)
+    public function timeout($timeout, $reason = null)
     {
-        return $this->then();
+        return $this;
     }
 }

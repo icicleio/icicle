@@ -3,6 +3,7 @@ namespace Icicle\Promise\Structures;
 
 use Exception;
 use Icicle\Loop\Loop;
+use Icicle\Promise\Exception\RejectedException;
 use Icicle\Promise\Promise;
 
 class RejectedPromise extends ResolvedPromise
@@ -13,11 +14,15 @@ class RejectedPromise extends ResolvedPromise
     private $exception;
     
     /**
-     * @param   Exception $exception
+     * @param   mixed $reason
      */
-    public function __construct(Exception $exception)
+    public function __construct($reason)
     {
-        $this->exception = $exception;
+        if (!$reason instanceof Exception) {
+            $reason = new RejectedException($reason);
+        }
+        
+        $this->exception = $reason;
     }
     
     /**
@@ -26,7 +31,7 @@ class RejectedPromise extends ResolvedPromise
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onRejected) {
-            return new static($this->exception);
+            return $this;
         }
         
         return new Promise(function ($resolve, $reject) use ($onRejected) {

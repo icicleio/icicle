@@ -54,6 +54,31 @@ class DeferredTest extends TestCase
         $this->assertTrue($deferred->getPromise()->isRejected());
     }
     
+    /**
+     * @depends testReject
+     */
+    public function testRejectWithValueReason()
+    {
+        $deferred = new Deferred();
+        
+        $reason = 'String to reject promise.';
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
+        
+        $deferred->getPromise()->done($this->createCallback(0), $callback);
+        
+        $deferred->reject($reason);
+        
+        Loop::run();
+        
+        $promise = $deferred->getPromise();
+        
+        $this->assertTrue($promise->isRejected());
+        $this->assertSame($reason, $promise->getResult()->getReason());
+    }
+    
     public function testCancellation()
     {
         $exception = new Exception();
