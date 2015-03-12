@@ -18,32 +18,32 @@ Callback functions registered to promises are always [invoked asynchronously](#a
     - [reject()](#reject)
 - [Interacting with Promises](#interacting-with-promises)
     - [PromiseInterface](#promiseinterface)
-        - [then()](#then)
-        - [done()](#done)
-        - [cancel()](#cancel)
-        - [timeout()](#timeout)
-        - [delay()](#delay)
-        - [capture()](#capture)
-        - [always()](#always)
-        - [after()](#after)
-        - [tap()](#tap)
-        - [cleanup()](#cleanup)
-        - [isPending()](#ispending)
-        - [isFulfilled()](#isfulfilled)
-        - [isRejected()](#isrejected)
-        - [getResult()](#getresult)
+        - [then()](#then) - Returns a new promise resolved by the given callbacks.
+        - [done()](#done) - Calls the given callbacks when the promise is fulfilled or rejected.
+        - [cancel()](#cancel) - Cancels the promise.
+        - [timeout()](#timeout) - Cancels the promise after a given amount of time if unresolved.
+        - [delay()](#delay) - Returns a promise that is fulfilled after a delay.
+        - [capture()](#capture) - Captures specific rejection exceptions.
+        - [always()](#always) - Returns a new promise resolved by a single callback.
+        - [after()](#after) - Calls the given callback if the promise is fulfilled or rejected.
+        - [tap()](#tap) - Provides access to the fulfillment value of a promise without changing it.
+        - [cleanup()](#cleanup) - Calls the given callback when the promise is resolved.
+        - [isPending()](#ispending) - Determines if the promise is pending.
+        - [isFulfilled()](#isfulfilled) - Determines if the promise is fulfilled.
+        - [isRejected()](#isrejected) - Determines if the promise is rejected.
+        - [getResult()](#getresult) - Gets the result of a resolved promise.
     - [Combining Promises](#combining-promises)
-        - [settle()](#settle)
-        - [join()](#join)
-        - [any()](#any)
-        - [some()](#some)
-        - [choose()](#choose)
-        - [map()](#map)
-        - [reduce()](#reduce)
-        - [iterate()](#iterate)
+        - [settle()](#settle) - Returns a promise fulfilled when all the given promises are resolved.
+        - [join()](#join) - Returns a promise fulfilled only if all the given promises are fulfilled.
+        - [any()](#any) - Returns a promise fulfilled with by the first promise of a set to fulfill.
+        - [some()](#some) - Returns a promise fulfilled when a subset of promises is fulfilled.
+        - [choose()](#choose) - Returns a promise with the same resolution as the first promise to resolve.
+        - [map()](#map) - Returns a set of promises each resolved with a given callback similar to `array_map()`.
+        - [reduce()](#reduce) - Returns a promise resolved in a method similar to `array_reduce()`.
+        - [iterate()](#iterate) - Iterates by calling a callback until another callback returns `true`.
     - [Using Promises with Existing Functions](#using-promises-with-existing-functions)
-        - [lift()](#lift)
-        - [promisify()](#promisify)
+        - [lift()](#lift) - Allows an existing function to accept promises as parameters and return a promise.
+        - [promisify()](#promisify) - Allows an API using callbacks to return promises instead.
 - [Resolution and Propagation](#resolution-and-propagation)
     - [Child Promise Resolution](#child-promise-resolution)
     - [Asynchronous Callback Invocation](#asynchronous-callback-invocation)

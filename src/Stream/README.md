@@ -8,21 +8,39 @@ Streams represent a common promise-based API that may be implemented by classes 
 
 ## Documentation
 
-- [ReadableStreamInterface](#readablestreaminterface)
-    - [read()](#read)
-    - [readTo()](#readto)
-    - [poll()](#poll)
-    - [pipe()](#pipe)
-    - [pipeTo()](#pipeTo)
-    - [isReadable()](#isreadable)
-- [WritableStreamInterface](#writablestreaminterface)
-    - [write()](#write)
-    - [await()](#await)
-    - [end()](#end)
+- [StreamInterface] - Basic stream interface.
+    - [isOpen()](#isopen) - Determines if the stream is still open.
+    - [close()](#close) - Closes the stream.
+- [ReadableStreamInterface](#readablestreaminterface) - Interface for readable streams.
+    - [read()](#read) - Read data from the stream.
+    - [readTo()](#readto) - Read data from the stream until a particular byte is found.
+    - [poll()](#poll) - Notifies when data is available without consuming it.
+    - [pipe()](#pipe) - Pipes data from this stream to a writable stream.
+    - [pipeTo()](#pipeTo) - Pipes data from this stream to a writable stream until a particular byte is found.
+    - [isReadable()](#isreadable) - Determines if the stream is readable.
+- [WritableStreamInterface](#writablestreaminterface) - Interface for writable streams.
+    - [write()](#write) - Writes data to the stream.
+    - [await()](#await) - Notifies when a stream is available for writing.
+    - [end()](#end) - Writes data to the stream then closes the stream.
     - [isWritable()](#isWritable)
-- [DuplexStreaminterface](#duplexstreaminterface)
+- [DuplexStreaminterface](#duplexstreaminterface) - Interface for streams that are readable and writable.
+- [Stream](#stream) - Buffer that implements `Icicle\Stream\DuplexStreamInterface`.
 
-Note that references in the prototypes below to PromiseInterface refer to `Icicle\Promise\PromiseInterface` (see the [Promise API documentation](../Promise) for more information).
+#### Function prototypes
+
+Prototypes for object instance methods are described below using the following syntax:
+
+``` php
+ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
+```
+
+Prototypes for static methods are described below using the following syntax:
+
+``` php
+ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
+```
+
+Note that references in the prototypes below to `PromiseInterface` refer to `Icicle\Promise\PromiseInterface` (see the [Promise API documentation](../Promise) for more information).
 
 ## StreamInterface
 

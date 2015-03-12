@@ -18,14 +18,14 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
     - [Calling Coroutines Within Another Coroutine](#calling-coroutines-within-another-coroutine)
 - [Creating Coroutines](#creating-coroutines)
     - [Coroutine Constructor](#coroutine-constructor)
-    - [async()](#async)
-    - [call()](#call)
+    - [async()](#async) - Returns a function that returns a coroutine when called.
+    - [call()](#call) - Returns a coroutine from a callable returning a `Generator`.
 - [Cooperation](#cooperation)
 - [Controlling Execution](#controlling-execution)
-    - [pause()](#pause)
-    - [resume()](#resume)
-    - [isPaused()](#ispaused)
-    - [cancel()](#cancel)
+    - [pause()](#pause) - Pauses the coroutine at the next `yield` statement.
+    - [resume()](#resume) - Resumes execution of the coroutine.
+    - [isPaused()](#ispaused) - Determines if the coroutine is paused.
+    - [cancel()](#cancel) - Cancels execution of the coroutine.
 - [Corotuines as Promises](#coroutines-as-promises)
 
 #### Function prototypes
@@ -234,12 +234,12 @@ Loop::run();
 
 ## Creating Coroutines
 
-The `Icicle\Coroutine\Coroutine` class contains different methods for creating a coroutine depending on your needs.
+The `Icicle\Coroutine\Coroutine` class has several different methods for creating a coroutine depending on your needs.
 
 ### Coroutine Constructor
 
 ``` php
-Coroutine->__construct(Generator $generator)
+$coroutine = new Coroutine(Generator $generator)
 ```
 
 As shown in the examples above, a `Icicle\Coroutine\Coroutine` instance can be created by passing a `Generator` to the constructor. Execution of the coroutine is begun asynchronously, after leaving the calling scope of the constructor (e.g. after the function calling the constructor returns).

@@ -69,27 +69,28 @@ Loop::run();
 ## Documentation
 
 - [SocketInterface](#socketinterface)
-    - [isOpen()](#isopen)
-    - [close()](#close)
+    - [isOpen()](#isopen) - Determines if the socket is open.
+    - [close()](#close) - Closes the socket.
 - [Server](#server)
-    - [create()](#create)
-    - [Server Constructor](#server-constructor)
-    - [accept()](#accept)
-    - [getAddress()](#getaddress)
-    - [getPort()](#getport)
+    - [create()](#create) - Creates a server on a given host and port.
+    - [Server Constructor](#server-constructor) - Creates a server from a stream socket server resource.
+    - [accept()](#accept) - Returns a promise fulfilled when a client connects.
+    - [getAddress()](#getaddress) - Returns the address of the server.
+    - [getPort()](#getport) - Returns the port of the server.
 - [ReadableStream](#readablestream)
-    - [ReadableStream Constructor](#readablestream-constructor)
+    - [ReadableStream Constructor](#readablestream-constructor) - Creates a readable stream from a stream socket resource.
 - [WritableStream](#writablestream)
-    - [WritableStream Constructor](#writablestream-constructor)
+    - [WritableStream Constructor](#writablestream-constructor) - Creates a writable stream from a stream socket resource.
 - [DuplexStream](#readablestream)
-    - [DuplexStream Constructor](#duplexstream-constructor)
+    - [DuplexStream Constructor](#duplexstream-constructor) - Creates a duplex stream from a stream socket resource.
 - [Client](#client)
-    - [Client Constructor](#client-constructor)
-    - [enableCrypto()](#enablecrypto)
-    - [getLocalAddress()](#getlocaladdress)
-    - [getLocalPort()](#getlocalport)
-    - [getRemoteAddress()](#getremoteaddress)
-    - [getRemotePort()](#getremoteport)
+    - [connect()](#connect) - Returns a promise fulfilled with a `Client` object when a connection is established.
+    - [Client Constructor](#client-constructor) - Creates a client from a stream socket resource.
+    - [enableCrypto()](#enablecrypto) - Enables crypto on the client.
+    - [getLocalAddress()](#getlocaladdress) - Returns the local address of the client.
+    - [getLocalPort()](#getlocalport) - Returns the local port of the client.
+    - [getRemoteAddress()](#getremoteaddress) - Returns the remote address of the client.
+    - [getRemotePort()](#getremoteport) - Returns the remote port of the client.
 
 #### Function prototypes
 
@@ -105,13 +106,7 @@ Prototypes for static methods are described below using the following syntax:
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
-To document the expected prototype of a callback function used as method arguments or return types, the documentation below uses the following syntax for `callable` types:
-
-``` php
-callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
-```
-
-Note that references in the prototypes below to PromiseInterface refer to `Icicle\Promise\PromiseInterface` (see the [Promise API documentation](../Promise) for more information).
+Note that references in the prototypes below to `PromiseInterface` refer to `Icicle\Promise\PromiseInterface` (see the [Promise API documentation](../Promise) for more information).
 
 ## SocketInterface
 
@@ -149,7 +144,7 @@ Creates a server bound and listening on the given host and port.
 
 Option | Type | Description
 :-- | :-- | :--
-`backlog` | `int` | Connection backlog size. Note that operating system setting `SOMAXCONN` may set an upper limit and may need to be changed to allow a larger backlog size.
+`backlog` | `int` | Connection backlog size. Note that the operating system variable `SOMAXCONN` may set an upper limit and may need to be changed to allow a larger backlog size.
 `pem` | `string` | Path to PEM file containing certificate and private key to enable SSL on client connections.
 `passphrase` | `string` | PEM passphrase if applicable.
 `name` | `string` | Name to use as SNI identifier. If not set, name will be guessed based on `$host`.
@@ -159,7 +154,7 @@ Option | Type | Description
 #### Server Constructor
 
 ``` php
-Server->__construct(resource $socket)
+$server = new Server(resource $socket)
 ```
 
 Creates a server from a stream socket server resource generated from `stream_socket_server()`. Generally it is better to use `create()` to create a `Icicle\Socket\Server` instance.
@@ -214,7 +209,7 @@ The methods `read()`, `readTo()`, `poll()`, `pipe()`, and `pipeTo()` each accept
 #### ReadableStream Constructor
 
 ``` php
-ReadableStream->__construct(resource $socket)
+$stream = new ReadableStream(resource $socket)
 ```
 
 Creates a readable stream from the given stream socket resource.
@@ -230,7 +225,7 @@ The methods `write()`, `await()`, and `end()` each accept an optional parameter 
 #### WritableStream Constructor
 
 ``` php
-WritableStream->__construct(resource $socket)
+$stream = new WritableStream(resource $socket)
 ```
 
 Creates a writable stream from the given stream socket resource.
@@ -246,7 +241,7 @@ The methods `read()`, `readTo()`, `poll()`, `pipe()`, `pipeTo()`, `write()`, `aw
 #### DuplexStream Constructor
 
 ``` php
-DuplexStream->__construct(resource $socket)
+$stream = new DuplexStream(resource $socket)
 ```
 
 Creates a duplex stream from the given stream socket resource.
@@ -286,7 +281,7 @@ Rejected | `Icicle\Socket\Exception\TimeoutException` | If the connection attemp
 #### Client Constructor
 
 ``` php
-Cleint->__construct(resource $socket)
+$client = new Client(resource $socket)
 ```
 
 Creates a client object from the given stream socket resource.
