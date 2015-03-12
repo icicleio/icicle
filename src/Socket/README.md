@@ -68,10 +68,10 @@ Loop::run();
 
 ## Documentation
 
-- [SocketInterface](#socketinterface)]
+- [SocketInterface](#socketinterface)
     - [isOpen()](#isopen)
     - [close()](#close)
-- [Server]
+- [Server](#server)
     - [create()](#create)
     - [Server Constructor](#server-constructor)
     - [accept()](#accept)
@@ -148,7 +148,7 @@ Server Server::create(string $host, int $port, mixed[] $options = null)
 Creates a server bound and listening on the given host and port.
 
 Option | Type | Description
-:-- | :--
+:-- | :-- | :--
 `backlog` | `int` | Connection backlog size. Note that operating system setting `SOMAXCONN` may set an upper limit and may need to be changed to allow a larger backlog size.
 `pem` | `string` | Path to PEM file containing certificate and private key to enable SSL on client connections.
 `passphrase` | `string` | PEM passphrase if applicable.
@@ -266,7 +266,7 @@ PromiseInterface Client::connect(string $host, int $port, mixed[] $options = nul
 Connects asynchronously to the given host on the given port.
 
 Option | Type | Description
-:-- | :--
+:-- | :-- | :--
 `protocol` | `string` | The protocol to use, such as tcp, udp, s3, ssh. Defaults to tcp.
 `timeout` | `float` | Number of seconds until connection attempt times out. Defaults to 10 seconds.
 `cn` | `string` | Host name (common name) used to verify certificate. e.g., `*.google.com`
