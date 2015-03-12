@@ -9,62 +9,92 @@ Streams represent a common promise-based API that may be implemented by classes 
 ## Documentation
 
 - [ReadableStreamInterface](#readablestreaminterface)
-    - [read()](#readablestreaminterface-read)
-    - [readTo()](#readablestreaminterface-readto)
-    - [poll()](#readablestreaminterface-poll)
-    - [isReadable()](#readablestreaminterface-isreadable)
-    - [pipe()](#readablestreaminterface-pipe)
-    - [pipeTo()](#readablestreaminterface-pipeTo)
+    - [read()](#read)
+    - [readTo()](#readto)
+    - [poll()](#poll)
+    - [pipe()](#pipe)
+    - [pipeTo()](#pipeTo)
+    - [isReadable()](#isreadable)
 - [WritableStreamInterface](#writablestreaminterface)
+    - [write()](#write)
+    - [await()](#await)
+    - [end()](#end)
+    - [isWritable()](#isWritable)
 - [DuplexStreaminterface](#duplexstreaminterface)
-
-## ReadableStreamInterface
 
 Note that references in the prototypes below to PromiseInterface refer to `Icicle\Promise\PromiseInterface` (see the [Promise API documentation](../Promise) for more information).
 
-#### ReadableStreamInterface->read()
+## StreamInterface
+
+All other stream interfaces extend this basic interface.
+
+#### isOpen()
 
 ``` php
-PromiseInterface ReadableStreamInterface->read(int|null $length = null)
+bool $streamInterface->isOpen()
+```
+
+Determines if the stream is still open. A closed stream will be neither readable or writable.
+
+#### close()
+
+``` php
+bool $streamInterface->close(Exception $exception = null)
+```
+
+Closes the stream. Once closed, a stream will no longer be readable or writable. Any pending promises will be rejected with the given exception, or `Icicle\Stream\Exception\ClosedException` if no exception is given.
+
+## ReadableStreamInterface
+
+#### read()
+
+``` php
+PromiseInterface $readableStreamInterface->read(int|null $length = null)
 ```
 
 Returns a promise that is fulfilled with data read from the stream when data becomes available. If `$length` is `null`, the promise is fulfilled with any amount of data available on the stream. If `$length` is not `null` the promise will be fulfilled with a maximum of `$length` bytes, but it may be fulfilled with fewer bytes.
 
-Fulfill: `string`: Any number of bytes or up to `$length` bytes if `$length` was not `null`.
-Reject: `Icicle\Stream\Exception\BusyException`: If a read was already pending on the stream.
-Reject: `Icicle\Stream\Exception\UnreadableException`: If the stream is no longer readable.
-Reject: `Icicle\Stream\Exception\ClosedException`: If the stream has been closed.
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `string` | Any number of bytes or up to `$length` bytes if `$length` was not `null`.
+Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
+Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
-#### ReadableStreamInterface->readTo()
+#### readTo()
 
 ``` php
-PromiseInterface ReadableStreamInterface->readTo(int|string $byte, int|null $length = null)
+PromiseInterface $readableStreamInterface->readTo(int|string $byte, int|null $length = null)
 ```
 
 Similar to `read()`, but reading will stop if `$byte` is found in the stream. `$byte` should be a single character (byte) string or the integer value of the byte (e.g., `0xa` for the newline character). If a multibyte string is provided, only the first byte will be used. If `$length` is `null`, the promise is fulfilled with any amount of data available on the stream. If `$length` is not `null` the promise will be fulfilled with a maximum of `$length` bytes, but it may be fulfilled with fewer bytes.
 
-Fulfill: `string`: Any number of bytes or up to `$length` bytes if `$length` was not `null`. Stops reading once `$byte` is read from the stream. `$byte` is included in the result, but may not be in the result if it was not read from the stream.
-Reject: `Icicle\Stream\Exception\BusyException`: If a read was already pending on the stream.
-Reject: `Icicle\Stream\Exception\UnreadableException`: If the stream is no longer readable.
-Reject: `Icicle\Stream\Exception\ClosedException`: If the stream has been closed.
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `string` | Any number of bytes or up to `$length` bytes if `$length` was not `null`. Stops reading once `$byte` is read from the stream. `$byte` is included in the result, but may not be in the result if it was not read from the stream.
+Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
+Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
-#### ReadableStreamInterface->poll()
+#### poll()
 
 ``` php
-PromiseInterface ReadableStreamInterface->poll()
+PromiseInterface $readableStreamInterface->poll()
 ```
 
-Fulfill: `null`: Fulfilled once data is available on the stream.
-Reject: `Icicle\Stream\Exception\BusyException`: If a read was already pending on the stream.
-Reject: `Icicle\Stream\Exception\UnreadableException`: If the stream is no longer readable.
-Reject: `Icicle\Stream\Exception\ClosedException`: If the stream has been closed.
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `null` | Fulfilled once data is available on the stream.
+Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
+Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
 
 Returns a promise that is fulfilled when there is data immediately available on the stream without consuming any data.
 
-#### ReadableStreamInterface->pipe()
+#### pipe()
 
 ``` php
-PromiseInterface ReadableStreamInterface->pipe(
+PromiseInterface $readableStreamInterface->pipe(
     WritableStreamInterface $stream,
     bool $endOnClose = true,
     int|null $length = null
@@ -73,10 +103,17 @@ PromiseInterface ReadableStreamInterface->pipe(
 
 Pipes all data read from this stream to the writable stream. If `$length` is not `null`, only `$length` bytes will be piped to the writable stream. The returned promise is fulfilled with the number of bytes piped once the writable stream closes or `$length` bytes have been piped.
 
-#### ReadableStreamInterface->pipeTo()
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `int` | Fulfilled when the writable stream closes or `$length` bytes have been piped.
+Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
+Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+#### pipeTo()
 
 ``` php
-PromiseInterface ReadableStreamInterface->pipeTo(
+PromiseInterface $readableStreamInterface->pipeTo(
     WritableStreamInterface $stream,
     int|string $byte,
     bool $endOnClose = true,
@@ -86,6 +123,97 @@ PromiseInterface ReadableStreamInterface->pipeTo(
 
 Pipes all data read from this stream to the writable stream until `$byte` is read from the string. If `$length` is not `null`, a maximum `$length` bytes will be piped to the writable stream, regardless of if `$byte` was found in the stream. The returned promise is fulfilled with the number of bytes piped once the writable stream closes or `$length` bytes have been piped.
 
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `int` | Fulfilled when the writable stream closes or `$length` bytes have been piped or `$byte` is read from the stream.
+Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
+Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+#### isReadable()
+
+``` php
+bool $readableStreamInterface->isReadable()
+```
+
+Determines if the stream is readable.
+
 ## WritableStreamInterface
 
+#### write()
+
+``` php
+PromiseInterface $writableStreamInterface->write(string $data)
+```
+
+Writes the given data to the stream. Returns a promise that is fulfilled with the number of bytes written once that data has successfully been written to the stream.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `int` | Fulfilled with the number of bytes written when the data has actually been written to the stream.
+Rejected | `Icicle\Stream\Exception\UnwritableException` | If the stream is no longer writable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+#### await()
+
+``` php
+PromiseInterface $writableStreamInterface->await()
+```
+
+Returns a promise that is fulfilled with `0` when the stream is able to receive data for writing.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `int` | Fulfilled with `0` when the stream is writable.
+Rejected | `Icicle\Stream\Exception\UnwritableException` | If the stream is no longer writable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+#### end()
+
+``` php
+PromiseInterface $writableStreamInterface->end(string|null $data = null)
+```
+
+Writes the given data to the stream then immediately closes the stream by calling `close()`.
+
+Resolution | Type | Description
+:-: | :-- | :--
+Fulfilled | `int` | Fulfilled with the number of bytes written when the data has actually been written to the stream.
+Rejected | `Icicle\Stream\Exception\UnwritableException` | If the stream is no longer writable.
+Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.
+
+#### isWritable()
+
+``` php
+bool $writableStreamInterface->isWritable()
+```
+
+Determines if the stream is writable.
+
 ## DuplexStreamInterface
+
+A duplex stream is both readable and writable. `Icicle\Stream\DuplexStreamInterface` extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`, and therefore inherits all the methods above.
+
+## Stream
+
+`Icicle\Stream\Stream` objects act as a buffer that implements `Icicle\Stream\DuplexStreamInterface`, allowing consumers to be notified when data is available in the buffer. This class by itself is not particularly useful, but it can be extended to add functionality upon reading or writing, as well as acting as an example of how stream classes can be implemented.
+
+Anything written to an instance of `Icicle\Stream\Stream` is immediately readable.
+
+``` php
+use Icicle\Loop\Loop;
+use Icicle\Stream\Stream;
+
+$stream = new Stream();
+
+$stream
+    ->write("This is just a test.\nThis will not be read.")
+    ->then(function () use ($stream) {
+        return $stream->readTo("\n");
+    })
+    ->then(function ($data) {
+        echo $data; // Echos "This is just a test."
+    });
+
+Loop::run();
+```
