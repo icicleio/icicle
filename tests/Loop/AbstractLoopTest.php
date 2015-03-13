@@ -1057,9 +1057,9 @@ abstract class AbstractLoopTest extends TestCase
     {
         $pid = posix_getpid();
         
-        $callback = function () use (&$callback, $pid) {
+        $callback = function () use ($pid) {
             posix_kill($pid, SIGQUIT);
-            $this->loop->createTimer($callback, 10);
+            $this->loop->createTimer(function () {}, 10); // Keep loop alive until signal arrives.
         };
         
         $this->loop->schedule($callback);
@@ -1077,15 +1077,15 @@ abstract class AbstractLoopTest extends TestCase
     {
         $pid = posix_getpid();
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo(SIGTERM));
+        $callback = function ($signo) {
+            $this->assertSame(SIGTERM, $signo);
+        };
         
         $this->loop->addListener(SIGTERM, $callback);
         
-        $callback = function () use (&$callback, $pid) {
+        $callback = function () use ($pid) {
             posix_kill($pid, SIGTERM);
-            $this->loop->createTimer($callback, 10);
+            $this->loop->createTimer(function () {}, 10); // Keep loop alive until signal arrives.
         };
         
         $this->loop->schedule($callback);
