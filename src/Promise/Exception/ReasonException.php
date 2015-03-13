@@ -27,17 +27,13 @@ class ReasonException extends RuntimeException
             case 'resource': // Can be converted to string.
                 $message .= ' Reason: ' . $reason;
                 break;
-            
+                
             case 'array':
                 $message .= ' Reason: array(' . count($reason) . ')';
                 break;
-            
+                
             case 'boolean':
                 $message .= ' Reason: boolean(' . ($reason ? 'true' : 'false') . ')';
-            
-            case 'NULL':
-                $message .= ' Reason: null';
-                break;
         }
         
         parent::__construct($message);

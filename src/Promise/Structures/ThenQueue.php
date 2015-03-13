@@ -14,4 +14,20 @@ class ThenQueue extends \SplQueue
             $callback($value);
         }
     }
+    
+    /**
+     * Unrolls instances of self to avoid blowing up the call stack on resolution.
+     *
+     * @param   callable $callback
+     */
+    public function push($resolver)
+    {
+        if ($resolver instanceof self) {
+            foreach ($resolver as $callback) {
+                parent::push($callback);
+            }
+        } else {
+            parent::push($resolver);
+        }
+    }
 }

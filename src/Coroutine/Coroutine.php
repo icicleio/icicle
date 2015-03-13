@@ -259,6 +259,14 @@ class Coroutine implements CoroutineInterface
     }
     
     /**
+     * @inheritdoc
+     */
+    public function unwrap()
+    {
+        return $this->promise->unwrap();
+    }
+    
+    /**
      * @param   callable $worker
      *
      * @return  callable

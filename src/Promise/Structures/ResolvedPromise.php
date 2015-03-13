@@ -29,4 +29,12 @@ abstract class ResolvedPromise implements PromiseInterface
     {
         return $this;
     }
+    
+    /**
+     * @inheritdoc
+     */
+    public function unwrap()
+    {
+        return $this;
+    }
 }
