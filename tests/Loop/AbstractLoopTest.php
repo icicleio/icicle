@@ -1050,8 +1050,8 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
+     * @medium
      * @depends testAddSignalHandler
-     * @depends testSchedule
      */
     public function testQuitSignalWithNoListeners()
     {
@@ -1059,7 +1059,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGQUIT);
-            $this->loop->createTimer($callback, self::TIMEOUT);
+            $this->loop->createTimer($callback, 1);
         };
         
         $this->loop->schedule($callback);
@@ -1085,7 +1085,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGTERM);
-            $this->loop->createTimer($callback, self::TIMEOUT);
+            $this->loop->createTimer($callback, 1);
         };
         
         $this->loop->schedule($callback);
@@ -1095,6 +1095,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @medium
+     * @requires PHP 5.5
      * @depends testAddSignalHandler
      */
     public function testChildSignal()
