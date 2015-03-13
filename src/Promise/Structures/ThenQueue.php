@@ -1,8 +1,15 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-class ThenQueue extends \SplQueue
+class ThenQueue
 {
+    private $queue;
+    
+    public function __construct()
+    {
+        $this->queue = new \SplQueue();
+    }
+    
     /**
      * Calls each callback in the queue, passing the provided value to the function.
      *
@@ -10,7 +17,7 @@ class ThenQueue extends \SplQueue
      */
     public function __invoke($value)
     {
-        foreach ($this as $callback) {
+        foreach ($this->queue as $callback) {
             $callback($value);
         }
     }
@@ -20,14 +27,14 @@ class ThenQueue extends \SplQueue
      *
      * @param   callable $callback
      */
-    public function push($resolver)
+    public function push(callable $resolver)
     {
         if ($resolver instanceof self) {
-            foreach ($resolver as $callback) {
-                parent::push($callback);
+            foreach ($resolver->queue as $callback) {
+                $this->queue->push($callback);
             }
         } else {
-            parent::push($resolver);
+            $this->queue->push($resolver);
         }
     }
 }
