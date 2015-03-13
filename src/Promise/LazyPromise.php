@@ -117,6 +117,14 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
+     * @inheritdoc
+     */
+    public function unwrap()
+    {
+        return $this->getPromise()->unwrap();
+    }
+    
+    /**
      * @param   callable $promisor
      * @param   mixed ...$args
      *

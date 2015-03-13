@@ -39,11 +39,6 @@ class Promise implements PromiseInterface
     private $onCancelled;
     
     /**
-     * @var bool
-     */
-    private $resolving = false;
-    
-    /**
      * @var int
      */
     private $children = 0;
@@ -65,17 +60,17 @@ class Promise implements PromiseInterface
          */
         $resolve = function ($value = null) {
             if (null === $this->result) {
-                $this->resolving = true;
-                
-                try {
-                    $this->result = static::resolve($value);
-                    $this->result->done($this->onFulfilled, $this->onRejected);
-                } catch (Exception $exception) {
-                    $this->result = static::reject($exception);
-                    $this->result->done($this->onFulfilled, $this->onRejected);
+                if ($value instanceof PromiseInterface) {
+                    $this->result = $value->unwrap();
+                } else {
+                    $this->result = new FulfilledPromise($value);
                 }
                 
-                $this->resolving = false;
+                if ($this === $this->result) {
+                    $this->result = new RejectedPromise(new TypeException('Circular reference in promise resolution.'));
+                }
+                
+                $this->result->done($this->onFulfilled, $this->onRejected);
                 
                 $this->close();
             }
@@ -88,7 +83,7 @@ class Promise implements PromiseInterface
          */
         $reject = function ($reason = null) {
             if (null === $this->result) {
-                $this->result = static::reject($reason);
+                $this->result = new RejectedPromise($reason);
                 $this->result->done($this->onFulfilled, $this->onRejected);
                 
                 $this->close();
@@ -133,14 +128,8 @@ class Promise implements PromiseInterface
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $this->result) {
-            return $this->result->then($onFulfilled, $onRejected);
+            return $this->unwrap()->then($onFulfilled, $onRejected);
         }
-        
-/*
-        if (null === $onFulfilled && null === $onRejected) {
-            return $this;
-        }
-*/
         
         ++$this->children;
         
@@ -175,9 +164,11 @@ class Promise implements PromiseInterface
                 }
             },
             function (Exception $exception) {
-                if (0 === --$this->children) {
-                    $this->cancel($exception);
-                }
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
+                });
             }
         );
     }
@@ -187,12 +178,8 @@ class Promise implements PromiseInterface
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
-        if ($this->resolving) { // Will only throw during resolution.
-            throw new TypeException('Circular reference detected in promise resolution chain.');
-        }
-        
         if (null !== $this->result) {
-            $this->result->done($onFulfilled, $onRejected);
+            $this->unwrap()->done($onFulfilled, $onRejected);
         } else {
             if (null !== $onFulfilled) {
                 $this->onFulfilled->push($onFulfilled);
@@ -214,7 +201,7 @@ class Promise implements PromiseInterface
     public function cancel($reason = null)
     {
         if (null !== $this->result) {
-            $this->result->cancel($reason);
+            $this->unwrap()->cancel($reason);
         } else {
             if (!$reason instanceof Exception) {
                 $reason = new CancelledException($reason);
@@ -231,7 +218,7 @@ class Promise implements PromiseInterface
     public function timeout($timeout, $reason = null)
     {
         if (null !== $this->result) {
-            return $this->result->timeout($timeout, $reason);
+            return $this->unwrap()->timeout($timeout, $reason);
         }
         
         ++$this->children;
@@ -256,9 +243,11 @@ class Promise implements PromiseInterface
             function (Exception $exception) use (&$timer) {
                 $timer->cancel();
                 
-                if (0 === --$this->children) {
-                    $this->cancel($exception);
-                }
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
+                });
             }
         );
     }
@@ -269,7 +258,7 @@ class Promise implements PromiseInterface
     public function delay($time)
     {
         if (null !== $this->result) {
-            return $this->result->delay($time);
+            return $this->unwrap()->delay($time);
         }
         
         ++$this->children;
@@ -291,9 +280,11 @@ class Promise implements PromiseInterface
                     $timer->cancel();
                 }
                 
-                if (0 === --$this->children) {
-                    $this->cancel($exception);
-                }
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
+                });
             }
         );
     }
@@ -303,7 +294,7 @@ class Promise implements PromiseInterface
      */
     public function isPending()
     {
-        return null === $this->result ?: $this->result->isPending();
+        return null === $this->result ?: $this->unwrap()->isPending();
     }
     
     /**
@@ -311,7 +302,7 @@ class Promise implements PromiseInterface
      */
     public function isFulfilled()
     {
-        return null !== $this->result ? $this->result->isFulfilled() : false;
+        return null !== $this->result ? $this->unwrap()->isFulfilled() : false;
     }
     
     /**
@@ -319,7 +310,7 @@ class Promise implements PromiseInterface
      */
     public function isRejected()
     {
-        return null !== $this->result ? $this->result->isRejected() : false;
+        return null !== $this->result ? $this->unwrap()->isRejected() : false;
     }
     
     /**
@@ -331,7 +322,23 @@ class Promise implements PromiseInterface
             throw new UnresolvedException('The promise is still pending.');
         }
         
-        return $this->result->getResult();
+        return $this->unwrap()->getResult();
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function unwrap()
+    {
+        if (null !== $this->result) {
+            while ($this->result instanceof self && null !== $this->result->result) {
+                $this->result = $this->result->result;
+            }
+            
+            return $this->result;
+        }
+        
+        return $this;
     }
     
     /**

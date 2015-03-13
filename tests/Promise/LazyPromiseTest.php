@@ -211,10 +211,6 @@ class LazyPromiseTest extends TestCase
         
         $lazy->done($callback, $this->createCallback(0));
         
-        $this->assertFalse($lazy->isPending());
-        $this->assertTrue($lazy->isFulfilled());
-        $this->assertSame($value, $lazy->getResult());
-        
         Loop::run();
     }
     
@@ -236,10 +232,6 @@ class LazyPromiseTest extends TestCase
         
         $lazy->done($this->createCallback(0), $callback);
         
-        $this->assertFalse($lazy->isPending());
-        $this->assertTrue($lazy->isRejected());
-        $this->assertSame($exception, $lazy->getResult());
-        
         Loop::run();
     }
     
@@ -257,5 +249,27 @@ class LazyPromiseTest extends TestCase
         $lazy->done($this->createCallback(0), $this->createCallback(0));
         
         $this->assertTrue($lazy->isPending());
+    }
+    
+    /**
+     * @depends testPromisorCalledWhenDoneCalled
+     */
+    public function testResolvePromiseWithLazyPromise()
+    {
+        $value = 'test';
+        
+        $promise = new Promise(function ($resolve) use ($value) {
+            $promise = Promise::resolve($value);
+            $promisor = function () use ($promise) { return $promise; };
+            $resolve(new LazyPromise($promisor));
+        });
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($value));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
     }
 }

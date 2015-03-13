@@ -788,4 +788,27 @@ class CoroutineTest extends TestCase
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
     }
+    
+    /**
+     * @depends testYieldScalar
+     */
+    public function testResolvePromiseWithCoroutine()
+    {
+        $value = 'test';
+        $generator = function () use ($value) {
+            yield 'test';
+        };
+        
+        $promise = new Promise(function ($resolve) use ($generator) {
+            $resolve(new Coroutine($generator()));
+        });
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($value));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+    }
 }
