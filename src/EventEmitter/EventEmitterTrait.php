@@ -18,6 +18,8 @@ trait EventEmitterTrait
         if (!isset($this->listeners[$event])) {
             $this->listeners[$event] = [];
         }
+        
+        return $this;
     }
     
     /**
@@ -27,7 +29,7 @@ trait EventEmitterTrait
      * @param   callable $listener
      * @param   bool $once Set to true for the listener to be called only the next time the event is emitted.
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
@@ -63,7 +65,7 @@ trait EventEmitterTrait
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
@@ -81,7 +83,7 @@ trait EventEmitterTrait
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
@@ -98,7 +100,7 @@ trait EventEmitterTrait
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
@@ -126,7 +128,7 @@ trait EventEmitterTrait
      * @param   string|int
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
@@ -142,7 +144,7 @@ trait EventEmitterTrait
      *
      * @param   string|int|null $event Event name or null to remove all event listeners.
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidEventException If the event name does not exist.
      *
