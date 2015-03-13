@@ -69,6 +69,58 @@ class ClientTest extends TestCase
         return $socket;
     }
     
+    public function createSecureServer($path)
+    {
+        $host = self::HOST_IPv4;
+        $port = self::PORT;
+        
+        $dn = [
+            'countryName' => 'US',
+            'stateOrProvinceName' => 'MN',
+            'localityName' => 'Minneapolis',
+            'organizationName' => 'Icicle',
+            'organizationalUnitName' => 'Security',
+            'commonName' => 'localhost',
+            'emailAddress' => 'hello@icicle.io'
+        ];
+        
+        $privkey = openssl_pkey_new(['private_key_bits' => 2048]);
+        $cert = openssl_csr_new($dn, $privkey);
+        $cert = openssl_csr_sign($cert, null, $privkey, 365);
+        
+        openssl_x509_export($cert, $cert);
+        openssl_pkey_export($privkey, $privkey);
+        
+        $pem = $cert . $privkey;
+        
+        file_put_contents($path, $pem);
+        
+        $context = [];
+        
+        $context['socket'] = [];
+        $context['socket']['bindto'] = "{$host}:{$port}";
+        
+        $context['ssl'] = [];
+        $context['ssl']['local_cert'] = $path;
+        $context['ssl']['disable_compression'] = true;
+        
+        $context = stream_context_create($context);
+        
+        $socket = stream_socket_server(
+            "tcp://{$host}:{$port}",
+            $errno,
+            $errstr,
+            STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+            $context
+        );
+        
+        if (!$socket || $errno) {
+            $this->fail("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+        }
+        
+        return $socket;
+    }
+    
     public function tearDown()
     {
         Loop::clear();
@@ -168,29 +220,45 @@ class ClientTest extends TestCase
     
     /**
      * @depends testConnect
+     * @require extension openssl
      */
     public function testEnableCrypto()
     {
-        $promise = Client::connect('www.google.com', 443);
+        $path = tempnam(sys_get_temp_dir(), 'Icicle');
+        
+        $server = $this->createSecureServer($path);
+        
+        $promise = Client::connect(self::HOST_IPv4, self::PORT, ['cn' => 'localhost', 'allow_self_signed' => true]);
         
         $promise = $promise
+            ->tap(function () use ($server) {
+                $socket = stream_socket_accept($server);
+                $socket = new Client($socket);
+                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER);
+            })
             ->then(function (Client $client) {
                 return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
             })->tap(function (Client $client) {
                 $this->assertTrue($client->isCryptoEnabled());
             });
         
-        $promise->done($this->createCallback(1), $this->createCallback(0));
+        $promise->done($this->createCallback(1));
         
         Loop::run();
+        
+        fclose($server);
+        unlink($path);
     }
     
     /**
      * @depends testConnect
+     * @require extension openssl
      */
     public function testEnableCryptoFailure()
     {
-        $promise = Client::connect('www.google.com', 80);
+        $server = $this->createServer();
+        
+        $promise = Client::connect(self::HOST_IPv4, 80);
         
         $promise = $promise->then(function (Client $client) {
             return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
@@ -203,5 +271,7 @@ class ClientTest extends TestCase
         $promise->done($this->createCallback(0), $callback);
         
         Loop::run();
+        
+        fclose($server);
     }
 }

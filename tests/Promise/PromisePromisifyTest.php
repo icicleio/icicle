@@ -172,7 +172,7 @@ class PromisePromisifyTest extends TestCase
     
     public function testTooFewArguments()
     {
-        $worker = function ($value1, $value1, callable $callback) {
+        $worker = function ($value1, $value2, callable $callback) {
             return $callback($value1, $value2);
         };
         

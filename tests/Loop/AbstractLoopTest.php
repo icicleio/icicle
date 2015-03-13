@@ -1072,6 +1072,7 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
+     * @medium
      * @depends testAddSignalHandler
      */
     public function testTerminateSignal()
@@ -1096,6 +1097,10 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertSame(true, $this->loop->run());
     }
     
+    /**
+     * @medium
+     * @depends testAddSignalHandler
+     */
     public function testChildSignal()
     {
         $callback = $this->createCallback(1);
@@ -1112,7 +1117,7 @@ abstract class AbstractLoopTest extends TestCase
         
         proc_open('whoami', $fd, $pipes);
         
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+        usleep(1 * self::MICROSEC_PER_SEC);
         
         $this->loop->tick(false);
     }
