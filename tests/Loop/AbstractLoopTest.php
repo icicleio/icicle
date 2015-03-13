@@ -1059,7 +1059,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGQUIT);
-            $this->loop->createTimer($callback, 1);
+            $this->loop->createTimer($callback, 10);
         };
         
         $this->loop->schedule($callback);
@@ -1085,7 +1085,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGTERM);
-            $this->loop->createTimer($callback, 1);
+            $this->loop->createTimer($callback, 10);
         };
         
         $this->loop->schedule($callback);
