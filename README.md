@@ -4,6 +4,8 @@
 
 Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
+[![Build Status](https://travis-ci.org/icicleio/Icicle.svg?branch=master)](https://travis-ci.org/icicleio/Icicle)
+
 #### Library Constructs
 
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
@@ -280,7 +282,7 @@ This implementation differs from other event emitter libraries by ensuring that 
 
 Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
 
-**[Event Emitter API documentation](src/Event)**
+**[Event Emitter API documentation](src/EventEmitter)**
 
 ## Example
 
