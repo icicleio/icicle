@@ -155,8 +155,9 @@ class TimerQueue implements \Countable
                 $this->queue->extract();
                 
                 if ($timer->isPeriodic()) {
-                    $this->timers[$timer] += $timer->getInterval();
-                    $this->queue->insert($timer, -$this->timers[$timer]);
+                    $timeout = microtime(true) + $timer->getInterval();
+                    $this->queue->insert($timer, -$timeout);
+                    $this->timers[$timer] = $timeout;
                 } else {
                     $this->timers->detach($timer);
                 }
