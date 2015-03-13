@@ -188,30 +188,23 @@ class TimerQueueTest extends TestCase
      */
     public function testUnreference()
     {
-        $timer = $this->createTimer($this->createCallback(2), self::TIMEOUT, true);
+        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT, true);
         
         $this->queue->add($timer);
         
         $this->queue->unreference($timer);
         
         $this->assertSame(0, $this->queue->count());
+        
         $this->assertFalse($this->queue->isEmpty());
         
-        $this->queue->add($this->createTimer($this->createCallback(2), self::TIMEOUT, true));
+        $this->queue->add($this->createTimer($this->createCallback(0), self::TIMEOUT, true));
         
         $this->assertSame(1, $this->queue->count());
-        
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
-        
-        $this->assertSame(2, $this->queue->tick());
         
         $this->queue->reference($timer);
         
         $this->assertSame(2, $this->queue->count());
-        
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
-        
-        $this->assertSame(2, $this->queue->tick());
     }
     
     public function testClear()

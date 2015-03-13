@@ -1057,11 +1057,9 @@ abstract class AbstractLoopTest extends TestCase
     {
         $pid = posix_getpid();
         
-        $this->loop->maxScheduleDepth(1);
-        
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGQUIT);
-            $this->loop->schedule($callback);
+            $this->loop->createTimer($callback, self::TIMEOUT);
         };
         
         $this->loop->schedule($callback);
@@ -1085,11 +1083,9 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->addListener(SIGTERM, $callback);
         
-        $this->loop->maxScheduleDepth(1);
-        
         $callback = function () use (&$callback, $pid) {
             posix_kill($pid, SIGTERM);
-            $this->loop->schedule($callback);
+            $this->loop->createTimer($callback, self::TIMEOUT);
         };
         
         $this->loop->schedule($callback);

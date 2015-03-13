@@ -1461,6 +1461,23 @@ class PromiseTest extends TestCase
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isFulfilled());
     }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelay()
+    {
+        $time = 0.1;
+        
+        $delayed = $this->promise->delay($time);
+        
+        $delayed->cancel();
+        
+        Loop::run();
+        
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isRejected());
+    }
     
     /**
      * @depends testCancellation

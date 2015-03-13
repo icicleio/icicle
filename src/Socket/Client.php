@@ -142,20 +142,21 @@ class Client extends DuplexStream implements ClientInterface
     /**
      * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)
      *          clients, STREAM_CRYPTO_METHOD_TLS_CLIENT for outgoing (local) clients.
+     * @param   int|float|null $timeout Seconds to wait between reads/writes to enable crypto before failing.
      *
      * @return  PromiseInterface
      *
-     * @resolve self
+     * @resolve $this
      *
      * @reject  FailureException If enabling crypto fails.
      * @reject  ClosedException If the client has been closed.
      * @reject  BusyException If the client was already busy waiting to read.
      */
-    public function enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER)
+    public function enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER, $timeout = null)
     {
         $method = (int) $method;
         
-        $enable = function () use (&$enable, $method) {
+        $enable = function () use (&$enable, $method, $timeout) {
             $result = @stream_socket_enable_crypto($this->getResource(), true, $method);
             
             if (false === $result) {
@@ -168,7 +169,7 @@ class Client extends DuplexStream implements ClientInterface
             }
             
             if (0 === $result) {
-                return $this->poll()->then($enable);
+                return $this->poll($timeout)->then($enable);
             }
             
             $this->crypto = $method;
@@ -176,7 +177,7 @@ class Client extends DuplexStream implements ClientInterface
             return $this;
         };
         
-        return $this->await()->then($enable);
+        return $this->await($timeout)->then($enable);
     }
     
     /**

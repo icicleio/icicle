@@ -219,6 +219,7 @@ class ClientTest extends TestCase
     }
     
     /**
+     * @medium
      * @depends testConnect
      * @require extension openssl
      */
@@ -234,11 +235,12 @@ class ClientTest extends TestCase
             ->tap(function () use ($server) {
                 $socket = stream_socket_accept($server);
                 $socket = new Client($socket);
-                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER);
+                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT);
             })
             ->then(function (Client $client) {
-                return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
-            })->tap(function (Client $client) {
+                return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
+            })
+            ->tap(function (Client $client) {
                 $this->assertTrue($client->isCryptoEnabled());
             });
         
@@ -251,18 +253,27 @@ class ClientTest extends TestCase
     }
     
     /**
+     * @medium
      * @depends testConnect
      * @require extension openssl
      */
     public function testEnableCryptoFailure()
     {
-        $server = $this->createServer();
+        $path = tempnam(sys_get_temp_dir(), 'Icicle');
         
-        $promise = Client::connect(self::HOST_IPv4, 80);
+        $server = $this->createSecureServer($path);
         
-        $promise = $promise->then(function (Client $client) {
-            return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT);
-        });
+        $promise = Client::connect(self::HOST_IPv4, self::PORT);
+        
+        $promise = $promise
+            ->tap(function () use ($server) {
+                $socket = stream_socket_accept($server);
+                $socket = new Client($socket);
+                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT);
+            })
+            ->then(function (Client $client) {
+                return $client->enableCrypto(STREAM_CRYPTO_METHOD_SSLv3_CLIENT, self::TIMEOUT);
+            });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -273,5 +284,6 @@ class ClientTest extends TestCase
         Loop::run();
         
         fclose($server);
+        unlink($path);
     }
 }
