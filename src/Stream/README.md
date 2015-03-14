@@ -8,7 +8,7 @@ Streams represent a common promise-based API that may be implemented by classes 
 
 ## Documentation
 
-- [StreamInterface] - Basic stream interface.
+- [StreamInterface](#streaminterface) - Basic stream interface.
     - [isOpen()](#isopen) - Determines if the stream is still open.
     - [close()](#close) - Closes the stream.
 - [ReadableStreamInterface](#readablestreaminterface) - Interface for readable streams.
