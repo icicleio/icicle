@@ -5,47 +5,47 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\StreamSocket\Client;
-use Icicle\StreamSocket\Server;
+use Icicle\Socket\ClientInterface;
+use Icicle\Socket\Server;
 
-$coroutine = Coroutine::call(function () {
-    $server = Server::create('localhost', 9898);
-    $clients = [];
+// Connect using `nc localhost 60000`.
+
+$coroutine = Coroutine::call(function (Server $server) {
+    $clients = new SplObjectStorage();
     
-    $handler = Coroutine::async(function (Client $client) use (&$clients) {
-        $clients[$client->getId()] = $client;
+    $handler = Coroutine::async(function (ClientInterface $client) use (&$clients) {
+        $clients->attach($client);
         $name = $client->getRemoteAddress() . ':' . $client->getRemotePort();
         
         try {
-            yield $client->ready();
-            
             yield $client->write("Welcome {$name}!\r\n");
             
-            while ($client->isOpen()) {
-                $data = (yield $client->read());
+            while ($client->isReadable()) {
+                $data = trim((yield $client->read()), "\n");
                 
-                $message = "{$name}: {$data}";
-                
-                foreach ($clients as $otherClient) {
-                    if ($otherClient !== $client) {
-                        $otherClient->write($message);
-                    }
+                if ("exit" === $data) {
+                    yield $client->end("Goodbye!\r\n");
+                    $message = "{$name} disconnected.\n";
+                } else {
+                    $message = "{$name}: {$data}\n";
                 }
                 
-                if ("exit\r\n" === $data) {
-                    yield $client->end("Goodbye!\r\n");
+                foreach ($clients as $stream) {
+                    if ($client !== $stream) {
+                        $stream->write($message);
+                    }
                 }
             }
         } catch (Exception $exception) {
             $client->close($exception);
         } finally {
-            unset($clients[$client->getId()]);
+            $clients->detach($client);
         }
     });
     
     while ($server->isOpen()) {
         $handler(yield $server->accept());
     }
-});
+}, Server::create('localhost', 60000));
 
 Loop::run();

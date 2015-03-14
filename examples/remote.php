@@ -22,11 +22,13 @@ $coroutine = Coroutine::call(function () {
         
         echo "Crypto enabled in {$time} seconds.\n";
         
+        $request  = "GET / HTTP/1.1\r\n";
+        $request .= "Host: google.com\r\n";
+        $request .= "Connection: close\r\n";
+        $request .= "\r\n";
+        
         // Write request.
-        yield $client->write("GET / HTTP/1.1\r\n");
-        yield $client->write("Host: google.com\r\n");
-        yield $client->write("Connection: close\r\n");
-        yield $client->write("\r\n");
+        yield $client->write($request);
         
         // Read response.
         while ($client->isReadable()) {

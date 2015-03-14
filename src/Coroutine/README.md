@@ -6,7 +6,7 @@ When a coroutine yields a [promise](../Promise), execution of the coroutine is i
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-**`Icicle\Coroutine\Coroutine` instances are also [promises](../Promise) `Icicle\Promise\PromiseInterface`.** The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Coroutine` and handled in the same way as a yielded coroutine.
+**`Icicle\Coroutine\Coroutine` instances are also [promises](../Promise), implementing `Icicle\Promise\PromiseInterface`.** The coroutine is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Coroutine` and handled in the same way as a yielded coroutine.
 
 ## Documentation
 

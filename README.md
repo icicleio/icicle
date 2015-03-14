@@ -294,7 +294,7 @@ use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;
 use Icicle\Socket\Server;
 
-// Connect using \`nc localhost 60000\`.
+// Connect using `nc localhost 60000`.
 
 $coroutine = Coroutine::call(function (Server $server) {
     $handler = Coroutine::async(function (ClientInterface $client) {

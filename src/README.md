@@ -13,4 +13,4 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 - [Sockets](#sockets): Implement asynchronous network and file operations.
 - [Event Emitters](#event-emitters): Allows objects to emit events that execute a set of registered callbacks.
 
-**Please see the [main documentation] for installation, requirements, and usage.**
+**Please see the [main documentation](../) for installation, requirements, and usage.**
