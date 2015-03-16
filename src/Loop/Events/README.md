@@ -179,7 +179,7 @@ Determines if the await has been freed from the event loop.
 void Await->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
-Sets the callback to be called when the awawit becomes active.
+Sets the callback to be called when the await becomes active.
 
 ## Timer
 
