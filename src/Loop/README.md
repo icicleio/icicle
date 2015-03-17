@@ -47,13 +47,13 @@ To document the expected prototype of a callback function used as method argumen
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
-## Loop Façade
+## Loop Facade
 
-Any asynchronous code needs to use the same event loop to be interoperable and non-blocking. The loop component provides the `Icicle\Loop\Loop` façade class that should be used to access the single global event loop. This class acts as a container for an instance of `Icicle\Loop\LoopInterface` that actually implements the event loop.
+Any asynchronous code needs to use the same event loop to be interoperable and non-blocking. The loop component provides the `Icicle\Loop\Loop` facade class that should be used to access the single global event loop. This class acts as a container for an instance of `Icicle\Loop\LoopInterface` that actually implements the event loop.
 
-The static methods of the `Icicle\Loop\Loop` façade class are described below.
+The static methods of the `Icicle\Loop\Loop` facade class are described below.
 
-#### Loop::init()
+#### init()
 
 ``` php
 void Loop::init(LoopInterface $loop)
@@ -61,7 +61,7 @@ void Loop::init(LoopInterface $loop)
 
 This method allows any particular or custom implementation of `Icicle\Loop\LoopInterface` to be used as the event loop. This method should be called before any code that would access the event loop, otherwise a `Icicle\Loop\Exception\InitializedException` will be thrown since the default factory would have already created an event loop.
 
-#### Loop::getInstance()
+#### getInstance()
 
 ``` php
 LoopInterface Loop::getInstance()
@@ -69,7 +69,7 @@ LoopInterface Loop::getInstance()
 
 Returns the event loop instance. If one was not created before or specified with `init()`, it will be created when this method is called.
 
-#### Loop::run()
+#### run()
 
 ``` php
 bool Loop::run()
@@ -79,7 +79,7 @@ Runs the event loop until there are no events pending in the loop. Returns true 
 
 This function is generally the last line in the script that starts the program, as this function blocks until there are no pending events.
 
-#### Loop::tick()
+#### tick()
 
 ``` php
 void Loop::tick(bool $blocking = false)
@@ -87,7 +87,7 @@ void Loop::tick(bool $blocking = false)
 
 Executes a single turn of the event loop. Set `$blocking` to `true` to block until at least one pending event becomes active, or set `$blocking` to `false` to return immediately, even if no events are executed.
 
-#### Loop::isRunning()
+#### isRunning()
 
 ``` php
 bool Loop::isRunning()
@@ -95,7 +95,7 @@ bool Loop::isRunning()
 
 Determines if the loop is running.
 
-#### Loop::stop()
+#### stop()
 
 ``` php
 void Loop::stop()
@@ -103,7 +103,7 @@ void Loop::stop()
 
 Stops the loop if it is running.
 
-#### Loop::schedule()
+#### schedule()
 
 ``` php
 void Loop::schedule(callable<void (mixed ...$args)> $callback, mixed ...$args)
@@ -111,7 +111,7 @@ void Loop::schedule(callable<void (mixed ...$args)> $callback, mixed ...$args)
 
 Schedules the function `$callback` to be executed later (sometime after leaving the scope calling this method). Functions are guaranteed to be executed in the order queued. This method is useful for ensuring that functions are called asynchronously.
 
-#### Loop::maxScheduleDepth()
+#### maxScheduleDepth()
 
 ``` php
 int Loop::maxScheduleDepth(int $depth = null)
@@ -119,7 +119,7 @@ int Loop::maxScheduleDepth(int $depth = null)
 
 Sets the maximum number of scheduled functions to execute on each turn of the event loop. Returns the previous max schedule depth. If `$depth` is `null`, the max schedule depth is not modified, only returned.
 
-#### Loop::poll()
+#### poll()
 
 ``` php
 PollInterface Loop::poll(resource $socket, callable<void (resource $socket, bool $expired)>)
@@ -127,7 +127,7 @@ PollInterface Loop::poll(resource $socket, callable<void (resource $socket, bool
 
 Creates a `Icicle\Loop\Events\PollInterface` object for the given stream socket.
 
-#### Loop::await()
+#### await()
 
 ``` php
 AwaitInterface Loop::await(resource $socket, callable<void (resource $socket, bool $expired)>)
@@ -135,7 +135,7 @@ AwaitInterface Loop::await(resource $socket, callable<void (resource $socket, bo
 
 Creates a `Icicle\Loop\Events\AwaitInterface` object for the given stream socket.
 
-#### Loop::timer()
+#### timer()
 
 ``` php
 TimerInterface Loop::timer(float $interval, callable<void (mixed ...$args)> $callback, mixed ...$args)
@@ -143,7 +143,7 @@ TimerInterface Loop::timer(float $interval, callable<void (mixed ...$args)> $cal
 
 Creates a timer that calls the function `$callback` with the given arguments after `$interval` seconds have elapsed. The number of seconds can have a decimal component (e.g., `1.2` to execute the callback in 1.2 seconds). Returns a `Icicle\Loop\Events\TimerInterface` object.
 
-#### Loop::periodic()
+#### periodic()
 
 ``` php
 TimerInterface Loop::periodic(float $interval, callable<void (mixed ...$args)> $callback, mixed ...$args)
@@ -151,7 +151,7 @@ TimerInterface Loop::periodic(float $interval, callable<void (mixed ...$args)> $
 
 Creates a timer that calls the function `$callback` with the given arguments every `$interval` seconds until stopped. The number of seconds can have a decimal component (e.g., `1.2` to execute the callback in 1.2 seconds). Returns a `Icicle\Loop\Events\TimerInterface` object.
 
-#### Loop::immediate()
+#### immediate()
 
 ``` php
 ImmediateInterface Loop::immediate(callable<void (mixed ...$args)> $callback, mixed ...$args)
@@ -161,7 +161,7 @@ Calls the function `$callback` with the given arguments as soon as there are no 
 
 The name of this function is somewhat misleading, but was chosen because of the similar behavior to the `setImmediate()` function available in some implementations of JavaScript. Think of an immediate as a timer that executes when able rather than after a particular interval. 
 
-#### Loop::signalHandlingEnabled()
+#### signalHandlingEnabled()
 
 ``` php
 bool Loop::signalHandlingEnabled()
@@ -169,7 +169,7 @@ bool Loop::signalHandlingEnabled()
 
 Determines if signals sent to the PHP process can be handled by the event loop. Returns `true` if signal handling is enabled, `false` if not. Signal handling requires the `pcntl` extension to be installed.
 
-#### Loop::addSignalHandler()
+#### addSignalHandler()
 
 ``` php
 void Loop::addSignalHandler(int $signo, callable<void (int $signo)>, bool $once = false)
@@ -177,7 +177,7 @@ void Loop::addSignalHandler(int $signo, callable<void (int $signo)>, bool $once 
 
 Adds a callback to be invoked when the given signal is received by the process. Requires the `pcntl` extension to be installed, otherwise this function is a no-op.
 
-#### Loop::removeSignalHandler()
+#### removeSignalHandler()
 
 ``` php
 void Loop::removeSignalHandler(int $signo, callable<void (int $signo)>)
@@ -185,7 +185,7 @@ void Loop::removeSignalHandler(int $signo, callable<void (int $signo)>)
 
 The given callback will no longer be invoked when the given signal is received by the process. Requires the `pcntl` extension to be installed, otherwise this function is a no-op.
 
-#### Loop::removeSignalHandler()
+#### removeSignalHandler()
 
 ``` php
 void Loop::removeSignalAllHandlers(int|null $signo)
@@ -193,7 +193,7 @@ void Loop::removeSignalAllHandlers(int|null $signo)
 
 Removes all handlers for the given signal, or all handlers if `$signo` is `null`. Requires the `pcntl` extension to be installed, otherwise this function is a no-op.
 
-#### Loop::reInit()
+#### reInit()
 
 ``` php
 void Loop::reInit()
@@ -201,7 +201,7 @@ void Loop::reInit()
 
 This function should be called by the child process if the process is forked using `pcntl_fork()`.
 
-#### Loop::clear()
+#### clear()
 
 ``` php
 void Loop::clear()

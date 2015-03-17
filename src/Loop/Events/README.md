@@ -5,29 +5,29 @@ When an event is scheduled in the event loop through the methods `poll()`, `awai
 ## Documentation
 
 - [Poll](#poll) - Used for polling stream sockets for the availability of data.
-    - [listen()](#poll-listen) - Listens for data on the stream socket. 
-    - [cancel()](#poll-cancel) - Cancels listening for data.
-    - [isPending()](#poll-ispending) - Determines if the poll is pending.
-    - [free()](#poll-free) - Frees the poll from the associated event loop.
-    - [isFreed()](#poll-isfreed) - Determines if the poll has been freed.
-    - [setCallback()](#poll-setcallback) - Sets the callback to be executed when the event is active.
+    - [listen()](#listen) - Listens for data on the stream socket. 
+    - [cancel()](#cancel) - Cancels listening for data.
+    - [isPending()](#ispending) - Determines if the poll is pending.
+    - [free()](#free) - Frees the poll from the associated event loop.
+    - [isFreed()](#isfreed) - Determines if the poll has been freed.
+    - [setCallback()](#setcallback) - Sets the callback to be executed when the event is active.
 - [Await](#await) - Used for awaiting stream sockets for empty buffer space to write data.
-    - [listen()](#await-listen) - Listens for the stream socket to be available to write.
-    - [cancel()](#await-cancel) - Cancels listening for write availability.
-    - [isPending()](#await-ispending) - Determines if the await is pending.
-    - [free()](#await-free) - Frees the await from the associated event loop.
-    - [isFreed()](#await-isfreed) - Determines if the await has been freed.
-    - [setCallback()](#await-setcallback) - Sets the callback to be executed when the event is active.
+    - [listen()](#listen-1) - Listens for the stream socket to be available to write.
+    - [cancel()](#cancel-1) - Cancels listening for write availability.
+    - [isPending()](#ispending-1) - Determines if the await is pending.
+    - [free()](#free-1) - Frees the await from the associated event loop.
+    - [isFreed()](#isfreed-1) - Determines if the await has been freed.
+    - [setCallback()](#setcallback-1) - Sets the callback to be executed when the event is active.
 - [Timer](#timer) - Executes a callback after a interval of time has elapsed.
-    - [cancel()](#timer-cancel) - Cancels the timer.
-    - [isPending()](#timer-ispending) - Determines if the timer is pending.
-    - [getInterval()](#timer-getinterval) - Gets the interval of the timer.
-    - [isPeriodic()](#timer-isperiodic) - Determines if the timer is periodic.
-    - [unreference()](#timer-unreference) - Removes the reference the timer from the event loop.
-    - [reference()](#timer-reference) - References the timer in the event loop if it was previously unreferenced.
+    - [cancel()](#cancel-2) - Cancels the timer.
+    - [isPending()](#ispending-2) - Determines if the timer is pending.
+    - [getInterval()](#getinterval) - Gets the interval of the timer.
+    - [isPeriodic()](#isperiodic) - Determines if the timer is periodic.
+    - [unreference()](#unreference) - Removes the reference the timer from the event loop.
+    - [reference()](#reference) - References the timer in the event loop if it was previously unreferenced.
 - [Immediate](#immediate) - Executes a callback once no other events are active in the loop.
-    - [cancel()](#immediate-cancel) - Cancels the immediate.
-    - [isPending()](#immediate-ispending) - Determines if the immediate is pending.
+    - [cancel()](#cancel-3) - Cancels the immediate.
+    - [isPending()](#ispending-3) - Determines if the immediate is pending.
 
 #### Function prototypes
 
@@ -65,52 +65,52 @@ $poll = Loop::poll($socket, function ($socket, $expired) {
 });
 ```
 
-See the [Loop component documentation](../#looppoll) for more information on `Icicle\Loop\Loop::poll()`.
+See the [Loop component documentation](../#poll) for more information on `Icicle\Loop\Loop::poll()`.
 
-#### Poll->listen()
+#### listen()
 
 ``` php
-void Poll->listen(float|null $timeout)
+void $pollInterface->listen(float|null $timeout)
 ```
 
 Listens for data to become available. If `$timeout` is not `null`, the poll callback will be called after `$timeout` seconds with `$expired` set to `true`.
 
-#### Poll->cancel()
+#### cancel()
 
 ``` php
-void Poll->cancel()
+void $pollInterface->cancel()
 ```
 
 Stops listening for data to become available.
 
-#### Poll->isPending()
+#### isPending()
 
 ``` php
-bool Poll->isPending()
+bool $pollInterface->isPending()
 ```
 
 Determines if the poll is listening for data.
 
-#### Poll->free()
+#### free()
 
 ``` php
-void Poll->free()
+void $pollInterface->free()
 ```
 
 Frees the resources allocated to the poll from the event loop. This function should always be called when the poll is no longer needed. Once a poll has been freed, it cannot be used again and another must be recreated for the same socket resource.
 
-#### Poll->isFreed()
+#### isFreed()
 
 ``` php
-bool Poll->isFreed()
+bool $pollInterface->isFreed()
 ```
 
 Determines if the poll has been freed from the event loop.
 
-#### Poll->setCallback()
+#### setCallback()
 
 ``` php
-void Poll->setCallback(callable<void (resource $socket, bool $expired)> $callback)
+void $pollInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
 Sets the callback to be called when the poll becomes active.
@@ -131,52 +131,52 @@ $await = Loop::await($socket, function ($socket, $expired) {
 });
 ```
 
-See the [Loop component documentation](../#loopawait) for more information on `Icicle\Loop\Loop::await()`.
+See the [Loop component documentation](../#await) for more information on `Icicle\Loop\Loop::await()`.
 
-#### Await->listen()
+#### listen()
 
 ``` php
-void Await->listen(float|null $timeout)
+void $awaitInterface->listen(float|null $timeout)
 ```
 
 Listens for space in the socket buffer to become available. If `$timeout` is not `null`, the await callback will be called after `$timeout` seconds with `$expired` set to `true`.
 
-#### Await->cancel()
+#### cancel()
 
 ``` php
-void Await->cancel()
+void $awaitInterface->cancel()
 ```
 
 Stops listening for space to become available in the buffer.
 
-#### Await->isPending()
+#### isPending()
 
 ``` php
-bool Await->isPending()
+bool $awaitInterface->isPending()
 ```
 
 Determines if the await is listening for space to become available.
 
-#### Await->free()
+#### free()
 
 ``` php
-void Await->free()
+void $awaitInterface->free()
 ```
 
 Frees the resources allocated to the await from the event loop. This function should always be called when the await is no longer needed. Once an await has been freed, it cannot be used again and another must be recreated for the same socket resource.
 
-#### Await->isFreed()
+#### isFreed()
 
 ``` php
-bool Await->isFreed()
+bool $awaitInterface->isFreed()
 ```
 
 Determines if the await has been freed from the event loop.
 
-#### Poll->setCallback()
+#### setCallback()
 
 ``` php
-void Await->setCallback(callable<void (resource $socket, bool $expired)> $callback)
+void $awaitInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
 Sets the callback to be called when the awawit becomes active.
@@ -194,52 +194,52 @@ $timer = Loop::timer(1.3, function () {
 });
 ```
 
-See the [Loop component documentation](../#looptimer) for more information on `Icicle\Loop\Loop::timer()` and `Icicle\Loop\Loop::periodic()`.
+See the [Loop component documentation](../#timer) for more information on `Icicle\Loop\Loop::timer()` and `Icicle\Loop\Loop::periodic()`.
 
-#### Timer->cancel()
+#### cancel()
 
 ``` php
-void Timer->cancel()
+void $timerInterface->cancel()
 ```
 
 Cancels the timer. Once a timer is cancelled, it cannot be restarted.
 
-#### Timer->isPending()
+#### isPending()
 
 ``` php
-bool Timer->isPending()
+bool $timerInterface->isPending()
 ```
 
 Determines if the timer is pending and will be executed in the future.
 
-#### Timer->getInterval()
+#### getInterval()
 
 ``` php
-float Timer->getInterval()
+float $timerInterface->getInterval()
 ```
 
 Returns the number of seconds originally set for the timer interval.
 
-#### Timer->isPeriodic()
+#### isPeriodic()
 
 ``` php
-bool Timer->isPeriodic()
+bool $timerInterface->isPeriodic()
 ```
 
 Determines if the timer is periodic.
 
-#### Timer->unreference()
+#### unreference()
 
 ``` php
-void Timer->unreference()
+void $timerInterface->unreference()
 ```
 
 Removes the reference to the timer from the event loop. That is, if this timer is the only pending event in the loop, the loop will exit (return from `Icicle\Loop\LoopInterface->run()`).
 
-#### Timer->unreference()
+#### unreference()
 
 ``` php
-void Timer->unreference()
+void $timerInterface->unreference()
 ```
 
 Adds a reference to the timer in the event loop. If this timer is still pending, the loop will not exit (return from `Icicle\Loop\LoopInterface->run()`). Note when a timer is created, it is referenced by default. This method only need be called if `unreference()` was previously called on the timer.
@@ -254,25 +254,25 @@ Immediates implement `Icicle\Loop\Events\ImmediateInterface` and should be creat
 
 ``` php
 use Icicle\Loop\Loop;
-$timer = Loop::immmediate(function () {
+$immediate = Loop::immmediate(function () {
     // Function executed when no events are active in the event loop.
 });
 ```
 
-See the [Loop component documentation](../#loopimmediate) for more information on `Icicle\Loop\Loop::immediate()`.
+See the [Loop component documentation](../#immediate) for more information on `Icicle\Loop\Loop::immediate()`.
 
-#### Immediate->cancel()
+#### cancel()
 
 ``` php
-void Immediate->cancel()
+void $immediate->cancel()
 ```
 
 Cancels the immediate. Once a immediate is cancelled, it cannot be made pending again.
 
-#### Immediate->isPending()
+#### isPending()
 
 ``` php
-bool Immediate->isPending()
+bool $immediate->isPending()
 ```
 
 Determines if the immediate is pending and will be executed in the future.
