@@ -65,15 +65,7 @@ For patent claims including, without limitation, method, process, and apparatus 
 
 2.3 Outbound License
 
-(Option One) As a condition on the grant of rights in Sections 2.1 and 2.2, We agree to license the Contribution only under the terms of the license or licenses which We are using on the Submission Date for the Material (including any rights to adopt any future version of a license if permitted).
-
-(Option Two) As a condition on the grant of rights in Sections 2.1 and 2.2, We agree to license the Contribution only under the terms of the license or licenses which We are using on the Submission Date for the Material or the following additional licenses: Apache-2.0, MIT (including any right to adopt any future version of a license if permitted).
-
-(Option Three) As a condition on the grant of rights in Sections 2.1 and 2.2, We agree to license the Contribution only under the terms of the license or licenses which We are using on the Submission Date for the Material or any licenses which are approved by the Open Source Initiative on or after the Effective Date, including both permissive and copyleft licenses, whether or not such licenses are subsequently disapproved (including any right to adopt any future version of a license if permitted).
-
-(Option Four) As a condition on the grant of rights in Sections 2.1 and 2.2, We agree to license the Contribution only under the terms of the license or licenses which We are using on the Submission Date for the Material or any licenses on the Free Software Foundation's list of "Recommended copyleft licenses" on or after the Effective Date, whether or not such licenses are subsequently disapproved (including any right to adopt any future version of a license if permitted).
-
-(Option Five) Based on the grant of rights in Sections 2.1 and 2.2, if We include Your Contribution in a Material, We may license the Contribution under any license, including copyleft, permissive, commercial, or proprietary licenses. As a condition on the exercise of this right, We agree to also license the Contribution under the terms of the license or licenses which We are using for the Material on the Submission Date.
+Based on the grant of rights in Sections 2.1 and 2.2, if We include Your Contribution in a Material, We may license the Contribution under any license, including copyleft, permissive, commercial, or proprietary licenses. As a condition on the exercise of this right, We agree to also license the Contribution under the terms of the license or licenses which We are using for the Material on the Submission Date.
 
 In addition, We may use the following licenses for Media in the Contribution: Creative Commons 4.0 (including any right to adopt any future version of a license if permitted).
 
