@@ -108,7 +108,7 @@ PromiseInterface $readableStreamInterface->poll()
 
 Resolution | Type | Description
 :-: | :-- | :--
-Fulfilled | `null` | Fulfilled once data is available on the stream.
+Fulfilled | `string` | Fulfilled with an empty string once data is available on the stream.
 Rejected | `Icicle\Stream\Exception\BusyException` | If a read was already pending on the stream.
 Rejected | `Icicle\Stream\Exception\UnreadableException` | If the stream is no longer readable.
 Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been closed.

@@ -71,7 +71,7 @@ trait ReadableStreamTrait
                 return;
             }
             
-            $data = null;
+            $data = '';
             
             if (0 !== $this->length) {
                 if (null !== $this->byte) {
@@ -92,7 +92,7 @@ trait ReadableStreamTrait
                 }
             }
             
-            if (null === $data && feof($resource)) { // Close only if no data was read and at EOF.
+            if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
                 $this->close(new EofException('Connection reset by peer or reached EOF.'));
                 return;
             }
