@@ -11,6 +11,6 @@ matrix:
         - php: 7.0
 
 install:
-    - composer install --dev --no-interaction --prefer-source
+    - ./.travis.sh
 
-script: vendor/bin/phpunit
+script: vendor/bin/phpunit --coverage-text

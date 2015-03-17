@@ -1097,12 +1097,16 @@ abstract class AbstractLoopTest extends TestCase
      * @medium
      * @requires PHP 5.5
      * @depends testAddSignalHandler
+     * @runInSeparateProcess
      */
     public function testChildSignal()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo(SIGCHLD));
+        $callback = function ($signo, $pid, $status) {
+            $this->loop->stop();
+            $this->assertSame(SIGCHLD, $signo);
+            $this->assertInternalType('integer', $pid);
+            $this->assertInternalType('integer', $status);
+        };
         
         $this->loop->addListener(SIGCHLD, $callback);
         
@@ -1112,11 +1116,11 @@ abstract class AbstractLoopTest extends TestCase
             ['pipe', 'w'], // stderr
         ];
         
-        proc_open('whoami', $fd, $pipes);
+        proc_open('sleep 1', $fd, $pipes);
         
-        usleep(1 * self::MICROSEC_PER_SEC);
+        $this->loop->createTimer(function () {}, 10); // Keep loop alive until signal arrives.
         
-        $this->loop->tick(false);
+        $this->loop->run();
     }
     
     /**

@@ -85,10 +85,11 @@ class LibeventLoop extends AbstractLoop
     
     /**
      * @param   EventFactoryInterface|null $eventFactory
+     * @param   resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
      * @throws  UnsupportedException If the libevent extension is not loaded.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null)
+    public function __construct(EventFactoryInterface $eventFactory = null, $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
@@ -97,7 +98,13 @@ class LibeventLoop extends AbstractLoop
         
         parent::__construct($eventFactory);
         
-        $this->base = event_base_new();
+        $this->base = $base;
+        
+        // @codeCoverageIgnoreStart
+        if (!is_resource($this->base)) {
+            $this->base = event_base_new();
+        } // @codeCoverageIgnoreEnd
+        
         $this->timers = new UnreferencableObjectStorage();
         
         if ($this->signalHandlingEnabled()) {
@@ -140,10 +147,6 @@ class LibeventLoop extends AbstractLoop
      */
     public function __destruct()
     {
-        if ($this->isRunning()) {
-            $this->stop();
-        }
-        
         foreach ($this->readEvents as $event) {
             event_free($event);
         }
@@ -162,8 +165,6 @@ class LibeventLoop extends AbstractLoop
         
         // Need to completely destroy timer events before freeing base or an error is generated.
         $this->timers = null;
-        
-        event_base_free($this->base);
     }
     
     /**

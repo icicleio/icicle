@@ -10,9 +10,18 @@ use Icicle\Socket\Stream;
  */
 class LibeventLoopTest extends AbstractLoopTest
 {
+    protected static $base;
+    
+    public static function setUpBeforeClass()
+    {
+        if (extension_loaded('libevent')) {
+            self::$base = event_base_new();
+        }
+    }
+    
     public function createLoop(EventFactoryInterface $eventFactory)
     {
-        return new LibeventLoop($eventFactory);
+        return new LibeventLoop($eventFactory, self::$base);
     }
     
     public function testEnabled()
