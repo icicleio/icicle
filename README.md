@@ -4,7 +4,8 @@
 
 Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
-[![Build Status](https://travis-ci.org/icicleio/Icicle.svg?branch=master)](https://travis-ci.org/icicleio/Icicle)
+[![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-blue.svg?style=flat-square)](https://twitter.com/icicleio)
+[![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 
 #### Library Constructs
 
@@ -30,7 +31,7 @@ curl -sS https://getcomposer.org/installer | php
 
 Once installed, use Composer to install Icicle into your project directory.
 ``` bash
-php composer.phar require icicle/icicle 0.1.*
+php composer.phar require icicleio/icicle 0.1.*
 ```
 
 Require Composer's autoloader to use packages installed with Composer.
@@ -40,7 +41,7 @@ require 'vendor/autoload.php';
 
 ##### Download
 
-Icicle may also be [downloaded as a zip package](archive/master.zip). It is compatible with any [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant autoloader when the `Icicle` namespace is loaded from the `src` directory.
+Icicle may also be [downloaded as a zip package](https://icicle.io/files/icicle-latest.zip). It is compatible with any [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant autoloader when the `Icicle` namespace is loaded from the `src` directory.
 
 ##### Suggested
 
@@ -63,7 +64,7 @@ The `Icicle\Promise\PromiseInterface->then(callable $onFulfilled = null, callabl
 
 The `Icicle\Promise\PromiseInterface->done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
 
-*[More on using callbacks to interact with promises...](src/Promise#interacting-with-promises)*
+*[More on using callbacks to interact with promises...](//github.com/icicleio/Icicle/tree/master/src/Promise#interacting-with-promises)*
 
 ``` php
 use Icicle\Loop\Loop;
@@ -98,7 +99,7 @@ In the above example, the functions `doAsynchronousTask()` and `anotherAsynchron
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is used as a parameter to `anotherAsynchronousTask()`, which returns a new promise. The resolution of `$promise2` will then be determined by the resolution of this promise (`$promise2` will adopt the state of the promise returned by `anotherAsynchronousTask()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
 
-*[More on promise resolution and propagation...](src/Promise#resolution-and-propagation)*
+*[More on promise resolution and propagation...](//github.com/icicleio/Icicle/tree/master/src/Promise#resolution-and-propagation)*
 
 ##### Brief overview of promise API features
 
@@ -109,7 +110,7 @@ In the above example, the functions `doAsynchronousTask()` and `anotherAsynchron
 - Support for promise cancellation.
 - Methods to convert synchronous functions or callback-based functions into functions accepting and returning promises.
 
-**[Promise API documentation](src/Promise)**
+**[Promise API documentation](//github.com/icicleio/Icicle/tree/master/src/Promise)**
 
 ## Coroutines
 
@@ -148,7 +149,7 @@ The example above does the same thing as the example section on [promises](#prom
 
 A `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
-**[Coroutine API documentation](src/Coroutine)**
+**[Coroutine API documentation](//github.com/icicleio/Icicle/tree/master/src/Coroutine)**
 
 ## Loop
 
@@ -190,9 +191,9 @@ Second.
 Fourth.
 ```
 
-Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon. See [function schedule timing](src/Loop#schedule-timing) for more details.) `Loop::schedule()` is used throughout Icicle to ensure callbacks are executed asynchronously.
+Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon.) `Icicle\Loop\Loop::schedule()` is used throughout Icicle to ensure callbacks are executed asynchronously.
 
-**[Loop API documentation](src/Loop)**
+**[Loop API documentation](//github.com/icicleio/Icicle/tree/master/src/Loop)**
 
 ## Streams
 
@@ -202,7 +203,7 @@ Streams represent a common promise-based API that may be implemented by classes 
 - `Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
 - `Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
 
-**[Streams API documentation](src/Stream)**
+**[Streams API documentation](//github.com/icicleio/Icicle/tree/master/src/Stream)**
 
 ## Sockets
 
@@ -272,7 +273,7 @@ $coroutine = Coroutine::call(function (Server $server) {
 Loop::run();
 ```
 
-**[Sockets API documentation](src/Socket)**
+**[Sockets API documentation](//github.com/icicleio/Icicle/tree/master/src/Socket)**
 
 ## Event Emitters
 
@@ -282,7 +283,7 @@ This implementation differs from other event emitter libraries by ensuring that 
 
 Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
 
-**[Event Emitter API documentation](src/EventEmitter)**
+**[Event Emitter API documentation](//github.com/icicleio/Icicle/tree/master/src/EventEmitter)**
 
 ## Example
 

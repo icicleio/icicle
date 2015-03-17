@@ -1,5 +1,5 @@
 {
-    "name": "icicle/icicle",
+    "name": "icicleio/icicle",
     "description": "Icicle is a PHP library for writing asynchronous code using synchronous coding techniques.",
     "keywords": [
         "asynchronous",

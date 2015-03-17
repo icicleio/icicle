@@ -4,28 +4,28 @@ The Loop component implements an event loop that is used to schedule functions, 
 
 ## Documentation
 
-- [Loop Façade](#loop-facade)
-    - [init()](#loopinit)
-    - [getInstance()](#loopgetInstance)
-    - [run()](#looprun)
-    - [tick()](#looptick)
-    - [isRunning()](#loopisrunning)
-    - [stop()](#loopstop)
-    - [schedule()](#loopschedule)
-    - [maxScheduleDepth()](#loopmaxscheduledepth)
-    - [poll()](#looppoll)
-    - [await()](#loopawait)
-    - [timer()](#looptimer)
-    - [periodic()](#loopperiodic)
-    - [immediate()](#loopimmediate)
-    - [signalHandlingEnabled()](#loopsignalhandlingenabled)
-    - [addSignalHandler()](#loopaddsignalhandler)
-    - [removeSignalHandler()](#loopremovesignalhandler)
-    - [removeAllSignalHandlers()](#loopremoveallsignalhandlers)
-    - [reInit()](#loopreinit)
-    - [clear()](#loopclear)
+- [Loop Facade](#loop-facade) - Facade class for accessing the actual event loop instance.
+    - [init()](#loopinit) - Initializes the loop facade with an instance of `Icicle\Loop\LoopInterface`.
+    - [getInstance()](#loopgetInstance) - Returns the contained loop instance.
+    - [run()](#looprun) - Starts the event loop.
+    - [tick()](#looptick) - Runs a single tick of the event loop.
+    - [isRunning()](#loopisrunning) - Determines if the loop is running.
+    - [stop()](#loopstop) - Stops the event loop if it is running.
+    - [schedule()](#loopschedule) - Schedules a function to run later.
+    - [maxScheduleDepth()](#loopmaxscheduledepth) - Sets the maximum number of scheduled functions to execute per tick.
+    - [poll()](#looppoll) - Creates a `Icicle\Loop\Events\PollInterface` object for a stream socket.
+    - [await()](#loopawait) - Creates a `Icicle\Loop\Events\AwaitInterface` object for a stream socket.
+    - [timer()](#looptimer) - Creates a one-time timer.
+    - [periodic()](#loopperiodic) - Creates a periodic timer.
+    - [immediate()](#loopimmediate) - Creates an immediate to execute a function.
+    - [signalHandlingEnabled()](#loopsignalhandlingenabled) - Determines if signal handling is enabled.
+    - [addSignalHandler()](#loopaddsignalhandler) - Adds a signal handler.
+    - [removeSignalHandler()](#loopremovesignalhandler) - Removes a signal handler.
+    - [removeAllSignalHandlers()](#loopremoveallsignalhandlers) - Removes all signal handlers from one signal or all signals.
+    - [reInit()](#loopreinit) - Reinitializes the loop after process fork.
+    - [clear()](#loopclear) - Removes all pending events from the loop.
 - [Loop Implementations](#loop-implementations)
-- [Events](#events)
+- [Events](#events) - Also see the [Event API documentation](Events).
 
 #### Function prototypes
 
@@ -223,4 +223,4 @@ While each implementation is different, there should be no difference in the beh
 
 When an event is scheduled in the event loop through the methods `poll()`, `await()`, `timer()`, `periodic()`, and `immediate()`, an object implementing `Icicle\Loop\Events\EventInterface` is returned. These objects provide methods for listening, cancelling, or determining if the event is pending.
 
-Please see the [Event API documentation](Events) for information on each specific type of event.
+See the [Event API documentation](Events) for information on each specific type of event.

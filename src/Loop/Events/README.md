@@ -4,30 +4,30 @@ When an event is scheduled in the event loop through the methods `poll()`, `awai
 
 ## Documentation
 
-- [Poll](#poll)
-    - [listen()](#poll-listen)
-    - [cancel()](#poll-cancel)
-    - [isPending()](#poll-ispending)
-    - [free()](#poll-free)
-    - [isFreed()](#poll-isfreed)
-    - [setCallback()](#poll-setcallback)
-- [Await](#await)
-    - [listen()](#await-listen)
-    - [cancel()](#await-cancel)
-    - [isPending()](#await-ispending)
-    - [free()](#await-free)
-    - [isFreed()](#await-isfreed)
-    - [setCallback()](#await-setcallback)
-- [Timer](#timer)
-    - [cancel()](#timer-cancel)
-    - [isPending()](#timer-ispending)
-    - [getInterval()](#timer-getinterval)
-    - [isPeriodic()](#timer-isperiodic)
-    - [unreference()](#timer-unreference)
-    - [reference()](#timer-reference)
-- [Immediate](#immediate)
-    - [cancel()](#immediate-cancel)
-    - [isPending()](#immediate-ispending)
+- [Poll](#poll) - Used for polling stream sockets for the availability of data.
+    - [listen()](#poll-listen) - Listens for data on the stream socket. 
+    - [cancel()](#poll-cancel) - Cancels listening for data.
+    - [isPending()](#poll-ispending) - Determines if the poll is pending.
+    - [free()](#poll-free) - Frees the poll from the associated event loop.
+    - [isFreed()](#poll-isfreed) - Determines if the poll has been freed.
+    - [setCallback()](#poll-setcallback) - Sets the callback to be executed when the event is active.
+- [Await](#await) - Used for awaiting stream sockets for empty buffer space to write data.
+    - [listen()](#await-listen) - Listens for the stream socket to be available to write.
+    - [cancel()](#await-cancel) - Cancels listening for write availability.
+    - [isPending()](#await-ispending) - Determines if the await is pending.
+    - [free()](#await-free) - Frees the await from the associated event loop.
+    - [isFreed()](#await-isfreed) - Determines if the await has been freed.
+    - [setCallback()](#await-setcallback) - Sets the callback to be executed when the event is active.
+- [Timer](#timer) - Executes a callback after a interval of time has elapsed.
+    - [cancel()](#timer-cancel) - Cancels the timer.
+    - [isPending()](#timer-ispending) - Determines if the timer is pending.
+    - [getInterval()](#timer-getinterval) - Gets the interval of the timer.
+    - [isPeriodic()](#timer-isperiodic) - Determines if the timer is periodic.
+    - [unreference()](#timer-unreference) - Removes the reference the timer from the event loop.
+    - [reference()](#timer-reference) - References the timer in the event loop if it was previously unreferenced.
+- [Immediate](#immediate) - Executes a callback once no other events are active in the loop.
+    - [cancel()](#immediate-cancel) - Cancels the immediate.
+    - [isPending()](#immediate-ispending) - Determines if the immediate is pending.
 
 #### Function prototypes
 

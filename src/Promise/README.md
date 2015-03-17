@@ -325,10 +325,10 @@ Calls the given function with the value used to fulfill the promise, then fulfil
 #### cleanup()
 
 ``` php
-PromiseInterface $promiseInterface->cleanup(callable<void function (mixed $value)> $onFulfilled)
+PromiseInterface $promiseInterface->cleanup(callable<void function (mixed $value)> $onResolved)
 ```
 
-The callback given to this function will be called if the promise is fulfilled or rejected. The callback is called with no arguments. If the callback does not throw, the returned promise is resolved in the same way as the original promise. That is, it is fulfilled or rejected with the same value or exception. If `$onFulfilled` throws an exception, the returned promise is rejected with the thrown exception.
+The callback given to this function will be called if the promise is fulfilled or rejected. The callback is called with no arguments. If the callback does not throw, the returned promise is resolved in the same way as the original promise. That is, it is fulfilled or rejected with the same value or exception. If `$onResolved` throws an exception, the returned promise is rejected with the thrown exception. The return value of `$onResolved` is not used.
 
 ---
 
@@ -492,7 +492,7 @@ array of the parameters that would have been passed to the callback function. Th
 
 When a promise is resolved with a value (or fulfilled), each callback registered to receive the promise fulfillment value is invoked. Similarly, when a promise is rejected with an exception, each callback registered to receive the promise rejection reason is invoked.
 
-When a callback is registered using a method that returns another promise (e.g. `then()`, `always()`, `capture()`, `timeout()`, `delay()`, `tap()`, and `cleanup()`), the return value of the callback is used to fulfill that promise, or if an exception is thrown, reject that promise.
+When a callback is registered using a method that returns another promise (i.e., `then()`, `always()`, and `capture()`), the return value of the callback is used to fulfill that promise, or if an exception is thrown, reject that promise.
 
 ``` php
 $promise2 = $promise1->then(
