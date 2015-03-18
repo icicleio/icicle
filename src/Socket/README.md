@@ -4,7 +4,7 @@ The socket component implements network sockets as promise-based streams, server
 
 The example below implements HTTP server that responds to any request with `Hello world!` implemented using the promise-based server and client provided by the Socket component.
 
-``` php
+```php
 use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;
 use Icicle\Socket\Server;
@@ -36,7 +36,7 @@ Loop::run();
 
 The example below shows the same HTTP server as above, instead implemented using a coroutine (see the [Coroutine API documentation](../Coroutine)).
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;
@@ -96,13 +96,13 @@ Loop::run();
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
@@ -114,7 +114,7 @@ All classes in this component implement `Icicle\Socket\SocketInterface`.
 
 #### isOpen()
 
-``` php
+```php
 bool $socketInterface->isOpen()
 ```
 
@@ -124,7 +124,7 @@ Determines if the socket is still open (connected).
 
 #### close()
 
-``` php
+```php
 void $socketInterface->close()
 ```
 
@@ -136,7 +136,7 @@ The `Icicle\Socket\Server` class implements `Icicle\Socket\ServerInterface`, a p
 
 #### create()
 
-``` php
+```php
 Server Server::create(string $host, int $port, mixed[] $options = null)
 ```
 
@@ -153,7 +153,7 @@ Option | Type | Description
 
 #### Server Constructor
 
-``` php
+```php
 $server = new Server(resource $socket)
 ```
 
@@ -163,7 +163,7 @@ Creates a server from a stream socket server resource generated from `stream_soc
 
 #### accept()
 
-``` php
+```php
 PromiseInterface $serverInterface->accept(float|null $timeout)
 ```
 
@@ -182,7 +182,7 @@ Rejected | `Icicle\Socket\Exception\TimeoutException` | If the timeout expires.
 
 #### getAddress()
 
-``` php
+```php
 string $serverInterface->getAddress()
 ```
 
@@ -192,7 +192,7 @@ Returns the local IP address as a string.
 
 #### getPort()
 
-``` php
+```php
 int $serverInterface->getPort()
 ```
 
@@ -208,7 +208,7 @@ The methods `read()`, `readTo()`, `poll()`, `pipe()`, and `pipeTo()` each accept
 
 #### ReadableStream Constructor
 
-``` php
+```php
 $stream = new ReadableStream(resource $socket)
 ```
 
@@ -224,7 +224,7 @@ The methods `write()`, `await()`, and `end()` each accept an optional parameter 
 
 #### WritableStream Constructor
 
-``` php
+```php
 $stream = new WritableStream(resource $socket)
 ```
 
@@ -240,7 +240,7 @@ The methods `read()`, `readTo()`, `poll()`, `pipe()`, `pipeTo()`, `write()`, `aw
 
 #### DuplexStream Constructor
 
-``` php
+```php
 $stream = new DuplexStream(resource $socket)
 ```
 
@@ -254,7 +254,7 @@ The class extends `Icicle\Socket\DuplexStream`, so it inherits all the readable 
 
 #### connect()
 
-``` php
+```php
 PromiseInterface Client::connect(string $host, int $port, mixed[] $options = null)
 ```
 
@@ -280,7 +280,7 @@ Rejected | `Icicle\Socket\Exception\TimeoutException` | If the connection attemp
 
 #### Client Constructor
 
-``` php
+```php
 $client = new Client(resource $socket)
 ```
 
@@ -288,7 +288,7 @@ Creates a client object from the given stream socket resource.
 
 #### enableCrypto()
 
-``` php
+```php
 PromiseInterface $clientInterface->enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER)
 ```
 
@@ -298,7 +298,7 @@ Enables encryption on the socket. For objects created from `Icicle\Socket\Server
 
 #### getLocalAddress()
 
-``` php
+```php
 string $clientInterface->getLocalAddress()
 ```
 
@@ -308,7 +308,7 @@ Returns the local IP address as a string.
 
 #### getLocalPort()
 
-``` php
+```php
 int $clientInterface->getLocalPort()
 ```
 
@@ -318,7 +318,7 @@ Returns the local port.
 
 #### getRemoteAddress()
 
-``` php
+```php
 string $clientInterface->getRemoteAddress()
 ```
 
@@ -328,7 +328,7 @@ Returns the remote IP address as a string.
 
 #### getRemotePort()
 
-``` php
+```php
 int $clientInterface->getRemotePort()
 ```
 

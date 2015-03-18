@@ -32,19 +32,19 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 To document the expected prototype of a callback function used as method arguments or return types, the documentation below uses the following syntax for `callable` types:
 
-``` php
+```php
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
@@ -56,7 +56,7 @@ Coroutines are created by functions returning a `Generator` that define interrup
 
 The code below creates a `Icicle\Coroutine\Coroutine` object from a basic generator that echoes the string "Hello world!". While this example is contrived, it demonstrates how the fulfillment value of a promise is used in a coroutine (see [Interrupting Coroutines with Promises](#interrupting-coroutines-with-promises)).
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
@@ -75,7 +75,7 @@ Loop::run();
 
 The `return` keyword cannot be used in generators to return a value, it can only be by itself to halt execution of the generator. Therefore the return value (fulfillment value) of a coroutine is the last value yielded from the coroutine (or fulfillment value of a yielded promise). `return` may be used anytime to halt execution of a coroutine and fulfill with the last yielded value.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -101,7 +101,7 @@ Loop::run();
 
 The `throw` keyword can be used within a coroutine in the same way as any other function. Thrown exceptions can be caught within the coroutine itself or bubble up to the calling context.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -137,7 +137,7 @@ Resolution of a yielded promise results in one of two actions within the corouti
 
 The example below yields a pending promise created by `Icicle\Promise\PromiseInterface->delay()` that is automatically resolved with the value given when creating the generator.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
@@ -160,7 +160,7 @@ Loop::run();
 
 The above example is a simple contrived example to demonstrate how easy it is to write cooperative, asynchronous code using promises. The example below pipes data read from a readable stream into a writable stream, waiting for data to be available on the readable stream, then waiting until the data is successfully written to the writable stream before attempting to read more data from the readable stream.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Socket\ReadableStreamInterface;
@@ -197,7 +197,7 @@ Since `Coroutine` objects are also promises, coroutines may be yielded from a co
 
 To make calling coroutines within other coroutines simpler, any generator yielded from a coroutine is automatically used to create a coroutine.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -238,7 +238,7 @@ The `Icicle\Coroutine\Coroutine` class has several different methods for creatin
 
 ### Coroutine Constructor
 
-``` php
+```php
 $coroutine = new Coroutine(Generator $generator)
 ```
 
@@ -248,13 +248,13 @@ As shown in the examples above, a `Icicle\Coroutine\Coroutine` instance can be c
 
 ### async()
 
-``` php
+```php
 callable<Coroutine (mixed ...$args)> Coroutine::async(callable<Generator (mixed ...$args)> $callback)
 ```
 
 Returns a callable function that returns a `Icicle\Promise\Coroutine` by calling `$callback` that should return a `Generator` written to be a coroutine. Any arguments given to the returned callable are also passed to `$callback`.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -277,7 +277,7 @@ The example above will output `{11}{21}{31}{12}{22}{32}{13}{23}{33}`, demonstrat
 
 ### call()
 
-``` php
+```php
 Coroutine Coroutine::call(callable<Generator (mixed ...$args)> $callback, mixed ...$args)
 ```
 
@@ -287,7 +287,7 @@ Calls the given callback function with the provided arguments. The callback func
 
 ### create()
 
-``` php
+```php
 Coroutine Coroutine::create(callable<Generator (mixed ...$args)> $callback, mixed[] $args = null)
 ```
 
@@ -297,7 +297,7 @@ Similar to `Coroutine::call()`, only arguments are passed as an array instead of
 
 Coroutines automatically are cooperative, allowing other code to execute once the coroutine has yielded a value.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -327,7 +327,7 @@ To create a coroutine to execute later, create the `Icicle\Coroutine\Coroutine` 
 
 #### pause()
 
-``` php
+```php
 void $coroutineInterface->pause()
 ```
 
@@ -337,7 +337,7 @@ Pauses the coroutine once it reaches a `yield` statement (if executing). If the 
 
 #### resume()
 
-``` php
+```php
 void $coroutineInterface->resume()
 ```
 
@@ -347,7 +347,7 @@ Resumes the coroutine if it was paused. If the coroutine was waiting for a promi
 
 #### isPaused()
 
-``` php
+```php
 bool $coroutineInterface->isPaused()
 ```
 
@@ -357,7 +357,7 @@ Determines if the coroutine is currently paused. Note that true is only returned
 
 #### cancel()
 
-``` php
+```php
 void $coroutineInterface->cancel(Exception $exception = null)
 ```
 

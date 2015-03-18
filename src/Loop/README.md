@@ -31,19 +31,19 @@ The Loop component implements an event loop that is used to schedule functions, 
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 To document the expected prototype of a callback function used as method arguments or return types, the documentation below uses the following syntax for `callable` types:
 
-``` php
+```php
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
@@ -55,7 +55,7 @@ The static methods of the `Icicle\Loop\Loop` facade class are described below.
 
 #### init()
 
-``` php
+```php
 void Loop::init(LoopInterface $loop)
 ```
 
@@ -63,7 +63,7 @@ This method allows any particular or custom implementation of `Icicle\Loop\LoopI
 
 #### getInstance()
 
-``` php
+```php
 LoopInterface Loop::getInstance()
 ```
 
@@ -71,7 +71,7 @@ Returns the event loop instance. If one was not created before or specified with
 
 #### run()
 
-``` php
+```php
 bool Loop::run()
 ```
 
@@ -81,7 +81,7 @@ This function is generally the last line in the script that starts the program, 
 
 #### tick()
 
-``` php
+```php
 void Loop::tick(bool $blocking = false)
 ```
 
@@ -89,7 +89,7 @@ Executes a single turn of the event loop. Set `$blocking` to `true` to block unt
 
 #### isRunning()
 
-``` php
+```php
 bool Loop::isRunning()
 ```
 
@@ -97,7 +97,7 @@ Determines if the loop is running.
 
 #### stop()
 
-``` php
+```php
 void Loop::stop()
 ```
 
@@ -105,7 +105,7 @@ Stops the loop if it is running.
 
 #### schedule()
 
-``` php
+```php
 void Loop::schedule(callable<void (mixed ...$args)> $callback, mixed ...$args)
 ```
 
@@ -113,7 +113,7 @@ Schedules the function `$callback` to be executed later (sometime after leaving 
 
 #### maxScheduleDepth()
 
-``` php
+```php
 int Loop::maxScheduleDepth(int $depth = null)
 ```
 
@@ -121,7 +121,7 @@ Sets the maximum number of scheduled functions to execute on each turn of the ev
 
 #### poll()
 
-``` php
+```php
 PollInterface Loop::poll(resource $socket, callable<void (resource $socket, bool $expired)>)
 ```
 
@@ -129,7 +129,7 @@ Creates a `Icicle\Loop\Events\PollInterface` object for the given stream socket.
 
 #### await()
 
-``` php
+```php
 AwaitInterface Loop::await(resource $socket, callable<void (resource $socket, bool $expired)>)
 ```
 
@@ -137,7 +137,7 @@ Creates a `Icicle\Loop\Events\AwaitInterface` object for the given stream socket
 
 #### timer()
 
-``` php
+```php
 TimerInterface Loop::timer(float $interval, callable<void (mixed ...$args)> $callback, mixed ...$args)
 ```
 
@@ -145,7 +145,7 @@ Creates a timer that calls the function `$callback` with the given arguments aft
 
 #### periodic()
 
-``` php
+```php
 TimerInterface Loop::periodic(float $interval, callable<void (mixed ...$args)> $callback, mixed ...$args)
 ```
 
@@ -153,7 +153,7 @@ Creates a timer that calls the function `$callback` with the given arguments eve
 
 #### immediate()
 
-``` php
+```php
 ImmediateInterface Loop::immediate(callable<void (mixed ...$args)> $callback, mixed ...$args)
 ```
 
@@ -163,7 +163,7 @@ The name of this function is somewhat misleading, but was chosen because of the 
 
 #### signalHandlingEnabled()
 
-``` php
+```php
 bool Loop::signalHandlingEnabled()
 ```
 
@@ -171,7 +171,7 @@ Determines if signals sent to the PHP process can be handled by the event loop. 
 
 #### addSignalHandler()
 
-``` php
+```php
 void Loop::addSignalHandler(int $signo, callable<void (int $signo)>, bool $once = false)
 ```
 
@@ -179,7 +179,7 @@ Adds a callback to be invoked when the given signal is received by the process. 
 
 #### removeSignalHandler()
 
-``` php
+```php
 void Loop::removeSignalHandler(int $signo, callable<void (int $signo)>)
 ```
 
@@ -187,7 +187,7 @@ The given callback will no longer be invoked when the given signal is received b
 
 #### removeSignalHandler()
 
-``` php
+```php
 void Loop::removeSignalAllHandlers(int|null $signo)
 ```
 
@@ -195,7 +195,7 @@ Removes all handlers for the given signal, or all handlers if `$signo` is `null`
 
 #### reInit()
 
-``` php
+```php
 void Loop::reInit()
 ```
 
@@ -203,7 +203,7 @@ This function should be called by the child process if the process is forked usi
 
 #### clear()
 
-``` php
+```php
 void Loop::clear()
 ```
 

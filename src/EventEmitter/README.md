@@ -8,7 +8,7 @@ Event identifiers are also strictly enforced to aid in debugging. Event emitter 
 
 ##### Example
 
-``` php
+```php
 use Icicle\EventEmitter\EventEmitterInterface;
 use Icicle\EventEmitter\EventEmitterTrait;
 
@@ -29,7 +29,7 @@ class ExampleEventEmitter implements EventEmitterInterface
 ```
 The example class above implements `Icicle\EventEmitter\EventEmitterInterface` so it can emit events to a set of listeners. The example below demonstrates how listeners can be added to an instance of this class and the behavior of emitting events. This class will also be used in several other examples below.
 
-``` php
+```php
 $emitter = new ExampleEventEmitter();
 
 // Registers a callback to be called each time the event is emitted.
@@ -69,19 +69,19 @@ $emitter->action(200, 2.71828); // Calls only the first function.
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 To document the expected prototype of a callback function used as method arguments or return types, the documentation below uses the following syntax for `callable` types:
 
-``` php
+```php
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
@@ -91,7 +91,7 @@ callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 
 #### addListener()
 
-``` php
+```php
 $this $eventListenerInterface->addListener(
     string|int $event,
     callable<void (mixed ...$args)> $callback,
@@ -105,7 +105,7 @@ Adds an event listener defined by `$callback` to the event identifier `$event`. 
 
 #### on()
 
-``` php
+```php
 $this $eventListenerInterface->on(string|int $event, callable<void (mixed ...$args)> $callback)
 ```
 
@@ -115,7 +115,7 @@ Adds an event listener defined by `$callback` to the event identifier `$event` t
 
 #### once()
 
-``` php
+```php
 $this $eventListenerInterface->once(string|int $event, callable<void (mixed ...$args)> $callback)
 ```
 
@@ -125,7 +125,7 @@ Adds an event listener defined by `$callback` to the event identifier `$event` t
 
 #### removeListener()
 
-``` php
+```php
 $this $eventListenerInterface->removeListener(string|int $event, callable<void (mixed ...$args)> $callback)
 ```
 
@@ -135,7 +135,7 @@ Removes the event listener defined by `$callback` from the event identifier `$ev
 
 #### off()
 
-``` php
+```php
 $this $eventListenerInterface->off(string|int $event, callable<void (mixed ...$args)> $callback)
 ```
 
@@ -145,7 +145,7 @@ This method is an alias of `removeListener()`.
 
 #### removeAllListeners()
 
-``` php
+```php
 $this $eventListenerInterface->removeAllListeners(string|int|null $event = null)
 ```
 
@@ -155,7 +155,7 @@ Removes all listeners from the event identifier or if `$event` is `null`, remove
 
 #### getListeners()
 
-``` php
+```php
 callable[] $eventListenerInterface->getListeners(string|int $event)
 ```
 
@@ -165,7 +165,7 @@ Returns all listeners on the event identifier as an array of callables. If the i
 
 #### getListenerCount()
 
-``` php
+```php
 int $eventListenerInterface->getListenerCount(string|int $event)
 ```
 
@@ -175,7 +175,7 @@ Gets the number of listeners on the event identifier. If the identifier given by
 
 #### emit()
 
-``` php
+```php
 bool $eventListenerInterface->emit(string|int $event, mixed ...$args)
 ```
 
@@ -187,7 +187,7 @@ Emits an event with the event identifier `$event`, passing the remaining argumen
 
 #### createEvent()
 
-``` php
+```php
 $this $eventEmitterTrait->create(string|int $identifier)
 ```
 
@@ -197,7 +197,7 @@ This method creates an event identifier so events may be emitted and listeners a
 
 The static method `Icicle\Promise\Promise::promisify()` can be used to create a function returning a promise that is resolved the next time an event emitter emits an event.
 
-``` php
+```php
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
 
@@ -227,7 +227,7 @@ See the [Promise API documentation](../Promise) for more information on using pr
 
 Event emitters can be used to create and execute coroutines each time an event is emitted. The static method `Icicle\Coroutine\Coroutine::async()` returns a function that can be used as the event listener on an event emitter.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 

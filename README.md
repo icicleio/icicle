@@ -4,8 +4,10 @@
 
 Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
-[![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-blue.svg?style=flat-square)](https://twitter.com/icicleio)
+[![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
+[![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
+[![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 #### Library Constructs
 
@@ -24,10 +26,21 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 The recommended way to install Icicle is with the [Composer](http://getcomposer.org/) package manager. (See the [Composer installation guide](https://getcomposer.org/doc/00-intro.md) for information on installing and using Composer.)
 
-Use the following command with Composer use Icicle in your project.
+Use the following command to use Icicle in your project, then run 
 
-``` bash
+```bash
 composer require icicleio/icicle 0.1.*
+```
+
+You can also manually edit `composer.json` to add Icicle as a project requirement.
+
+```js
+// composer.json
+{
+    "require": {
+        "icicleio/icicle": "0.1.*"
+    }
+}
 ```
 
 ##### Download
@@ -57,7 +70,7 @@ The `Icicle\Promise\PromiseInterface->done(callable $onFulfilled = null, callabl
 
 *[More on using callbacks to interact with promises...](//github.com/icicleio/Icicle/tree/master/src/Promise#interacting-with-promises)*
 
-``` php
+```php
 use Icicle\Loop\Loop;
 
 $promise1 = doAsynchronousTask(); // Function returning a promise.
@@ -113,7 +126,7 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
 
 The example below uses the `Icicle\Coroutine\Coroutine::call()` method to create a `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
@@ -152,7 +165,7 @@ The `Icicle\Loop\Loop::run()` method runs the event loop and will not return unt
 
 The following code demonstrates how functions may be scheduled to run later using the `Icicle\Loop\Loop::schedule()` method.
 
-``` php
+```php
 use Icicle\Loop\Loop;
 
 Loop::schedule(function () {
@@ -202,7 +215,7 @@ The socket component implements network sockets as promise-based streams, server
 
 The example below implements HTTP server that responds to any request with `Hello world!` implemented using the promise-based server and client provided by the Socket component.
 
-``` php
+```php
 use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;
 use Icicle\Socket\Server;
@@ -234,7 +247,7 @@ Loop::run();
 
 The example below shows the same HTTP server as above, instead implemented using a coroutine.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;
@@ -280,7 +293,7 @@ Event identifiers are also strictly enforced to aid in debugging. *Event emitter
 
 The example below shows how the components outlined above can be combined to quickly create an asynchronous echo server, capable of simultaneously handling many clients.
 
-``` php
+```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 use Icicle\Socket\ClientInterface;

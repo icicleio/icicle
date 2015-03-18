@@ -30,13 +30,13 @@ Streams represent a common promise-based API that may be implemented by classes 
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType $classOrInterfaceName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
@@ -48,7 +48,7 @@ All other stream interfaces extend this basic interface.
 
 #### isOpen()
 
-``` php
+```php
 bool $streamInterface->isOpen()
 ```
 
@@ -58,7 +58,7 @@ Determines if the stream is still open. A closed stream will be neither readable
 
 #### close()
 
-``` php
+```php
 void $streamInterface->close()
 ```
 
@@ -68,7 +68,7 @@ Closes the stream. Once closed, a stream will no longer be readable or writable.
 
 #### read()
 
-``` php
+```php
 PromiseInterface $readableStreamInterface->read(int|null $length = null)
 ```
 
@@ -85,7 +85,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### readTo()
 
-``` php
+```php
 PromiseInterface $readableStreamInterface->readTo(int|string $byte, int|null $length = null)
 ```
 
@@ -102,7 +102,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### poll()
 
-``` php
+```php
 PromiseInterface $readableStreamInterface->poll()
 ```
 
@@ -119,7 +119,7 @@ Returns a promise that is fulfilled when there is data immediately available on 
 
 #### pipe()
 
-``` php
+```php
 PromiseInterface $readableStreamInterface->pipe(
     WritableStreamInterface $stream,
     bool $endOnClose = true,
@@ -140,7 +140,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### pipeTo()
 
-``` php
+```php
 PromiseInterface $readableStreamInterface->pipeTo(
     WritableStreamInterface $stream,
     int|string $byte,
@@ -162,7 +162,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### isReadable()
 
-``` php
+```php
 bool $readableStreamInterface->isReadable()
 ```
 
@@ -172,7 +172,7 @@ Determines if the stream is readable.
 
 #### write()
 
-``` php
+```php
 PromiseInterface $writableStreamInterface->write(string $data)
 ```
 
@@ -188,7 +188,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### await()
 
-``` php
+```php
 PromiseInterface $writableStreamInterface->await()
 ```
 
@@ -204,7 +204,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 ---
 
-``` php
+```php
 PromiseInterface $writableStreamInterface->end(string|null $data = null)
 ```
 
@@ -220,7 +220,7 @@ Rejected | `Icicle\Stream\Exception\ClosedException` | If the stream has been cl
 
 #### isWritable()
 
-``` php
+```php
 bool $writableStreamInterface->isWritable()
 ```
 
@@ -236,7 +236,7 @@ A duplex stream is both readable and writable. `Icicle\Stream\DuplexStreamInterf
 
 Anything written to an instance of `Icicle\Stream\Stream` is immediately readable.
 
-``` php
+```php
 use Icicle\Loop\Loop;
 use Icicle\Stream\Stream;
 

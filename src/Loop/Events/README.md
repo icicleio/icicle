@@ -33,19 +33,19 @@ When an event is scheduled in the event loop through the methods `poll()`, `awai
 
 Prototypes for object instance methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName->methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 Prototypes for static methods are described below using the following syntax:
 
-``` php
+```php
 ReturnType ClassName::methodName(ArgumentType $arg1, ArgumentType $arg2)
 ```
 
 To document the expected prototype of a callback function used as method arguments or return types, the documentation below uses the following syntax for `callable` types:
 
-``` php
+```php
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
@@ -57,7 +57,7 @@ Note that only one poll object can be created at a time for a given socket resou
 
 All poll objects implement `Icicle\Loop\Events\PollInterface` and should be created by calling `Icicle\Loop\Loop::poll()` as shown below:
 
-``` php
+```php
 use Icicle\Loop\Loop;
 // $socket is a stream socket resource.
 $poll = Loop::poll($socket, function ($socket, $expired) {
@@ -69,7 +69,7 @@ See the [Loop component documentation](../#poll) for more information on `Icicle
 
 #### listen()
 
-``` php
+```php
 void $pollInterface->listen(float|null $timeout)
 ```
 
@@ -77,7 +77,7 @@ Listens for data to become available. If `$timeout` is not `null`, the poll call
 
 #### cancel()
 
-``` php
+```php
 void $pollInterface->cancel()
 ```
 
@@ -85,7 +85,7 @@ Stops listening for data to become available.
 
 #### isPending()
 
-``` php
+```php
 bool $pollInterface->isPending()
 ```
 
@@ -93,7 +93,7 @@ Determines if the poll is listening for data.
 
 #### free()
 
-``` php
+```php
 void $pollInterface->free()
 ```
 
@@ -101,7 +101,7 @@ Frees the resources allocated to the poll from the event loop. This function sho
 
 #### isFreed()
 
-``` php
+```php
 bool $pollInterface->isFreed()
 ```
 
@@ -109,7 +109,7 @@ Determines if the poll has been freed from the event loop.
 
 #### setCallback()
 
-``` php
+```php
 void $pollInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
@@ -123,7 +123,7 @@ Note that only one await object can be created at a time for a given socket reso
 
 All await objects implement `Icicle\Loop\Events\AwaitInterface` and should be created by calling `Icicle\Loop\Loop::await()` as shown below:
 
-``` php
+```php
 use Icicle\Loop\Loop;
 // $socket is a stream socket resource.
 $await = Loop::await($socket, function ($socket, $expired) {
@@ -135,7 +135,7 @@ See the [Loop component documentation](../#await) for more information on `Icicl
 
 #### listen()
 
-``` php
+```php
 void $awaitInterface->listen(float|null $timeout)
 ```
 
@@ -143,7 +143,7 @@ Listens for space in the socket buffer to become available. If `$timeout` is not
 
 #### cancel()
 
-``` php
+```php
 void $awaitInterface->cancel()
 ```
 
@@ -151,7 +151,7 @@ Stops listening for space to become available in the buffer.
 
 #### isPending()
 
-``` php
+```php
 bool $awaitInterface->isPending()
 ```
 
@@ -159,7 +159,7 @@ Determines if the await is listening for space to become available.
 
 #### free()
 
-``` php
+```php
 void $awaitInterface->free()
 ```
 
@@ -167,7 +167,7 @@ Frees the resources allocated to the await from the event loop. This function sh
 
 #### isFreed()
 
-``` php
+```php
 bool $awaitInterface->isFreed()
 ```
 
@@ -175,7 +175,7 @@ Determines if the await has been freed from the event loop.
 
 #### setCallback()
 
-``` php
+```php
 void $awaitInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
@@ -187,7 +187,7 @@ Timers are used to execute a callback function after an amount of time has elaps
 
 Timers implement `Icicle\Loop\Events\TimerInterface` and should be created by calling `Icicle\Loop\Loop::timer()` for one-time timers and `Icicle\Loop\Loop::periodic()` for periodic timers. An example is shown below:
 
-``` php
+```php
 use Icicle\Loop\Loop;
 $timer = Loop::timer(1.3, function () {
     // Function executed after 1.3 seconds have elapsed.
@@ -198,7 +198,7 @@ See the [Loop component documentation](../#timer) for more information on `Icicl
 
 #### cancel()
 
-``` php
+```php
 void $timerInterface->cancel()
 ```
 
@@ -206,7 +206,7 @@ Cancels the timer. Once a timer is cancelled, it cannot be restarted.
 
 #### isPending()
 
-``` php
+```php
 bool $timerInterface->isPending()
 ```
 
@@ -214,7 +214,7 @@ Determines if the timer is pending and will be executed in the future.
 
 #### getInterval()
 
-``` php
+```php
 float $timerInterface->getInterval()
 ```
 
@@ -222,7 +222,7 @@ Returns the number of seconds originally set for the timer interval.
 
 #### isPeriodic()
 
-``` php
+```php
 bool $timerInterface->isPeriodic()
 ```
 
@@ -230,7 +230,7 @@ Determines if the timer is periodic.
 
 #### unreference()
 
-``` php
+```php
 void $timerInterface->unreference()
 ```
 
@@ -238,7 +238,7 @@ Removes the reference to the timer from the event loop. That is, if this timer i
 
 #### unreference()
 
-``` php
+```php
 void $timerInterface->unreference()
 ```
 
@@ -252,7 +252,7 @@ The name immediate is somewhat misleading, but was chosen because of the similar
 
 Immediates implement `Icicle\Loop\Events\ImmediateInterface` and should be created by calling `Icicle\Loop\Loop::immediate()` as shown below:
 
-``` php
+```php
 use Icicle\Loop\Loop;
 $immediate = Loop::immmediate(function () {
     // Function executed when no events are active in the event loop.
@@ -263,7 +263,7 @@ See the [Loop component documentation](../#immediate) for more information on `I
 
 #### cancel()
 
-``` php
+```php
 void $immediate->cancel()
 ```
 
@@ -271,7 +271,7 @@ Cancels the immediate. Once a immediate is cancelled, it cannot be made pending 
 
 #### isPending()
 
-``` php
+```php
 bool $immediate->isPending()
 ```
 
