@@ -181,7 +181,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * Replaces all occurances of $search with $replace. See str_replace() function.
+     * Replaces all occurences of $search with $replace. See str_replace() function.
      *
      * @param   mixed $search
      * @param   mixed $replace

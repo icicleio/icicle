@@ -680,7 +680,7 @@ class Promise implements PromiseInterface
      * call to $worker to avoid filling the call stack. If $worker returns a promise, iteration waits for the returned
      * promise to be resolved.
      *
-     * @param   callable $worker (mixed $value) : mixed Called with the previous return value on each interation.
+     * @param   callable $worker (mixed $value) : mixed Called with the previous return value on each iteration.
      * @param   callable $predicate (mixed $value) : bool Return true to stop iteration and fulfill promise.
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *

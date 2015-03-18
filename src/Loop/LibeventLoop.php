@@ -22,7 +22,7 @@ class LibeventLoop extends AbstractLoop
     private $base;
     
     /**
-     * UnreferencableObjectStorage mapping Timer objects to event resoures.
+     * UnreferencableObjectStorage mapping Timer objects to event resources.
      *
      * @var UnreferencableObjectStorage
      */
