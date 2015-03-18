@@ -22,21 +22,12 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 ##### Installation
 
-The recommended way to install Icicle is with the [Composer](http://getcomposer.org/) package manager.
+The recommended way to install Icicle is with the [Composer](http://getcomposer.org/) package manager. (See the [Composer installation guide](https://getcomposer.org/doc/00-intro.md) for information on installing and using Composer.)
 
-Composer may be installed with the following command: (see the [Composer installation guide](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx) for more information.)
+Use the following command with Composer use Icicle in your project.
+
 ``` bash
-curl -sS https://getcomposer.org/installer | php
-```
-
-Once installed, use Composer to install Icicle into your project directory.
-``` bash
-php composer.phar require icicleio/icicle 0.1.*
-```
-
-Require Composer's autoloader to use packages installed with Composer.
-``` php
-require 'vendor/autoload.php';
+composer require icicleio/icicle 0.1.*
 ```
 
 ##### Download
@@ -279,9 +270,9 @@ Loop::run();
 
 Event emitters can create a set of events identified by an integer or string to which other code can register callbacks that are invoked when the event occurs. Each event emitter should implement `Icicle\EventEmitter\EventEmitterInterface`, which can be done easily by using `Icicle\EventEmitter\EventEmitterTrait` in the class definition.
 
-This implementation differs from other event emitter libraries by ensuring that a particular callback can only be registered once for a particular event identifier. An attempt to register a previously registered callback is a no-op.
+This implementation differs from other event emitter libraries by ensuring that *a callback can only be registered once on an event identifier*. An attempt to register a previously registered callback is a no-op.
 
-Event identifiers are also strictly enforced to aid in debugging. Event emitter objects must initial event identifiers of events they wish to emit. If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
+Event identifiers are also strictly enforced to aid in debugging. *Event emitter objects must initialize event identifiers of events they wish to emit.* If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
 
 **[Event Emitter API documentation](//github.com/icicleio/Icicle/tree/master/src/EventEmitter)**
 
