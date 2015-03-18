@@ -97,7 +97,7 @@ interface LoopInterface extends EventEmitterInterface
     public function cancelPoll(PollInterface $poll);
     
     /**
-     * Determines if the poll is pending (listneing for data).
+     * Determines if the poll is pending (listening for data).
      *
      * @param   PollInterface $poll
      *

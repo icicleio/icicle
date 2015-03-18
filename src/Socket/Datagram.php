@@ -232,7 +232,7 @@ class Datagram extends Socket
      * @reject  UnreadableException If the datagram is no longer readable.
      * @reject  ClosedException If the datagram has been closed.
      * @reject  TimeoutException If receiving times out.
-     * @reject  FailureExcpetion If receiving fails.
+     * @reject  FailureException If receiving fails.
      */
     public function receive($length = null, $timeout = null)
     {
@@ -294,7 +294,7 @@ class Datagram extends Socket
      * @reject  UnavailableException If the datagram is no longer writable.
      * @reject  ClosedException If the datagram closes.
      * @reject  TimeoutException If sending the data times out.
-     * @reject  FailureExcpetion If sending data fails.
+     * @reject  FailureException If sending data fails.
      */
     public function send($address, $port, $data)
     {

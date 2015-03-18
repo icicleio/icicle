@@ -26,7 +26,7 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
     - [resume()](#resume) - Resumes execution of the coroutine.
     - [isPaused()](#ispaused) - Determines if the coroutine is paused.
     - [cancel()](#cancel) - Cancels execution of the coroutine.
-- [Corotuines as Promises](#coroutines-as-promises)
+- [Coroutines as Promises](#coroutines-as-promises)
 
 #### Function prototypes
 
