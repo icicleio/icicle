@@ -14,3 +14,5 @@ install:
     - ./.travis.sh
 
 script: vendor/bin/phpunit --coverage-text
+
+after_script: vendor/bin/coveralls -v --exclude-no-stmt
