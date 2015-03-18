@@ -131,6 +131,16 @@ trait ReadableSocketTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
+                 ->with($this->identicalTo(''));
+        
+        $promise->done($callback, $this->createCallback(0));
+        
+        Loop::run();
+        
+        $promise = $readable->read(); // Next read should fail with EofException.
+        
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
                  ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
         
         $promise->done($this->createCallback(0), $callback);

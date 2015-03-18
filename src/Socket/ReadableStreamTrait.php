@@ -87,14 +87,14 @@ trait ReadableStreamTrait
                             break;
                         }
                     }
-                } elseif (!feof($resource)) {
+                } else {
                     $data = fread($resource, $this->length);
                 }
-            }
-            
-            if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
-                $this->close(new EofException('Connection reset by peer or reached EOF.'));
-                return;
+                
+                if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
+                    $this->close(new EofException('Connection reset by peer or reached EOF.'));
+                    return;
+                }
             }
             
             $this->deferred->resolve($data);
