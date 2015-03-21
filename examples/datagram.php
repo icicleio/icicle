@@ -22,6 +22,6 @@ $coroutine = Coroutine::call(function (Datagram $datagram) {
         echo "Error: {$e->getMessage()}\n";
         $datagram->close();
     }
-}, Datagram::create('localhost', 60000));
+}, Datagram::create('127.0.0.1', 60000));
 
 Loop::run();

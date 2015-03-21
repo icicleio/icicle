@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -8,7 +8,7 @@ use Icicle\Loop\Loop;
 use Icicle\Socket\Client;
 use Icicle\Socket\Server;
 
-$server = Server::create('localhost', 8080, ['backlog' => 1024]);
+$server = Server::create('127.0.0.1', 8080, ['backlog' => 1024]);
 
 $coroutine = Coroutine::async(function (Server $server) {
     $coroutine = Coroutine::async(function (Client $client) {

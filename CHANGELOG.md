@@ -1,5 +1,9 @@
 # Changelog
 
+### v0.1.3
+
+Added `Promise::rety()` method for retrying a promise-returning operation if the promise is rejected.
+
 ### v0.1.2
 
 Updated the behavior the Socket component to be similar the stream socket implementation in PHP 7.

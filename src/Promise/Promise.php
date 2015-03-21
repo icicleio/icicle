@@ -376,12 +376,12 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Wraps the given callable $worker in a promise aware function that takes the same number of arguments as $worker, but
-     * those arguments may be promises for the future argument value or just values. The returned function will return a
-     * promise for the return value of $worker and will never throw. The $worker function will not be called until each
-     * promise given as an argument is fulfilled. If any promise provided as an argument rejects, the promise returned by the
-     * returned function will be rejected for the same reason. The promise is fulfilled with the return value of $worker or
-     * rejected if $worker throws.
+     * Wraps the given callable $worker in a promise aware function that takes the same number of arguments as $worker,
+     * but those arguments may be promises for the future argument value or just values. The returned function will
+     * return a promise for the return value of $worker and will never throw. The $worker function will not be called
+     * until each promise given as an argument is fulfilled. If any promise provided as an argument rejects, the promise
+     * returned by the returned function will be rejected for the same reason. The promise is fulfilled with the return
+     * value of $worker or rejected if $worker throws.
      *
      * @param   callable $worker
      *
@@ -407,8 +407,8 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Transforms a function that takes a callback into a function that returns a promise. The promise is fulfilled with an 
-     * array of the parameters that would have been passed to the callback function.
+     * Transforms a function that takes a callback into a function that returns a promise. The promise is fulfilled with 
+     * an array of the parameters that would have been passed to the callback function.
      *
      * @param   callable $worker Function that normally accepts a callback.
      * @param   int $index Position of callback in $worker argument list (0-indexed).
@@ -473,8 +473,8 @@ class Promise implements PromiseInterface
     
     /**
      * Returns a promise that is fulfilled when all promises are fulfilled, and rejected if any promise is rejected.
-     * Returned promise is fulfilled with an array of values used to fulfill each contained promise, with keys corresponding
-     * to the array of promises.
+     * Returned promise is fulfilled with an array of values used to fulfill each contained promise, with keys
+     * corresponding to the array of promises.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
@@ -610,10 +610,11 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return callback
-     * value of the callback function. The callback may return promises or throw exceptions to reject promises in the array.
-     * If a promise in the passed array rejects, the callback will not be called and the promise in the array is rejected for
-     * the same reason. Tip: Use join() or settle() method to determine when all promises in the array have been resolved.
+     * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return
+     * callback value of the callback function. The callback may return promises or throw exceptions to reject promises
+     * in the array. If a promise in the passed array rejects, the callback will not be called and the promise in the
+     * array is rejected for the same reason. Tip: Use join() or settle() method to determine when all promises in the
+     * array have been resolved.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $value) : mixed
@@ -634,8 +635,8 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Reduce function similar to array_reduce(), only it works on promises and/or values. The callback function may return a
-     * promise or value and the initial value may also be a promise or value.
+     * Reduce function similar to array_reduce(), only it works on promises and/or values. The callback function may
+     * return a promise or value and the initial value may also be a promise or value.
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $carry, mixed $value) : mixed Called for each fulfilled promise value.
@@ -674,14 +675,14 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Calls $worker using the return value of the previous call until $predicate returns true. $seed is used as the initial
-     * parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If $worker or
-     * $predicate throws an exception, the promise is rejected using that exception. The call stack is cleared before each
-     * call to $worker to avoid filling the call stack. If $worker returns a promise, iteration waits for the returned
-     * promise to be resolved.
+     * Calls $worker using the return value of the previous call until $predicate returns true. $seed is used as the
+     * initial parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If
+     * $worker or $predicate throws an exception, the promise is rejected using that exception. The call stack is
+     * cleared before each call to $worker to avoid filling the call stack. If $worker returns a promise, iteration
+     * waits for the returned promise to be resolved.
      *
-     * @param   callable $worker (mixed $value) : mixed Called with the previous return value on each iteration.
-     * @param   callable $predicate (mixed $value) : bool Return true to stop iteration and fulfill promise.
+     * @param   callable<mixed (mixed $value) $worker Called with the previous return value on each iteration.
+     * @param   callable<bool (mixed $value) $predicate Return true to stop iteration and fulfill promise.
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return  PromiseInterface
@@ -693,7 +694,7 @@ class Promise implements PromiseInterface
         return new static(function ($resolve, $reject) use ($worker, $predicate, $seed) {
             $callback = function ($value) use (&$callback, $worker, $predicate, $resolve, $reject) {
                 try {
-                    if ($predicate($value)) { // Resolve promise if predicate returns true.
+                    if ($predicate($value)) { // Resolve promise if $predicate returns true.
                         $resolve($value);
                     } else {
                         static::resolve($worker($value))->done($callback, $reject);
@@ -704,6 +705,41 @@ class Promise implements PromiseInterface
             };
             
             static::resolve($seed)->done($callback, $reject); // Start iteration with $seed.
+        });
+    }
+    
+    /**
+     * Repeatedly calls $promisor if the promise returned by $promisor is rejected or until $onRejected returns false.
+     * Useful to retry an operation a number of times or until an operation fails with a specific exception.
+     * If the promise returend by $promisor is fulfilled, the promise returned by this function is fulfilled with the
+     * same value.
+     *
+     * @param   callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
+     *          Should return a promise, but can return any type of value (will be made into a promise using resolve()).
+     * @param   callable<bool (Exception $exception) $onRejected This function is called if the promise returned by
+     *          $promisor is rejected. Returning false from this function will call $promiser again to retry the
+     *          operation.
+     *
+     * @return  PromiseInterface
+     *
+     * @api
+     */
+    public static function retry(callable $promisor, callable $onRejected)
+    {
+        return new static(function ($resolve, $reject) use ($promisor, $onRejected) {
+            $callback = function (Exception $exception) use (&$callback, $promisor, $onRejected, $resolve, $reject) {
+                try {
+                    if ($onRejected($exception)) { // Reject promise if $onRejected returns true.
+                        $reject($exception);
+                    } else {
+                        static::resolve($promisor())->done($resolve, $callback);
+                    }
+                } catch (Exception $exception) {
+                    $reject($exception);
+                }
+            };
+            
+            static::resolve($promisor())->done($resolve, $callback);
         });
     }
 }

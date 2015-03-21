@@ -41,6 +41,7 @@ Callback functions registered to promises are always [invoked asynchronously](#a
         - [map()](#map) - Returns a set of promises each resolved with a given callback similar to `array_map()`.
         - [reduce()](#reduce) - Returns a promise resolved in a method similar to `array_reduce()`.
         - [iterate()](#iterate) - Iterates by calling a callback until another callback returns `true`.
+        - [retry()](#retry) - Retries an operation until a callback function returns true.
     - [Using Promises with Existing Functions](#using-promises-with-existing-functions)
         - [lift()](#lift) - Allows an existing function to accept promises as parameters and return a promise.
         - [promisify()](#promisify) - Allows an API using callbacks to return promises instead.
@@ -458,7 +459,17 @@ PromiseInterface Promise::iterate(
 )
 ```
 
-Calls `$worker` using the return value of the previous call until `$predicate` returns true. $seed is used as the initial parameter to `$worker`. `$predicate` is called before `$worker` with the value to be passed to `$worker`. If `$worker` or `$predicate` throws an exception, the promise is rejected using that exception. The call stack is cleared before each call to `$worker` to avoid filling the call stack. If `$worker` returns a promise, iteration waits for the returned promise to be resolved. `$seed` may be a promise or value.
+Calls `$worker` using the return value of the previous call until `$predicate` returns a truthy value. $seed is used as the initial parameter to `$worker`. `$predicate` is called before `$worker` with the value to be passed to `$worker`. If `$worker` or `$predicate` throws an exception, the promise is rejected using that exception. The call stack is cleared before each call to `$worker` to avoid filling the call stack. If `$worker` returns a promise, iteration waits for the returned promise to be resolved. `$seed` may be a promise or value.
+
+---
+
+#### retry()
+
+```php
+PromiseInterface Promise::retry(callable<mixed ()> $promisor, callable<bool (Exception $exception)> $onRejected)
+```
+
+Continuously calls `$promisor`, a function that should return a promise (though it can actually return any type of value). If the promise returned by `$promisor` is rejected, `$onRejected` is called with the rejection exception. If `$onRejected` returns a falsey value, `$promisor` is called again to retry the operation, otherwise the promise returned by `retry()` is rejected with the same exception. Once the promise returned by `$promisor` is fulfilled, the promise returned by `retry()` is fulfilled with the same value. If either `$promisor` or `$onRejected` throw an exception, the promise returned by `retry()` is rejected with that exception.
 
 ### Using Promises with Existing Functions
 

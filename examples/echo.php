@@ -41,6 +41,6 @@ $coroutine = Coroutine::call(function (Server $server) {
             echo "Error accepting client: {$e->getMessage()}\n";
         }
     }
-}, Server::create('localhost', 60000));
+}, Server::create('127.0.0.1', 60000));
 
 Loop::run();

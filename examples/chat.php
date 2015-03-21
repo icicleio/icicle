@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -46,6 +46,6 @@ $coroutine = Coroutine::call(function (Server $server) {
     while ($server->isOpen()) {
         $handler(yield $server->accept());
     }
-}, Server::create('localhost', 60000));
+}, Server::create('127.0.0.1', 60000));
 
 Loop::run();
