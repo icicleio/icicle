@@ -66,81 +66,9 @@ class Datagram extends Socket implements DatagramInterface
         
         $this->writeQueue = new SplQueue();
         
-        $this->poll = Loop::poll($socket, function ($resource, $expired) {
-            if ($expired) {
-                $this->deferred->reject(new TimeoutException('The datagram timed out.'));
-                $this->deferred = null;
-                return;
-            }
-            
-            if (0 === $this->length) {
-                $this->deferred->resolve([null, null, '']);
-                $this->deferred = null;
-                return;
-            }
-            
-            $data = @stream_socket_recvfrom($resource, $this->length, 0, $peer);
-            
-            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-            // @codeCoverageIgnoreStart
-            if (false === $data) { // Reading failed, so close datagram.
-                $message = 'Failed to read from datagram.';
-                $error = error_get_last();
-                if (null !== $error) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
-                }
-                $this->close(new FailureException($message));
-                return;
-            } // @codeCoverageIgnoreEnd
-            
-            $colon = strrpos($peer, ':');
-            
-            $address = substr($peer, 0, $colon);
-            $port = (int) substr($peer, $colon + 1);
-            
-            if (false !== strpos($address, ':')) { // IPv6 address
-                $address = '[' . trim($address, '[]') . ']';
-            }
-            
-            $this->deferred->resolve([$address, $port, $data]);
-            $this->deferred = null;
-        });
+        $this->poll = $this->createPoll($socket);
         
-        $this->await = Loop::await($socket, function ($resource) use (&$onWrite) {
-            list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
-            
-            if (!$data->isEmpty()) {
-                $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
-                
-                // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-                // @codeCoverageIgnoreStart
-                if (false === $written || 0 >= $written) {
-                    $message = 'Failed to write to datagram.';
-                    $error = error_get_last();
-                    if (null !== $error) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
-                    }
-                    $exception = new FailureException($message);
-                    $deferred->reject($exception);
-                    $this->close($exception);
-                    return;
-                } // @codeCoverageIgnoreEnd
-                
-                if ($data->getLength() <= $written) {
-                    $deferred->resolve($written + $previous);
-                } else {
-                    $data->remove($written);
-                    $written += $previous;
-                    $this->writeQueue->unshift([$data, $written, $peer, $deferred]);
-                }
-            } else {
-                $deferred->resolve($previous);
-            }
-            
-            if (!$this->writeQueue->isEmpty()) {
-                $this->await->listen();
-            }
-        });
+        $this->await = $this->createAwait($socket);
         
         try {
             list($this->address, $this->port) = self::parseSocketName($socket, false);
@@ -337,5 +265,97 @@ class Datagram extends Socket implements DatagramInterface
         }
         
         return $deferred->getPromise();
+    }
+    
+    /**
+     * @param   resource $socket Stream socket resource.
+     *
+     * @return  PollInterface
+     */
+    protected function createPoll($socket)
+    {
+        return Loop::poll($socket, function ($resource, $expired) {
+            if ($expired) {
+                $this->deferred->reject(new TimeoutException('The datagram timed out.'));
+                $this->deferred = null;
+                return;
+            }
+            
+            if (0 === $this->length) {
+                $this->deferred->resolve([null, null, '']);
+                $this->deferred = null;
+                return;
+            }
+            
+            $data = @stream_socket_recvfrom($resource, $this->length, 0, $peer);
+            
+            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+            // @codeCoverageIgnoreStart
+            if (false === $data) { // Reading failed, so close datagram.
+                $message = 'Failed to read from datagram.';
+                $error = error_get_last();
+                if (null !== $error) {
+                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                }
+                $this->close(new FailureException($message));
+                return;
+            } // @codeCoverageIgnoreEnd
+            
+            $colon = strrpos($peer, ':');
+            
+            $address = substr($peer, 0, $colon);
+            $port = (int) substr($peer, $colon + 1);
+            
+            if (false !== strpos($address, ':')) { // IPv6 address
+                $address = '[' . trim($address, '[]') . ']';
+            }
+            
+            $this->deferred->resolve([$address, $port, $data]);
+            $this->deferred = null;
+        });
+    }
+    
+    /**
+     * @param   resource $socket Stream socket resource.
+     *
+     * @return  AwaitInterface
+     */
+    protected function createAwait($socket)
+    {
+        return Loop::await($socket, function ($resource) use (&$onWrite) {
+            list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
+            
+            if (!$data->isEmpty()) {
+                $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
+                
+                // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+                // @codeCoverageIgnoreStart
+                if (false === $written || 0 >= $written) {
+                    $message = 'Failed to write to datagram.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    $exception = new FailureException($message);
+                    $deferred->reject($exception);
+                    $this->close($exception);
+                    return;
+                } // @codeCoverageIgnoreEnd
+                
+                if ($data->getLength() <= $written) {
+                    $deferred->resolve($written + $previous);
+                } else {
+                    $data->remove($written);
+                    $written += $previous;
+                    $this->writeQueue->unshift([$data, $written, $peer, $deferred]);
+                }
+            } else {
+                $deferred->resolve($previous);
+            }
+            
+            if (!$this->writeQueue->isEmpty()) {
+                $this->await->listen();
+            }
+        });
     }
 }

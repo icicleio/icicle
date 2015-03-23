@@ -54,46 +54,7 @@ trait WritableStreamTrait
         
         $this->writeQueue = new SplQueue();
         
-        $this->await = Loop::await($socket, function ($resource, $expired) {
-            if ($expired) {
-                $this->close(new TimeoutException('Writing to the socket timed out.'));
-                return;
-            }
-            
-            list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
-            
-            if (!$data->isEmpty()) {
-                // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-                $written = @fwrite($resource, $data, self::CHUNK_SIZE);
-                
-                if (false === $written || 0 === $written) {
-                    $message = 'Failed to write to stream.';
-                    $error = error_get_last();
-                    if (null !== $error) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
-                    }
-                    $exception = new FailureException($message);
-                    $deferred->reject($exception);
-                    $this->close($exception);
-                    return;
-                }
-                
-                if ($data->getLength() <= $written) {
-                    $deferred->resolve($written + $previous);
-                } else {
-                    $data->remove($written);
-                    $written += $previous;
-                    $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
-                }
-            } else {
-                $deferred->resolve($previous);
-            }
-            
-            if (!$this->writeQueue->isEmpty()) {
-                list( , , $timeout) = $this->writeQueue->top();
-                $this->await->listen($timeout);
-            }
-        });
+        $this->await = $this->createAwait($socket);
     }
     
     /**
@@ -203,5 +164,54 @@ trait WritableStreamTrait
     public function isWritable()
     {
         return $this->writable;
+    }
+    
+    /**
+     * @param   resource $socket Stream socket resource.
+     *
+     * @return  AwaitInterface
+     */
+    protected function createAwait($socket)
+    {
+        return Loop::await($socket, function ($resource, $expired) {
+            if ($expired) {
+                $this->close(new TimeoutException('Writing to the socket timed out.'));
+                return;
+            }
+            
+            list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
+            
+            if (!$data->isEmpty()) {
+                // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
+                $written = @fwrite($resource, $data, self::CHUNK_SIZE);
+                
+                if (false === $written || 0 === $written) {
+                    $message = 'Failed to write to stream.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    $exception = new FailureException($message);
+                    $deferred->reject($exception);
+                    $this->close($exception);
+                    return;
+                }
+                
+                if ($data->getLength() <= $written) {
+                    $deferred->resolve($written + $previous);
+                } else {
+                    $data->remove($written);
+                    $written += $previous;
+                    $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
+                }
+            } else {
+                $deferred->resolve($previous);
+            }
+            
+            if (!$this->writeQueue->isEmpty()) {
+                list( , , $timeout) = $this->writeQueue->top();
+                $this->await->listen($timeout);
+            }
+        });
     }
 }

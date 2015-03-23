@@ -13,6 +13,7 @@ interface ServerInterface extends SocketInterface
      * @resolve ClientInterface
      *
      * @reject  AcceptException If an error occurs when accepting the client.
+     * @reject  FailureException If creating the client fails.
      * @reject  UnavailableException If an accept request was already pending on the server.
      *
      * @api

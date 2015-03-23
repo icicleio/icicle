@@ -64,42 +64,7 @@ trait ReadableStreamTrait
         stream_set_read_buffer($socket, 0);
         stream_set_chunk_size($socket, self::CHUNK_SIZE);
         
-        $this->poll = Loop::poll($socket, function ($resource, $expired) {
-            if ($expired) {
-                $this->deferred->reject(new TimeoutException('The connection timed out.'));
-                $this->deferred = null;
-                return;
-            }
-            
-            $data = '';
-            
-            if (0 !== $this->length) {
-                if (null !== $this->byte) {
-                    $length = strlen($this->byte);
-                    $offset = -$length;
-                    
-                    for ($i = 0; $i < $this->length; ++$i) {
-                        if (false === ($byte = fgetc($resource))) {
-                            break;
-                        }
-                        $data .= $byte;
-                        if ($byte === $this->byte) {
-                            break;
-                        }
-                    }
-                } else {
-                    $data = fread($resource, $this->length);
-                }
-                
-                if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
-                    $this->close(new EofException('Connection reset by peer or reached EOF.'));
-                    return;
-                }
-            }
-            
-            $this->deferred->resolve($data);
-            $this->deferred = null;
-        });
+        $this->poll = $this->createPoll($socket);
     }
     
     /**
@@ -261,5 +226,50 @@ trait ReadableStreamTrait
         }
         
         return $result;
+    }
+    
+    /**
+     * @param   resource $socket Stream socket resource.
+     *
+     * @return  PollInterface
+     */
+    protected function createPoll($socket)
+    {
+        return Loop::poll($socket, function ($resource, $expired) {
+            if ($expired) {
+                $this->deferred->reject(new TimeoutException('The connection timed out.'));
+                $this->deferred = null;
+                return;
+            }
+            
+            $data = '';
+            
+            if (0 !== $this->length) {
+                if (null !== $this->byte) {
+                    $length = strlen($this->byte);
+                    $offset = -$length;
+                    
+                    for ($i = 0; $i < $this->length; ++$i) {
+                        if (false === ($byte = fgetc($resource))) {
+                            break;
+                        }
+                        $data .= $byte;
+                        if ($byte === $this->byte) {
+                            break;
+                        }
+                    }
+                } else {
+                    $data = fread($resource, $this->length);
+                }
+                
+                if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
+                    $this->close(new EofException('Connection reset by peer or reached EOF.'));
+                    return;
+                }
+            }
+            
+            $this->deferred->resolve($data);
+            $this->deferred = null;
+        });
     }
 }
