@@ -12,7 +12,7 @@ use Icicle\Socket\Server\Server;
 // Connect using `nc localhost 60000`.
 
 $generator = function (Server $server) {
-    $handler = Coroutine::async(function (ClientInterface $client) {
+    $generator = function (ClientInterface $client) {
         try {
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
@@ -31,19 +31,19 @@ $generator = function (Server $server) {
             echo "Client error: {$e->getMessage()}\n";
             $client->close();
         }
-    });
+    };
     
     echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
     
     while ($server->isOpen()) {
         try {
-            $handler(yield $server->accept());
+            $coroutine = new Coroutine($generator(yield $server->accept()));
         } catch (Exception $e) {
             echo "Error accepting client: {$e->getMessage()}\n";
         }
     }
 };
 
-$coroutine = new Coroutine($generator((new ServerFactory())->create('localhost', 60000)));
+$coroutine = new Coroutine($generator((new ServerFactory())->create('127.0.0.1', 60000)));
 
 Loop::run();

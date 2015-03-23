@@ -5,12 +5,13 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\ClientInterface;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerInterface;
+use Icicle\Socket\Server\ServerFactory;
 
 // Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (Server $server) {
+$coroutine = Coroutine::call(function (ServerInterface $server) {
     $clients = new SplObjectStorage();
     
     $handler = Coroutine::async(function (ClientInterface $client) use (&$clients) {
@@ -46,6 +47,6 @@ $coroutine = Coroutine::call(function (Server $server) {
     while ($server->isOpen()) {
         $handler(yield $server->accept());
     }
-}, Server::create('127.0.0.1', 60000));
+}, (new ServerFactory())->create('127.0.0.1', 60000));
 
 Loop::run();

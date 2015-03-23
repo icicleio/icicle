@@ -132,7 +132,7 @@ The example below uses the `Icicle\Coroutine\Coroutine::call()` method to create
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
 
-$coroutine = Coroutine::call(function () {
+$generator = function () {
     try {
         $value = (yield doAsynchronousTask());
 		
@@ -146,7 +146,9 @@ $coroutine = Coroutine::call(function () {
     } catch (Exception $exception) {
         echo "Asynchronous task failed: {$exception->getMessage()}\n";
     }
-});
+};
+
+$coroutine = new Coroutine($generator());
 
 Loop::run();
 ```
@@ -169,6 +171,8 @@ The following code demonstrates how functions may be scheduled to run later usin
 
 ```php
 use Icicle\Loop\Loop;
+
+// Note that the Loop class is a facade to an instance of Icicle\Loop\LoopInterface (see description above).
 
 Loop::schedule(function () {
 	echo "First.\n";
@@ -219,10 +223,10 @@ The example below implements HTTP server that responds to any request with `Hell
 
 ```php
 use Icicle\Loop\Loop;
-use Icicle\Socket\ClientInterface;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerFactory;
 
-$server = Server::create('localhost', 60000);
+$server = (new ServerFactory())->create('localhost', 60000);
 
 $handler = function (ClientInterface $client) use (&$handler, &$error, $server) {
     $server->accept()->done($handler, $error);
@@ -244,7 +248,6 @@ $server->accept()->done($handler, $error);
 echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
 
 Loop::run();
-
 ```
 
 The example below shows the same HTTP server as above, instead implemented using a coroutine.
@@ -252,29 +255,34 @@ The example below shows the same HTTP server as above, instead implemented using
 ```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\ClientInterface;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerInterface;
+use Icicle\Socket\Server\ServerFactory;
 
-$coroutine = Coroutine::call(function (Server $server) {
+$server = (new ServerFactory())->create('localhost', 60000);
+
+$generator = function (ServerInterface $server) {
     echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
     
-    $handler = Coroutine::async(function (ClientInterface $client) {
+    $generator = function (ClientInterface $client) {
         $client->write("HTTP/1.1 200 OK\r\n");
         $client->write("Content-Length: 12\r\n");
         $client->write("Connection: close\r\n");
         $client->write("\r\n");
         
         yield $client->end("Hello world!");
-    });
+    };
     
     try {
         while ($server->isOpen()) {
-            $handler(yield $server->accept());
+            $coroutine = new Coroutine($generator(yield $server->accept()));
         }
     } catch (Exception $e) {
         echo "Error: {$e->getMessage()}\n";
     }
-}, Server::create('localhost', 60000));
+};
+
+$coroutine = new Coroutine($generator($server));
 
 Loop::run();
 ```
@@ -298,13 +306,16 @@ The example below shows how the components outlined above can be combined to qui
 ```php
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\ClientInterface;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerInterface;
+use Icicle\Socket\Server\ServerFactory;
 
 // Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (Server $server) {
-    $handler = Coroutine::async(function (ClientInterface $client) {
+$server = (new ServerFactory())->create('127.0.0.1', 60000);
+
+$generator = function (ServerInterface $server) {
+    $generator = function (ClientInterface $client) {
         try {
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
 			
@@ -323,18 +334,20 @@ $coroutine = Coroutine::call(function (Server $server) {
             echo "Client error: {$e->getMessage()}\n";
             $client->close();
         }
-    });
+    };
     
     echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
     
     while ($server->isOpen()) {
         try {
-            $handler(yield $server->accept());
+            $coroutine = new Coroutine($generator(yield $server->accept()));
         } catch (Exception $e) {
             echo "Error accepting client: {$e->getMessage()}\n";
         }
     }
-}, Server::create('localhost', 60000));
+};
+
+$coroutine = new Coroutine($generator($server));
 
 Loop::run();
 ```

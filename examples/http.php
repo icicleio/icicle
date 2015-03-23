@@ -5,13 +5,14 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Client;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerInterface;
+use Icicle\Socket\Server\ServerFactory;
 
-$server = Server::create('127.0.0.1', 8080, ['backlog' => 1024]);
+$server = (new ServerFactory())->create('127.0.0.1', 8080, ['backlog' => 1024]);
 
-$coroutine = Coroutine::async(function (Server $server) {
-    $coroutine = Coroutine::async(function (Client $client) {
+$generator = function (ServerInterface $server) {
+    $generator = function (ClientInterface $client) {
         try {
             $data = (yield $client->read());
             
@@ -31,21 +32,23 @@ $coroutine = Coroutine::async(function (Server $server) {
         } finally {
             $client->close();
         }
-    });
+    };
     
     while ($server->isOpen()) {
         try {
-            $coroutine(yield $server->accept());
+            $coroutine = new Coroutine($generator(yield $server->accept()));
         } catch (Exception $exception) {
             echo "Error: Could not accept client: {$exception->getMessage()}";
         }
     }
-});
+};
 
-$coroutine($server)->cleanup(function () use ($server) {
+$coroutine = new Coroutine($generator($server));
+
+$coroutine->cleanup(function () use ($server) {
     $server->close();
 });
 
-Loop::schedule(function () { echo "Server started.\n"; });
+echo "Server started.\n";
 
 Loop::run();
