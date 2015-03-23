@@ -1,5 +1,7 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\Socket\Server;
+
+use Icicle\Socket\SocketInterface;
 
 interface ServerInterface extends SocketInterface
 {

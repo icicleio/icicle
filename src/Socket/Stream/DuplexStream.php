@@ -1,7 +1,8 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\Socket\Stream;
 
 use Exception;
+use Icicle\Socket\Socket;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\DuplexStreamInterface;
 

@@ -1,21 +1,21 @@
 <?php
-namespace Icicle\Tests\Socket;
+namespace Icicle\Tests\Socket\Client;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Client;
+use Icicle\Promise\Promise;
+use Icicle\Socket\Client\Client;
 use Icicle\Tests\TestCase;
 
 class ClientTest extends TestCase
 {
     const HOST_IPv4 = '127.0.0.1';
-    const HOST_IPv6 = '[::1]';
     const PORT = 51337;
     const TIMEOUT = 0.1;
     const CONNECT_TIMEOUT = 1;
     const CERT_HEADER = '-----BEGIN CERTIFICATE-----';
     
-    public function createServer()
+    public function createClient()
     {
         $host = self::HOST_IPv4;
         $port = self::PORT;
@@ -23,50 +23,38 @@ class ClientTest extends TestCase
         $context = [];
         
         $context['socket'] = [];
-        $context['socket']['bindto'] = "{$host}:{$port}";
+        $context['socket']['connect'] = "{$host}:{$port}";
+        
+        $context['ssl'] = [];
+        $context['ssl']['capture_peer_cert'] = true;
+        $context['ssl']['capture_peer_chain'] = true;
+        $context['ssl']['capture_peer_cert_chain'] = true;
+        
+        $context['ssl']['verify_peer'] = true;
+        $context['ssl']['allow_self_signed'] = true;
+        $context['ssl']['verify_depth'] = 10;
+        
+        $context['ssl']['CN_match'] = 'localhost';
+        $context['ssl']['peer_name'] = 'localhost';
+        $context['ssl']['disable_compression'] = true;
         
         $context = stream_context_create($context);
         
-        $socket = stream_socket_server(
-            "tcp://{$host}:{$port}",
-            $errno,
-            $errstr,
-            STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            $context
-        );
+        $uri = sprintf('tcp://%s:%d', $host, $port);
+        $socket = @stream_socket_client($uri, $errno, $errstr, null, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT, $context);
         
         if (!$socket || $errno) {
-            $this->fail("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            $this->fail("Could not connect to {$uri}; Errno: {$errno}; {$errstr}");
         }
         
-        return $socket;
-    }
-    
-    public function createServerIPv6()
-    {
-        $host = self::HOST_IPv6;
-        $port = self::PORT;
-        
-        $context = [];
-        
-        $context['socket'] = [];
-        $context['socket']['bindto'] = "{$host}:{$port}";
-        
-        $context = stream_context_create($context);
-        
-        $socket = stream_socket_server(
-            "tcp://{$host}:{$port}",
-            $errno,
-            $errstr,
-            STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            $context
-        );
-        
-        if (!$socket || $errno) {
-            $this->fail("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
-        }
-        
-        return $socket;
+        return new Promise(function ($resolve, $reject) use ($socket) {
+            $await = Loop::await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
+                $await->free();
+                $resolve(new Client($resource));
+            });
+            
+            $await->listen();
+        });
     }
     
     public function createSecureServer($path)
@@ -126,91 +114,6 @@ class ClientTest extends TestCase
         Loop::clear();
     }
     
-    public function testConnect()
-    {
-        $server = $this->createServer();
-        
-        $promise = Client::connect(self::HOST_IPv4, self::PORT);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client'));
-        
-        $promise->done($callback, $this->createCallback(0));
-        
-        $promise->done(function (Client $client) {
-            $this->assertSame($client->getLocalAddress(), self::HOST_IPv4);
-            $this->assertSame($client->getRemoteAddress(), self::HOST_IPv4);
-            $this->assertInternalType('integer', $client->getLocalPort());
-            $this->assertSame($client->getRemotePort(), self::PORT);
-        });
-        
-        Loop::run();
-        
-        fclose($server);
-    }
-    
-    /**
-     * @depends testConnect
-     */
-    public function testConnectIPv6()
-    {
-        $server = $this->createServerIPv6();
-        
-        $promise = Client::connect(self::HOST_IPv6, self::PORT);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client'));
-        
-        $promise->done($callback, $this->createCallback(0));
-        
-        $promise->done(function (Client $client) {
-            $this->assertSame($client->getLocalAddress(), self::HOST_IPv6);
-            $this->assertSame($client->getRemoteAddress(), self::HOST_IPv6);
-            $this->assertInternalType('integer', $client->getLocalPort());
-            $this->assertSame($client->getRemotePort(), self::PORT);
-        });
-        
-        Loop::run();
-        
-        fclose($server);
-    }
-    
-    /**
-     * @medium
-     * @depends testConnect
-     */
-    public function testConnectFailure()
-    {
-        $promise = Client::connect('invalid.host', self::PORT, ['timeout' => 1]);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
-    
-    /**
-     * @medium
-     * @depends testConnect
-     */
-    public function testConnectTimeout()
-    {
-        $promise = Client::connect('8.8.8.8', 8080, ['timeout' => 1]);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
-    
     public function testInvalidSocketType()
     {
         $client = new Client(fopen('php://memory', 'r+'));
@@ -220,7 +123,6 @@ class ClientTest extends TestCase
     
     /**
      * @medium
-     * @depends testConnect
      * @require extension openssl
      */
     public function testEnableCrypto()
@@ -229,7 +131,7 @@ class ClientTest extends TestCase
         
         $server = $this->createSecureServer($path);
         
-        $promise = Client::connect(self::HOST_IPv4, self::PORT, ['cn' => 'localhost', 'allow_self_signed' => true]);
+        $promise = $this->createClient();
         
         $promise = $promise
             ->tap(function () use ($server) {
@@ -254,7 +156,6 @@ class ClientTest extends TestCase
     
     /**
      * @medium
-     * @depends testConnect
      * @require extension openssl
      */
     public function testEnableCryptoFailure()
@@ -263,7 +164,7 @@ class ClientTest extends TestCase
         
         $server = $this->createSecureServer($path);
         
-        $promise = Client::connect(self::HOST_IPv4, self::PORT);
+        $promise = $this->createClient();
         
         $promise = $promise
             ->tap(function () use ($server) {

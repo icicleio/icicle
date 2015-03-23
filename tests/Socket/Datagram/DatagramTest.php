@@ -1,9 +1,9 @@
 <?php
-namespace Icicle\Tests\Socket;
+namespace Icicle\Tests\Socket\Datagram;
 
 use Exception;
 use Icicle\Loop\Loop;
-use Icicle\Socket\Datagram;
+use Icicle\Socket\Datagram\Datagram;
 use Icicle\Socket\Socket;
 use Icicle\Tests\TestCase;
 
@@ -29,32 +29,48 @@ class DatagramTest extends TestCase
         }
     }
     
-    public function testCreate()
+    public function createDatagram()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $host = self::HOST_IPv4;
+        $port = self::PORT;
         
-        $this->assertSame(self::HOST_IPv4, $this->datagram->getAddress());
-        $this->assertSame(self::PORT, $this->datagram->getPort());
+        $context = [];
+        
+        $context['socket'] = [];
+        $context['socket']['bindto'] = "{$host}:{$port}";
+        
+        $context = stream_context_create($context);
+        
+        $uri = sprintf('udp://%s:%d', $host, $port);
+        $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND, $context);
+        
+        if (!$socket || $errno) {
+            $this->fail("Could not create datagram on {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+        }
+        
+        return new Datagram($socket);
     }
     
-    public function testCreateIPv6()
+    public function createDatagramIPv6()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv6, self::PORT);
+        $host = self::HOST_IPv6;
+        $port = self::PORT;
         
-        $this->assertSame(self::HOST_IPv6, $this->datagram->getAddress());
-        $this->assertSame(self::PORT, $this->datagram->getPort());
-    }
-    
-    /**
-     * @medium
-     * @depends testCreate
-     * @expectedException Icicle\Socket\Exception\FailureException
-     */
-    public function testCreateInvalidHost()
-    {
-        $this->datagram = Datagram::create('invalid.host', self::PORT);
+        $context = [];
         
-        $this->datagram->close();
+        $context['socket'] = [];
+        $context['socket']['bindto'] = "{$host}:{$port}";
+        
+        $context = stream_context_create($context);
+        
+        $uri = sprintf('udp://%s:%d', $host, $port);
+        $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND, $context);
+        
+        if (!$socket || $errno) {
+            $this->fail("Could not create datagram on {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+        }
+        
+        return new Datagram($socket);
     }
     
     public function testInvalidSocketType()
@@ -64,12 +80,9 @@ class DatagramTest extends TestCase
         $this->assertFalse($this->datagram->isOpen());
     }
     
-    /**
-     * @depends testCreate
-     */
     public function testReceive()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -100,12 +113,9 @@ class DatagramTest extends TestCase
         Loop::run();
     }
     
-    /**
-     * @depends testCreateIPv6
-     */
     public function testReceiveFromIPv6()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv6, self::PORT);
+        $this->datagram = $this->createDatagramIPv6();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv6 . ':' . self::PORT,
@@ -141,7 +151,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveAfterClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $this->datagram->close();
         
@@ -161,7 +171,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveThenClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->receive();
         
@@ -181,7 +191,7 @@ class DatagramTest extends TestCase
      */
     public function testSimultaneousReceive()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -225,7 +235,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveWithLength()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -263,7 +273,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveWithInvalidLength()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -300,7 +310,7 @@ class DatagramTest extends TestCase
     {
         $exception = new Exception();
         
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -348,7 +358,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveOnEmptyDatagram()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->receive();
         
@@ -362,7 +372,7 @@ class DatagramTest extends TestCase
      */
     public function testDrainThenReceive()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -420,7 +430,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveWithTimeout()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->receive(null, self::TIMEOUT);
         
@@ -438,7 +448,7 @@ class DatagramTest extends TestCase
      */
     public function testReceiveAfterEof()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         fclose($this->datagram->getResource());
         
@@ -453,12 +463,9 @@ class DatagramTest extends TestCase
         Loop::run();
     }
     
-    /**
-     * @depends testCreate
-     */
     public function testPoll()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -503,7 +510,7 @@ class DatagramTest extends TestCase
      */
     public function testPollAfterClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $this->datagram->close();
         
@@ -523,7 +530,7 @@ class DatagramTest extends TestCase
      */
     public function testPollThenClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->poll();
         
@@ -540,7 +547,7 @@ class DatagramTest extends TestCase
     
     public function testSend()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -574,7 +581,7 @@ class DatagramTest extends TestCase
      */
     public function testSendIPv6()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv6, self::PORT);
+        $this->datagram = $this->createDatagramIPv6(self::HOST_IPv6, self::PORT);
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv6 . ':' . self::PORT,
@@ -608,7 +615,7 @@ class DatagramTest extends TestCase
      */
     public function testSendIntegerIP()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -644,7 +651,7 @@ class DatagramTest extends TestCase
      */
     public function testSendAfterClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $this->datagram->close();
         
@@ -661,7 +668,7 @@ class DatagramTest extends TestCase
     
     public function testSendEmptyString()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -703,7 +710,7 @@ class DatagramTest extends TestCase
      */
     public function testSendAfterPendingSend()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -740,7 +747,7 @@ class DatagramTest extends TestCase
      */
     public function testCloseAfterPendingSend()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,
@@ -774,7 +781,7 @@ class DatagramTest extends TestCase
     
     public function testAwait()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->await();
         
@@ -792,7 +799,7 @@ class DatagramTest extends TestCase
      */
     public function testAwaitAfterClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $this->datagram->close();
         
@@ -812,7 +819,7 @@ class DatagramTest extends TestCase
      */
     public function testAwaitThenClose()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $promise = $this->datagram->await();
         
@@ -832,7 +839,7 @@ class DatagramTest extends TestCase
      */
     public function testAwaitAfterPendingSend()
     {
-        $this->datagram = Datagram::create(self::HOST_IPv4, self::PORT);
+        $this->datagram = $this->createDatagram();
         
         $client = stream_socket_client(
             'udp://' . self::HOST_IPv4 . ':' . self::PORT,

@@ -5,12 +5,13 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop\Loop;
-use Icicle\Socket\ClientInterface;
-use Icicle\Socket\Server;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Server\ServerFactory;
+use Icicle\Socket\Server\Server;
 
 // Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (Server $server) {
+$generator = function (Server $server) {
     $handler = Coroutine::async(function (ClientInterface $client) {
         try {
             yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
@@ -41,6 +42,8 @@ $coroutine = Coroutine::call(function (Server $server) {
             echo "Error accepting client: {$e->getMessage()}\n";
         }
     }
-}, Server::create('127.0.0.1', 60000));
+};
+
+$coroutine = new Coroutine($generator((new ServerFactory())->create('localhost', 60000)));
 
 Loop::run();

@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\Socket\Stream;
 
 use Exception;
 use Icicle\Loop\Loop;

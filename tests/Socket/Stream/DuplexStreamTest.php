@@ -1,7 +1,7 @@
 <?php
-namespace Icicle\Tests\Socket;
+namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Socket\DuplexStream;
+use Icicle\Socket\Stream\DuplexStream;
 use Icicle\Tests\Stream\ReadableStreamTestTrait;
 use Icicle\Tests\Stream\WritableBufferedStreamTestTrait;
 use Icicle\Tests\Stream\WritableStreamTestTrait;

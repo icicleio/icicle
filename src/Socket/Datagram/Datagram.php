@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\Socket\Datagram;
 
 use Exception;
 use Icicle\Loop\Loop;
@@ -12,10 +12,11 @@ use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
+use Icicle\Socket\Socket;
 use Icicle\Stream\Structures\Buffer;
 use SplQueue;
 
-class Datagram extends Socket
+class Datagram extends Socket implements DatagramInterface
 {
     /**
      * @var string
@@ -51,38 +52,6 @@ class Datagram extends Socket
      * @var int
      */
     private $length = 0;
-    
-    /**
-     * @param   string $host
-     * @param   int $port
-     * @param   array $options
-     *
-     * @return  Datagram
-     *
-     * @throws  FailureException If creating the datagram fails.
-     */
-    public static function create($host, $port, array $options = [])
-    {
-        if (false !== strpos($host, ':')) { // IPv6 address
-            $host = '[' . trim($host, '[]') . ']';
-        }
-        
-        $context = [];
-        
-        $context['socket'] = [];
-        $context['socket']['bindto'] = "{$host}:{$port}";
-        
-        $context = stream_context_create($context);
-        
-        $uri = sprintf('udp://%s:%d', $host, $port);
-        $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND, $context);
-        
-        if (!$socket || $errno) {
-            throw new FailureException("Could not create datagram on {$host}:{$port}: [Errno: {$errno}] {$errstr}");
-        }
-        
-        return new static($socket);
-    }
     
     /**
      * @param   resource $socket

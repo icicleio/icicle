@@ -1,7 +1,10 @@
 <?php
-namespace Icicle\Socket;
+namespace Icicle\Socket\Client;
 
-interface ClientInterface extends SocketInterface
+use Icicle\Socket\SocketInterface;
+use Icicle\Stream\DuplexStreamInterface;
+
+interface ClientInterface extends SocketInterface, DuplexStreamInterface
 {
     /**
      * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)

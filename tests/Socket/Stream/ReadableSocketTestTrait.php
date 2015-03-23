@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Tests\Socket;
+namespace Icicle\Tests\Socket\Stream;
 
 use Icicle\Loop\Loop;
 use Icicle\Promise\Promise;
