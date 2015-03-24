@@ -71,7 +71,7 @@ class Datagram extends Socket implements DatagramInterface
         $this->await = $this->createAwait($socket);
         
         try {
-            list($this->address, $this->port) = self::parseSocketName($socket, false);
+            list($this->address, $this->port) = $this->getName(false);
         } catch (Exception $exception) {
             $this->close($exception);
         }
@@ -201,13 +201,7 @@ class Datagram extends Socket implements DatagramInterface
         
         $data = new Buffer($data);
         
-        if (is_int($address)) {
-            $address = long2ip($address);
-        } elseif (false !== strpos($address, ':')) { // IPv6 address
-            $address = '[' . trim($address, '[]') . ']';
-        }
-        
-        $peer = sprintf('%s:%d', $address, $port);
+        $peer = $this->makeName($address, $port);
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
@@ -301,14 +295,7 @@ class Datagram extends Socket implements DatagramInterface
                 return;
             } // @codeCoverageIgnoreEnd
             
-            $colon = strrpos($peer, ':');
-            
-            $address = substr($peer, 0, $colon);
-            $port = (int) substr($peer, $colon + 1);
-            
-            if (false !== strpos($address, ':')) { // IPv6 address
-                $address = '[' . trim($address, '[]') . ']';
-            }
+            list($address, $port) = $this->parseName($peer);
             
             $this->deferred->resolve([$address, $port, $data]);
             $this->deferred = null;

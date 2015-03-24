@@ -557,7 +557,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $string = "{'New String\0To Write'}\r\n";
         
@@ -591,7 +592,10 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        $colon = strrpos($name, ':');
+        $address = substr($name, 0, $colon);
+        $port = (int) substr($name, $colon + 1);
         
         $string = "{'New String\0To Write'}\r\n";
         
@@ -625,7 +629,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $address = ip2long($address);
         
@@ -678,7 +683,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $promise = $this->datagram->send($address, $port, '');
         
@@ -720,7 +726,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $buffer = null;
         for ($i = 0; $i < self::CHUNK_SIZE; ++$i) {
@@ -757,7 +764,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $buffer = null;
         for ($i = 0; $i < self::CHUNK_SIZE; ++$i) {
@@ -849,7 +857,8 @@ class DatagramTest extends TestCase
             STREAM_CLIENT_CONNECT
         );
         
-        list($address, $port) = Socket::parseSocketName($client, false);
+        $name = stream_socket_get_name($client, false);
+        list($address, $port) = explode(':', $name);
         
         $buffer = null;
         for ($i = 0; $i < self::CHUNK_SIZE; ++$i) {

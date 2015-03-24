@@ -49,7 +49,7 @@ class Server extends Socket implements ServerInterface
         $this->poll = $this->createPoll($socket);
         
         try {
-            list($this->address, $this->port) = self::parseSocketName($socket, false);
+            list($this->address, $this->port) = $this->getName(false);
         } catch (Exception $exception) {
             $this->close($exception);
         }
@@ -143,36 +143,30 @@ class Server extends Socket implements ServerInterface
     protected function createPoll($socket)
     {
         return Loop::poll($socket, function ($resource, $expired) {
-            if ($expired) {
-                $this->close(new TimeoutException('Client accept timed out.'));
-                return;
-            }
-            
-            // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
-            $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
-            
-            // Having difficultly finding a test to cover this scenario, but it has been seen in production.
-            // @codeCoverageIgnoreStart
-            if (!$client) {
-                $message = 'Could not accept client.';
-                $error = error_get_last();
-                if (null !== $error) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
-                }
-                $this->deferred->reject(new AcceptException($message));
-                $this->deferred = null;
-                return;
-            } // @codeCoverageIgnoreEnd
-            
             try {
-                $client = $this->createClient($client);
+                if ($expired) {
+                    throw new TimeoutException('Client accept timed out.');
+                }
+                
+                // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
+                $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
+                
+                // Having difficulty finding a test to cover this scenario, but it has been seen in production.
+                // @codeCoverageIgnoreStart
+                if (!$client) {
+                    $message = 'Could not accept client.';
+                    $error = error_get_last();
+                    if (null !== $error) {
+                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                    }
+                    throw new AcceptException($message);
+                } // @codeCoverageIgnoreEnd
+            
+                $this->deferred->resolve($this->createClient($client));
             } catch (Exception $exception) {
                 $this->deferred->reject($exception);
-                $this->deferred = null;
-                return;
             }
             
-            $this->deferred->resolve($client);
             $this->deferred = null;
         });
     }

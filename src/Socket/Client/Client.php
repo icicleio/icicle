@@ -42,8 +42,8 @@ class Client extends DuplexStream implements ClientInterface
         parent::__construct($socket);
         
         try {
-            list($this->remoteAddress, $this->remotePort) = static::parseSocketName($socket, true);
-            list($this->localAddress, $this->localPort) = static::parseSocketName($socket, false);
+            list($this->remoteAddress, $this->remotePort) = $this->getName(true);
+            list($this->localAddress, $this->localPort) = $this->getName(false);
         } catch (Exception $exception) {
             $this->close($exception);
         }

@@ -53,47 +53,4 @@ class SocketTest extends TestCase
         $this->assertInternalType('integer', $id);
         $this->assertGreaterThan(0, $id);
     }
-    
-    public function testParseSocketName()
-    {
-        $expectedAddress = '[::1]';
-        $expectedPort = 8080;
-        
-        $uri = "tcp://{$expectedAddress}:{$expectedPort}";
-        
-        $server = @stream_socket_server($uri);
-        
-        if (!$server) {
-            $this->markTestIncomplete('Could not create server socket.');
-        }
-        
-        $client = @stream_socket_client($uri);
-        
-        if (!$client) {
-            $this->markTestIncomplete('Could not create client socket.');
-        }
-        
-        list($address, $port) = Socket::parseSocketName($client, true);
-        
-        $this->assertEquals($expectedAddress, $address);
-        $this->assertEquals($expectedPort, $port);
-        
-        list($address, $port) = Socket::parseSocketName($client, false);
-        
-        $this->assertEquals($expectedAddress, $address);
-        $this->assertInternalType('integer', $port);
-        $this->assertGreaterThan(0, $port);
-        
-        list($address, $port) = Socket::parseSocketName($server, false);
-        
-        $this->assertEquals($expectedAddress, $address);
-        $this->assertEquals($expectedPort, $port);
-        
-        fclose($server);
-        fclose($client);
-        
-        $this->setExpectedException('Icicle\Socket\Exception\FailureException');
-        
-        list($address, $port) = Socket::parseSocketName($this->socket, false);
-    }
 }

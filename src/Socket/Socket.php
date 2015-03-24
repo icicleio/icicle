@@ -90,9 +90,9 @@ abstract class Socket implements SocketInterface
      *
      * @throws  FailureException If getting the socket name fails.
      */
-    public static function parseSocketName($socket, $peer = true)
+    protected function getName($peer = true)
     {
-        $name = @stream_socket_get_name($socket, (bool) $peer);
+        $name = @stream_socket_get_name($this->socket, (bool) $peer);
         
         if (false === $name) {
             $message = 'Could not get socket name.';
@@ -103,15 +103,58 @@ abstract class Socket implements SocketInterface
             throw new FailureException($message);
         }
         
+        return $this->parseName($name);
+    }
+    
+    /**
+     * Parses a name of the format ip:port, returning an array containing the ip and port.
+     *
+     * @return  [string, int] IP address and port pair.
+     *
+     * @throws  InvalidArgumentException If an invalid name is given.
+     */
+    protected function parseName($name)
+    {
         $colon = strrpos($name, ':');
         
         $address = trim(substr($name, 0, $colon), '[]');
         $port = (int) substr($name, $colon + 1);
         
-        if (false !== strpos($address, ':')) { // IPv6 address
-            $address = '[' . trim($address, '[]') . ']';
-        }
+        $address = $this->parseAddress($address);
         
         return [$address, $port];
+    }
+    
+    /**
+     * Formats given address into a string. Converts integer to IPv4 address, wraps IPv6 address in brackets.
+     *
+     * @param   string|int $address
+     *
+     * @return  string
+     */
+    protected function parseAddress($address)
+    {
+        if (is_int($address)) {
+            return long2ip($address);
+        }
+        
+        if (false !== strpos($address, ':')) { // IPv6 address
+            return '[' . trim($address, '[]') . ']';
+        }
+        
+        return $address;
+    }
+    
+    /**
+     * Creates ip:port formatted name.
+     *
+     * @param   string|int $address
+     * @param   int $port
+     *
+     * @return  string
+     */
+    protected function makeName($address, $port)
+    {
+        return sprintf('%s:%d', $this->parseAddress($address), $port);
     }
 }
