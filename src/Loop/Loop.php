@@ -144,19 +144,19 @@ abstract class Loop
     }
     
     /**
-     * @return  PollInterface
+     * @return  SocketEventInterface
      */
     public static function poll($socket, callable $callback)
     {
-        return static::getInstance()->createPoll($socket, $callback);
+        return static::getInstance()->poll($socket, $callback);
     }
     
     /**
-     * @return  AwaitInterface
+     * @return  SocketEventInterface
      */
     public static function await($socket, callable $callback)
     {
-        return static::getInstance()->createAwait($socket, $callback);
+        return static::getInstance()->await($socket, $callback);
     }
     
     /**
@@ -166,7 +166,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->createTimer($callback, $interval, false, $args);
+        return static::getInstance()->timer($callback, $interval, false, $args);
     }
     
     /**
@@ -176,7 +176,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->createTimer($callback, $interval, true, $args);
+        return static::getInstance()->timer($callback, $interval, true, $args);
     }
     
     /**
@@ -186,7 +186,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 1);
         
-        return static::getInstance()->createImmediate($callback, $args);
+        return static::getInstance()->immediate($callback, $args);
     }
     
     /**

@@ -3,11 +3,10 @@ namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedException;
-use Icicle\Loop\Manager\AwaitManagerInterface;
 use Icicle\Loop\Manager\Libevent\AwaitManager;
 use Icicle\Loop\Manager\Libevent\PollManager;
 use Icicle\Loop\Manager\Libevent\TimerManager;
-use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class LibeventLoop extends AbstractLoop
@@ -102,8 +101,8 @@ class LibeventLoop extends AbstractLoop
      * @inheritdoc
      */
     protected function dispatch(
-        PollManagerInterface $pollManager,
-        AwaitManagerInterface $awaitManager,
+        SocketManagerInterface $pollManager,
+        SocketManagerInterface $awaitManager,
         TimerManagerInterface $timerManager,
         $blocking
     ) {

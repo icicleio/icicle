@@ -67,24 +67,24 @@ interface LoopInterface extends EventEmitterInterface
     public function schedule(callable $callback, array $args = null);
     
     /**
-     * Adds the socket or stream resource to the loop and begins listening for data.
+     * Creates an event object that can be used to listen for available data on the stream socket.
      *
      * @param   resource $resource
      * @param   callable $callback
      *
-     * @return  PollInterface
+     * @return  SocketEventInterface
      */
-    public function createPoll($resource, callable $callback);
+    public function poll($resource, callable $callback);
     
     /**
-     * Creates an await object to be used to wait for the socket resource to be available for writing.
+     * Creates an event object that can be used to wait for the socket resource to be available for writing.
      *
      * @param   resource $resource
      * @param   callable $callback
      *
-     * @return  AwaitInterface
+     * @return  SocketEventInterface
      */
-    public function createAwait($resource, callable $callback);
+    public function await($resource, callable $callback);
     
     /**
      * Creates a timer object connected to the loop.
@@ -96,7 +96,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  TimerInterface
      */
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null);
+    public function timer(callable $callback, $interval, $periodic = false, array $args = null);
     
     /**
      * Creates an immediate object connected to the loop.
@@ -106,7 +106,7 @@ interface LoopInterface extends EventEmitterInterface
      *
      * @return  ImmediateInterface
      */
-    public function createImmediate(callable $callback, array $args = null);
+    public function immediate(callable $callback, array $args = null);
 
     /**
      * Determines if signal handling is enabled.

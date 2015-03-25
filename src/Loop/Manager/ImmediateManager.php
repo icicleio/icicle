@@ -38,7 +38,7 @@ class ImmediateManager implements ImmediateManagerInterface
      */
     public function create(callable $callback, array $args = null)
     {
-        $immediate = $this->factory->createImmediate($this, $callback, $args);
+        $immediate = $this->factory->immediate($this, $callback, $args);
         
         $this->queue->push($immediate);
         $this->immediates->attach($immediate);

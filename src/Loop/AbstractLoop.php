@@ -8,9 +8,8 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
 use Icicle\Loop\LoopInterface;
-use Icicle\Loop\Manager\AwaitManagerInterface;
 use Icicle\Loop\Manager\ImmediateManager;
-use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\CallableQueue;
 
@@ -31,12 +30,12 @@ abstract class AbstractLoop implements LoopInterface
     private $callableQueue;
     
     /**
-     * @var PollManagerInterface
+     * @var SocketManagerInterface
      */
     private $pollManager;
     
     /**
-     * @var AwaitManagerInterface
+     * @var SocketManagerInterface
      */
     private $awaitManager;
     
@@ -69,8 +68,8 @@ abstract class AbstractLoop implements LoopInterface
      * @param   bool $blocking
      */
     abstract protected function dispatch(
-        PollManagerInterface $pollManager,
-        AwaitManagerInterface $awaitManager,
+        SocketManagerInterface $pollManager,
+        SocketManagerInterface $awaitManager,
         TimerManagerInterface $timerManager,
         $blocking
     );
@@ -259,7 +258,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
-    public function createPoll($resource, callable $callback)
+    public function poll($resource, callable $callback)
     {
         return $this->pollManager->create($resource, $callback);
     }
@@ -267,7 +266,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
-    public function createAwait($resource, callable $callback)
+    public function await($resource, callable $callback)
     {
         return $this->awaitManager->create($resource, $callback);
     }
@@ -275,7 +274,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
+    public function timer(callable $callback, $interval, $periodic = false, array $args = null)
     {
         return $this->timerManager->create($callback, $interval, $periodic, $args);
     }
@@ -283,7 +282,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
-    public function createImmediate(callable $callback, array $args = null)
+    public function immediate(callable $callback, array $args = null)
     {
         return $this->immediateManager->create($callback, $args);
     }

@@ -5,11 +5,10 @@ use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedException;
-use Icicle\Loop\Manager\AwaitManagerInterface;
 use Icicle\Loop\Manager\Event\AwaitManager;
 use Icicle\Loop\Manager\Event\PollManager;
 use Icicle\Loop\Manager\Event\TimerManager;
-use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class EventLoop extends AbstractLoop
@@ -91,8 +90,8 @@ class EventLoop extends AbstractLoop
      * @inheritdoc
      */
     protected function dispatch(
-        PollManagerInterface $pollManager,
-        AwaitManagerInterface $awaitManager,
+        SocketManagerInterface $pollManager,
+        SocketManagerInterface $awaitManager,
         TimerManagerInterface $timerManager,
         $blocking
     ) {

@@ -2,11 +2,9 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Manager\AwaitManagerInterface;
-use Icicle\Loop\Manager\PollManagerInterface;
-use Icicle\Loop\Manager\Select\AwaitManager;
-use Icicle\Loop\Manager\Select\PollManager;
+use Icicle\Loop\Manager\Select\SocketManager;
 use Icicle\Loop\Manager\Select\TimerManager;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class SelectLoop extends AbstractLoop
@@ -50,8 +48,8 @@ class SelectLoop extends AbstractLoop
      * @inheritdoc
      */
     protected function dispatch(
-        PollManagerInterface $pollManager,
-        AwaitManagerInterface $awaitManager,
+        SocketManagerInterface $pollManager,
+        SocketManagerInterface $awaitManager,
         TimerManagerInterface $timerManager,
         $blocking
     ) {
@@ -77,7 +75,7 @@ class SelectLoop extends AbstractLoop
      *
      * @return  bool
      */
-    protected function select(PollManagerInterface $pollManager, AwaitManagerInterface $awaitManager, $timeout)
+    protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
     {
         // Use stream_select() if there are any streams in the loop.
         if (!$pollManager->isEmpty() || !$awaitManager->isEmpty()) {
@@ -116,7 +114,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
-        return new PollManager($this, $factory);
+        return new SocketManager($this, $factory);
     }
     
     /**
@@ -124,7 +122,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
-        return new AwaitManager($this, $factory);
+        return new SocketManager($this, $factory);
     }
     
     /**

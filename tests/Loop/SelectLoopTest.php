@@ -29,7 +29,7 @@ class SelectLoopTest extends AbstractLoopTest
         $callback->method('__invoke')
                  ->with($this->identicalTo($writable), $this->identicalTo(true));
         
-        $await = $this->loop->createAwait($writable, $callback);
+        $await = $this->loop->await($writable, $callback);
         
         $await->listen(self::TIMEOUT);
         

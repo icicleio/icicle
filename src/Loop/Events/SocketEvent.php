@@ -5,9 +5,9 @@ use Icicle\Loop\Exception\InvalidArgumentException;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
 /**
- * Abstract socket event class.
+ * Represents read and write (poll and await) socket events.
  */
-abstract class SocketEvent implements SocketEventInterface
+class SocketEvent implements SocketEventInterface
 {
     /**
      * @var SocketManagerInterface

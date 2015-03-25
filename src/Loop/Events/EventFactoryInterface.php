@@ -1,30 +1,20 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\AwaitManagerInterface;
 use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 interface EventFactoryInterface
 {
     /**
-     * @param   PollManagerInterface $manager
+     * @param   SocketManagerInterface $manager
      * @param   resource $resource Socket resource.
      * @param   callable $callback Callback function invoked when data is available on the socket.
      *
-     * @return  PollInterface
+     * @return  SocketEventInterface
      */
-    public function createPoll(PollManagerInterface $manager, $resource, callable $callback);
-    
-    /**
-     * @param   AwaitManagerInterface $manager
-     * @param   resource $resource Socket resource.
-     * @param   callable $callback Callback function invoked when data may be written (non-blocking) to the socket.
-     *
-     * @return  AwaitInterface
-     */
-    public function createAwait(AwaitManagerInterface $manager, $resource, callable $callback);
+    public function socket(SocketManagerInterface $manager, $resource, callable $callback);
     
     /**
      * @param   TimerManagerInterface $manager
@@ -35,7 +25,7 @@ interface EventFactoryInterface
      *
      * @return  TimerInterface
      */
-    public function createTimer(TimerManagerInterface $manager, callable $callback, $interval, $periodic = false, array $args = null);
+    public function timer(TimerManagerInterface $manager, callable $callback, $interval, $periodic = false, array $args = null);
     
     /**
      * @param   ImmediateManagerInterface $manager
@@ -44,5 +34,5 @@ interface EventFactoryInterface
      *
      * @return  ImmediateInterface
      */
-    public function createImmediate(ImmediateManagerInterface $manager, callable $callback, array $args = null);
+    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null);
 }

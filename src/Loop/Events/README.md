@@ -4,20 +4,13 @@ When an event is scheduled in the event loop through the methods `poll()`, `awai
 
 ## Documentation
 
-- [Poll](#poll) - Used for polling stream sockets for the availability of data.
-    - [listen()](#listen) - Listens for data on the stream socket. 
-    - [cancel()](#cancel) - Cancels listening for data.
-    - [isPending()](#ispending) - Determines if the poll is pending.
-    - [free()](#free) - Frees the poll from the associated event loop.
-    - [isFreed()](#isfreed) - Determines if the poll has been freed.
+- [SocketEvent](#socketevent) - Used for polling stream sockets for the availability of data or the ability to write.
+    - [listen()](#listen) - Listens for data or the ability to write to the stream socket. 
+    - [cancel()](#cancel) - Cancels listening for data or ability to write.
+    - [isPending()](#ispending) - Determines if the event is pending.
+    - [free()](#free) - Frees the event from the associated event loop.
+    - [isFreed()](#isfreed) - Determines if the event has been freed.
     - [setCallback()](#setcallback) - Sets the callback to be executed when the event is active.
-- [Await](#await) - Used for awaiting stream sockets for empty buffer space to write data.
-    - [listen()](#listen-1) - Listens for the stream socket to be available to write.
-    - [cancel()](#cancel-1) - Cancels listening for write availability.
-    - [isPending()](#ispending-1) - Determines if the await is pending.
-    - [free()](#free-1) - Frees the await from the associated event loop.
-    - [isFreed()](#isfreed-1) - Determines if the await has been freed.
-    - [setCallback()](#setcallback-1) - Sets the callback to be executed when the event is active.
 - [Timer](#timer) - Executes a callback after a interval of time has elapsed.
     - [cancel()](#cancel-2) - Cancels the timer.
     - [isPending()](#ispending-2) - Determines if the timer is pending.
@@ -49,13 +42,13 @@ To document the expected prototype of a callback function used as method argumen
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
-## Poll
+## SocketEvent
 
-A poll becomes active when a socket has data available to read, has closed (EOF), or if the timeout provided to `listen()` has expired. The callback function associated with the event should have the prototype `callable<void (resource $socket, bool $expired)>`. This function is called with `$expired` set to `false` if there is data available to read on `$socket`, or with `$expired` set to `true` if waiting for data timed out.
+A socket event is returned from a poll or await call to the event loop. A poll becomes active when a socket has data available to read, has closed (EOF), or if the timeout provided to `listen()` has expired. An await becomes active when a socket has space in the buffer available to write or if the timeout provided to `listen()` has expired. The callback function associated with the event should have the prototype `callable<void (resource $socket, bool $expired)>`. This function is called with `$expired` set to `false` if there is data available to read on `$socket`, or with `$expired` set to `true` if waiting for data timed out.
 
-Note that only one poll object can be created at a time for a given socket resource.
+Note that you may poll and await a stream socket simultaneously, but multiple socket events cannot be made for the same task (i.e., two polling events or two awaiting events).
 
-All poll objects implement `Icicle\Loop\Events\PollInterface` and should be created by calling `Icicle\Loop\Loop::poll()` as shown below:
+Socket event objects implement `Icicle\Loop\Events\SocketEventInterface` and should be created by calling `Icicle\Loop\Loop::poll()` to poll for data or `Icicle\Loop\Loop::await()` to wait for the ability to write.
 
 ```php
 use Icicle\Loop\Loop;
@@ -65,121 +58,55 @@ $poll = Loop::poll($socket, function ($socket, $expired) {
 });
 ```
 
-See the [Loop component documentation](../#poll) for more information on `Icicle\Loop\Loop::poll()`.
+See the [Loop component documentation](../#poll) for more information on `Icicle\Loop\Loop::poll()` and `Icicle\Loop\Loop::await()`.
 
 #### listen()
 
 ```php
-void $pollInterface->listen(float|null $timeout)
+void $socketEventInterface->listen(float|null $timeout)
 ```
 
-Listens for data to become available. If `$timeout` is not `null`, the poll callback will be called after `$timeout` seconds with `$expired` set to `true`.
+Listens for data to become available or the ability to write to the socket. If `$timeout` is not `null`, the poll callback will be called after `$timeout` seconds with `$expired` set to `true`.
 
 #### cancel()
 
 ```php
-void $pollInterface->cancel()
+void $socketEventInterface->cancel()
 ```
 
-Stops listening for data to become available.
+Stops listening for data to become available or ability to write.
 
 #### isPending()
 
 ```php
-bool $pollInterface->isPending()
+bool $socketEventInterface->isPending()
 ```
 
-Determines if the poll is listening for data.
+Determines if the event is listening for data.
 
 #### free()
 
 ```php
-void $pollInterface->free()
+void $socketEventInterface->free()
 ```
 
-Frees the resources allocated to the poll from the event loop. This function should always be called when the poll is no longer needed. Once a poll has been freed, it cannot be used again and another must be recreated for the same socket resource.
+Frees the resources allocated to the poll from the event loop. This function should always be called when the event is no longer needed. Once an event has been freed, it cannot be used again and another must be recreated for the same socket resource.
 
 #### isFreed()
 
 ```php
-bool $pollInterface->isFreed()
+bool $socketEventInterface->isFreed()
 ```
 
-Determines if the poll has been freed from the event loop.
+Determines if the event has been freed from the event loop.
 
 #### setCallback()
 
 ```php
-void $pollInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
+void $socketEventInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
 ```
 
-Sets the callback to be called when the poll becomes active.
-
-## Await
-
-An await becomes active when a socket has space in the buffer available to write or if the timeout provided to `listen()` has expired. The callback function associated with the event should have the prototype `callable<void (resource $socket, bool $expired)>`. This function is called with `$expired` set to `false` if there is data available to read on `$socket`, or with `$expired` set to `true` if waiting for data timed out.
-
-Note that only one await object can be created at a time for a given socket resource.
-
-All await objects implement `Icicle\Loop\Events\AwaitInterface` and should be created by calling `Icicle\Loop\Loop::await()` as shown below:
-
-```php
-use Icicle\Loop\Loop;
-// $socket is a stream socket resource.
-$await = Loop::await($socket, function ($socket, $expired) {
-    // Write data to socket or handle timeout.
-});
-```
-
-See the [Loop component documentation](../#await) for more information on `Icicle\Loop\Loop::await()`.
-
-#### listen()
-
-```php
-void $awaitInterface->listen(float|null $timeout)
-```
-
-Listens for space in the socket buffer to become available. If `$timeout` is not `null`, the await callback will be called after `$timeout` seconds with `$expired` set to `true`.
-
-#### cancel()
-
-```php
-void $awaitInterface->cancel()
-```
-
-Stops listening for space to become available in the buffer.
-
-#### isPending()
-
-```php
-bool $awaitInterface->isPending()
-```
-
-Determines if the await is listening for space to become available.
-
-#### free()
-
-```php
-void $awaitInterface->free()
-```
-
-Frees the resources allocated to the await from the event loop. This function should always be called when the await is no longer needed. Once an await has been freed, it cannot be used again and another must be recreated for the same socket resource.
-
-#### isFreed()
-
-```php
-bool $awaitInterface->isFreed()
-```
-
-Determines if the await has been freed from the event loop.
-
-#### setCallback()
-
-```php
-void $awaitInterface->setCallback(callable<void (resource $socket, bool $expired)> $callback)
-```
-
-Sets the callback to be called when the await becomes active.
+Sets the callback to be called when the event becomes active.
 
 ## Timer
 

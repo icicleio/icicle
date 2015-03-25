@@ -18,7 +18,7 @@ class EventFactoryTest extends TestCase
         return stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
     }
     
-    public function testCreatePoll()
+    public function testCreateSocketEvent()
     {
         list($socket) = $this->createSockets();
         
@@ -26,35 +26,15 @@ class EventFactoryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
 
-        $manager = $this->getMock('Icicle\Loop\Manager\PollManagerInterface');
+        $manager = $this->getMock('Icicle\Loop\Manager\SocketManagerInterface');
 
-        $poll = $this->factory->createPoll($manager, $socket, $callback);
+        $poll = $this->factory->socket($manager, $socket, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\PollInterface', $poll);
+        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
         
         $this->assertSame($socket, $poll->getResource());
         
         $callback = $poll->getCallback();
-        $callback($socket, false);
-    }
-    
-    public function testCreateAwait()
-    {
-        list($socket) = $this->createSockets();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
-
-        $manager = $this->getMock('Icicle\Loop\Manager\AwaitManagerInterface');
-
-        $await = $this->factory->createAwait($manager, $socket, $callback);
-        
-        $this->assertInstanceOf('Icicle\Loop\Events\AwaitInterface', $await);
-        
-        $this->assertSame($socket, $await->getResource());
-        
-        $callback = $await->getCallback();
         $callback($socket, false);
     }
     
@@ -65,7 +45,7 @@ class EventFactoryTest extends TestCase
 
         $manager = $this->getMock('Icicle\Loop\Manager\TimerManagerInterface');
 
-        $timer = $this->factory->createTimer($manager, $this->createCallback(1), $timeout, $periodic);
+        $timer = $this->factory->timer($manager, $this->createCallback(1), $timeout, $periodic);
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
@@ -80,7 +60,7 @@ class EventFactoryTest extends TestCase
     {
         $manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
 
-        $immediate = $this->factory->createImmediate($manager, $this->createCallback(1));
+        $immediate = $this->factory->immediate($manager, $this->createCallback(1));
         
         $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
         

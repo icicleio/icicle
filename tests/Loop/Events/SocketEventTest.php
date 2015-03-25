@@ -1,27 +1,23 @@
 <?php
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Poll;
+use Icicle\Loop\Events\SocketEvent;
 use Icicle\Tests\TestCase;
 
-class PollTest extends TestCase
+class SocketEventTest extends TestCase
 {
     const TIMEOUT = 0.1;
     
-    protected $loop;
-
     protected $manager;
     
     public function setUp()
     {
-        $this->loop = $this->getMock('Icicle\Loop\LoopInterface');
-
-        $this->manager = $this->getMock('Icicle\Loop\Manager\PollManagerInterface');
-
-        $this->loop->method('createPoll')
-            ->will($this->returnCallback(function ($resource, callable $callback) {
-                return new Poll($this->manager, $resource, $callback);
-            }));
+        $this->manager = $this->getMock('Icicle\Loop\Manager\SocketManagerInterface');
+    }
+    
+    public function createSocketEvent($resource, callable $callback)
+    {
+        return new SocketEvent($this->manager, $resource, $callback);
     }
     
     public function createSockets()
@@ -33,7 +29,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->assertSame($socket, $poll->getResource());
     }
@@ -44,7 +40,7 @@ class PollTest extends TestCase
      */
     public function testInvalidResource()
     {
-        $poll = $this->loop->createPoll(1, $this->createCallbacK(0));
+        $poll = $this->createSocketEvent(1, $this->createCallbacK(0));
     }
     
     public function testGetCallback()
@@ -55,7 +51,7 @@ class PollTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $poll = $this->loop->createPoll($socket, $callback);
+        $poll = $this->createSocketEvent($socket, $callback);
         
         $callback = $poll->getCallback();
         
@@ -72,7 +68,7 @@ class PollTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $poll = $this->loop->createPoll($socket, $callback);
+        $poll = $this->createSocketEvent($socket, $callback);
         
         $poll->call($socket, false);
         $poll->call($socket, false);
@@ -89,7 +85,7 @@ class PollTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $poll = $this->loop->createPoll($socket, $callback);
+        $poll = $this->createSocketEvent($socket, $callback);
         
         $poll($socket, false);
         $poll($socket, false);
@@ -102,7 +98,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -121,7 +117,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('listen')
@@ -137,7 +133,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('listen')
@@ -150,7 +146,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('isPending')
@@ -164,7 +160,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('free')
@@ -185,7 +181,7 @@ class PollTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->loop->createPoll($socket, $this->createCallback(0));
+        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('cancel')

@@ -3,6 +3,7 @@ namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
@@ -16,6 +17,11 @@ abstract class SocketManager implements SocketManagerInterface
      * @var EventBase
      */
     private $base;
+    
+    /**
+     * @var EventFactoryInterface
+     */
+    private $factory;
     
     /**
      * @var Event[]
@@ -33,16 +39,6 @@ abstract class SocketManager implements SocketManagerInterface
     private $callback;
     
     /**
-     * Create a SocketEventInterface object for the given resource.
-     *
-     * @param   resource $resource Stream socket resource.
-     * @param   callable $callback
-     *
-     * @return  SocketEventInterface
-     */
-    abstract protected function createSocketEvent($resource, callable $callback);
-    
-    /**
      * Creates an Event object on the given EventBase for the SocketEventInterface.
      *
      * @param   EventBase $base
@@ -54,10 +50,12 @@ abstract class SocketManager implements SocketManagerInterface
     abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback);
     
     /**
+     * @param   EventFactoryInterface $factory
      * @param   EventBase $base
      */
-    public function __construct(EventBase $base)
+    public function __construct(EventFactoryInterface $factory, EventBase $base)
     {
+        $this->factory = $factory;
         $this->base = $base;
         
         $this->callback = $this->createCallback();
@@ -98,7 +96,7 @@ abstract class SocketManager implements SocketManagerInterface
             throw new ResourceBusyException('A poll has already been created for that resource.');
         }
         
-        return $this->sockets[$id] = $this->createSocketEvent($resource, $callback);
+        return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
     }
     
     /**

@@ -3,6 +3,7 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
@@ -17,6 +18,11 @@ abstract class SocketManager implements SocketManagerInterface
      * @var resource
      */
     private $base;
+    
+    /**
+     * @var EventFactoryInterface
+     */
+    private $factory;
     
     /**
      * @var resource[]
@@ -39,16 +45,6 @@ abstract class SocketManager implements SocketManagerInterface
     private $callback;
     
     /**
-     * Create a SocketEventInterface object for the given resource.
-     *
-     * @param   resource $resource Stream socket resource.
-     * @param   callable $callback
-     *
-     * @return  SocketEventInterface
-     */
-    abstract protected function createSocketEvent($resource, callable $callback);
-    
-    /**
      * Creates an event resource on the given event base for the SocketEventInterface.
      *
      * @param   resource $base Event base resource.
@@ -60,10 +56,12 @@ abstract class SocketManager implements SocketManagerInterface
     abstract protected function createEvent($base, SocketEventInterface $event, callable $callback);
     
     /**
-     * @param   EventBase $base
+     * @param   EventFactoryInterface $factory
+     * @param   resource $base
      */
-    public function __construct($base)
+    public function __construct(EventFactoryInterface $factory, $base)
     {
+        $this->factory = $factory;
         $this->base = $base;
         
         $this->callback = $this->createCallback();
@@ -104,7 +102,7 @@ abstract class SocketManager implements SocketManagerInterface
             throw new ResourceBusyException('An event has already been created for that resource.');
         }
         
-        $this->sockets[$id] = $this->createSocketEvent($resource, $callback);
+        $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
         $this->pending[$id] = false;
         
         return $this->sockets[$id];

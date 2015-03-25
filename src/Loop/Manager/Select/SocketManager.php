@@ -1,13 +1,14 @@
 <?php
 namespace Icicle\Loop\Manager\Select;
 
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\SelectLoop;
 
-abstract class SocketManager implements SocketManagerInterface
+class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
 
@@ -15,6 +16,11 @@ abstract class SocketManager implements SocketManagerInterface
      * @var SelectLoop
      */
     private $loop;
+    
+    /**
+     * @var EventFactoryInterface
+     */
+    private $factory;
     
     /**
      * @var SocketEventInterface[]
@@ -37,21 +43,13 @@ abstract class SocketManager implements SocketManagerInterface
     private $timerCallback;
     
     /**
-     * Create a SocketEventInterface object for the given resource.
-     *
-     * @param   resource $resource Stream socket resource.
-     * @param   callable $callback
-     *
-     * @return  SocketEventInterface
-     */
-    abstract protected function createSocketEvent($resource, callable $callback);
-    
-    /**
      * @param   SelectLoop $loop
+     * @param   EventFactoryInterface $factory
      */
-    public function __construct(SelectLoop $loop)
+    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
     {
         $this->loop = $loop;
+        $this->factory = $factory;
         
         $this->timerCallback = $this->createTimerCallback();
     }
@@ -67,7 +65,7 @@ abstract class SocketManager implements SocketManagerInterface
             throw new ResourceBusyException('A poll has already been created for this resource.');
         }
         
-        return $this->sockets[$id] = $this->createSocketEvent($resource, $callback);
+        return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
     }
     
     /**
@@ -90,7 +88,7 @@ abstract class SocketManager implements SocketManagerInterface
                 $timeout = self::MIN_TIMEOUT;
             }
             
-            $this->timers[$id] = $this->loop->createTimer($this->timerCallback, $timeout, false, [$socket]);
+            $this->timers[$id] = $this->loop->timer($this->timerCallback, $timeout, false, [$socket]);
         }
     }
     

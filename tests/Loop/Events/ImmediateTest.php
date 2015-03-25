@@ -6,25 +6,21 @@ use Icicle\Tests\TestCase;
 
 class ImmediateTest extends TestCase
 {
-    protected $loop;
-
     protected $manager;
     
     public function setUp()
     {
-        $this->loop = $this->getMock('Icicle\Loop\LoopInterface');
-
         $this->manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
-
-        $this->loop->method('createImmediate')
-            ->will($this->returnCallback(function (callable $callback, array $args = null) {
-                return new Immediate($this->manager, $callback, $args);
-            }));
+    }
+    
+    public function createImmediate(callable $callback, array $args = null)
+    {
+        return new Immediate($this->manager, $callback, $args);
     }
     
     public function testGetCallback()
     {
-        $immediate = $this->loop->createImmediate($this->createCallback(1));
+        $immediate = $this->createImmediate($this->createCallback(1));
         
         $callback = $immediate->getCallback();
         
@@ -35,7 +31,7 @@ class ImmediateTest extends TestCase
     
     public function testCall()
     {
-        $immediate = $this->loop->createImmediate($this->createCallback(2));
+        $immediate = $this->createImmediate($this->createCallback(2));
         
         $immediate->call();
         $immediate->call();
@@ -46,7 +42,7 @@ class ImmediateTest extends TestCase
      */
     public function testInvoke()
     {
-        $immediate = $this->loop->createImmediate($this->createCallback(2));
+        $immediate = $this->createImmediate($this->createCallback(2));
         
         $immediate();
         $immediate();
@@ -54,7 +50,7 @@ class ImmediateTest extends TestCase
     
     public function testIsPending()
     {
-        $immediate = $this->loop->createImmediate($this->createCallback(0));
+        $immediate = $this->createImmediate($this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('isPending')
@@ -66,7 +62,7 @@ class ImmediateTest extends TestCase
     
     public function testCancel()
     {
-        $immediate = $this->loop->createImmediate($this->createCallback(0));
+        $immediate = $this->createImmediate($this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('cancel')
@@ -94,7 +90,7 @@ class ImmediateTest extends TestCase
                      $this->identicalTo($arg4)
                  );
         
-        $immediate = $this->loop->createImmediate($callback, [$arg1, $arg2, $arg3, $arg4]);
+        $immediate = $this->createImmediate($callback, [$arg1, $arg2, $arg3, $arg4]);
         
         $immediate->call();
     }

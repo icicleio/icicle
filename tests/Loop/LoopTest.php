@@ -71,7 +71,7 @@ class LoopTest extends TestCase
         
         $poll = Loop::poll($readable, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\PollInterface', $poll);
+        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
         
         $poll->listen();
         
@@ -88,7 +88,7 @@ class LoopTest extends TestCase
         
         $await = Loop::await($writable, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\AwaitInterface', $await);
+        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $await);
         
         $await->listen();
         

@@ -39,7 +39,7 @@ class TimerManager implements TimerManagerInterface
      */
     public function create(callable $callback, $interval, $periodic = false, array $args = null)
     {
-        $timer = $this->factory->createTimer($this, $callback, $interval, $periodic, $args);
+        $timer = $this->factory->timer($this, $callback, $interval, $periodic, $args);
         
         $timeout = microtime(true) + $timer->getInterval();
         $this->queue->insert($timer, -$timeout);

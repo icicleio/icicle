@@ -72,7 +72,7 @@ class TimerManager implements TimerManagerInterface
      */
     public function create(callable $callback, $interval, $periodic = false, array $args = null)
     {
-        $timer = $this->factory->createTimer($this, $callback, $interval, $periodic, $args);
+        $timer = $this->factory->timer($this, $callback, $interval, $periodic, $args);
         
         $event = event_new();
         event_timer_set($event, $this->callback, $timer);
