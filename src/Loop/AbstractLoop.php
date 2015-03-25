@@ -5,11 +5,14 @@ use Exception;
 use Icicle\EventEmitter\EventEmitterTrait;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\ImmediateInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
+use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\AwaitManagerInterface;
+use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\CallableQueue;
-use Icicle\Loop\Structures\ImmediateQueue;
 
 abstract class AbstractLoop implements LoopInterface
 {
@@ -28,9 +31,24 @@ abstract class AbstractLoop implements LoopInterface
     private $callableQueue;
     
     /**
-     * @var ImmediateQueue
+     * @var PollManagerInterface
      */
-    private $immediateQueue;
+    private $pollManager;
+    
+    /**
+     * @var AwaitManagerInterface
+     */
+    private $awaitManager;
+    
+    /**
+     * @var TimerManagerInterface
+     */
+    private $timerManager;
+    
+    /**
+     * @var ImmediateManagerInterface
+     */
+    private $immediateManager;
     
     /**
      * @var EventFactoryInterface
@@ -45,31 +63,109 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * Dispatches all pending I/O, timers, and signal callbacks.
      *
+     * @param   PollManagerInterface $pollManager
+     * @param   AwaitManagerInterface $awaitManager
+     * @param   TimerManagerInterface $timerManager
      * @param   bool $blocking
      */
-    abstract protected function dispatch($blocking);
+    abstract protected function dispatch(
+        PollManagerInterface $pollManager,
+        AwaitManagerInterface $awaitManager,
+        TimerManagerInterface $timerManager,
+        $blocking
+    );
+    
+    /**
+     * @param   EventFactoryInterface
+     *
+     * @return  PollManagerInterface
+     */
+    abstract protected function createPollManager(EventFactoryInterface $eventFactory);
+    
+    /**
+     * @param   EventFactoryInterface
+     *
+     * @return  AwaitManagerInterface
+     */
+    abstract protected function createAwaitManager(EventFactoryInterface $eventFactory);
+    
+    /**
+     * @param   EventFactoryInterface
+     *
+     * @return  TimerManagerInterface
+     */
+    abstract protected function createTimerManager(EventFactoryInterface $eventFactory);
     
     /**
      * @param   EventFactoryInterface|null $eventFactory
      */
     public function __construct(EventFactoryInterface $eventFactory = null)
     {
-        $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
-        $this->immediateQueue = new ImmediateQueue();
-        $this->signalHandlingEnabled = extension_loaded('pcntl');
         $this->eventFactory = $eventFactory;
         
         if (null === $this->eventFactory) {
-            $this->eventFactory = new EventFactory();
+            $this->eventFactory = $this->createEventFactory();
         }
+        
+        $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
+        
+        $this->immediateManager = $this->createImmediateManager($this->eventFactory);
+        $this->timerManager = $this->createTimerManager($this->eventFactory);
+        
+        $this->pollManager = $this->createPollManager($this->eventFactory);
+        $this->awaitManager = $this->createAwaitManager($this->eventFactory);
+        
+        $this->signalHandlingEnabled = extension_loaded('pcntl');
     }
     
     /**
      * @return  EventFactoryInterface
+     *
+     * @codeCoverageIgnore
      */
     protected function getEventFactory()
     {
         return $this->eventFactory;
+    }
+    
+    /**
+     * @return  PollManagerInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected function getPollManager()
+    {
+        return $this->pollManager;
+    }
+    
+    /**
+     * @return  AwaitManagerInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected function getAwaitManager()
+    {
+        return $this->awaitManager;
+    }
+    
+    /**
+     * @return  TimerManagerInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected function getTimerManager()
+    {
+        return $this->timerManager;
+    }
+    
+    /**
+     * @return  ImmediateManagerInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected function getImmediateManager()
+    {
+        return $this->immediateManager;
     }
     
     /**
@@ -79,7 +175,11 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function isEmpty()
     {
-        return $this->callableQueue->isEmpty() && $this->immediateQueue->isEmpty();
+        return $this->pollManager->isEmpty() &&
+            $this->awaitManager->isEmpty() &&
+            $this->timerManager->isEmpty() &&
+            $this->callableQueue->isEmpty() &&
+            $this->immediateManager->isEmpty();
     }
     
     /**
@@ -87,10 +187,12 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function tick($blocking = true)
     {
-        // Dispatch all pending I/O, timers, and signal callbacks.
-        $this->dispatch($blocking && $this->callableQueue->isEmpty() && $this->immediateQueue->isEmpty());
+        $blocking = $blocking && $this->callableQueue->isEmpty() && $this->immediateManager->isEmpty();
         
-        $this->immediateQueue->tick(); // Call the next immediate.
+        // Dispatch all pending I/O, timers, and signal callbacks.
+        $this->dispatch($this->pollManager, $this->awaitManager, $this->timerManager, $blocking);
+        
+        $this->immediateManager->tick(); // Call the next immediate.
         
         $this->callableQueue->call(); // Call each callback in the tick queue (up to the max depth).
     }
@@ -157,31 +259,34 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
+    public function createPoll($resource, callable $callback)
+    {
+        return $this->pollManager->create($resource, $callback);
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function createAwait($resource, callable $callback)
+    {
+        return $this->awaitManager->create($resource, $callback);
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
+    {
+        return $this->timerManager->create($callback, $interval, $periodic, $args);
+    }
+    
+    /**
+     * @inheritdoc
+     */
     public function createImmediate(callable $callback, array $args = null)
     {
-        $immediate = $this->getEventFactory()->createImmediate($this, $callback, $args);
-        
-        $this->immediateQueue->add($immediate);
-        
-        return $immediate;
+        return $this->immediateManager->create($callback, $args);
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function cancelImmediate(ImmediateInterface $immediate)
-    {
-        $this->immediateQueue->remove($immediate);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function isImmediatePending(ImmediateInterface $immediate)
-    {
-        return $this->immediateQueue->contains($immediate);
-    }
-    
     
     /**
      * @return  bool
@@ -272,6 +377,27 @@ abstract class AbstractLoop implements LoopInterface
         $this->removeAllListeners();
         
         $this->callableQueue->clear();
-        $this->immediateQueue->clear();
+        $this->immediateManager->clear();
+        $this->pollManager->clear();
+        $this->awaitManager->clear();
+        $this->timerManager->clear();
+    }
+    
+    /**
+     * @return  EventFactoryInterface
+     */
+    protected function createEventFactory()
+    {
+        return new EventFactory();
+    }
+    
+    /**
+     * @param   EventFactoryInterface $factory
+     *
+     * @return  ImmediateManagerInterface
+     */
+    protected function createImmediateManager(EventFactoryInterface $factory)
+    {
+        return new ImmediateManager($factory);
     }
 }

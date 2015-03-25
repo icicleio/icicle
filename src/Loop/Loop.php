@@ -2,11 +2,14 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Exception\InitializedException;
+use Icicle\Loop\EventLoop;
+use Icicle\Loop\LibeventLoop;
+use Icicle\Loop\SelectLoop;
 
 abstract class Loop
 {
     /**
-     * @var LoopInstance|null
+     * @var LoopInterface|null
      */
     private static $instance;
     

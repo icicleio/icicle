@@ -1,7 +1,10 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\AwaitManagerInterface;
+use Icicle\Loop\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Manager\PollManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 /**
  * Default event factory implementation.
@@ -11,32 +14,32 @@ class EventFactory implements EventFactoryInterface
     /**
      * @inheritdoc
      */
-    public function createPoll(LoopInterface $loop, $resource, callable $callback)
+    public function createPoll(PollManagerInterface $manager, $resource, callable $callback)
     {
-        return new Poll($loop, $resource, $callback);
+        return new Poll($manager, $resource, $callback);
     }
     
     /**
      * @inheritdoc
      */
-    public function createAwait(LoopInterface $loop, $resource, callable $callback)
+    public function createAwait(AwaitManagerInterface $manager, $resource, callable $callback)
     {
-        return new Await($loop, $resource, $callback);
+        return new Await($manager, $resource, $callback);
     }
     
     /**
      * @inheritdoc
      */
-    public function createTimer(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null)
+    public function createTimer(TimerManagerInterface $manager, callable $callback, $interval, $periodic = false, array $args = null)
     {
-        return new Timer($loop, $callback, $interval, $periodic, $args);
+        return new Timer($manager, $callback, $interval, $periodic, $args);
     }
     
     /**
      * @inheritdoc
      */
-    public function createImmediate(LoopInterface $loop, callable $callback, array $args = null)
+    public function createImmediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
-        return new Immediate($loop, $callback, $args);
+        return new Immediate($manager, $callback, $args);
     }
 }

@@ -5,7 +5,6 @@ use EventBase;
 use EventConfig;
 use Icicle\Loop\EventLoop;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Socket\Stream;
 
 /**
  * @requires extension event

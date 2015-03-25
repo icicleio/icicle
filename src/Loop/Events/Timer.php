@@ -1,16 +1,16 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 class Timer implements TimerInterface
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
     /**
-     * @var LoopInterface
+     * @var TimerManagerInterface
      */
-    private $loop;
+    private $manager;
     
     /**
      * Callback function to be called when the timer expires.
@@ -34,15 +34,15 @@ class Timer implements TimerInterface
     private $periodic;
     
     /**
-     * @param   LoopInterface $loop
+     * @param   TimerManagerInterface $manager
      * @param   callable $callback Function called when the interval expires.
      * @param   int|float $interval Number of seconds until the callback function is called.
      * @param   bool $periodic True to repeat the timer, false to only run it once.
      * @param   array|null $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(LoopInterface $loop, callable $callback, $interval, $periodic = false, array $args = null)
+    public function __construct(TimerManagerInterface $manager, callable $callback, $interval, $periodic = false, array $args = null)
     {
-        $this->loop = $loop;
+        $this->manager = $manager;
         $this->interval = (float) $interval;
         $this->periodic = (bool) $periodic;
         
@@ -81,7 +81,7 @@ class Timer implements TimerInterface
      */
     public function isPending()
     {
-        return $this->loop->isTimerPending($this);
+        return $this->manager->isPending($this);
     }
     
     /**
@@ -89,7 +89,7 @@ class Timer implements TimerInterface
      */
     public function cancel()
     {
-        $this->loop->cancelTimer($this);
+        $this->manager->cancel($this);
     }
     
     /**
@@ -97,7 +97,7 @@ class Timer implements TimerInterface
      */
     public function unreference()
     {
-        $this->loop->unreferenceTimer($this);
+        $this->manager->unreference($this);
     }
     
     /**
@@ -105,7 +105,7 @@ class Timer implements TimerInterface
      */
     public function reference()
     {
-        $this->loop->referenceTimer($this);
+        $this->manager->reference($this);
     }
     
     /**

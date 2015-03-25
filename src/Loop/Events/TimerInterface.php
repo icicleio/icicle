@@ -34,14 +34,7 @@ interface TimerInterface extends EventInterface
      * @api
      */
     public function reference();
-    
-    /**
-     * If pending, cancel the timer so it is not executed.
-     *
-     * @api
-     */
-    public function cancel();
-    
+
     /**
      * Calls the callback associated with the timer.
      */

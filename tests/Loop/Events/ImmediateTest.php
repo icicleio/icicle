@@ -7,23 +7,19 @@ use Icicle\Tests\TestCase;
 class ImmediateTest extends TestCase
 {
     protected $loop;
+
+    protected $manager;
     
     public function setUp()
     {
-        $this->loop = $this->createLoop();
-    }
-    
-    protected function createLoop()
-    {
-        $loop = $this->getMockBuilder('Icicle\Loop\LoopInterface')
-                     ->getMock();
-        
-        $loop->method('createImmediate')
-             ->will($this->returnCallback(function (callable $callback, array $args = null) use ($loop) {
-                 return new Immediate($loop, $callback, $args);
-             }));
-        
-        return $loop;
+        $this->loop = $this->getMock('Icicle\Loop\LoopInterface');
+
+        $this->manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
+
+        $this->loop->method('createImmediate')
+            ->will($this->returnCallback(function (callable $callback, array $args = null) {
+                return new Immediate($this->manager, $callback, $args);
+            }));
     }
     
     public function testGetCallback()
@@ -60,10 +56,10 @@ class ImmediateTest extends TestCase
     {
         $immediate = $this->loop->createImmediate($this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('isImmediatePending')
-                   ->with($this->identicalTo($immediate))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('isPending')
+            ->with($this->identicalTo($immediate))
+            ->will($this->returnValue(true));
         
         $this->assertTrue($immediate->isPending());
     }
@@ -72,10 +68,10 @@ class ImmediateTest extends TestCase
     {
         $immediate = $this->loop->createImmediate($this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('cancelImmediate')
-                   ->with($this->identicalTo($immediate));
-        
+        $this->manager->expects($this->once())
+            ->method('cancel')
+            ->with($this->identicalTo($immediate));
+
         $immediate->cancel();
     }
     

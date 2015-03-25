@@ -3,7 +3,6 @@ namespace Icicle\Tests\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\LibeventLoop;
-use Icicle\Socket\Stream;
 
 /**
  * @requires extension libevent

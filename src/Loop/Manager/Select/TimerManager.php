@@ -1,61 +1,65 @@
 <?php
-namespace Icicle\Loop\Structures;
+namespace Icicle\Loop\Manager\Select;
 
+use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
-class TimerQueue implements \Countable
+class TimerManager implements TimerManagerInterface
 {
+    /**
+     * @var EventFactoryInterface
+     */
+    private $factory;
+    
     /**
      * @var SplPriorityQueue
      */
-    protected $queue;
+    private $queue;
     
     /**
      * @var UnreferencableObjectStorage
      */
-    protected $timers;
+    private $timers;
     
     /**
      */
-    public function __construct()
+    public function __construct(EventFactoryInterface $factory)
     {
+        $this->factory = $factory;
+        
         $this->queue = new SplPriorityQueue();
         $this->timers = new UnreferencableObjectStorage();
     }
     
     /**
-     * Adds the timer to the queue.
-     *
-     * @param   TimerInterface $timer
+     * @inheritdoc
      */
-    public function add(TimerInterface $timer)
+    public function create(callable $callback, $interval, $periodic = false, array $args = null)
     {
-        if (!$this->timers->contains($timer)) {
-            $timeout = microtime(true) + $timer->getInterval();
-            $this->queue->insert($timer, -$timeout);
-            $this->timers[$timer] = $timeout;
-        }
+        $timer = $this->factory->createTimer($this, $callback, $interval, $periodic, $args);
+        
+        $timeout = microtime(true) + $timer->getInterval();
+        $this->queue->insert($timer, -$timeout);
+        $this->timers[$timer] = $timeout;
+        
+        return $timer;
     }
     
     /**
-     * Determines if the timer is in the queue.
-     *
-     * @param   TimerInterface $timer
-     *
-     * @return  bool
+     * @inheritdoc
      */
-    public function contains(TimerInterface $timer)
+    public function isPending(TimerInterface $timer)
     {
         return $this->timers->contains($timer);
     }
     
     /**
-     * Removes the timer from the queue.
-     *
-     * @param   TimerInterface $timer
+     * @inheritdoc
      */
-    public function remove(TimerInterface $timer)
+    public function cancel(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
             $this->timers->detach($timer);
@@ -63,7 +67,7 @@ class TimerQueue implements \Countable
     }
     
     /**
-     * @param   TimerInterface $timer
+     * @inheritdoc
      */
     public function unreference(TimerInterface $timer)
     {
@@ -71,35 +75,23 @@ class TimerQueue implements \Countable
     }
     
     /**
-     * @param   TimerInterface $timer
+     * @inheritdoc
      */
     public function reference(TimerInterface $timer)
     {
         $this->timers->reference($timer);
     }
-    
+
     /**
-     * Returns the number of referenced timers in the queue.
-     *
-     * @return  int
-     */
-    public function count()
-    {
-        return $this->timers->count();
-    }
-    
-    /**
-     * Determines if the queue is empty (includes unreferenced timers).
-     *
-     * @return  bool
+     * @inheritdoc
      */
     public function isEmpty()
     {
-        return $this->timers->isEmpty();
+        return !$this->timers->count();
     }
     
     /**
-     * Removes all timers in the queue. Safe to call during call to tick().
+     * @inheritdoc
      */
     public function clear()
     {
@@ -112,6 +104,8 @@ class TimerQueue implements \Countable
      * non-negative value is returned.
      *
      * @return  int|float|null
+     *
+     * @internal
      */
     public function getInterval()
     {
@@ -138,6 +132,8 @@ class TimerQueue implements \Countable
      * Executes any pending timers. Returns the number of timers executed.
      *
      * @return  int
+     *
+     * @internal
      */
     public function tick()
     {

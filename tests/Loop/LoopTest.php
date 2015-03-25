@@ -26,7 +26,7 @@ class LoopTest extends TestCase
     
     /**
      * @depends testInit
-     * @expectedException Icicle\Loop\Exception\InitializedException
+     * @expectedException \Icicle\Loop\Exception\InitializedException
      */
     public function testInitAfterInitialized()
     {

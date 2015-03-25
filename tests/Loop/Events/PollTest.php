@@ -9,23 +9,19 @@ class PollTest extends TestCase
     const TIMEOUT = 0.1;
     
     protected $loop;
+
+    protected $manager;
     
     public function setUp()
     {
-        $this->loop = $this->createLoop();
-    }
-    
-    protected function createLoop()
-    {
-        $loop = $this->getMockBuilder('Icicle\Loop\LoopInterface')
-                     ->getMock();
-        
-        $loop->method('createPoll')
-             ->will($this->returnCallback(function ($resource, callable $callback) use ($loop) {
-                 return new Poll($loop, $resource, $callback);
-             }));
-        
-        return $loop;
+        $this->loop = $this->getMock('Icicle\Loop\LoopInterface');
+
+        $this->manager = $this->getMock('Icicle\Loop\Manager\PollManagerInterface');
+
+        $this->loop->method('createPoll')
+            ->will($this->returnCallback(function ($resource, callable $callback) {
+                return new Poll($this->manager, $resource, $callback);
+            }));
     }
     
     public function createSockets()
@@ -44,7 +40,7 @@ class PollTest extends TestCase
     
     /**
      * @depends testGetResource
-     * @expectedException Icicle\Loop\Exception\InvalidArgumentException
+     * @expectedException \Icicle\Loop\Exception\InvalidArgumentException
      */
     public function testInvalidResource()
     {
@@ -127,9 +123,9 @@ class PollTest extends TestCase
         
         $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('listenPoll')
-                   ->with($this->identicalTo($poll));
+        $this->manager->expects($this->once())
+            ->method('listen')
+            ->with($this->identicalTo($poll));
         
         $poll->listen();
     }
@@ -142,10 +138,10 @@ class PollTest extends TestCase
         list($socket) = $this->createSockets();
         
         $poll = $this->loop->createPoll($socket, $this->createCallback(0));
-        
-        $this->loop->expects($this->once())
-                   ->method('listenPoll')
-                   ->with($this->identicalTo($poll), $this->identicalTo(self::TIMEOUT));
+
+        $this->manager->expects($this->once())
+            ->method('listen')
+            ->with($this->identicalTo($poll), $this->identicalTo(self::TIMEOUT));
         
         $poll->listen(self::TIMEOUT);
     }
@@ -156,10 +152,10 @@ class PollTest extends TestCase
         
         $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('isPollPending')
-                   ->with($this->identicalTo($poll))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('isPending')
+            ->with($this->identicalTo($poll))
+            ->will($this->returnValue(true));
         
         $this->assertTrue($poll->isPending());
     }
@@ -170,15 +166,15 @@ class PollTest extends TestCase
         
         $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('freePoll')
-                   ->with($this->identicalTo($poll))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('free')
+            ->with($this->identicalTo($poll))
+            ->will($this->returnValue(true));
         
-        $this->loop->expects($this->once())
-                   ->method('isPollFreed')
-                   ->with($this->identicalTo($poll))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('isFreed')
+            ->with($this->identicalTo($poll))
+            ->will($this->returnValue(true));
         
         $poll->free();
         
@@ -191,9 +187,9 @@ class PollTest extends TestCase
         
         $poll = $this->loop->createPoll($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('cancelPoll')
-                   ->with($this->identicalTo($poll));
+        $this->manager->expects($this->once())
+            ->method('cancel')
+            ->with($this->identicalTo($poll));
         
         $poll->cancel();
     }

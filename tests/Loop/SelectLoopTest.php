@@ -3,7 +3,6 @@ namespace Icicle\Tests\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\SelectLoop;
-use Icicle\Socket\Stream;
 
 class SelectLoopTest extends AbstractLoopTest
 {
@@ -32,7 +31,7 @@ class SelectLoopTest extends AbstractLoopTest
         
         $await = $this->loop->createAwait($writable, $callback);
         
-        $this->loop->listenAwait($await, self::TIMEOUT);
+        $await->listen(self::TIMEOUT);
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         

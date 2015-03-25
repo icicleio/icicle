@@ -1,14 +1,14 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\ImmediateManagerInterface;
 
 class Immediate implements ImmediateInterface
 {
     /**
-     * @var LoopInterface
+     * @var ImmediateManagerInterface
      */
-    private $loop;
+    private $manager;
     
     /**
      * @var callable
@@ -19,9 +19,9 @@ class Immediate implements ImmediateInterface
      * @param   callable $callback Function called when the interval expires.
      * @param   array $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(LoopInterface $loop, callable $callback, array $args = null)
+    public function __construct(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
-        $this->loop = $loop;
+        $this->manager = $manager;
         
         if (empty($args)) {
             $this->callback = $callback;
@@ -54,7 +54,7 @@ class Immediate implements ImmediateInterface
      */
     public function isPending()
     {
-        return $this->loop->isImmediatePending($this);
+        return $this->manager->isPending($this);
     }
     
     /**
@@ -62,7 +62,7 @@ class Immediate implements ImmediateInterface
      */
     public function cancel()
     {
-        $this->loop->cancelImmediate($this);
+        $this->manager->cancel($this);
     }
     
     /**

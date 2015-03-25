@@ -2,16 +2,9 @@
 namespace Icicle\Loop;
 
 use Icicle\EventEmitter\EventEmitterInterface;
-use Icicle\Loop\Events\AwaitInterface;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\PollInterface;
-use Icicle\Loop\Events\TimerInterface;
 
 interface LoopInterface extends EventEmitterInterface
 {
-    const NO_TIMEOUT = null;
-    const MIN_TIMEOUT = 0.001;
-    
     /**
      * Determines if the necessary components for the loop class are available.
      *
@@ -84,40 +77,6 @@ interface LoopInterface extends EventEmitterInterface
     public function createPoll($resource, callable $callback);
     
     /**
-     * @param   PollInterface $poll
-     * @param   float $timeout
-     */
-    public function listenPoll(PollInterface $poll, $timeout);
-    
-    /**
-     * Cancels the given poll operation.
-     *
-     * @param   PollInterface $poll
-     */
-    public function cancelPoll(PollInterface $poll);
-    
-    /**
-     * Determines if the poll is pending (listening for data).
-     *
-     * @param   PollInterface $poll
-     *
-     * @return  bool
-     */
-    public function isPollPending(PollInterface $poll);
-    
-    /**
-     * @param   PollInterface $poll
-     */
-    public function freePoll(PollInterface $poll);
-    
-    /**
-     * @param   PollInterface $poll
-     *
-     * @return  bool
-     */
-    public function isPollFreed(PollInterface $poll);
-    
-    /**
      * Creates an await object to be used to wait for the socket resource to be available for writing.
      *
      * @param   resource $resource
@@ -126,41 +85,6 @@ interface LoopInterface extends EventEmitterInterface
      * @return  AwaitInterface
      */
     public function createAwait($resource, callable $callback);
-    
-    /**
-     * Adds the await to the to the queue waiting to write.
-     *
-     * @param   AwaitInterface $await
-     */
-    public function listenAwait(AwaitInterface $await);
-    
-    /**
-     * Removes the await from the queue waiting to write.
-     *
-     * @param   AwaitInterface $await
-     */
-    public function cancelAwait(AwaitInterface $await);
-    
-    /**
-     * Determines if the resource is waiting to write.
-     *
-     * @param   AwaitInterface $await
-     *
-     * @return  bool
-     */
-    public function isAwaitPending(AwaitInterface $await);
-    
-    /**
-     * @param   AwaitInterface $await
-     */
-    public function freeAwait(AwaitInterface $await);
-    
-    /**
-     * @param   AwaitInterface $await
-     *
-     * @return  bool
-     */
-    public function isAwaitFreed(AwaitInterface $await);
     
     /**
      * Creates a timer object connected to the loop.
@@ -175,37 +99,6 @@ interface LoopInterface extends EventEmitterInterface
     public function createTimer(callable $callback, $interval, $periodic = false, array $args = null);
     
     /**
-     * Removes the timer from the loop.
-     *
-     * @param   TimerInterface $timer
-     */
-    public function cancelTimer(TimerInterface $timer);
-    
-    /**
-     * Determines if the timer is active in the loop.
-     *
-     * @param   TimerInterface $timer
-     *
-     * @return  bool
-     */
-    public function isTimerPending(TimerInterface $timer);
-    
-    /**
-     * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
-     *
-     * @param   TimerInterface $timer
-     */
-    public function unreferenceTimer(TimerInterface $timer);
-    
-    /**
-     * References a timer if it was previously unreferenced. That is, if the timer is pending the loop will continue
-     * running.
-     *
-     * @param   TimerInterface $timer
-     */
-    public function referenceTimer(TimerInterface $timer);
-    
-    /**
      * Creates an immediate object connected to the loop.
      *
      * @param   callable $callback
@@ -214,20 +107,11 @@ interface LoopInterface extends EventEmitterInterface
      * @return  ImmediateInterface
      */
     public function createImmediate(callable $callback, array $args = null);
-    
+
     /**
-     * Removes the immediate from the loop.
-     *
-     * @param   ImmediateInterface $timer
+     * Determines if signal handling is enabled.
+     * *
+     * @return bool
      */
-    public function cancelImmediate(ImmediateInterface $immediate);
-    
-    /**
-     * Determines if the immediate is active in the loop.
-     *
-     * @param   ImmediateInterface $timer
-     *
-     * @return  bool
-     */
-    public function isImmediatePending(ImmediateInterface $immediate);
+    public function signalHandlingEnabled();
 }

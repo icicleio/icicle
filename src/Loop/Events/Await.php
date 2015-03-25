@@ -1,120 +1,22 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Exception\InvalidArgumentException;
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\AwaitManagerInterface;
 
-class Await implements AwaitInterface
+/**
+ * Socket event used to wait for available space to write on a stream socket.
+ */
+class Await extends SocketEvent implements AwaitInterface
 {
     /**
-     * @var LoopInterface
-     */
-    private $loop;
-    
-    /**
-     * @var resource
-     */
-    private $resource;
-    
-    /**
-     * @var callable
-     */
-    private $callback;
-    
-    /**
-     * @param   LoopInterface $loop
-     * @param   resource $resource
+     * Enforces type of manager passed to parent constructor.
+     *
+     * @param   PollManagerInterface $manager
+     * @param   resource $resource Stream socket resource.
      * @param   callable $callback
      */
-    public function __construct(LoopInterface $loop, $resource, callable $callback)
+    public function __construct(AwaitManagerInterface $manager, $resource, callable $callback)
     {
-        if (!is_resource($resource)) {
-            throw new InvalidArgumentException('Must provide a socket or stream resource.');
-        }
-        
-        $this->loop = $loop;
-        $this->resource = $resource;
-        $this->callback = $callback;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function call($resource, $expired = false)
-    {
-        $callback = $this->callback;
-        $callback($resource, $expired);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function __invoke($resource, $expired = false)
-    {
-        $this->call($resource, $expired);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function setCallback(callable $callback)
-    {
-        $this->callback = $callback;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function getCallback()
-    {
-        return $this->callback;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function listen($timeout = null)
-    {
-        $this->loop->listenAwait($this, $timeout);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function isPending()
-    {
-        return $this->loop->isAwaitPending($this);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function isFreed()
-    {
-        return $this->loop->isAwaitFreed($this);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function cancel()
-    {
-        $this->loop->cancelAwait($this);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function free()
-    {
-        $this->loop->freeAwait($this);
-    }
-    
-    /**
-     * @return  resource
-     */
-    public function getResource()
-    {
-        return $this->resource;
+        parent::__construct($manager, $resource, $callback);
     }
 }

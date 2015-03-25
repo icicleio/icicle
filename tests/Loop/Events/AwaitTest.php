@@ -9,23 +9,19 @@ class AwaitTest extends TestCase
     const TIMEOUT = 0.1;
     
     protected $loop;
+
+    protected $manager;
     
     public function setUp()
     {
-        $this->loop = $this->createLoop();
-    }
-    
-    protected function createLoop()
-    {
-        $loop = $this->getMockBuilder('Icicle\Loop\LoopInterface')
-                     ->getMock();
-        
-        $loop->method('createAwait')
-             ->will($this->returnCallback(function ($resource, callable $callback) use ($loop) {
-                 return new Await($loop, $resource, $callback);
-             }));
-        
-        return $loop;
+        $this->loop = $this->getMock('Icicle\Loop\LoopInterface');
+
+        $this->manager = $this->getMock('Icicle\Loop\Manager\AwaitManagerInterface');
+
+        $this->loop->method('createAwait')
+            ->will($this->returnCallback(function ($resource, callable $callback) {
+                return new Await($this->manager, $resource, $callback);
+            }));
     }
     
     public function createSockets()
@@ -126,10 +122,10 @@ class AwaitTest extends TestCase
         list($socket) = $this->createSockets();
         
         $await = $this->loop->createAwait($socket, $this->createCallback(0));
-        
-        $this->loop->expects($this->once())
-                   ->method('listenAwait')
-                   ->with($this->identicalTo($await));
+
+        $this->manager->expects($this->once())
+            ->method('listen')
+            ->with($this->identicalTo($await));
         
         $await->listen();
     }
@@ -143,9 +139,9 @@ class AwaitTest extends TestCase
         
         $await = $this->loop->createAwait($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('listenAwait')
-                   ->with($this->identicalTo($await), $this->identicalTo(self::TIMEOUT));
+        $this->manager->expects($this->once())
+            ->method('listen')
+            ->with($this->identicalTo($await), $this->identicalTo(self::TIMEOUT));
         
         $await->listen(self::TIMEOUT);
     }
@@ -156,10 +152,10 @@ class AwaitTest extends TestCase
         
         $await = $this->loop->createAwait($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('isAwaitPending')
-                   ->with($this->identicalTo($await))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('isPending')
+            ->with($this->identicalTo($await))
+            ->will($this->returnValue(true));
         
         $this->assertTrue($await->isPending());
     }
@@ -170,15 +166,15 @@ class AwaitTest extends TestCase
         
         $await = $this->loop->createAwait($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('freeAwait')
-                   ->with($this->identicalTo($await))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('free')
+            ->with($this->identicalTo($await))
+            ->will($this->returnValue(true));
         
-        $this->loop->expects($this->once())
-                   ->method('isAwaitFreed')
-                   ->with($this->identicalTo($await))
-                   ->will($this->returnValue(true));
+        $this->manager->expects($this->once())
+            ->method('isFreed')
+            ->with($this->identicalTo($await))
+            ->will($this->returnValue(true));
         
         $await->free();
         
@@ -191,9 +187,9 @@ class AwaitTest extends TestCase
         
         $await = $this->loop->createAwait($socket, $this->createCallback(0));
         
-        $this->loop->expects($this->once())
-                   ->method('cancelAwait')
-                   ->with($this->identicalTo($await));
+        $this->manager->expects($this->once())
+            ->method('cancel')
+            ->with($this->identicalTo($await));
         
         $await->cancel();
     }

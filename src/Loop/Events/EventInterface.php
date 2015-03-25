@@ -9,7 +9,14 @@ interface EventInterface
      * @api
      */
     public function isPending();
-    
+
+    /**
+     * Cancel the event if pending.
+     *
+     * @api
+     */
+    public function cancel();
+
     /**
      * @return  callable
      */
