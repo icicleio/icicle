@@ -6,12 +6,12 @@ use Generator;
 class InvalidGeneratorException extends RuntimeException
 {
     /**
-     * @var Generator
+     * @var \Generator
      */
     private $generator;
     
     /**
-     * @param   Generator $generator
+     * @param   \Generator $generator
      */
     public function __construct(Generator $generator)
     {
@@ -21,7 +21,7 @@ class InvalidGeneratorException extends RuntimeException
     }
     
     /**
-     * @return  Generator
+     * @return  \Generator
      */
     public function getGenerator()
     {

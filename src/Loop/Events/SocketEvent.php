@@ -10,7 +10,7 @@ use Icicle\Loop\Manager\SocketManagerInterface;
 class SocketEvent implements SocketEventInterface
 {
     /**
-     * @var SocketManagerInterface
+     * @var \Icicle\Loop\Manager\SocketManagerInterface
      */
     private $manager;
     
@@ -20,12 +20,12 @@ class SocketEvent implements SocketEventInterface
     private $resource;
     
     /**
-     * @var callable|null
+     * @var callable
      */
     private $callback;
     
     /**
-     * @param   SocketManagerInterface $manager
+     * @param   \Icicle\Loop\Manager\SocketManagerInterface $manager
      * @param   resource $resource
      * @param   callable $callback
      */

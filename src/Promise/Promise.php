@@ -6,7 +6,6 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise\Exception\MultiReasonException;
-use Icicle\Promise\Exception\RuntimeException;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Exception\UnresolvedException;
@@ -14,27 +13,32 @@ use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\RejectedPromise;
 use Icicle\Promise\Structures\ThenQueue;
 
+/**
+ * Promise implementation based on the Promises/A+ specification adding support for cancellation.
+ *
+ * @link    http://promisesaplus.com
+ */
 class Promise implements PromiseInterface
 {
     use PromiseTrait;
     
     /**
-     * @var PromiseInterface|null
+     * @var \Icicle\Promise\PromiseInterface|null
      */
     private $result;
     
     /**
-     * @var ThenQueue|null
+     * @var \Icicle\Promise\Structures\ThenQueue|null
      */
     private $onFulfilled;
     
     /**
-     * @var ThenQueue|null
+     * @var \Icicle\Promise\Structures\ThenQueue|null
      */
     private $onRejected;
     
     /**
-     * @var Closure|null
+     * @var \Closure|null
      */
     private $onCancelled;
     
@@ -399,7 +403,7 @@ class Promise implements PromiseInterface
         /**
          * @param   mixed ...$args Promises or values.
          *
-         * @return  PromiseInterface
+         * @return  \Icicle\Promise\PromiseInterface
          */
         return function (/* ...$args */) use ($worker) {
             return static::join(func_get_args())->then($worker);
@@ -445,7 +449,7 @@ class Promise implements PromiseInterface
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -478,7 +482,7 @@ class Promise implements PromiseInterface
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -510,7 +514,7 @@ class Promise implements PromiseInterface
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -544,7 +548,7 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   int $required Number of promises that must be fulfilled to fulfill the returned promise.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -592,7 +596,7 @@ class Promise implements PromiseInterface
      *
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -619,7 +623,7 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param   callable $callback (mixed $value) : mixed
      *
-     * @return  PromiseInterface[] Array of promises resolved with the result of the mapped function.
+     * @return  \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      *
      * @api
      */
@@ -642,7 +646,7 @@ class Promise implements PromiseInterface
      * @param   callable $callback (mixed $carry, mixed $value) : mixed Called for each fulfilled promise value.
      * @param   mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -685,7 +689,7 @@ class Promise implements PromiseInterface
      * @param   callable<bool (mixed $value) $predicate Return true to stop iteration and fulfill promise.
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -720,7 +724,7 @@ class Promise implements PromiseInterface
      *          $promisor is rejected. Returning false from this function will call $promiser again to retry the
      *          operation.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */

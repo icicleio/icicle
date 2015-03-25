@@ -7,14 +7,11 @@ use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
-use Icicle\Socket\Exception\EofException;
-use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
 use Icicle\Socket\Socket;
 use Icicle\Stream\Structures\Buffer;
-use SplQueue;
 
 class Datagram extends Socket implements DatagramInterface
 {
@@ -29,22 +26,22 @@ class Datagram extends Socket implements DatagramInterface
     private $port;
     
     /**
-     * @var Deferred|null
+     * @var \Icicle\Promise\Deferred|null
      */
     private $deferred;
     
     /**
-     * @var PollInterface
+     * @var \Icicle\Loop\Events\SocketEventInterface
      */
     private $poll;
     
     /**
-     * @var AwaitInterface
+     * @var \Icicle\Loop\Events\SocketEventInterface
      */
     private $await;
     
     /**
-     * @var SplQueue
+     * @var \SplQueue
      */
     private $writeQueue;
     
@@ -64,7 +61,7 @@ class Datagram extends Socket implements DatagramInterface
         stream_set_write_buffer($socket, 0);
         stream_set_chunk_size($socket, self::CHUNK_SIZE);
         
-        $this->writeQueue = new SplQueue();
+        $this->writeQueue = new \SplQueue();
         
         $this->poll = $this->createPoll($socket);
         
@@ -82,6 +79,8 @@ class Datagram extends Socket implements DatagramInterface
      */
     public function close(Exception $exception = null)
     {
+        /** @var \Icicle\Promise\Deferred $deferred */
+
         $this->poll->free();
         $this->await->free();
         
@@ -103,7 +102,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @return  string
+     * @inheritdoc
      */
     public function getAddress()
     {
@@ -111,7 +110,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @return  int
+     * @inheritdoc
      */
     public function getPort()
     {
@@ -119,17 +118,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @param   int|null $length
-     *
-     * @return  PromiseInterface
-     *
-     * @resolve [string, int, string] Array containing the senders remote address, remote port, and data received.
-     *
-     * @reject  BusyException If a read was already pending on the datagram.
-     * @reject  UnreadableException If the datagram is no longer readable.
-     * @reject  ClosedException If the datagram has been closed.
-     * @reject  TimeoutException If receiving times out.
-     * @reject  FailureException If receiving fails.
+     * @inheritdoc
      */
     public function receive($length = null, $timeout = null)
     {
@@ -161,17 +150,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @param   int|float|null $timeout
-     *
-     * @return  PromiseInterface
-     *
-     * @resolve int Always resolves with 0.
-     *
-     * @reject  BusyException If the datagram was already waiting on a read.
-     * @reject  UnavailableException If the datagram is no longer readable.
-     * @reject  ClosedException If the datagram closes.
-     * @reject  TimeoutException If polling times out.
-     * @reject  FailureExcpetion If polling fails.
+     * @inheritdoc
      */
     public function poll($timeout = null)
     {
@@ -179,19 +158,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @param   int|string $address IP address of receiver.
-     * @param   int $port Port of receiver.
-     * @param   string|null $data Data to send.
-     * @param   int|float|null $timeout
-     *
-     * @return  PromiseInterface
-     *
-     * @resolve int Number of bytes written.
-     *
-     * @reject  UnavailableException If the datagram is no longer writable.
-     * @reject  ClosedException If the datagram closes.
-     * @reject  TimeoutException If sending the data times out.
-     * @reject  FailureException If sending data fails.
+     * @inheritdoc
      */
     public function send($address, $port, $data)
     {
@@ -243,7 +210,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @return  PromiseInterface
+     * @inheritdoc
      */
     public function await()
     {
@@ -264,7 +231,7 @@ class Datagram extends Socket implements DatagramInterface
     /**
      * @param   resource $socket Stream socket resource.
      *
-     * @return  PollInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     protected function createPoll($socket)
     {
@@ -305,11 +272,16 @@ class Datagram extends Socket implements DatagramInterface
     /**
      * @param   resource $socket Stream socket resource.
      *
-     * @return  AwaitInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     protected function createAwait($socket)
     {
         return Loop::await($socket, function ($resource) use (&$onWrite) {
+            /**
+             * @var \Icicle\Stream\Structures\Buffer $data
+             * @var \Icicle\Promise\Deferred $deferred
+             */
+
             list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
             
             if (!$data->isEmpty()) {

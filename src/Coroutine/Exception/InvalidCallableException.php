@@ -13,7 +13,7 @@ class InvalidCallableException extends InvalidArgumentException
     /**
      * @param   string $message
      * @param   callable $callable
-     * @param   Exception|null $previous
+     * @param   \Exception|null $previous
      */
     public function __construct($message, callable $callable, Exception $previous = null)
     {

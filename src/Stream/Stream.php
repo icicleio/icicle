@@ -18,7 +18,7 @@ use Icicle\Stream\Structures\Buffer;
 class Stream implements DuplexStreamInterface
 {
     /**
-     * @var Buffer
+     * @var \Icicle\Stream\Structures\Buffer
      */
     private $buffer;
     
@@ -33,7 +33,7 @@ class Stream implements DuplexStreamInterface
     private $writable = true;
     
     /**
-     * @var Deferred|null
+     * @var \Icicle\Promise\Deferred|null
      */
     private $deferred;
     
@@ -172,7 +172,7 @@ class Stream implements DuplexStreamInterface
     /**
      * @param   string $data
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      */

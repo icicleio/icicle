@@ -8,9 +8,9 @@ interface DatagramFactoryInterface
      * @param   int $port
      * @param   array $options
      *
-     * @return  Datagram
+     * @return  \Icicle\Socket\Datagram\Datagram
      *
-     * @throws  FailureException If creating the datagram fails.
+     * @throws  \Icicle\Socket\Exception\FailureException If creating the datagram fails.
      */
     public static function create($host, $port, array $options = []);
 }

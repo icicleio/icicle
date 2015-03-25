@@ -9,17 +9,17 @@ use SplQueue;
 class ImmediateManager implements ImmediateManagerInterface
 {
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
     /**
-     * @var SplQueue
+     * @var \SplQueue
      */
     private $queue;
     
     /**
-     * @var SplObjectStorage
+     * @var \SplObjectStorage
      */
     private $immediates;
     

@@ -1,8 +1,6 @@
 <?php
 namespace Icicle\Promise;
 
-use Exception;
-
 interface PromiseInterface
 {
     /**
@@ -11,7 +9,7 @@ interface PromiseInterface
      * @param   callable|null $onFulfilled (mixed $value) : mixed
      * @param   callable|null $onRejected (Exception $exception) : mixed
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -46,7 +44,7 @@ interface PromiseInterface
      * @param   float $timeout
      * @param   mixed $reason
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -58,7 +56,7 @@ interface PromiseInterface
      *
      * @param   float $time
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -70,7 +68,7 @@ interface PromiseInterface
      *
      * @param   callable $onResolved
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -83,7 +81,7 @@ interface PromiseInterface
      *
      * @param   callable $onRejected
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -108,7 +106,7 @@ interface PromiseInterface
      *
      * @param   callable $onFulfilled
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -122,7 +120,7 @@ interface PromiseInterface
      *
      * @param   callable $onResolved
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @api
      */
@@ -160,7 +158,7 @@ interface PromiseInterface
      *
      * @return  mixed
      *
-     * @throws  UnresolvedException If the promise has not been resolved.
+     * @throws  \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
      *
      * @api
      */
@@ -169,7 +167,7 @@ interface PromiseInterface
     /**
      * Iteratively finds the last promise in the pending chain and returns it. 
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @internal Used to keep promise methods from exceeding the call stack depth limit.
      */

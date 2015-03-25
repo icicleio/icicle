@@ -11,12 +11,12 @@ interface SocketManagerInterface extends ManagerInterface
      * @param   resource $resource
      * @param   callable $callback
      *
-     * @return  SocketEventInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     public function create($resource, callable $callback);
     
     /**
-     * @param   SocketEventInterface $event
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      * @param   float|null $timeout
      */
     public function listen(SocketEventInterface $event, $timeout = null);
@@ -24,14 +24,14 @@ interface SocketManagerInterface extends ManagerInterface
     /**
      * Cancels the given poll operation.
      *
-     * @param   SocketEventInterface $event
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      */
     public function cancel(SocketEventInterface $event);
     
     /**
      * Determines if the poll is pending (listening for data).
      *
-     * @param   SocketEventInterface $event
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      *
      * @return  bool
      */
@@ -40,14 +40,14 @@ interface SocketManagerInterface extends ManagerInterface
     /**
      * Frees the given poll.
      *
-     * @param   SocketEventInterface $event
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      */
     public function free(SocketEventInterface $event);
     
     /**
      * Determines if the poll has been freed.
      *
-     * @param   SocketEventInterface $event
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      *
      * @return  bool
      */

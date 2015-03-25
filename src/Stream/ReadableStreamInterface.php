@@ -7,13 +7,13 @@ interface ReadableStreamInterface extends StreamInterface
      * @param   int|null $length Max number of bytes to read. Fewer bytes may be returned. Use null to read as much data
      *          as possible.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve string Data read from the stream.
      *
-     * @reject  BusyException If a read was already pending on the stream.
-     * @reject  UnreadableException If the stream is no longer readable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -25,13 +25,13 @@ interface ReadableStreamInterface extends StreamInterface
      * @param   int|null $length Max number of bytes to read. Fewer bytes may be returned. Use null to read as much data
      *          as possible.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve string Data read from the stream (includes the pattern string if found).
      *
-     * @reject  BusyException If a read was already pending on the stream.
-     * @reject  UnreadableException If the stream is no longer readable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -40,13 +40,13 @@ interface ReadableStreamInterface extends StreamInterface
     /**
      * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve string Empty string.
      *
-     * @reject  BusyException If a read was already pending on the stream.
-     * @reject  UnreadableException If the stream is no longer readable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -69,14 +69,14 @@ interface ReadableStreamInterface extends StreamInterface
      * @param   bool $endOnClose Set to true to automatically end the writable stream when the readable stream closes.
      * @param   int|null $length If not null, only $length bytes will be piped.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Resolves when the writable stream closes or once $length bytes (if $length was not null) have been
      *          piped to the stream.
      *
-     * @reject  BusyException If a read was already pending on the stream.
-     * @reject  UnreadableException If the stream is no longer readable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -91,14 +91,14 @@ interface ReadableStreamInterface extends StreamInterface
      * @param   bool $endOnClose Set to true to automatically end the writable stream when the readable stream closes.
      * @param   int|null $length If not null, only $length bytes will be piped.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Resolves when the writable stream closes, once $byte has been read from this stream, or once $length
      *          bytes (if $length was not null) have been piped to the stream.
      *
-     * @reject  BusyException If a read was already pending on the stream.
-     * @reject  UnreadableException If the stream is no longer readable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */

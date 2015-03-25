@@ -3,10 +3,14 @@ namespace Icicle\Loop\Structures;
 
 use SplObjectStorage;
 
+/**
+ * Extends SplObjectStorage to allow some objects in the storage to be unreferenced, that is, not count toward the total
+ * number of objects in the storage.
+ */
 class UnreferencableObjectStorage extends SplObjectStorage
 {
     /**
-     * @var SplObjectStorage
+     * @var \SplObjectStorage
      */
     private $unreferenced;
     
@@ -64,7 +68,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   SplObjectStorage $storage
+     * @param   \SplObjectStorage $storage
      */
     public function addAll($storage)
     {
@@ -76,7 +80,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   SplObjectStorage $storage
+     * @param   \SplObjectStorage $storage
      */
     public function removeAll($storage)
     {
@@ -85,7 +89,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   SplObjectStorage $storage
+     * @param   \SplObjectStorage $storage
      */
     public function removeAllExcept($storage)
     {
@@ -104,7 +108,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * Returns the total number of objects in the storage.
+     * Returns the total number of objects in the storage (including unreferenced objects).
      *
      * @return  int
      */
@@ -114,6 +118,9 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
+     * Determines if the object storage is empty, including any unreferenced objects.
+     * Use count() to determine if there are any referenced objects in the storage.
+     *
      * @return  bool
      */
     public function isEmpty()

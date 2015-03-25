@@ -6,11 +6,9 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\EofException;
-use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
-use Icicle\Stream\Exception\ClosedException;
-use Icicle\Stream\Exception\InvalidArgumentException;
+use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\WritableStreamInterface;
@@ -18,12 +16,12 @@ use Icicle\Stream\WritableStreamInterface;
 trait ReadableStreamTrait
 {
     /**
-     * @var Deferred|null
+     * @var \Icicle\Promise\Deferred|null
      */
     private $deferred;
     
     /**
-     * @var PollInterface
+     * @var \Icicle\Loop\Events\SocketEventInterface
      */
     private $poll;
     
@@ -38,7 +36,7 @@ trait ReadableStreamTrait
     private $byte;
     
     /**
-     * @return  resource Socket resource.
+     * @return  resource Stream socket resource.
      */
     abstract protected function getResource();
     
@@ -52,17 +50,17 @@ trait ReadableStreamTrait
     /**
      * Closes the socket if it is still open.
      *
-     * @param   Exception|null $exception
+     * @param   \Exception|null $exception
      */
     abstract public function close(Exception $exception = null);
     
     /**
-     * @param   resource $socket Socket resource.
+     * @param  resource $socket Stream socket resource.
      */
     private function init($socket)
     {
         stream_set_read_buffer($socket, 0);
-        stream_set_chunk_size($socket, self::CHUNK_SIZE);
+        stream_set_chunk_size($socket, SocketInterface::CHUNK_SIZE);
         
         $this->poll = $this->createPoll($socket);
     }
@@ -70,7 +68,7 @@ trait ReadableStreamTrait
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   Exception $exception
+     * @param   \Exception $exception
      */
     private function free(Exception $exception)
     {
@@ -111,7 +109,7 @@ trait ReadableStreamTrait
         }
         
         if (null === $length) {
-            $this->length = self::CHUNK_SIZE;
+            $this->length = SocketInterface::CHUNK_SIZE;
         } else {
             $this->length = (int) $length;
             if (0 > $this->length) {
@@ -231,7 +229,7 @@ trait ReadableStreamTrait
     /**
      * @param   resource $socket Stream socket resource.
      *
-     * @return  PollInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     protected function createPoll($socket)
     {
@@ -246,9 +244,6 @@ trait ReadableStreamTrait
             
             if (0 !== $this->length) {
                 if (null !== $this->byte) {
-                    $length = strlen($this->byte);
-                    $offset = -$length;
-                    
                     for ($i = 0; $i < $this->length; ++$i) {
                         if (false === ($byte = fgetc($resource))) {
                             break;

@@ -3,7 +3,6 @@ namespace Icicle\Coroutine;
 
 use Exception;
 use Generator;
-use Icicle\Coroutine\Exception\CancelledException;
 use Icicle\Coroutine\Exception\InvalidCallableException;
 use Icicle\Coroutine\Exception\InvalidGeneratorException;
 use Icicle\Loop\Loop;
@@ -11,27 +10,32 @@ use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Promise\PromiseTrait;
 
+/**
+ * This class implements cooperative coroutines using Generators. Coroutines should yield promises to pause execution
+ * of the coroutine until the promise has resolved. If the promise is fulfilled, the fulfillment value is sent to the
+ * generator. If the promise is rejected, the rejection exception is thrown into the generator.
+ */
 class Coroutine implements CoroutineInterface
 {
     use PromiseTrait;
     
     /**
-     * @var Generator|null
+     * @var \Generator|null
      */
     private $generator;
     
     /**
-     * @var Promise
+     * @var \Icicle\Promise\Promise
      */
     private $promise;
     
     /**
-     * @var Closure|null
+     * @var \Closure|null
      */
     private $worker;
     
     /**
-     * @var Closure|null
+     * @var \Closure|null
      */
     private $pitch;
     
@@ -51,7 +55,7 @@ class Coroutine implements CoroutineInterface
     private $paused = false;
     
     /**
-     * @param   Generator $generator
+     * @param   \Generator $generator
      */
     public function __construct(Generator $generator)
     {
@@ -61,7 +65,7 @@ class Coroutine implements CoroutineInterface
             function ($resolve, $reject) {
                 /**
                  * @param   mixed $value The value to send to the Generator.
-                 * @param   Exception|null $exception If not null, the Exception object will be thrown into the Generator.
+                 * @param   \Exception|null $exception If not null, the Exception object will be thrown into the Generator.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
@@ -110,7 +114,7 @@ class Coroutine implements CoroutineInterface
                 };
                 
                 /**
-                 * @param   Exception $exception Exception to be thrown into the generator.
+                 * @param   \Exception $exception Exception to be thrown into the generator.
                  */
                 $this->pitch = function (Exception $exception) {
                     if (null !== ($worker = $this->worker)) { // Coroutine may have been closed.
@@ -276,9 +280,10 @@ class Coroutine implements CoroutineInterface
         /**
          * @param   mixed ...$args
          *
-         * @return  Coroutine
+         * @return  \Icicle\Coroutine\Coroutine
          *
-         * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
+         * @throws  \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does
+         *          not return a Generator.
          */
         return function (/* ...$args */) use ($worker) {
             return static::create($worker, func_get_args());
@@ -289,9 +294,10 @@ class Coroutine implements CoroutineInterface
      * @param   callable $worker
      * @param   mixed ...$args
      *
-     * @return  Coroutine
+     * @return  \Icicle\Coroutine\Coroutine
      *
-     * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
+     * @throws  \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does not
+     *          return a Generator.
      */
     public static function call(callable $worker /* , ...$args */)
     {
@@ -304,9 +310,10 @@ class Coroutine implements CoroutineInterface
      * @param   callable $worker
      * @param   mixed[] $args
      *
-     * @return  Coroutine
+     * @return  \Icicle\Coroutine\Coroutine
      *
-     * @throws  InvalidCallableException If the callable throws an exception or does not return a Generator.
+     * @throws  \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does not
+     *          return a Generator.
      */
     public static function create(callable $worker, array $args = null)
     {

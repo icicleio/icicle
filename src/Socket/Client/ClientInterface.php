@@ -9,14 +9,15 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
     /**
      * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)
      *          clients, STREAM_CRYPTO_METHOD_TLS_CLIENT for outgoing (local) clients.
+     * @param   int|float|null $timeout Seconds to wait between reads/writes to enable crypto before failing.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
-     * @resolve self
+     * @resolve $this
      *
-     * @reject  FailureException If enabling crypto fails.
-     * @reject  ClosedException If the client has been closed.
-     * @reject  BusyException If the client was already busy waiting to read.
+     * @reject  \Icicle\Socket\Exception\FailureException If enabling crypto fails.
+     * @reject  \Icicle\Socket\Exception\ClosedException If the client has been closed.
+     * @reject  \Icicle\Socket\Exception\BusyException If the client was already busy waiting to read.
      *
      * @api
      */

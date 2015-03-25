@@ -11,15 +11,18 @@ use Icicle\Loop\Manager\Event\TimerManager;
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
+/**
+ * Uses the event extension to poll sockets for I/O and create timers.
+ */
 class EventLoop extends AbstractLoop
 {
     /**
-     * @var EventBase
+     * @var \EventBase
      */
     private $base;
     
     /**
-     * @var Event[int]
+     * @var \Event[]
      */
     private $signalEvents = [];
     
@@ -34,10 +37,10 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @param   EventFactoryInterface|null $eventFactory
-     * @param   EventBase|null $base Use null for an EventBase object to be automatically created.
+     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
+     * @param   \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
-     * @throws  UnsupportedException If the event extension is not loaded.
+     * @throws  \Icicle\Loop\Exception\UnsupportedException If the event extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, EventBase $base = null)
     {
@@ -77,7 +80,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @return  EventBase
+     * @return  \EventBase
      *
      * @codeCoverageIgnore
      */

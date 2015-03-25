@@ -1,12 +1,14 @@
 <?php
 namespace Icicle\Loop\Structures;
 
-use SplQueue;
-
+/**
+ * Creates a queue of callable functions that can be invoked in the order queued. Once a function is invoked from the
+ * queue, the function is removed from the queue.
+ */
 class CallableQueue implements \Countable
 {
     /**
-     * @var     SplQueue
+     * @var     \SplQueue
      */
     private $queue;
     
@@ -19,7 +21,7 @@ class CallableQueue implements \Countable
      */
     public function __construct($depth = null)
     {
-        $this->queue = new SplQueue();
+        $this->queue = new \SplQueue();
         
         if (null !== $depth) {
             $this->maxDepth($depth);
@@ -28,7 +30,7 @@ class CallableQueue implements \Countable
     
     /**
      * @param   callable $callback
-     * @param   array $args
+     * @param   mixed[]|null $args
      */
     public function insert(callable $callback, array $args = null)
     {
@@ -66,7 +68,7 @@ class CallableQueue implements \Countable
      */
     public function clear()
     {
-        $this->queue = new SplQueue();
+        $this->queue = new \SplQueue();
     }
     
     /**
@@ -95,6 +97,8 @@ class CallableQueue implements \Countable
      */
     public function call()
     {
+        /** @var callable $callback */
+
         $count = 0;
         
         while (!$this->queue->isEmpty() && (++$count <= $this->maxDepth || 0 === $this->maxDepth)) {

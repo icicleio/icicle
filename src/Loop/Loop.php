@@ -2,10 +2,11 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Exception\InitializedException;
-use Icicle\Loop\EventLoop;
-use Icicle\Loop\LibeventLoop;
-use Icicle\Loop\SelectLoop;
 
+/**
+ * Facade class for accessing a Icicle\Loop\LoopInterface instance. A specific instance of Icicle\Loop\LoopInterface
+ * can be given using the init() method, or an instance is automatically generated based on available extensions.
+ */
 abstract class Loop
 {
     /**
@@ -16,9 +17,9 @@ abstract class Loop
     /**
      * Used to set the loop to a custom class. This method should be one of the first calls in a script.
      *
-     * @param   LoopInterface $loop
+     * @param   \Icicle\Loop\LoopInterface $loop
      *
-     * @throws  InitializedException If another loop has been set or created.
+     * @throws  \Icicle\Loop\Exception\InitializedException If another loop has been set or created.
      *
      * @api
      */
@@ -33,7 +34,7 @@ abstract class Loop
     }
     
     /**
-     * @return  LoopInterface
+     * @return  \Icicle\Loop\LoopInterface
      *
      * @codeCoverageIgnore
      */
@@ -53,7 +54,7 @@ abstract class Loop
     /**
      * Returns the global event loop.
      *
-     * @return  LoopInterface
+     * @return  \Icicle\Loop\LoopInterface
      *
      * @api
      */
@@ -114,6 +115,8 @@ abstract class Loop
      *
      * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
      *
+     * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
+     *
      * @api
      */
     public static function run()
@@ -144,7 +147,10 @@ abstract class Loop
     }
     
     /**
-     * @return  SocketEventInterface
+     * @param   resource $socket Stream socket resource.
+     * @param   callable $callback Callback to be invoked when data is available on the socket.
+     *
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     public static function poll($socket, callable $callback)
     {
@@ -152,7 +158,10 @@ abstract class Loop
     }
     
     /**
-     * @return  SocketEventInterface
+     * @param   resource $socket Stream socket resource.
+     * @param   callable $callback Callback to be invoked when the socket is available to write.
+     *
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     public static function await($socket, callable $callback)
     {
@@ -160,7 +169,11 @@ abstract class Loop
     }
     
     /**
-     * @return  TimerInterface
+     * @param   float|int $interval Number of seconds before the callback is invoked.
+     * @param   callable $callback Function to invoke when the timer expires.
+     * @param   mixed ...$args Arguments to pass to the callback function.
+     *
+     * @return  \Icicle\Loop\Events\TimerInterface
      */
     public static function timer($interval, callable $callback /* , ...$args */)
     {
@@ -170,7 +183,11 @@ abstract class Loop
     }
     
     /**
-     * @return  TimerInterface
+     * @param   float|int $interval Number of seconds between invocations of the callback.
+     * @param   callable $callback Function to invoke when the timer expires.
+     * @param   mixed ...$args Arguments to pass to the callback function.
+     *
+     * @return  \Icicle\Loop\Events\TimerInterface
      */
     public static function periodic($interval, callable $callback /* , ...$args */)
     {
@@ -180,7 +197,11 @@ abstract class Loop
     }
     
     /**
-     * @return  ImmediateInterface
+     * @param   callable $callback Function to invoke when no other active events are available.
+     * @param   mixed ...$args Arguments to pass to the callback function.
+     *
+     *
+     * @return  \Icicle\Loop\Events\ImmediateInterface
      */
     public static function immediate(callable $callback /* , ...$args */)
     {
@@ -190,6 +211,8 @@ abstract class Loop
     }
     
     /**
+     * Determines if signal handling is enabled.
+     *
      * @return  bool
      *
      * @api

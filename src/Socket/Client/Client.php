@@ -35,7 +35,7 @@ class Client extends DuplexStream implements ClientInterface
     private $localPort = 0;
     
     /**
-     * @param   resource $socket
+     * @param   resource $socket Stream socket resource.
      */
     public function __construct($socket)
     {
@@ -50,19 +50,9 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @param   int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)
-     *          clients, STREAM_CRYPTO_METHOD_TLS_CLIENT for outgoing (local) clients.
-     * @param   int|float|null $timeout Seconds to wait between reads/writes to enable crypto before failing.
-     *
-     * @return  PromiseInterface
-     *
-     * @resolve $this
-     *
-     * @reject  FailureException If enabling crypto fails.
-     * @reject  ClosedException If the client has been closed.
-     * @reject  BusyException If the client was already busy waiting to read.
+     * @inheritdoc
      */
-    public function enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER, $timeout = null)
+    public function enableCrypto($method, $timeout = null)
     {
         $method = (int) $method;
         
@@ -99,9 +89,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * Returns the remote IP as a string representation.
-     *
-     * @return  string
+     * @inheritdoc
      */
     public function getRemoteAddress()
     {
@@ -109,9 +97,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * Returns the remote port number.
-     *
-     * @return  int
+     * @inheritdoc
      */
     public function getRemotePort()
     {
@@ -119,9 +105,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * Returns the local IP as a string representation.
-     *
-     * @return  string
+     * @inheritdoc
      */
     public function getLocalAddress()
     {
@@ -129,9 +113,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * Returns the local port number.
-     *
-     * @return  int
+     * @inheritdoc
      */
     public function getLocalPort()
     {

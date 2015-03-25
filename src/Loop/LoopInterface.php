@@ -23,6 +23,8 @@ interface LoopInterface extends EventEmitterInterface
      * Starts the event loop.
      *
      * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
+     *
+     * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
      */
     public function run();
     
@@ -62,7 +64,7 @@ interface LoopInterface extends EventEmitterInterface
      * Callbacks are called in the order defined.
      *
      * @param   callable $callback
-     * @param   array $args Array of arguments to be passed to the callback function.
+     * @param   mixed[] $args Array of arguments to be passed to the callback function.
      */
     public function schedule(callable $callback, array $args = null);
     
@@ -72,7 +74,9 @@ interface LoopInterface extends EventEmitterInterface
      * @param   resource $resource
      * @param   callable $callback
      *
-     * @return  SocketEventInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
+     *
+     * @throws  \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
      */
     public function poll($resource, callable $callback);
     
@@ -82,7 +86,9 @@ interface LoopInterface extends EventEmitterInterface
      * @param   resource $resource
      * @param   callable $callback
      *
-     * @return  SocketEventInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
+     *
+     * @throws  \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
      */
     public function await($resource, callable $callback);
     
@@ -94,7 +100,7 @@ interface LoopInterface extends EventEmitterInterface
      * @param   bool $periodic
      * @param   array $args
      *
-     * @return  TimerInterface
+     * @return  \Icicle\Loop\Events\TimerInterface
      */
     public function timer(callable $callback, $interval, $periodic = false, array $args = null);
     
@@ -104,7 +110,7 @@ interface LoopInterface extends EventEmitterInterface
      * @param   callable $callback
      * @param   array $args
      *
-     * @return  ImmediateInterface
+     * @return  \Icicle\Loop\Events\ImmediateInterface
      */
     public function immediate(callable $callback, array $args = null);
 

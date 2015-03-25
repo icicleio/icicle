@@ -10,9 +10,9 @@ interface EventEmitterInterface
      * @param   callable $listener
      * @param   bool $once Set to true for the listener to be called only the next time the event is emitted.
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -26,9 +26,9 @@ interface EventEmitterInterface
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -41,9 +41,9 @@ interface EventEmitterInterface
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -55,9 +55,9 @@ interface EventEmitterInterface
      * @param   string|int $event
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -71,9 +71,9 @@ interface EventEmitterInterface
      * @param   string|int
      * @param   callable $listener
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -84,9 +84,9 @@ interface EventEmitterInterface
      *
      * @param   string|int|null $event Event name or null to remove all event listeners.
      *
-     * @return  self
+     * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -99,7 +99,7 @@ interface EventEmitterInterface
      *
      * @return  callable[string] Array of event listeners.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -112,7 +112,7 @@ interface EventEmitterInterface
      *
      * @return  int Number of listeners defined.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -127,7 +127,7 @@ interface EventEmitterInterface
      *
      * @return  bool True if any listeners were called, false if no listeners were called.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      */
     public function emit($event /* , ...$args */);
 }

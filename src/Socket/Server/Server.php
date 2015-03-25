@@ -30,12 +30,12 @@ class Server extends Socket implements ServerInterface
     private $port;
     
     /**
-     * @var Deferred
+     * @var \Icicle\Promise\Deferred
      */
     private $deferred;
     
     /**
-     * @var PollInterface
+     * @var \Icicle\Loop\Events\SocketEventInterface
      */
     private $poll;
     
@@ -58,7 +58,7 @@ class Server extends Socket implements ServerInterface
     /**
      * @inheritdoc
      *
-     * @param   Exception|null $exception Reason for closing.
+     * @param   \Exception|null $exception Reason for closing.
      */
     public function close(Exception $exception = null)
     {
@@ -77,11 +77,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * Accepts incoming client connections.
-     *
-     * @param   int|float|null $timeout
-     *
-     * @return  PromiseInterface
+     * @inheritdoc
      */
     public function accept($timeout = null)
     {
@@ -104,9 +100,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * Returns the IP address on which the server is listening.
-     *
-     * @return  string
+     * @inheritdoc
      */
     public function getAddress()
     {
@@ -114,9 +108,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * Returns the port on which the server is listening.
-     *
-     * @return  int
+     * @inheritdoc
      */
     public function getPort()
     {
@@ -126,9 +118,9 @@ class Server extends Socket implements ServerInterface
     /**
      * @param   resource $socket Stream socket resource.
      *
-     * @return  ClientInterface
+     * @return  \Icicle\Socket\Client\ClientInterface
      *
-     * @throws  FailureException If creating the client fails.
+     * @throws  \Icicle\Socket\Exception\FailureException If creating the client fails.
      */
     protected function createClient($socket)
     {
@@ -138,7 +130,7 @@ class Server extends Socket implements ServerInterface
     /**
      * @param   resource $socket Stream socket server resource.
      *
-     * @return  PollInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     protected function createPoll($socket)
     {

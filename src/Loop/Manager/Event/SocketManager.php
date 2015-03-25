@@ -14,22 +14,22 @@ abstract class SocketManager implements SocketManagerInterface
     const MIN_TIMEOUT = 0.001;
 
     /**
-     * @var EventBase
+     * @var \EventBase
      */
     private $base;
     
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
     /**
-     * @var Event[]
+     * @var \Event[]
      */
     private $events = [];
     
     /**
-     * @var SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
      */
     private $sockets = [];
     
@@ -41,17 +41,17 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * Creates an Event object on the given EventBase for the SocketEventInterface.
      *
-     * @param   EventBase $base
-     * @param   SocketEventInterface $event
+     * @param   \EventBase $base
+     * @param   \Icicle\Loop\Events\SocketEventInterface $event
      * @param   callable $callback
      *
-     * @return  Event
+     * @return  \Event
      */
     abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback);
     
     /**
-     * @param   EventFactoryInterface $factory
-     * @param   EventBase $base
+     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param   \EventBase $base
      */
     public function __construct(EventFactoryInterface $factory, EventBase $base)
     {

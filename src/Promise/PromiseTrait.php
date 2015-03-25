@@ -1,18 +1,13 @@
 <?php
 namespace Icicle\Promise;
 
-use Closure;
-use Exception;
-use ReflectionFunction;
-use ReflectionMethod;
-
 trait PromiseTrait
 {
     /**
      * @param   callable $onFulfilled
      * @param   callable $onRejected
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      */
     abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -20,7 +15,7 @@ trait PromiseTrait
      * @param   callable $onFulfilled
      * @param   callable $onRejected
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      */
     abstract public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -37,13 +32,13 @@ trait PromiseTrait
      */
     public function capture(callable $onRejected)
     {
-        return $this->then(null, function (Exception $exception) use ($onRejected) {
+        return $this->then(null, function (\Exception $exception) use ($onRejected) {
             if (is_array($onRejected)) { // Methods passed as an array.
-                $reflection = new ReflectionMethod($onRejected[0], $onRejected[1]);
-            } elseif (is_object($onRejected) && !$onRejected instanceof Closure) { // Callable objects that are not Closures.
-                $reflection = new ReflectionMethod($onRejected, '__invoke');
+                $reflection = new \ReflectionMethod($onRejected[0], $onRejected[1]);
+            } elseif (is_object($onRejected) && !$onRejected instanceof \Closure) { // Callable objects that are not Closures.
+                $reflection = new \ReflectionMethod($onRejected, '__invoke');
             } else { // Everything else (note method names delimited by :: do not work with $callable() syntax).
-                $reflection = new ReflectionFunction($onRejected);
+                $reflection = new \ReflectionFunction($onRejected);
             }
             
             $parameters = $reflection->getParameters();
@@ -54,11 +49,11 @@ trait PromiseTrait
             
             $class = $parameters[0]->getClass();
             
-            if (null === $class || $class->isInstance($exception)) { // No typehint or matching typehint.
+            if (null === $class || $class->isInstance($exception)) { // No type-hint or matching type-hint.
                 return $onRejected($exception);
             }
             
-            return $this; // Typehint does not match. $this is now a rejected promise.
+            return $this; // Type-hint does not match. $this is now a rejected promise.
         });
     }
     

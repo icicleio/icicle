@@ -1,14 +1,12 @@
 <?php
 namespace Icicle\Promise;
 
-use Exception;
-
 class LazyPromise implements PromiseInterface
 {
     use PromiseTrait;
     
     /**
-     * @var PromiseInterface|null
+     * @var \Icicle\Promise\PromiseInterface|null
      */
     private $promise;
     
@@ -36,7 +34,7 @@ class LazyPromise implements PromiseInterface
             
             try {
                 $this->promise = Promise::resolve($promisor());
-            } catch (Exception $exception) {
+            } catch (\Exception $exception) {
                 $this->promise = Promise::reject($exception);
             }
         }

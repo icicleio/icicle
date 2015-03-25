@@ -1,13 +1,12 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 
-class FulFilledPromise extends ResolvedPromise
+class FulfilledPromise extends ResolvedPromise
 {
     /**
      * @var     mixed
@@ -17,7 +16,7 @@ class FulFilledPromise extends ResolvedPromise
     /**
      * @param   mixed $value Anything other than a PromiseInterface object.
      *
-     * @throws  TypeException If a PromiseInterface is given as the value.
+     * @throws  \Icicle\Promise\Exception\TypeException If a PromiseInterface is given as the value.
      */
     public function __construct($value)
     {
@@ -41,7 +40,7 @@ class FulFilledPromise extends ResolvedPromise
             Loop::schedule(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
-                } catch (Exception $exception) {
+                } catch (\Exception $exception) {
                     $reject($exception);
                 }
             });

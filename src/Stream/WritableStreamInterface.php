@@ -9,12 +9,12 @@ interface WritableStreamInterface extends StreamInterface
      *
      * @param   string $data
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      *
-     * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -23,12 +23,12 @@ interface WritableStreamInterface extends StreamInterface
     /**
      * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Always resolves with 0.
      *
-     * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */
@@ -39,12 +39,12 @@ interface WritableStreamInterface extends StreamInterface
      *
      * @param   string|null $data
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      *
-     * @reject  UnwritableException If the stream is no longer writable.
-     * @reject  ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      *
      * @api
      */

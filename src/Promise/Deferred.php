@@ -1,8 +1,6 @@
 <?php
 namespace Icicle\Promise;
 
-use Exception;
-
 class Deferred implements PromisorInterface
 {
     /**
@@ -32,7 +30,7 @@ class Deferred implements PromisorInterface
     }
     
     /**
-     * @return  PromiseInterface
+     * @inheritdoc
      */
     public function getPromise()
     {
@@ -51,7 +49,7 @@ class Deferred implements PromisorInterface
     }
     
     /**
-     * Reject the promise the the given Exception.
+     * Reject the promise the the given reason.
      *
      * @param   mixed $reason
      */

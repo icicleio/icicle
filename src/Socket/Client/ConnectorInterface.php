@@ -4,9 +4,10 @@ namespace Icicle\Socket\Client;
 interface ConnectorInterface
 {
     /**
-     * @param   string $host Hostname or IP address.
+     * @param   string $host IP address. (Using a domain name will cause a blocking DNS resolution. Use the DNS
+     *          component to perform non-blocking DNS resolution.)
      * @param   int $port Port number.
-     * @param   array $options {
+     * @param   mixed[] $options {
      *     @var string $protocol The protocol to use, such as tcp, udp, s3, ssh. Defaults to tcp.
      *     @var int|float $timeout Number of seconds until connection attempt times out. Defaults to 10 seconds.
      *     @var string $cn Host name used to verify certificate.
@@ -15,12 +16,12 @@ interface ConnectorInterface
      *     @var string cafile Path to bundle of root certificates to verify against.
      * }
      *
-     * @return  PromiseInterface Fulfilled with a LocalClient object once the connection is established.
+     * @return  \Icicle\Promise\PromiseInterface
      *
-     * @resolve ClientInterface
+     * @resolve \Icicle\Socket\Client\ClientInterface Fulfilled once the connection is established.
      *
-     * @reject  FailureException If connecting fails.
-     * @reject  InvalidArgumentException If a CA file does not exist at the path given.
+     * @reject  \Icicle\Socket\Exception\FailureException If connecting fails.
+     * @reject  \Icicle\Socket\Exception\InvalidArgumentException If a CA file does not exist at the path given.
      *
      * @see     http://curl.haxx.se/docs/caextract.html Contains links to download bundle of CA Root Certificates that
      *          may be used for the cafile option if needed.

@@ -9,23 +9,23 @@ interface ImmediateManagerInterface extends ManagerInterface
      * Creates an immediate object connected to the manager.
      *
      * @param   callable $callback
-     * @param   array $args
+     * @param   mixed[] $args
      *
-     * @return  ImmediateInterface
+     * @return  \Icicle\Loop\Events\ImmediateInterface
      */
     public function create(callable $callback, array $args = null);
     
     /**
      * Removes the immediate from the loop.
      *
-     * @param   ImmediateInterface $timer
+     * @param   \Icicle\Loop\Events\ImmediateInterface $timer
      */
     public function cancel(ImmediateInterface $immediate);
     
     /**
      * Determines if the immediate is active in the loop.
      *
-     * @param   ImmediateInterface $timer
+     * @param   \Icicle\Loop\Events\ImmediateInterface $timer
      *
      * @return  bool
      */

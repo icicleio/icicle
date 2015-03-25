@@ -22,7 +22,7 @@ class ReadableStream extends Socket implements ReadableStreamInterface
     /**
      * Closes the stream.
      *
-     * @param   Exception|null $exception Reason for the stream closing.
+     * @param   \Exception|null $exception Reason for the stream closing.
      */
     public function close(Exception $exception = null)
     {

@@ -8,13 +8,13 @@ interface ServerInterface extends SocketInterface
     /**
      * Accepts incoming client connections.
      *
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      *
-     * @resolve ClientInterface
+     * @resolve \Icicle\Socket\Client\ClientInterface
      *
-     * @reject  AcceptException If an error occurs when accepting the client.
-     * @reject  FailureException If creating the client fails.
-     * @reject  UnavailableException If an accept request was already pending on the server.
+     * @reject  \Icicle\Socket\Exception\AcceptException If an error occurs when accepting the client.
+     * @reject  \Icicle\Socket\Exception\FailureException If creating the client fails.
+     * @reject  \Icicle\Socket\Exception\UnavailableException If an accept request was already pending on the server.
      *
      * @api
      */

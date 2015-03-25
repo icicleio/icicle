@@ -11,19 +11,19 @@ class TimerManager implements TimerManagerInterface
     const MICROSEC_PER_SEC = 1e6;
     
     /**
-     * @var EventBase
+     * @var \EventBase
      */
     private $base;
     
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
     /**
      * UnreferencableObjectStorage mapping Timer objects to Event objects.
      *
-     * @var UnreferencableObjectStorage
+     * @var \Icicle\Loop\Structures\UnreferencableObjectStorage
      */
     private $timers;
     
@@ -33,7 +33,7 @@ class TimerManager implements TimerManagerInterface
     private $callback;
     
     /**
-     * @param   EventFactoryInterface $factory
+     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      * @param   resource $base
      */
     public function __construct(EventFactoryInterface $factory, $base)

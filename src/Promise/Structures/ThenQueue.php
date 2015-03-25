@@ -3,8 +3,13 @@ namespace Icicle\Promise\Structures;
 
 class ThenQueue
 {
+    /**
+     * @var \SplQueue
+     */
     private $queue;
     
+    /**
+     */
     public function __construct()
     {
         $this->queue = new \SplQueue();
@@ -17,6 +22,8 @@ class ThenQueue
      */
     public function __invoke($value)
     {
+        /** @var callable $callback */
+
         foreach ($this->queue as $callback) {
             $callback($value);
         }
@@ -25,7 +32,7 @@ class ThenQueue
     /**
      * Unrolls instances of self to avoid blowing up the call stack on resolution.
      *
-     * @param   callable $callback
+     * @param   callable $resolver
      */
     public function push(callable $resolver)
     {

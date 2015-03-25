@@ -7,6 +7,10 @@ use Icicle\Loop\Manager\Select\TimerManager;
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
+/**
+ * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
+ * can poll sockets for I/O, create timers, and handle signals.
+ */
 class SelectLoop extends AbstractLoop
 {
     const MICROSEC_PER_SEC = 1e6;
@@ -23,7 +27,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param   EventFactoryInterface|null $eventFactory
+     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      */
     public function __construct(EventFactoryInterface $eventFactory = null)
     {
@@ -69,8 +73,8 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param   PollManagerInterface $pollManager
-     * @param   AwaitManagerInterface $awaitManager
+     * @param   \Icicle\Loop\Manager\SocketManagerInterface $pollManager
+     * @param   \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
      * @param   int|float|null $timeout
      *
      * @return  bool

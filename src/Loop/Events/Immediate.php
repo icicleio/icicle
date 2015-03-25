@@ -6,7 +6,7 @@ use Icicle\Loop\Manager\ImmediateManagerInterface;
 class Immediate implements ImmediateInterface
 {
     /**
-     * @var ImmediateManagerInterface
+     * @var \Icicle\Loop\Manager\ImmediateManagerInterface
      */
     private $manager;
     
@@ -16,6 +16,7 @@ class Immediate implements ImmediateInterface
     private $callback;
     
     /**
+     * @param   \Icicle\Loop\Manager\ImmediateManagerInterface $manager
      * @param   callable $callback Function called when the interval expires.
      * @param   array $args Optional array of arguments to pass the callback function.
      */

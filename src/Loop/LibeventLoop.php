@@ -9,6 +9,9 @@ use Icicle\Loop\Manager\Libevent\TimerManager;
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
+/**
+ * Uses the libevent extension to poll sockets for I/O and create timers.
+ */
 class LibeventLoop extends AbstractLoop
 {
     /**
@@ -19,7 +22,7 @@ class LibeventLoop extends AbstractLoop
     private $base;
     
     /**
-     * @var resource[int]
+     * @var resource[]
      */
     private $signalEvents = [];
     
@@ -34,10 +37,10 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @param   EventFactoryInterface|null $eventFactory
+     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param   resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
-     * @throws  UnsupportedException If the libevent extension is not loaded.
+     * @throws  \Icicle\Loop\Exception\UnsupportedException If the libevent extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, $base = null)
     {

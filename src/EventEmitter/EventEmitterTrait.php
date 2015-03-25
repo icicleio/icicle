@@ -12,6 +12,8 @@ trait EventEmitterTrait
     
     /**
      * @param   string|int $event
+     *
+     * @return  $this
      */
     protected function createEvent($event)
     {
@@ -31,7 +33,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -67,7 +69,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -85,7 +87,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -102,7 +104,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -130,7 +132,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -146,7 +148,7 @@ trait EventEmitterTrait
      *
      * @return  $this
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -174,7 +176,7 @@ trait EventEmitterTrait
      *
      * @return  callable[string] Array of event listeners.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -194,7 +196,7 @@ trait EventEmitterTrait
      *
      * @return  int Number of listeners defined.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      *
      * @api
      */
@@ -208,15 +210,15 @@ trait EventEmitterTrait
     }
     
     /**
-     * Calls all event listeners for the given event name, passing all other arguments given to this function as arguments
-     * to the event listeners.
+     * Calls all event listeners for the given event name, passing all other arguments given to this function as
+     * arguments to the event listeners.
      *
      * @param   string|int $event
      * @param   mixed ...$args
      *
      * @return  bool True if any listeners were called, false if no listeners were called.
      *
-     * @throws  InvalidEventException If the event name does not exist.
+     * @throws  \Icicle\EventEmitter\Exception\InvalidEventException If the event name does not exist.
      */
     public function emit($event /* , ...$args */)
     {

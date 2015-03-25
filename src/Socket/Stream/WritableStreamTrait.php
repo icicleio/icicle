@@ -7,10 +7,10 @@ use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
+use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\Structures\Buffer;
-use SplQueue;
 
 trait WritableStreamTrait
 {
@@ -18,7 +18,7 @@ trait WritableStreamTrait
      * Queue of data to write and promises to resolve when that data is written (or fails to write).
      * Data is stored as an array: [Buffer, int, int|float|null, Deferred].
      *
-     * @var SplQueue
+     * @var \SplQueue
      */
     private $writeQueue;
     
@@ -28,31 +28,31 @@ trait WritableStreamTrait
     private $writable = true;
     
     /**
-     * @var AwaitInterface
+     * @var \Icicle\Loop\Events\SocketEventInterface
      */
     private $await;
     
     /**
-     * @return  resource Socket resource.
+     * @return  resource Stream socket resource.
      */
     abstract protected function getResource();
     
     /**
      * Closes the socket if it is still open.
      *
-     * @param   Exception|null $exception
+     * @param   \Exception|null $exception
      */
     abstract public function close(Exception $exception = null);
     
     /**
-     * @param   resource $socket Socket resource.
+     * @param   resource $socket Stream socket resource.
      */
     private function init($socket)
     {
         stream_set_write_buffer($socket, 0);
-        stream_set_chunk_size($socket, self::CHUNK_SIZE);
+        stream_set_chunk_size($socket, SocketInterface::CHUNK_SIZE);
         
-        $this->writeQueue = new SplQueue();
+        $this->writeQueue = new \SplQueue();
         
         $this->await = $this->createAwait($socket);
     }
@@ -60,10 +60,12 @@ trait WritableStreamTrait
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   Exception $exception
+     * @param   \Exception $exception
      */
     private function free(Exception $exception)
     {
+        /** @var \Icicle\Promise\Deferred $deferred */
+
         $this->writable = false;
         
         $this->await->free();
@@ -91,7 +93,7 @@ trait WritableStreamTrait
             }
             
             // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-            $written = @fwrite($this->getResource(), $data, self::CHUNK_SIZE);
+            $written = @fwrite($this->getResource(), $data, SocketInterface::CHUNK_SIZE);
             
             if (false === $written) {
                 $message = 'Failed to write to stream.';
@@ -169,11 +171,16 @@ trait WritableStreamTrait
     /**
      * @param   resource $socket Stream socket resource.
      *
-     * @return  AwaitInterface
+     * @return  \Icicle\Loop\Events\SocketEventInterface
      */
     protected function createAwait($socket)
     {
         return Loop::await($socket, function ($resource, $expired) {
+            /**
+             * @var \Icicle\Stream\Structures\Buffer $data
+             * @var \Icicle\Promise\Deferred $deferred
+             */
+
             if ($expired) {
                 $this->close(new TimeoutException('Writing to the socket timed out.'));
                 return;
@@ -183,7 +190,7 @@ trait WritableStreamTrait
             
             if (!$data->isEmpty()) {
                 // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-                $written = @fwrite($resource, $data, self::CHUNK_SIZE);
+                $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
                 
                 if (false === $written || 0 === $written) {
                     $message = 'Failed to write to stream.';
