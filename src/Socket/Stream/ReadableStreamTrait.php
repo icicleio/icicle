@@ -11,10 +11,13 @@ use Icicle\Stream\Exception\BusyException;
 use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
+use Icicle\Stream\ParserTrait;
 use Icicle\Stream\WritableStreamInterface;
 
 trait ReadableStreamTrait
 {
+    use ParserTrait;
+
     /**
      * @var \Icicle\Promise\Deferred|null
      */
@@ -100,22 +103,13 @@ trait ReadableStreamTrait
         if (!$this->isReadable()) {
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
         }
-        
-        if (null === $byte) {
-            $this->byte = null;
-        } else {
-            $this->byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
-            $this->byte = strlen($this->byte) ? $this->byte[0] : null;
-        }
-        
-        if (null === $length) {
+
+        $this->length = $this->parseLength($length);
+        if (null === $this->length) {
             $this->length = SocketInterface::CHUNK_SIZE;
-        } else {
-            $this->length = (int) $length;
-            if (0 > $this->length) {
-                $this->length = 0;
-            }
         }
+
+        $this->byte = $this->parseByte($byte);
         
         $this->poll->listen($timeout);
         
@@ -159,18 +153,13 @@ trait ReadableStreamTrait
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
         }
-        
-        if (null !== $length) {
-            $length = (int) $length;
-            if (0 > $length) {
-                return Promise::resolve(0);
-            }
+
+        $length = $this->parseLength($length);
+        if (0 === $length) {
+            return Promise::resolve(0);
         }
-        
-        if ($byte !== null) {
-            $byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
-            $byte = strlen($byte) ? $byte[0] : null;
-        }
+
+        $byte = $this->parseByte($byte);
         
         $result = new Promise(
             function ($resolve, $reject) use (&$promise, $stream, $byte, $length, $timeout) {

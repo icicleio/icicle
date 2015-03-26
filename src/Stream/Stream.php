@@ -17,6 +17,8 @@ use Icicle\Stream\Structures\Buffer;
  */
 class Stream implements DuplexStreamInterface
 {
+    use ParserTrait;
+
     /**
      * @var \Icicle\Stream\Structures\Buffer
      */
@@ -101,23 +103,10 @@ class Stream implements DuplexStreamInterface
         if (!$this->isReadable()) {
             return Promise::reject(new UnreadableException('The stream is no longer readable.'));
         }
-        
-        if (null === $byte) {
-            $this->byte = null;
-        } else {
-            $this->byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
-            $this->byte = strlen($this->byte) ? $this->byte[0] : null;
-        }
-        
-        $this->length = $length;
-        
-        if (null !== $this->length) {
-            $this->length = (int) $this->length;
-            if (0 > $this->length) {
-                $this->length = 0;
-            }
-        }
-        
+
+        $this->length = $this->parseLength($length);
+        $this->byte = $this->parseByte($byte);
+
         if (!$this->buffer->isEmpty()) {
             if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
                 if (null === $this->length || $position < $this->length) {
@@ -249,17 +238,12 @@ class Stream implements DuplexStreamInterface
             return Promise::reject(new UnwritableException('The stream is not writable.'));
         }
         
-        if (null !== $length) {
-            $length = (int) $length;
-            if (0 > $length) {
-                return Promise::resolve(0);
-            }
+        $length = $this->parseLength($length);
+        if (0 === $length) {
+            return Promise::resolve(0);
         }
-        
-        if ($byte !== null) {
-            $byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
-            $byte = strlen($byte) ? $byte[0] : null;
-        }
+
+        $byte = $this->parseByte($byte);
         
         $result = new Promise(
             function ($resolve, $reject) use (&$promise, $stream, $byte, $length) {
