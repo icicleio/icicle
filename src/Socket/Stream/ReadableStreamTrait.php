@@ -228,32 +228,35 @@ trait ReadableStreamTrait
                 $this->deferred = null;
                 return;
             }
-            
+
             $data = '';
-            
-            if (0 !== $this->length) {
-                if (null !== $this->byte) {
-                    for ($i = 0; $i < $this->length; ++$i) {
-                        if (false === ($byte = fgetc($resource))) {
-                            break;
-                        }
-                        $data .= $byte;
-                        if ($byte === $this->byte) {
-                            break;
-                        }
-                    }
-                } else {
-                    $data = fread($resource, $this->length);
-                }
-                
-                if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
-                    $this->close(new EofException('Connection reset by peer or reached EOF.'));
-                    return;
-                }
+
+            if (0 === $this->length) {
+                $this->deferred->resolve($data);
+                $this->deferred = null;
+                return;
             }
-            
+
+            if (null !== $this->byte) {
+                for ($i = 0; $i < $this->length; ++$i) {
+                    if (false === ($byte = fgetc($resource))) {
+                        break;
+                    }
+                    $data .= $byte;
+                    if ($byte === $this->byte) {
+                        break;
+                    }
+                }
+            } else {
+                $data = (string) fread($resource, $this->length);
+            }
+
             $this->deferred->resolve($data);
             $this->deferred = null;
+
+            if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
+                $this->close(new EofException('Connection reset by peer or reached EOF.'));
+            }
         });
     }
 }

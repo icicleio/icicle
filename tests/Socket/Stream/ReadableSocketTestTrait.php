@@ -13,7 +13,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         fclose($writable->getResource()); // Close other end of pipe.
         
@@ -21,21 +21,31 @@ trait ReadableSocketTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run(); // Drain readable buffer.
-        
+
         $promise = $readable->read();
-        
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
-        
+            ->with($this->identicalTo(''));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run(); // Should get an empty string.
+
+        $promise = $readable->read();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
+
         $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
+
+        Loop::run(); // Should reject with UnreadableException.
     }
     
     /**
@@ -45,7 +55,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         fclose($writable->getResource()); // Close other end of pipe.
         
@@ -53,21 +63,31 @@ trait ReadableSocketTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run(); // Drain readable buffer.
-        
+
+        $promise = $readable->readTo("\0");
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(''));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run(); // Should get an empty string.
+
         $promise = $readable->readTo("\0");
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+                 ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop::run(); // Should reject with UnreadableException.
     }
     
     /**
@@ -77,7 +97,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $readable->read(null, self::TIMEOUT);
+        $promise = $readable->read(null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -95,7 +115,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $readable->readTo("\0", null, self::TIMEOUT);
+        $promise = $readable->readTo("\0", null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -113,7 +133,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         fclose($writable->getResource()); // Close other end of pipe.
         
@@ -121,7 +141,7 @@ trait ReadableSocketTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -134,18 +154,28 @@ trait ReadableSocketTestTrait
                  ->with($this->identicalTo(''));
         
         $promise->done($callback, $this->createCallback(0));
-        
-        Loop::run();
-        
-        $promise = $readable->read(); // Next read should fail with EofException.
+
+        Loop::run(); // Should get an empty string.
+
+        $promise = $readable->read();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(''));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run(); // Should get an empty string and close the stream.
+
+        $promise = $readable->poll();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\EofException'));
+                 ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop::run(); // Next poll should fail with UnreadableException.
     }
     
     /**
@@ -155,7 +185,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $readable->poll(self::TIMEOUT);
+        $promise = $readable->poll(StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -173,7 +203,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
         
@@ -183,14 +213,14 @@ trait ReadableSocketTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame(self::WRITE_STRING, $data);
+                 $this->assertSame(StreamTest::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, null, self::TIMEOUT);
+        $promise = $readable->pipe($mock, false, null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -210,7 +240,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         $length = 8;
         
@@ -228,7 +258,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(self::WRITE_STRING) + 1, self::TIMEOUT);
+        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -248,7 +278,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
         
@@ -258,14 +288,14 @@ trait ReadableSocketTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 $this->assertSame(self::WRITE_STRING, $data);
+                 $this->assertSame(StreamTest::WRITE_STRING, $data);
                  return Promise::resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipeTo($mock, '!', false, null, self::TIMEOUT);
+        $promise = $readable->pipeTo($mock, '!', false, null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -285,7 +315,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $writable->write(self::WRITE_STRING);
+        $writable->write(StreamTest::WRITE_STRING);
         
         $length = 8;
         
@@ -303,7 +333,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipeTo($mock, '!', false, strlen(self::WRITE_STRING) + 1, self::TIMEOUT);
+        $promise = $readable->pipeTo($mock, '!', false, strlen(StreamTest::WRITE_STRING) + 1, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

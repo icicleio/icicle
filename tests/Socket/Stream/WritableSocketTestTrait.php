@@ -15,7 +15,7 @@ trait WritableSocketTestTrait
         // Use fclose() manually since $writable->close() will prevent behavior to be tested.
         fclose($writable->getResource());
         
-        $promise = $writable->write(self::WRITE_STRING);
+        $promise = $writable->write(StreamTest::WRITE_STRING);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -34,7 +34,7 @@ trait WritableSocketTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING, self::TIMEOUT);
+            $promise = $writable->write(StreamTest::WRITE_STRING, StreamTest::TIMEOUT);
         } while (!$promise->isPending());
         
         $callback = $this->createCallback(1);
@@ -54,10 +54,10 @@ trait WritableSocketTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING, self::TIMEOUT);
+            $promise = $writable->write(StreamTest::WRITE_STRING, StreamTest::TIMEOUT);
         } while (!$promise->isPending());
         
-        $promise = $writable->await(self::TIMEOUT);
+        $promise = $writable->await(StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

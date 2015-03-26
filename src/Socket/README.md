@@ -211,6 +211,8 @@ See the [ReadableStreamInterface API documentation](../Stream#readablestreaminte
 
 The methods `read()`, `readTo()`, `poll()`, `pipe()`, and `pipeTo()` each accept an optional parameter `float|null $timeout = null` as the last parameter of the method. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket.
 
+When the other end of the connection is closed and a read is pending, that read will be fulfilled with an empty string. Subsequent reads will then reject with an instance of `Icicle\Stream\Exception\UnreadableException` and `isReadable()` will return `false`.
+
 #### ReadableStream Constructor
 
 ```php

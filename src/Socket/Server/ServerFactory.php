@@ -18,10 +18,10 @@ class ServerFactory implements ServerFactoryInterface
             $host = '[' . trim($host, '[]') . ']';
         }
         
-        $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
-        $pem = isset($options['pem']) ? (string) $options['pem'] : null;
-        $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : $host;
+        $queue = isset($options['backlog']) ? (int)$options['backlog'] : self::DEFAULT_BACKLOG;
+        $pem = isset($options['pem']) ? (string)$options['pem'] : null;
+        $passphrase = isset($options['passphrase']) ? (string)$options['passphrase'] : null;
+        $name = isset($options['name']) ? (string)$options['name'] : $host;
         
         $context = [];
         
@@ -56,68 +56,5 @@ class ServerFactory implements ServerFactoryInterface
         }
         
         return new Server($socket);
-    }
-    
-    /**
-     * Generates a self-signed certificate and private key that can be used for testing a server.
-     *
-     * @param   string $country Country (2 letter code)
-     * @param   string $state State or Province
-     * @param   string $city Locality (eg, city)
-     * @param   string $company Organization Name (eg, company)
-     * @param   string $section Organizational Unit (eg, section)
-     * @param   string $domain Common Name (hostname or domain)
-     * @param   string $email Email Address
-     * @param   string|null $passphrase Optional passphrase, null for none.
-     * @param   string|null $path Path to write PEM file. If null, the PEM is returned as a string.
-     *
-     * @return  string|int|bool Returns the PEM if $path was null, or the number of bytes written to $path,
-     *          of false if the file could not be written.
-     */
-    public function generateCert(
-        $country,
-        $state,
-        $city,
-        $company,
-        $section,
-        $domain,
-        $email,
-        $passphrase = null,
-        $path = null
-    ) {
-        // @codeCoverageIgnoreStart
-        if (!extension_loaded('openssl')) {
-            throw new LogicException('The OpenSSL extension must be loaded to create a certificate.');
-        } // @codeCoverageIgnoreEnd
-        
-        $dn = [
-            'countryName' => $country,
-            'stateOrProvinceName' => $state,
-            'localityName' => $city,
-            'organizationName' => $company,
-            'organizationalUnitName' => $section,
-            'commonName' => $domain,
-            'emailAddress' => $email
-        ];
-        
-        $privkey = openssl_pkey_new(['private_key_bits' => 2048]);
-        $cert = openssl_csr_new($dn, $privkey);
-        $cert = openssl_csr_sign($cert, null, $privkey, 365);
-        
-        openssl_x509_export($cert, $cert);
-        
-        if (!is_null($passphrase)) {
-            openssl_pkey_export($privkey, $privkey, $passphrase);
-        } else {
-            openssl_pkey_export($privkey, $privkey);
-        }
-        
-        $pem = $cert . $privkey;
-        
-        if (is_null($path)) {
-            return $pem;
-        }
-        
-        return file_put_contents($path, $pem);
     }
 }

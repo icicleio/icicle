@@ -59,7 +59,7 @@ class ServerFactoryTest extends TestCase
     /**
      * @medium
      * @depends testCreate
-     * @expectedException Icicle\Socket\Exception\FailureException
+     * @expectedException \Icicle\Socket\Exception\FailureException
      */
     public function testCreateInvalidHost()
     {
@@ -71,98 +71,18 @@ class ServerFactoryTest extends TestCase
     /**
      * @medium
      * @require extension openssl
-     */
-    public function testGenerateCertToString()
-    {
-        $cert = $this->factory->generateCert(
-            'US',
-            'MN',
-            'Minneapolis',
-            'Icicle',
-            'Security',
-            'localhost',
-            'hello@icicle.io'
-        );
-        
-        $this->assertSame(self::CERT_HEADER, substr($cert, 0, strlen(self::CERT_HEADER)));
-        
-        $cert = $this->factory->generateCert(
-            'US',
-            'MN',
-            'Minneapolis',
-            'Icicle',
-            'Security',
-            'localhost',
-            'hello@icicle.io',
-            'icicle'
-        );
-        
-        $this->assertSame(self::CERT_HEADER, substr($cert, 0, strlen(self::CERT_HEADER)));
-    }
-    
-    /**
-     * @medium
-     * @require extension openssl
-     */
-    public function testGenerateCertToFile()
-    {
-        $path = tempnam(sys_get_temp_dir(), 'Icicle');
-        
-        $cert = $this->factory->generateCert(
-            'US',
-            'MN',
-            'Minneapolis',
-            'Icicle',
-            'Security',
-            'localhost',
-            'hello@icicle.io',
-            null,
-            $path
-        );
-        
-        $this->assertGreaterThan(0, $cert);
-        
-        $contents = file_get_contents($path);
-        
-        $this->assertSame(self::CERT_HEADER, substr($contents, 0, strlen(self::CERT_HEADER)));
-        
-        unlink($path);
-        
-        $path = tempnam(sys_get_temp_dir(), 'Icicle');
-        
-        $cert = $this->factory->generateCert(
-            'US',
-            'MN',
-            'Minneapolis',
-            'Icicle',
-            'Security',
-            'localhost',
-            'hello@icicle.io',
-            'icicle',
-            $path
-        );
-        
-        $this->assertGreaterThan(0, $cert);
-        
-        $contents = file_get_contents($path);
-        
-        $this->assertSame(self::CERT_HEADER, substr($contents, 0, strlen(self::CERT_HEADER)));
-        
-        unlink($path);
-    }
-    
-    /**
-     * @medium
-     * @require extension openssl
      * @depends testCreate
-     * @depends testGenerateCertToFile
      */
     public function testCreateWithPem()
     {
         $path = tempnam(sys_get_temp_dir(), 'Icicle');
         $passphrase = 'icicle';
-        
-        $this->factory->generateCert(
+
+        /** @var callable $generateCert */
+
+        $generateCert = require dirname(dirname(__DIR__)) . '/generate-cert.php';
+
+        $generateCert(
             'US',
             'MN',
             'Minneapolis',
@@ -173,7 +93,7 @@ class ServerFactoryTest extends TestCase
             $passphrase,
             $path
         );
-        
+
         $this->server = $this->factory->create(self::HOST_IPv4, self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
         
         $this->assertInstanceOf('Icicle\Socket\Server\ServerInterface', $this->server);
@@ -200,7 +120,7 @@ class ServerFactoryTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Socket\Exception\InvalidArgumentException
+     * @expectedException \Icicle\Socket\Exception\InvalidArgumentException
      */
     public function testCreateWithInvalidPemPath()
     {

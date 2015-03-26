@@ -9,7 +9,7 @@ use Icicle\Promise\Promise;
 
 class Connector implements ConnectorInterface
 {
-    const DEFAULT_CONNECT_TIMEOUT = 30;
+    const DEFAULT_CONNECT_TIMEOUT = 10;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
     const DEFAULT_PROTOCOL = 'tcp';
@@ -28,7 +28,7 @@ class Connector implements ConnectorInterface
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
-        $cn = isset($options['cn']) ? (string) $options['cn'] : (string) $host;
+        $name = isset($options['name']) ? (string) $options['name'] : (string) $host;
         
         $context = [];
         
@@ -44,8 +44,8 @@ class Connector implements ConnectorInterface
         $context['ssl']['allow_self_signed'] = $allowSelfSigned;
         $context['ssl']['verify_depth'] = $verifyDepth;
         
-        $context['ssl']['CN_match'] = $cn;
-        $context['ssl']['peer_name'] = $cn;
+        $context['ssl']['CN_match'] = $name;
+        $context['ssl']['peer_name'] = $name;
         $context['ssl']['disable_compression'] = true;
         
         // @codeCoverageIgnoreStart

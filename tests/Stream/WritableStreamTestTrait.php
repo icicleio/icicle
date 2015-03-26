@@ -48,7 +48,7 @@ trait WritableStreamTestTrait
         
         $this->assertFalse($writable->isWritable());
         
-        $promise = $writable->write(self::WRITE_STRING);
+        $promise = $writable->write(StreamTest::WRITE_STRING);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -102,13 +102,13 @@ trait WritableStreamTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $writable->end(self::WRITE_STRING);
+        $promise = $writable->end(StreamTest::WRITE_STRING);
         
         $this->assertFalse($writable->isWritable());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(strlen(self::WRITE_STRING)));
+                 ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -116,7 +116,7 @@ trait WritableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(self::WRITE_STRING));
+                 ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         

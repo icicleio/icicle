@@ -13,7 +13,7 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
         $writable->close();
@@ -35,7 +35,7 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
         $buffer = '';
@@ -69,16 +69,16 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
-        $promise = $writable->end(self::WRITE_STRING);
+        $promise = $writable->end(StreamTest::WRITE_STRING);
         
         $this->assertFalse($writable->isWritable());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(strlen(self::WRITE_STRING)));
+                 ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -101,7 +101,7 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
         $promise = $writable->write('');
@@ -128,11 +128,11 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
         // Extra write to ensure queue is not empty when write callback is called.
-        $promise = $writable->write(self::WRITE_STRING);
+        $promise = $writable->write(StreamTest::WRITE_STRING);
         
         $readable->close(); // Close other end of pipe.
         
@@ -153,7 +153,7 @@ trait WritableBufferedStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         do { // Write until a pending promise is returned.
-            $promise = $writable->write(self::WRITE_STRING);
+            $promise = $writable->write(StreamTest::WRITE_STRING);
         } while (!$promise->isPending());
         
         $promise = $writable->await();
