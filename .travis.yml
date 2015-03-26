@@ -9,10 +9,10 @@ php:
 matrix:
     allow_failures:
         - php: 7.0
+    fast_finish: true
 
-install:
-    - ./.travis.sh
+install: scripts/travis-install.sh
 
 script: vendor/bin/phpunit --coverage-text
 
-after_script: vendor/bin/coveralls -v --exclude-no-stmt
+after_script: scripts/travis-coverage.sh

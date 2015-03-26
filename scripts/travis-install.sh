@@ -28,4 +28,4 @@ if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
     
 fi
 
-composer install --dev --no-interaction --prefer-source
+composer install --no-interaction --prefer-source

@@ -1,6 +1,3 @@
-build/api
-build/coverage
-build/logs
-build/phpdox
+build
 composer.lock
 vendor
