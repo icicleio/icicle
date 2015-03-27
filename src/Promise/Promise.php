@@ -679,14 +679,14 @@ class Promise implements PromiseInterface
     }
     
     /**
-     * Calls $worker using the return value of the previous call until $predicate returns true. $seed is used as the
+     * Calls $worker using the return value of the previous call until $predicate returns false. $seed is used as the
      * initial parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If
      * $worker or $predicate throws an exception, the promise is rejected using that exception. The call stack is
      * cleared before each call to $worker to avoid filling the call stack. If $worker returns a promise, iteration
      * waits for the returned promise to be resolved.
      *
      * @param   callable<mixed (mixed $value) $worker Called with the previous return value on each iteration.
-     * @param   callable<bool (mixed $value) $predicate Return true to stop iteration and fulfill promise.
+     * @param   callable<bool (mixed $value) $predicate Return false to stop iteration and fulfill promise.
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return  \Icicle\Promise\PromiseInterface
@@ -698,7 +698,7 @@ class Promise implements PromiseInterface
         return new static(function ($resolve, $reject) use ($worker, $predicate, $seed) {
             $callback = function ($value) use (&$callback, $worker, $predicate, $resolve, $reject) {
                 try {
-                    if ($predicate($value)) { // Resolve promise if $predicate returns true.
+                    if (!$predicate($value)) { // Resolve promise if $predicate returns true.
                         $resolve($value);
                     } else {
                         static::resolve($worker($value))->done($callback, $reject);
@@ -715,13 +715,13 @@ class Promise implements PromiseInterface
     /**
      * Repeatedly calls $promisor if the promise returned by $promisor is rejected or until $onRejected returns false.
      * Useful to retry an operation a number of times or until an operation fails with a specific exception.
-     * If the promise returend by $promisor is fulfilled, the promise returned by this function is fulfilled with the
+     * If the promise returned by $promisor is fulfilled, the promise returned by this function is fulfilled with the
      * same value.
      *
      * @param   callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
      *          Should return a promise, but can return any type of value (will be made into a promise using resolve()).
      * @param   callable<bool (Exception $exception) $onRejected This function is called if the promise returned by
-     *          $promisor is rejected. Returning false from this function will call $promiser again to retry the
+     *          $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *          operation.
      *
      * @return  \Icicle\Promise\PromiseInterface
@@ -733,7 +733,7 @@ class Promise implements PromiseInterface
         return new static(function ($resolve, $reject) use ($promisor, $onRejected) {
             $callback = function (Exception $exception) use (&$callback, $promisor, $onRejected, $resolve, $reject) {
                 try {
-                    if ($onRejected($exception)) { // Reject promise if $onRejected returns true.
+                    if (!$onRejected($exception)) { // Reject promise if $onRejected returns true.
                         $reject($exception);
                     } else {
                         static::resolve($promisor())->done($resolve, $callback);

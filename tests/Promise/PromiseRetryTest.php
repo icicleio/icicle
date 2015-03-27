@@ -100,7 +100,7 @@ class PromiseRetryTest extends TestCase
         
         $onRejected = function ($value) use ($exception) {
             $this->assertSame($exception, $value);
-            return true;
+            return false;
         };
         
         $callback = $this->createCallback(1);
@@ -127,7 +127,7 @@ class PromiseRetryTest extends TestCase
         
         $onRejected = function ($value) use ($exception) {
             $this->assertSame($exception, $value);
-            return true;
+            return false;
         };
         
         $callback = $this->createCallback(1);
@@ -185,7 +185,7 @@ class PromiseRetryTest extends TestCase
         
         $onRejected = function ($value) use ($exception) {
             $this->assertSame($exception, $value);
-            return false;
+            return true;
         };
         
         $callback = $this->createCallback(1);
@@ -218,7 +218,7 @@ class PromiseRetryTest extends TestCase
         
         $onRejected = function ($value) use ($exception1) {
             $this->assertSame($exception1, $value);
-            return false;
+            return true;
         };
         
         $callback = $this->createCallback(1);
@@ -228,6 +228,29 @@ class PromiseRetryTest extends TestCase
         Promise::retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
         
+        Loop::run();
+    }
+
+    /**
+     * @depends testPromiseRejectingCallsOnRejected
+     */
+    public function testVoidCallbackDoesNotCauseRetry()
+    {
+        $exception = new Exception();
+
+        $promisor = function () use ($exception) {
+            return Promise::reject($exception);
+        };
+
+        $onRejected = function () {};
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        Promise::retry($promisor, $onRejected)
+            ->done($this->createCallback(0), $callback);
+
         Loop::run();
     }
 }

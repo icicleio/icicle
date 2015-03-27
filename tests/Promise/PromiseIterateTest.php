@@ -16,13 +16,13 @@ class PromiseIterateTest extends TestCase
         Loop::clear();
     }
     
-    public function testSeedReturnedWhenPredicateImmediatelyReturnsTrue()
+    public function testSeedReturnedWhenPredicateImmediatelyReturnsFalse()
     {
         $seed = 1;
         
         $predicate = function ($value) use (&$parameter) {
             $parameter = $value;
-            return true;
+            return false;
         };
         
         $callback = $this->createCallback(1);
@@ -38,7 +38,7 @@ class PromiseIterateTest extends TestCase
     }
     
     /**
-     * @depends testSeedReturnedWhenPredicateImmediatelyReturnsTrue
+     * @depends testSeedReturnedWhenPredicateImmediatelyReturnsFalse
      */
     public function testFulfilledPromiseAsSeed()
     {
@@ -47,7 +47,7 @@ class PromiseIterateTest extends TestCase
         
         $predicate = function ($value) use (&$parameter) {
             $parameter = $value;
-            return true;
+            return false;
         };
         
         $callback = $this->createCallback(1);
@@ -63,7 +63,7 @@ class PromiseIterateTest extends TestCase
     }
     
     /**
-     * @depends testSeedReturnedWhenPredicateImmediatelyReturnsTrue
+     * @depends testSeedReturnedWhenPredicateImmediatelyReturnsFalse
      */
     public function testRejectedPromiseAsSeed()
     {
@@ -97,9 +97,9 @@ class PromiseIterateTest extends TestCase
     {
         $exception = new Exception();
         
-        $predicate = $this->createCallback(1);
-        $predicate->method('__invoke')
-                  ->will($this->returnValue(false));
+        $predicate = function () {
+            return true;
+        };
         
         $worker = $this->createCallback(1);
         $worker->method('__invoke')
@@ -112,9 +112,9 @@ class PromiseIterateTest extends TestCase
     
     public function testWorkerReturnsFulfilledPromise()
     {
-        $predicate = function ($value) {
+        $predicate = function () {
             static $count = 2;
-            return 0 === --$count;
+            return 0 !== --$count;
         };
         
         $worker = function ($value) {
@@ -137,7 +137,7 @@ class PromiseIterateTest extends TestCase
         
         $predicate = function ($value) {
             static $count = 2;
-            return 0 === --$count;
+            return 0 !== --$count;
         };
         
         $worker = function ($value) use ($exception) {
@@ -154,11 +154,11 @@ class PromiseIterateTest extends TestCase
         Loop::run();
     }
     
-    public function testWokerReturnsPendingPromise()
+    public function testWorkerReturnsPendingPromise()
     {
         $predicate = function ($value) {
             static $count = 2;
-            return 0 === --$count;
+            return 0 !== --$count;
         };
         
         $worker = function ($value) {
@@ -172,6 +172,29 @@ class PromiseIterateTest extends TestCase
         Promise::iterate($worker, $predicate, 1)
                ->done($callback, $this->createCallback(0));
         
+        Loop::run();
+    }
+
+    /**
+     * @depends testSeedReturnedWhenPredicateImmediatelyReturnsFalse
+     */
+    public function testVoidPredicateStopsIteration()
+    {
+        $seed = 1;
+
+        $predicate = function () {};
+
+        $worker = function ($value) {
+            return $value + 1;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($seed));
+
+        Promise::iterate($worker, $predicate, $seed)
+               ->done($callback, $this->createCallback(0));
+
         Loop::run();
     }
 }
