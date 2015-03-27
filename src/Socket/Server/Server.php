@@ -144,15 +144,13 @@ class Server extends Socket implements ServerInterface
                 $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
                 
                 // Having difficulty finding a test to cover this scenario, but it has been seen in production.
-                // @codeCoverageIgnoreStart
                 if (!$client) {
                     $message = 'Could not accept client.';
-                    $error = error_get_last();
-                    if (null !== $error) {
+                    if (null !== ($error = error_get_last())) {
                         $message .= " Errno: {$error['type']}; {$error['message']}";
                     }
                     throw new AcceptException($message);
-                } // @codeCoverageIgnoreEnd
+                }
             
                 $this->deferred->resolve($this->createClient($client));
             } catch (Exception $exception) {

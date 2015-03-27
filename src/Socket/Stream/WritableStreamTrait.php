@@ -64,13 +64,12 @@ trait WritableStreamTrait
      */
     private function free(Exception $exception)
     {
-        /** @var \Icicle\Promise\Deferred $deferred */
-
         $this->writable = false;
         
         $this->await->free();
         
         while (!$this->writeQueue->isEmpty()) {
+            /** @var \Icicle\Promise\Deferred $deferred */
             list( , , , $deferred) = $this->writeQueue->shift();
             $deferred->reject($exception);
         }
@@ -97,8 +96,7 @@ trait WritableStreamTrait
             
             if (false === $written) {
                 $message = 'Failed to write to stream.';
-                $error = error_get_last();
-                if (null !== $error) {
+                if (null !== ($error = error_get_last())) {
                     $message .= " Errno: {$error['type']}; {$error['message']}";
                 }
                 $exception = new FailureException($message);
@@ -176,16 +174,15 @@ trait WritableStreamTrait
     protected function createAwait($socket)
     {
         return Loop::await($socket, function ($resource, $expired) {
-            /**
-             * @var \Icicle\Stream\Structures\Buffer $data
-             * @var \Icicle\Promise\Deferred $deferred
-             */
-
             if ($expired) {
                 $this->close(new TimeoutException('Writing to the socket timed out.'));
                 return;
             }
-            
+
+            /**
+             * @var \Icicle\Stream\Structures\Buffer $data
+             * @var \Icicle\Promise\Deferred $deferred
+             */
             list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
             
             if (!$data->isEmpty()) {
@@ -194,8 +191,7 @@ trait WritableStreamTrait
                 
                 if (false === $written || 0 === $written) {
                     $message = 'Failed to write to stream.';
-                    $error = error_get_last();
-                    if (null !== $error) {
+                    if (null !== ($error = error_get_last())) {
                         $message .= " Errno: {$error['type']}; {$error['message']}";
                     }
                     $exception = new FailureException($message);

@@ -79,8 +79,6 @@ class Datagram extends Socket implements DatagramInterface
      */
     public function close(Exception $exception = null)
     {
-        /** @var \Icicle\Promise\Deferred $deferred */
-
         $this->poll->free();
         $this->await->free();
         
@@ -92,7 +90,8 @@ class Datagram extends Socket implements DatagramInterface
             $this->deferred->reject($exception);
             $this->deferred = null;
         }
-        
+
+        /** @var \Icicle\Promise\Deferred $deferred */
         while (!$this->writeQueue->isEmpty()) {
             list( , , , $deferred) = $this->writeQueue->shift();
             $deferred->reject($exception);
@@ -175,20 +174,18 @@ class Datagram extends Socket implements DatagramInterface
                 return Promise::resolve(0);
             }
             
-            $written = @stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
+            $written = stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
             
             // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-            // @codeCoverageIgnoreStart
             if (false === $written || -1 === $written) {
                 $message = 'Failed to write to datagram.';
-                $error = error_get_last();
-                if (null !== $error) {
+                if (null !== ($error = error_get_last())) {
                     $message .= " Errno: {$error['type']}; {$error['message']}";
                 }
                 $exception = new FailureException($message);
                 $this->close($exception);
                 return Promise::reject($exception);
-            } // @codeCoverageIgnoreEnd
+            }
             
             if ($data->getLength() <= $written) {
                 return Promise::resolve($written);
@@ -248,19 +245,17 @@ class Datagram extends Socket implements DatagramInterface
                 return;
             }
             
-            $data = @stream_socket_recvfrom($resource, $this->length, 0, $peer);
+            $data = stream_socket_recvfrom($resource, $this->length, 0, $peer);
             
             // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-            // @codeCoverageIgnoreStart
             if (false === $data) { // Reading failed, so close datagram.
                 $message = 'Failed to read from datagram.';
-                $error = error_get_last();
-                if (null !== $error) {
+                if (null !== ($error = error_get_last())) {
                     $message .= " Errno: {$error['type']}; {$error['message']}";
                 }
                 $this->close(new FailureException($message));
                 return;
-            } // @codeCoverageIgnoreEnd
+            }
             
             list($address, $port) = $this->parseName($peer);
             
@@ -281,25 +276,22 @@ class Datagram extends Socket implements DatagramInterface
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred
              */
-
             list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
             
             if (!$data->isEmpty()) {
-                $written = @stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
+                $written = stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
                 
                 // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-                // @codeCoverageIgnoreStart
                 if (false === $written || 0 >= $written) {
                     $message = 'Failed to write to datagram.';
-                    $error = error_get_last();
-                    if (null !== $error) {
+                    if (null !== ($error = error_get_last())) {
                         $message .= " Errno: {$error['type']}; {$error['message']}";
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);
                     $this->close($exception);
                     return;
-                } // @codeCoverageIgnoreEnd
+                }
                 
                 if ($data->getLength() <= $written) {
                     $deferred->resolve($written + $previous);

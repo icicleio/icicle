@@ -137,7 +137,7 @@ class TimerManager implements TimerManagerInterface
      */
     protected function createCallback()
     {
-        return function ($_, $what, TimerInterface $timer) {
+        return function ($resource, $what, TimerInterface $timer) {
             if (!$this->timers[$timer]->pending) {
                 $this->timers[$timer]->free();
                 unset($this->timers[$timer]);

@@ -23,7 +23,6 @@ class ThenQueue
     public function __invoke($value)
     {
         /** @var callable $callback */
-
         foreach ($this->queue as $callback) {
             $callback($value);
         }

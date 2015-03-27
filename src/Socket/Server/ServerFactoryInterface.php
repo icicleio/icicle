@@ -8,9 +8,9 @@ interface ServerFactoryInterface
      *
      * Note: Current CA file in PEM format can be downloaded from http://curl.haxx.se/ca/cacert.pem
      *
-     * @param   string $host
+     * @param   string|int $host
      * @param   int $port
-     * @param   mixed[] $options {
+     * @param   mixed[]|null $options {
      *     @var int $backlog Connection backlog size. Note that operating system setting SOMAXCONN may set an upper
      *          limit and may need to be changed to allow a larger backlog size.
      *     @var string $pem Path to PEM file containing certificate and private key to enable SSL on client connections.

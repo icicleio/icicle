@@ -20,7 +20,7 @@ class ReasonException extends RuntimeException
                     $message .= ' Reason: Object of type ' . get_class($reason);
                     break;
                 } // next case handles object with __toString() method.
-                
+
             case 'integer':
             case 'double':
             case 'string':

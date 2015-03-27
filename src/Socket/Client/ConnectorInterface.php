@@ -4,7 +4,7 @@ namespace Icicle\Socket\Client;
 interface ConnectorInterface
 {
     /**
-     * @param   string $host IP address. (Using a domain name will cause a blocking DNS resolution. Use the DNS
+     * @param   string|int $host IP address. (Using a domain name will cause a blocking DNS resolution. Use the DNS
      *          component to perform non-blocking DNS resolution.)
      * @param   int $port Port number.
      * @param   mixed[] $options {

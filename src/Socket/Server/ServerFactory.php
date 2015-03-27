@@ -2,11 +2,13 @@
 namespace Icicle\Socket\Server;
 
 use Icicle\Socket\Exception\InvalidArgumentException;
-use Icicle\Socket\Exception\LogicException;
 use Icicle\Socket\Exception\FailureException;
+use Icicle\Socket\ParserTrait;
 
 class ServerFactory implements ServerFactoryInterface
 {
+    use ParserTrait;
+
     const DEFAULT_BACKLOG = SOMAXCONN;
     
     /**
@@ -14,19 +16,15 @@ class ServerFactory implements ServerFactoryInterface
      */
     public function create($host, $port, array $options = null)
     {
-        if (false !== strpos($host, ':')) { // IPv6 address
-            $host = '[' . trim($host, '[]') . ']';
-        }
-        
         $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
         $pem = isset($options['pem']) ? (string) $options['pem'] : null;
         $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : $host;
+        $name = isset($options['name']) ? (string) $options['name'] : $this->parseAddress($host);
         
         $context = [];
         
         $context['socket'] = [];
-        $context['socket']['bindto'] = "{$host}:{$port}";
+        $context['socket']['bindto'] = $this->makeName($host, $port);
         $context['socket']['backlog'] = $queue;
         
         if (null !== $pem) {
@@ -48,11 +46,12 @@ class ServerFactory implements ServerFactoryInterface
         
         $context = stream_context_create($context);
         
-        $uri = sprintf('tcp://%s:%d', $host, $port);
+        $uri = $this->makeUri('tcp', $host, $port);
+        // Error reporting suppressed since stream_socket_server() emits an E_WARNING on failure (checked below).
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            throw new FailureException("Could not create server {$uri}: [Errno: {$errno}] {$errstr}");
         }
         
         return new Server($socket);

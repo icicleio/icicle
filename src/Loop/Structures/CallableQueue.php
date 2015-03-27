@@ -18,6 +18,7 @@ class CallableQueue implements \Countable
     private $maxDepth = 0;
     
     /**
+     * @param null $depth
      */
     public function __construct($depth = null)
     {
@@ -97,11 +98,10 @@ class CallableQueue implements \Countable
      */
     public function call()
     {
-        /** @var callable $callback */
-
         $count = 0;
         
         while (!$this->queue->isEmpty() && (++$count <= $this->maxDepth || 0 === $this->maxDepth)) {
+            /** @var callable $callback */
             $callback = $this->queue->shift();
             $callback();
         }

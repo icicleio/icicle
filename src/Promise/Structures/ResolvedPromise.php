@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Exception;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Promise\PromiseTrait;
 

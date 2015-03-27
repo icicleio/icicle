@@ -18,12 +18,12 @@ class SocketManager implements SocketManagerInterface
     private $loop;
     
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
     /**
-     * @var SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
      */
     private $sockets = [];
     
@@ -33,7 +33,7 @@ class SocketManager implements SocketManagerInterface
     private $pending = [];
     
     /**
-     * @var TimerInterface[]
+     * @var \Icicle\Loop\Events\TimerInterface[]
      */
     private $timers = [];
     
@@ -43,8 +43,8 @@ class SocketManager implements SocketManagerInterface
     private $timerCallback;
     
     /**
-     * @param   SelectLoop $loop
-     * @param   EventFactoryInterface $factory
+     * @param   \Icicle\Loop\SelectLoop $loop
+     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
     {

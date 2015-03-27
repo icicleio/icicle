@@ -17,6 +17,7 @@ interface DatagramInterface extends SocketInterface
     
     /**
      * @param   int|null $length
+     * @param   float|int|null $timeout
      *
      * @return  \Icicle\Promise\PromiseInterface
      *

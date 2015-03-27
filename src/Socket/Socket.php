@@ -6,6 +6,8 @@ use Icicle\Socket\Exception\FailureException;
 
 abstract class Socket implements SocketInterface
 {
+    use ParserTrait;
+
     /**
      * Stream socket resource.
      *
@@ -78,12 +80,11 @@ abstract class Socket implements SocketInterface
     {
         return (int) $this->socket;
     }
-    
+
     /**
      * Parses the IP address and port of a network socket. Calls stream_socket_get_name() and then parses the returned
      * string.
      *
-     * @param   resource $socket
      * @param   bool $peer True for remote IP and port, false for local IP and port.
      *
      * @return  array IP address and port pair.
@@ -92,69 +93,17 @@ abstract class Socket implements SocketInterface
      */
     protected function getName($peer = true)
     {
+        // Error reporting suppressed since stream_socket_get_name() emits an E_WARNING on failure (checked below).
         $name = @stream_socket_get_name($this->socket, (bool) $peer);
-        
+
         if (false === $name) {
             $message = 'Could not get socket name.';
-            $error = error_get_last();
-            if (null !== $error) {
+            if (null !== ($error = error_get_last())) {
                 $message .= " Errno: {$error['type']}; {$error['message']}";
             }
             throw new FailureException($message);
         }
-        
+
         return $this->parseName($name);
-    }
-    
-    /**
-     * Parses a name of the format ip:port, returning an array containing the ip and port.
-     *
-     * @param string $name
-     *
-     * @return array IP address and port pair.
-     */
-    protected function parseName($name)
-    {
-        $colon = strrpos($name, ':');
-        
-        $address = trim(substr($name, 0, $colon), '[]');
-        $port = (int) substr($name, $colon + 1);
-        
-        $address = $this->parseAddress($address);
-        
-        return [$address, $port];
-    }
-    
-    /**
-     * Formats given address into a string. Converts integer to IPv4 address, wraps IPv6 address in brackets.
-     *
-     * @param   string|int $address
-     *
-     * @return  string
-     */
-    protected function parseAddress($address)
-    {
-        if (is_int($address)) {
-            return long2ip($address);
-        }
-        
-        if (false !== strpos($address, ':')) { // IPv6 address
-            return '[' . trim($address, '[]') . ']';
-        }
-        
-        return $address;
-    }
-    
-    /**
-     * Creates ip:port formatted name.
-     *
-     * @param   string|int $address
-     * @param   int $port
-     *
-     * @return  string
-     */
-    protected function makeName($address, $port)
-    {
-        return sprintf('%s:%d', $this->parseAddress($address), $port);
     }
 }

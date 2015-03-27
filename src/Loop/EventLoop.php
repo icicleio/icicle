@@ -50,6 +50,7 @@ class EventLoop extends AbstractLoop
         } // @codeCoverageIgnoreEnd
         
         $this->base = $base;
+
         // @codeCoverageIgnoreStart
         if (null === $this->base) {
             $this->base = new EventBase();

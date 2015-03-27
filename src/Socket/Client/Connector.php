@@ -2,13 +2,16 @@
 namespace Icicle\Socket\Client;
 
 use Icicle\Loop\Loop;
+use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
-use Icicle\Promise\Promise;
+use Icicle\Socket\ParserTrait;
 
 class Connector implements ConnectorInterface
 {
+    use ParserTrait;
+
     const DEFAULT_CONNECT_TIMEOUT = 10;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
@@ -19,21 +22,19 @@ class Connector implements ConnectorInterface
      */
     public function connect($host, $port, array $options = null)
     {
-        if (false !== strpos($host, ':')) {
-            $host = '[' . trim($host, '[]') . ']';
-        }
-        
         $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
-        $allowSelfSigned = isset($options['allow_self_signed']) ? (bool) $options['allow_self_signed'] : self::DEFAULT_ALLOW_SELF_SIGNED;
+        $allowSelfSigned = isset($options['allow_self_signed']) ?
+            (bool) $options['allow_self_signed'] :
+            self::DEFAULT_ALLOW_SELF_SIGNED;
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : (string) $host;
+        $name = isset($options['name']) ? (string) $options['name'] : $this->parseAddress($host);
         
         $context = [];
         
         $context['socket'] = [];
-        $context['socket']['connect'] = "{$host}:{$port}";
+        $context['socket']['connect'] = $this->makeName($host, $port);
         
         $context['ssl'] = [];
         $context['ssl']['capture_peer_cert'] = true;
@@ -57,8 +58,16 @@ class Connector implements ConnectorInterface
 
         $context = stream_context_create($context);
         
-        $uri = sprintf('%s://%s:%d', $protocol, $host, $port);
-        $socket = @stream_socket_client($uri, $errno, $errstr, null, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT, $context);
+        $uri = $this->makeUri($protocol, $host, $port);
+        // Error reporting suppressed since stream_socket_client() emits an E_WARNING on failure (checked below).
+        $socket = @stream_socket_client(
+            $uri,
+            $errno,
+            $errstr,
+            null, // Timeout does not apply for async connect. Timeout enforced by await below.
+            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT,
+            $context
+        );
         
         if (!$socket || $errno) {
             return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
@@ -66,6 +75,7 @@ class Connector implements ConnectorInterface
         
         return new Promise(function ($resolve, $reject) use ($socket, $timeout) {
             $await = Loop::await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
+                /** @var \Icicle\Loop\Events\SocketEventInterface $await */
                 $await->free();
                 
                 if ($expired) {

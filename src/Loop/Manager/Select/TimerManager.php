@@ -25,6 +25,7 @@ class TimerManager implements TimerManagerInterface
     private $timers;
     
     /**
+     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(EventFactoryInterface $factory)
     {

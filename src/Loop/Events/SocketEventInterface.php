@@ -25,6 +25,8 @@ interface SocketEventInterface extends EventInterface
     /**
      * Sets the function to be called when an event occurs on the socket.
      *
+     * @param   callable $callback
+     *
      * @api
      */
     public function setCallback(callable $callback);

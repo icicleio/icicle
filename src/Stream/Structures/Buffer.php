@@ -198,7 +198,12 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Returns the position of the given pattern in the buffer if it exists, or false if it does not.
      *
+     * @param   string $string String to search for.
+     * @param   bool $reverse Start search from end of buffer.
+     *
      * @return  int|bool
+     *
+     * @see     strpos()
      */
     public function search($string, $reverse = false)
     {

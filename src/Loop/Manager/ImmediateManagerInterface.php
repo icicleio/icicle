@@ -18,14 +18,14 @@ interface ImmediateManagerInterface extends ManagerInterface
     /**
      * Removes the immediate from the loop.
      *
-     * @param   \Icicle\Loop\Events\ImmediateInterface $timer
+     * @param   \Icicle\Loop\Events\ImmediateInterface $immediate
      */
     public function cancel(ImmediateInterface $immediate);
     
     /**
      * Determines if the immediate is active in the loop.
      *
-     * @param   \Icicle\Loop\Events\ImmediateInterface $timer
+     * @param   \Icicle\Loop\Events\ImmediateInterface $immediate
      *
      * @return  bool
      */

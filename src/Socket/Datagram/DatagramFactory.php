@@ -2,30 +2,30 @@
 namespace Icicle\Socket\Datagram;
 
 use Icicle\Socket\Exception\FailureException;
+use Icicle\Socket\ParserTrait;
 
 class DatagramFactory implements DatagramFactoryInterface
 {
+    use ParserTrait;
+
     /**
      * @inheritdoc
      */
-    public static function create($host, $port, array $options = [])
+    public function create($host, $port, array $options = null)
     {
-        if (false !== strpos($host, ':')) { // IPv6 address
-            $host = '[' . trim($host, '[]') . ']';
-        }
-        
         $context = [];
         
         $context['socket'] = [];
-        $context['socket']['bindto'] = "{$host}:{$port}";
+        $context['socket']['bindto'] = $this->makeName($host, $port);
         
         $context = stream_context_create($context);
         
-        $uri = sprintf('udp://%s:%d', $host, $port);
+        $uri = $this->makeUri('udp', $host, $port);
+        // Error reporting suppressed since stream_socket_server() emits an E_WARNING on failure (checked below).
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not create datagram on {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            throw new FailureException("Could not create datagram on {$uri}: [Errno: {$errno}] {$errstr}");
         }
         
         return new Datagram($socket);
