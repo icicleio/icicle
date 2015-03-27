@@ -48,14 +48,13 @@ class Connector implements ConnectorInterface
         $context['ssl']['peer_name'] = $name;
         $context['ssl']['disable_compression'] = true;
         
-        // @codeCoverageIgnoreStart
         if (null !== $cafile) {
             if (!file_exists($cafile)) {
                 return Promise::reject(new InvalidArgumentException('No file exists at path given for cafile.'));
             }
             $context['ssl']['cafile'] = $cafile;
-        } // @codeCoverageIgnoreEnd
-        
+        }
+
         $context = stream_context_create($context);
         
         $uri = sprintf('%s://%s:%d', $protocol, $host, $port);

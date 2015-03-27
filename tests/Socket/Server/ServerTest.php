@@ -12,7 +12,10 @@ class ServerTest extends TestCase
     const PORT = 51337;
     const TIMEOUT = 0.1;
     const CONNECT_TIMEOUT = 1;
-    
+
+    /**
+     * @var \Icicle\Socket\Server\Server|null
+     */
     protected $server;
     
     public function tearDown()

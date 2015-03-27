@@ -11,7 +11,7 @@ trait ParserTrait
     protected function parseByte($byte)
     {
         if (null !== $byte) {
-            $byte = is_int($byte) ? pack('C', $byte) : (string)$byte;
+            $byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
             $byte = strlen($byte) ? $byte[0] : null;
         }
 

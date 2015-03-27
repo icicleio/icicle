@@ -2,8 +2,6 @@
 namespace Icicle\Socket\Client;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
 use Icicle\Socket\Stream\DuplexStream;
 use Icicle\Socket\Exception\FailureException;
 
@@ -15,24 +13,24 @@ class Client extends DuplexStream implements ClientInterface
     private $crypto = 0;
     
     /**
-     * @var int
+     * @var string
      */
-    private $remoteAddress = 0;
+    private $remoteAddress;
     
     /**
      * @var int
      */
-    private $remotePort = 0;
+    private $remotePort;
+    
+    /**
+     * @var string
+     */
+    private $localAddress;
     
     /**
      * @var int
      */
-    private $localAddress = 0;
-    
-    /**
-     * @var int
-     */
-    private $localPort = 0;
+    private $localPort;
     
     /**
      * @param   resource $socket Stream socket resource.

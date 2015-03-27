@@ -18,10 +18,10 @@ class ServerFactory implements ServerFactoryInterface
             $host = '[' . trim($host, '[]') . ']';
         }
         
-        $queue = isset($options['backlog']) ? (int)$options['backlog'] : self::DEFAULT_BACKLOG;
-        $pem = isset($options['pem']) ? (string)$options['pem'] : null;
-        $passphrase = isset($options['passphrase']) ? (string)$options['passphrase'] : null;
-        $name = isset($options['name']) ? (string)$options['name'] : $host;
+        $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
+        $pem = isset($options['pem']) ? (string) $options['pem'] : null;
+        $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
+        $name = isset($options['name']) ? (string) $options['name'] : $host;
         
         $context = [];
         

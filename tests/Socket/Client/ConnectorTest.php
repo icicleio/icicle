@@ -12,7 +12,10 @@ class ConnectorTest extends TestCase
     const HOST_IPv4 = '127.0.0.1';
     const HOST_IPv6 = '[::1]';
     const PORT = 51337;
-    
+
+    /**
+     * @var \Icicle\Socket\Client\Connector
+     */
     protected $connector;
     
     public function createServer()
@@ -87,7 +90,7 @@ class ConnectorTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client\Client'));
+                 ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -114,7 +117,7 @@ class ConnectorTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client\Client'));
+                 ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -154,13 +157,57 @@ class ConnectorTest extends TestCase
     public function testConnectTimeout()
     {
         $promise = $this->connector->connect('8.8.8.8', 8080, ['timeout' => 1]);
-        
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
-        
+            ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+
         $promise->done($this->createCallback(0), $callback);
-        
+
         Loop::run();
+    }
+
+    /**
+     * @medium
+     * @depends testConnect
+     */
+    public function testConnectWithCAFile()
+    {
+        $path = tempnam(sys_get_temp_dir(), 'Icicle');
+
+        $server = $this->createServer();
+
+        $promise = $this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+
+        fclose($server);
+
+        unlink($path);
+    }
+
+    public function testInvalidCAFile()
+    {
+        $path = '/invalid/path/to/cafile.pem';
+
+        $server = $this->createServer();
+
+        $promise = $this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->isInstanceOf('Icicle\Socket\Exception\InvalidArgumentException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::run();
+
+        fclose($server);
     }
 }
