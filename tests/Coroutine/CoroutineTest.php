@@ -32,7 +32,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -47,7 +47,7 @@ class CoroutineTest extends TestCase
     {
         $value = 1;
         
-        $generator = function() use (&$yielded, $value) {
+        $generator = function () use (&$yielded, $value) {
             $yielded = (yield Promise::resolve($value));
         };
         
@@ -55,7 +55,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -70,7 +70,7 @@ class CoroutineTest extends TestCase
     {
         $exception = new Exception();
         
-        $generator = function() use (&$yielded, $exception) {
+        $generator = function () use (&$yielded, $exception) {
             $yielded = (yield Promise::reject($exception));
         };
         
@@ -78,7 +78,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -105,7 +105,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -131,7 +131,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $child = $coroutine->then($callback, $this->createCallback(0));
         
@@ -163,7 +163,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -186,7 +186,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -215,7 +215,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -242,7 +242,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -270,7 +270,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -298,7 +298,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -329,7 +329,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -361,7 +361,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -394,7 +394,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -411,14 +411,15 @@ class CoroutineTest extends TestCase
     public function testTimeout()
     {
         $generator = function () use (&$promise) {
-            yield ($promise = new Promise(function () {})); // Yield promise that will never resolve.
+            yield ($promise = new Promise(function () {
+            })); // Yield promise that will never resolve.
         };
         
         $coroutine = new Coroutine($generator());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
         
         $timeout = $coroutine->timeout(self::TIMEOUT);
         
@@ -445,7 +446,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $delayed = $coroutine->delay(self::TIMEOUT);
         
@@ -528,13 +529,13 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(-1));
+            ->with($this->identicalTo(-1));
         
         $coroutine1->done($callback, $this->createCallback(0));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(10));
+            ->with($this->identicalTo(10));
         
         $coroutine2->done($callback, $this->createCallback(0));
         
@@ -552,7 +553,8 @@ class CoroutineTest extends TestCase
      */
     public function testAsyncWithNonGeneratorCallable()
     {
-        $callback = function () {};
+        $callback = function () {
+        };
         
         $async = Coroutine::async($callback);
         
@@ -569,7 +571,9 @@ class CoroutineTest extends TestCase
      */
     public function testAsyncWithCallableThrowingException()
     {
-        $callback = function () { throw new Exception(); };
+        $callback = function () {
+            throw new Exception();
+        };
         
         $async = Coroutine::async($callback);
         
@@ -592,7 +596,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(-1));
+            ->with($this->identicalTo(-1));
         
         $coroutine->done($callback, $this->createCallback(0));
         
@@ -607,7 +611,8 @@ class CoroutineTest extends TestCase
      */
     public function testCallWithNonGeneratorCallable()
     {
-        $callback = function () {};
+        $callback = function () {
+        };
         
         try {
             $coroutine = Coroutine::call($callback);
@@ -622,7 +627,9 @@ class CoroutineTest extends TestCase
      */
     public function testCallWithCallableThrowningException()
     {
-        $callback = function () { throw new Exception(); };
+        $callback = function () {
+            throw new Exception();
+        };
         
         try {
             $coroutine = Coroutine::call($callback);
@@ -787,6 +794,50 @@ class CoroutineTest extends TestCase
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testResume
+     */
+    public function testMultiplePauseAndResume()
+    {
+        $generator = function () use (&$coroutine) {
+            $coroutine->pause();
+
+            yield Coroutine::sleep(self::TIMEOUT);
+
+            $coroutine->pause();
+
+            yield Coroutine::sleep(self::TIMEOUT);
+
+            $coroutine->pause();
+
+            yield Coroutine::sleep(self::TIMEOUT);
+
+            $coroutine->pause();
+
+            yield Coroutine::sleep(self::TIMEOUT);
+
+            throw new Exception('Coroutine should not reach this point.');
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        Loop::run();
+
+        $coroutine->resume();
+
+        Loop::run();
+
+        $coroutine->resume();
+
+        Loop::run();
+
+        Loop::run();
+
+        $coroutine->resume();
+
+        $this->assertTrue($coroutine->isPending());
     }
     
     /**
