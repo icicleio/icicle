@@ -253,4 +253,71 @@ class PromiseRetryTest extends TestCase
 
         Loop::run();
     }
+
+    public function testInitialPromiseCancelledOnCancellation()
+    {
+        $delay = 0.1;
+
+        $exception = new Exception();
+
+        $promise = Promise::resolve()->delay($delay * 2);
+
+        $promisor = function () use ($promise) {
+            return $promise;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise = Promise::retry($promisor, $this->createCallback(0));
+        Loop::timer($delay, [$promise, 'cancel'], $exception);
+
+        Loop::run();
+    }
+
+    /**
+     * @depends testInitialPromiseCancelledOnCancellation
+     */
+    public function testPromiseCancelledOnCancellationAfterRejection()
+    {
+        $delay = 0.1;
+
+        $exception = new Exception();
+        $reason = new Exception();
+
+        $promise = Promise::resolve()->delay($delay * 2);
+
+        $promisor = function () use ($promise, $reason) {
+            static $initial = true;
+            if ($initial) {
+                $initial = false;
+                return Promise::reject($reason);
+            } else {
+                return $promise;
+            }
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($reason));
+
+        $onRejected = function (Exception $exception) use ($callback) {
+            $callback($exception);
+            return true;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise = Promise::retry($promisor, $onRejected);
+        Loop::timer($delay, [$promise, 'cancel'], $exception);
+
+        Loop::run();
+    }
 }

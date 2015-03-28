@@ -197,4 +197,64 @@ class PromiseIterateTest extends TestCase
 
         Loop::run();
     }
+
+    public function testInnerPromiseCancelledOnCancellation()
+    {
+        $delay = 0.1;
+
+        $exception = new Exception();
+
+        $predicate = function ($value) {
+            static $count = 2;
+            return 0 !== --$count;
+        };
+
+        $promise = Promise::resolve()->delay($delay * 2);
+
+        $worker = function () use ($promise) {
+            return $promise;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise = Promise::iterate($worker, $predicate);
+        Loop::timer($delay, [$promise, 'cancel'], $exception);
+
+        Loop::run();
+    }
+
+    /**
+     * @depends testInnerPromiseCancelledOnCancellation
+     */
+    public function testIterationStoppedOnCancelledWithFulfilledInnerPromise()
+    {
+        $delay = 0.1;
+
+        $exception = new Exception();
+
+        $predicate = function () {
+            return true;
+        };
+
+        $promise = Promise::resolve();
+
+        $worker = function () use ($promise) {
+            return $promise;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+                 ->with($this->identicalTo($exception));
+
+        $promise = Promise::iterate($worker, $predicate);
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::timer($delay, [$promise, 'cancel'], $exception);
+
+        Loop::run();
+    }
 }

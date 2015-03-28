@@ -685,8 +685,8 @@ class Promise implements PromiseInterface
      * cleared before each call to $worker to avoid filling the call stack. If $worker returns a promise, iteration
      * waits for the returned promise to be resolved.
      *
-     * @param   callable<mixed (mixed $value) $worker Called with the previous return value on each iteration.
-     * @param   callable<bool (mixed $value) $predicate Return false to stop iteration and fulfill promise.
+     * @param   callable<mixed (mixed $value) $worker> Called with the previous return value on each iteration.
+     * @param   callable<bool (mixed $value) $predicate> Return false to stop iteration and fulfill promise.
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return  \Icicle\Promise\PromiseInterface
@@ -695,21 +695,32 @@ class Promise implements PromiseInterface
      */
     public static function iterate(callable $worker, callable $predicate, $seed = null)
     {
-        return new static(function ($resolve, $reject) use ($worker, $predicate, $seed) {
-            $callback = function ($value) use (&$callback, $worker, $predicate, $resolve, $reject) {
-                try {
-                    if (!$predicate($value)) { // Resolve promise if $predicate returns true.
-                        $resolve($value);
-                    } else {
-                        static::resolve($worker($value))->done($callback, $reject);
+        return $result = new static(
+            function ($resolve, $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
+                $callback = function ($value) use (
+                    &$callback, &$result, &$promise, $worker, $predicate, $resolve, $reject
+                ) {
+                    if ($result->isPending()) {
+                        try {
+                            if (!$predicate($value)) { // Resolve promise if $predicate returns true.
+                                $resolve($value);
+                            } else {
+                                $promise = static::resolve($worker($value));
+                                $promise->done($callback, $reject);
+                            }
+                        } catch (Exception $exception) {
+                            $reject($exception);
+                        }
                     }
-                } catch (Exception $exception) {
-                    $reject($exception);
-                }
-            };
-            
-            static::resolve($seed)->done($callback, $reject); // Start iteration with $seed.
-        });
+                };
+
+                $promise = static::resolve($seed);
+                $promise->done($callback, $reject); // Start iteration with $seed.
+            },
+            function (Exception $exception) use (&$promise) {
+                $promise->cancel($exception);
+            }
+        );
     }
     
     /**
@@ -720,7 +731,7 @@ class Promise implements PromiseInterface
      *
      * @param   callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
      *          Should return a promise, but can return any type of value (will be made into a promise using resolve()).
-     * @param   callable<bool (Exception $exception) $onRejected This function is called if the promise returned by
+     * @param   callable<bool (Exception $exception) $onRejected> This function is called if the promise returned by
      *          $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *          operation.
      *
@@ -730,20 +741,31 @@ class Promise implements PromiseInterface
      */
     public static function retry(callable $promisor, callable $onRejected)
     {
-        return new static(function ($resolve, $reject) use ($promisor, $onRejected) {
-            $callback = function (Exception $exception) use (&$callback, $promisor, $onRejected, $resolve, $reject) {
-                try {
-                    if (!$onRejected($exception)) { // Reject promise if $onRejected returns true.
-                        $reject($exception);
-                    } else {
-                        static::resolve($promisor())->done($resolve, $callback);
+        return $result = new static(
+            function ($resolve, $reject) use (&$result, &$promise, $promisor, $onRejected) {
+                $callback = function (Exception $exception) use (
+                    &$callback, &$result, &$promise, $promisor, $onRejected, $resolve, $reject
+                ) {
+                    if ($result->isPending()) {
+                        try {
+                            if (!$onRejected($exception)) { // Reject promise if $onRejected returns true.
+                                $reject($exception);
+                            } else {
+                                $promise = static::resolve($promisor());
+                                $promise->done($resolve, $callback);
+                            }
+                        } catch (Exception $exception) {
+                            $reject($exception);
+                        }
                     }
-                } catch (Exception $exception) {
-                    $reject($exception);
-                }
-            };
-            
-            static::resolve($promisor())->done($resolve, $callback);
-        });
+                };
+
+                $promise = static::resolve($promisor());
+                $promise->done($resolve, $callback);
+            },
+            function (Exception $exception) use (&$promise) {
+                $promise->cancel($exception);
+            }
+        );
     }
 }
