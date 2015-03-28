@@ -1084,7 +1084,7 @@ trait ReadableStreamTestTrait
         
         $mock->method('isWritable')
              ->will($this->returnValue(false));
-        
+
         $promise = $readable->pipeTo($mock, '!');
         
         $callback = $this->createCallback(1);
@@ -1112,8 +1112,15 @@ trait ReadableStreamTestTrait
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
         
         $mock->method('isWritable')
-             ->will($this->returnValue(true));
-        
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+             ->method('write')
+             ->will($this->returnCallback(function ($data) use ($offset) {
+                 $this->assertSame(substr(StreamTest::WRITE_STRING, 0, $offset + 1), $data);
+                 return Promise::resolve(strlen($data));
+             }));
+
         $promise = $readable->pipeTo($mock, $string);
         
         $callback = $this->createCallback(1);

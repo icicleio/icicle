@@ -244,55 +244,45 @@ class Stream implements DuplexStreamInterface
         }
 
         $byte = $this->parseByte($byte);
-        
-        $result = new Promise(
-            function ($resolve, $reject) use (&$promise, $stream, $byte, $length) {
-                $handler = function ($data) use (&$handler, &$promise, &$length, $stream, $byte, $resolve, $reject) {
-                    static $bytes = 0;
-                    $count = strlen($data);
-                    $bytes += $count;
-                    
-                    $promise = $stream->write($data);
-                    
-                    if (null !== $byte && $data[$count - 1] === $byte) {
-                        $resolve($bytes);
-                        return;
+
+        $promise = Promise::iterate(
+            function ($data) use (&$length, $stream, $byte) {
+                static $bytes = 0;
+                $count = strlen($data);
+                $bytes += $count;
+
+                $promise = $stream->write($data);
+
+                if ((null !== $byte && $data[$count - 1] === $byte) ||
+                    (null !== $length && 0 >= $length -= $count)) {
+                    return $promise->always(function () use ($bytes) {
+                        return $bytes;
+                    });
+                }
+
+                return $promise->then(
+                    function () use ($byte, $length) {
+                        return $this->readTo($byte, $length);
+                    },
+                    function () use ($bytes) {
+                        return $bytes;
                     }
-                    
-                    if (null !== $length && 0 >= $length -= $count) {
-                        $resolve($bytes);
-                        return;
-                    }
-                    
-                    $promise = $promise->then(
-                        function () use ($byte, $length) {
-                            return $this->readTo($byte, $length);
-                        },
-                        function (Exception $exception) use ($bytes, $resolve) {
-                            $resolve($bytes);
-                            throw $exception;
-                        }
-                    );
-                    
-                    $promise->done($handler, $reject);
-                };
-                
-                $promise = $this->readTo($byte, $length);
-                $promise->done($handler, $reject);
+                );
             },
-            function (Exception $exception) use (&$promise) {
-                $promise->cancel($exception);
-            }
+            function ($data) {
+                return is_string($data);
+            },
+            $this->readTo($byte, $length)
         );
-        
+
         if ($endOnClose) {
-            $result->done(null, function () use ($stream) {
+            $promise->done(null, function () use ($stream) {
                 if (!$this->isOpen()) {
                     $stream->end();
                 }
             });
         }
         
-        return $result;
+        return $promise;
     }
 }
