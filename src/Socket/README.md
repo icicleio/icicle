@@ -9,17 +9,18 @@ use Icicle\Loop\Loop;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Server\ServerFactory;
 
-$server = (new ServerFactory())->create('127.0.0.1', 60000);
+$server = (new ServerFactory())->create('localhost', 60000);
 
 $handler = function (ClientInterface $client) use (&$handler, &$error, $server) {
     $server->accept()->done($handler, $error);
     
-    $client->write("HTTP/1.1 200 OK\r\n");
-    $client->write("Content-Length: 12\r\n");
-    $client->write("Connection: close\r\n");
-    $client->write("\r\n");
+    $response  = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Length: 12\r\n";
+    $response .= "Connection: close\r\n";
+    $response .= "\r\n";
+    $response .= "Hello world!";
     
-    $client->end("Hello world!");
+    $client->end($response);
 };
 
 $error = function (Exception $e) {
@@ -31,7 +32,6 @@ $server->accept()->done($handler, $error);
 echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
 
 Loop::run();
-
 ```
 
 The example below shows the same HTTP server as above, instead implemented using a coroutine (see the [Coroutine API documentation](../Coroutine)).
@@ -43,26 +43,33 @@ use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Server\ServerInterface;
 use Icicle\Socket\Server\ServerFactory;
 
-$coroutine = Coroutine::call(function (ServerInterface $server) {
+$server = (new ServerFactory())->create('localhost', 60000);
+
+$generator = function (ServerInterface $server) {
     echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
     
-    $handler = Coroutine::async(function (ClientInterface $client) {
-        $client->write("HTTP/1.1 200 OK\r\n");
-        $client->write("Content-Length: 12\r\n");
-        $client->write("Connection: close\r\n");
-        $client->write("\r\n");
+    $generator = function (ClientInterface $client) {
+        $response  = "HTTP/1.1 200 OK\r\n";
+        $response .= "Content-Length: 12\r\n";
+        $response .= "Connection: close\r\n";
+        $response .= "\r\n";
+        $response .= "Hello world!";
         
-        yield $client->end("Hello world!");
-    });
+        yield $client->write($response);
+        
+        $client->close();
+    };
     
     try {
         while ($server->isOpen()) {
-            $handler(yield $server->accept());
+            $coroutine = new Coroutine($generator(yield $server->accept()));
         }
     } catch (Exception $e) {
         echo "Error: {$e->getMessage()}\n";
     }
-}, (new ServerFactory())->create('127.0.0.1', 60000));
+};
+
+$coroutine = new Coroutine($generator($server));
 
 Loop::run();
 ```

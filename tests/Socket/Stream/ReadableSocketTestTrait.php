@@ -59,7 +59,7 @@ trait ReadableSocketTestTrait
         
         fclose($writable->getResource()); // Close other end of pipe.
         
-        $promise = $readable->readTo("\0");
+        $promise = $readable->read(null, "\0");
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -69,7 +69,7 @@ trait ReadableSocketTestTrait
         
         Loop::run(); // Drain readable buffer.
 
-        $promise = $readable->readTo("\0");
+        $promise = $readable->read(null, "\0");
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -79,7 +79,7 @@ trait ReadableSocketTestTrait
 
         Loop::run(); // Should get an empty string.
 
-        $promise = $readable->readTo("\0");
+        $promise = $readable->read(null, "\0");
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -97,7 +97,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $readable->read(null, StreamTest::TIMEOUT);
+        $promise = $readable->read(null, null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -115,7 +115,7 @@ trait ReadableSocketTestTrait
     {
         list($readable, $writable) = $this->createStreams();
         
-        $promise = $readable->readTo("\0", null, StreamTest::TIMEOUT);
+        $promise = $readable->read(null, "\0", StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -220,7 +220,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, null, StreamTest::TIMEOUT);
+        $promise = $readable->pipe($mock, false, null, null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -258,7 +258,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, StreamTest::TIMEOUT);
+        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, null, StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -295,7 +295,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipeTo($mock, '!', false, null, StreamTest::TIMEOUT);
+        $promise = $readable->pipe($mock, false, null, '!', StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -333,7 +333,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipeTo($mock, '!', false, strlen(StreamTest::WRITE_STRING) + 1, StreamTest::TIMEOUT);
+        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, '!', StreamTest::TIMEOUT);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

@@ -82,19 +82,11 @@ trait ReadableStreamTrait
             $this->deferred = null;
         }
     }
-    
+
     /**
      * @inheritdoc
      */
-    public function read($length = null, $timeout = null)
-    {
-        return $this->readTo(null, $length, $timeout);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function readTo($byte, $length = null, $timeout = null)
+    public function read($length = null, $byte = null, $timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -126,7 +118,7 @@ trait ReadableStreamTrait
      */
     public function poll($timeout = null)
     {
-        return $this->readTo(null, 0, $timeout);
+        return $this->read(0, null, $timeout);
     }
     
     /**
@@ -136,20 +128,17 @@ trait ReadableStreamTrait
     {
         return $this->isOpen();
     }
-    
+
     /**
      * @inheritdoc
      */
-    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $timeout = null)
-    {
-        return $this->pipeTo($stream, null, $endOnClose, $length, $timeout);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function pipeTo(WritableStreamInterface $stream, $byte, $endOnClose = true, $length = null, $timeout = null)
-    {
+    public function pipe(
+        WritableStreamInterface $stream,
+        $endOnClose = true,
+        $length = null,
+        $byte = null,
+        $timeout = null
+    ) {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
         }
@@ -177,8 +166,8 @@ trait ReadableStreamTrait
                 }
 
                 return $promise->then(
-                    function () use ($byte, $length, $timeout) {
-                        return $this->readTo($byte, $length, $timeout);
+                    function () use ($length, $byte, $timeout) {
+                        return $this->read($length, $byte, $timeout);
                     },
                     function () use ($bytes) {
                         return $bytes;
@@ -188,7 +177,7 @@ trait ReadableStreamTrait
             function ($data) {
                 return is_string($data);
             },
-            $this->readTo($byte, $length, $timeout)
+            $this->read($length, $byte, $timeout)
         );
 
         if ($endOnClose) {

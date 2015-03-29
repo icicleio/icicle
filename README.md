@@ -231,12 +231,13 @@ $server = (new ServerFactory())->create('localhost', 60000);
 $handler = function (ClientInterface $client) use (&$handler, &$error, $server) {
     $server->accept()->done($handler, $error);
     
-    $client->write("HTTP/1.1 200 OK\r\n");
-    $client->write("Content-Length: 12\r\n");
-    $client->write("Connection: close\r\n");
-    $client->write("\r\n");
+    $response  = "HTTP/1.1 200 OK\r\n";
+    $response .= "Content-Length: 12\r\n";
+    $response .= "Connection: close\r\n";
+    $response .= "\r\n";
+    $response .= "Hello world!";
     
-    $client->end("Hello world!");
+    $client->end($response);
 };
 
 $error = function (Exception $e) {
@@ -265,12 +266,15 @@ $generator = function (ServerInterface $server) {
     echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
     
     $generator = function (ClientInterface $client) {
-        $client->write("HTTP/1.1 200 OK\r\n");
-        $client->write("Content-Length: 12\r\n");
-        $client->write("Connection: close\r\n");
-        $client->write("\r\n");
+        $response  = "HTTP/1.1 200 OK\r\n";
+        $response .= "Content-Length: 12\r\n";
+        $response .= "Connection: close\r\n";
+        $response .= "\r\n";
+        $response .= "Hello world!";
         
-        yield $client->end("Hello world!");
+        yield $client->write($response);
+        
+        $client->close();
     };
     
     try {

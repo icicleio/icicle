@@ -82,19 +82,10 @@ class Stream implements DuplexStreamInterface
             $this->deferred = null;
         }
     }
-    
     /**
      * @inheritdoc
      */
-    public function read($length = null)
-    {
-        return $this->readTo(null, $length);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function readTo($byte, $length = null)
+    public function read($length = null, $byte = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));
@@ -220,19 +211,11 @@ class Stream implements DuplexStreamInterface
     {
         return $this->writable;
     }
-    
+
     /**
      * @inheritdoc
      */
-    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null)
-    {
-        return $this->pipeTo($stream, null, $endOnClose, $length);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function pipeTo(WritableStreamInterface $stream, $byte, $endOnClose = true, $length = null)
+    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $byte = null)
     {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
@@ -261,8 +244,8 @@ class Stream implements DuplexStreamInterface
                 }
 
                 return $promise->then(
-                    function () use ($byte, $length) {
-                        return $this->readTo($byte, $length);
+                    function () use ($length, $byte) {
+                        return $this->read($length, $byte);
                     },
                     function () use ($bytes) {
                         return $bytes;
@@ -272,7 +255,7 @@ class Stream implements DuplexStreamInterface
             function ($data) {
                 return is_string($data);
             },
-            $this->readTo($byte, $length)
+            $this->read($length, $byte)
         );
 
         if ($endOnClose) {
