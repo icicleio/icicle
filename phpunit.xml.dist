@@ -14,9 +14,6 @@
     strict="true"
 >
     <testsuites>
-        <testsuite name="Icicle EventEmitter">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/EventEmitter</directory>
-        </testsuite>
         <testsuite name="Icicle Loop">
             <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Loop</directory>
         </testsuite>
