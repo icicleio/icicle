@@ -17,7 +17,7 @@ $generator = function (ServerInterface $server) {
             $data = (yield $client->read());
             
             $microtime = sprintf("%0.4f", microtime(true));
-            $message = "Received the following request ({$microtime}):\n\n{$data}";
+            $message = "Received the following request ({$microtime}):\r\n\r\n{$data}";
             $length = strlen($message);
             
             $data  = "HTTP/1.1 200 OK\r\n";

@@ -2,7 +2,7 @@
 <phpdox xmlns="http://phpdox.net/config">
     <project name="Icicle" source="src" workdir="build/phpdox">
         <collector backend="parser" publiconly="false">
-            <include mask="*.php" />
+            <include mask="*.php"/>
         </collector>
         <generator output="build">
             <enrich base="${basedir}/build/logs">
@@ -10,7 +10,7 @@
                 <source type="phpunit"/>
             </enrich>
             <build engine="html" enabled="true" output="api">
-                <file extension="html" />
+                <file extension="html"/>
             </build>
         </generator>
     </project>

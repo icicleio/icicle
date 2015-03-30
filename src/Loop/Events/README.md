@@ -4,23 +4,23 @@ When an event is scheduled in the event loop through the methods `poll()`, `awai
 
 ## Documentation
 
-- [SocketEvent](#socketevent) - Used for polling stream sockets for the availability of data or the ability to write.
+- [SocketEventInterface](#socketeventinterface) - Used for polling stream sockets for the availability of data or the ability to write.
     - [listen()](#listen) - Listens for data or the ability to write to the stream socket. 
     - [cancel()](#cancel) - Cancels listening for data or ability to write.
     - [isPending()](#ispending) - Determines if the event is pending.
     - [free()](#free) - Frees the event from the associated event loop.
     - [isFreed()](#isfreed) - Determines if the event has been freed.
     - [setCallback()](#setcallback) - Sets the callback to be executed when the event is active.
-- [Timer](#timer) - Executes a callback after a interval of time has elapsed.
-    - [cancel()](#cancel-2) - Cancels the timer.
-    - [isPending()](#ispending-2) - Determines if the timer is pending.
+- [TimerInterface](#timerinterface) - Executes a callback after a interval of time has elapsed.
+    - [cancel()](#cancel-1) - Cancels the timer.
+    - [isPending()](#ispending-1) - Determines if the timer is pending.
     - [getInterval()](#getinterval) - Gets the interval of the timer.
     - [isPeriodic()](#isperiodic) - Determines if the timer is periodic.
     - [unreference()](#unreference) - Removes the reference the timer from the event loop.
     - [reference()](#reference) - References the timer in the event loop if it was previously unreferenced.
-- [Immediate](#immediate) - Executes a callback once no other events are active in the loop.
-    - [cancel()](#cancel-3) - Cancels the immediate.
-    - [isPending()](#ispending-3) - Determines if the immediate is pending.
+- [ImmediateInterface](#immediateinterface) - Executes a callback once no other events are active in the loop.
+    - [cancel()](#cancel-2) - Cancels the immediate.
+    - [isPending()](#ispending-2) - Determines if the immediate is pending.
 
 #### Function prototypes
 
@@ -42,7 +42,7 @@ To document the expected prototype of a callback function used as method argumen
 callable<ReturnType (ArgumentType $arg1, ArgumentType $arg2)>
 ```
 
-## SocketEvent
+## SocketEventInterface
 
 A socket event is returned from a poll or await call to the event loop. A poll becomes active when a socket has data available to read, has closed (EOF), or if the timeout provided to `listen()` has expired. An await becomes active when a socket has space in the buffer available to write or if the timeout provided to `listen()` has expired. The callback function associated with the event should have the prototype `callable<void (resource $socket, bool $expired)>`. This function is called with `$expired` set to `false` if there is data available to read on `$socket`, or with `$expired` set to `true` if waiting for data timed out.
 
@@ -108,7 +108,7 @@ void $socketEventInterface->setCallback(callable<void (resource $socket, bool $e
 
 Sets the callback to be called when the event becomes active.
 
-## Timer
+## TimerInterface
 
 Timers are used to execute a callback function after an amount of time has elapsed. Timers may be one-time, executing the callback only once, or periodic, executing the callback many times separated by an interval.
 
@@ -163,15 +163,15 @@ void $timerInterface->unreference()
 
 Removes the reference to the timer from the event loop. That is, if this timer is the only pending event in the loop, the loop will exit (return from `Icicle\Loop\LoopInterface->run()`).
 
-#### unreference()
+#### reference()
 
 ```php
-void $timerInterface->unreference()
+void $timerInterface->reference()
 ```
 
 Adds a reference to the timer in the event loop. If this timer is still pending, the loop will not exit (return from `Icicle\Loop\LoopInterface->run()`). Note when a timer is created, it is referenced by default. This method only need be called if `unreference()` was previously called on the timer.
 
-## Immediate
+## ImmediateInterface
 
 An immediate schedules a callback to be called when there are no active events in the loop, only executing one immediate per turn of the event loop.
 
@@ -181,7 +181,7 @@ Immediates implement `Icicle\Loop\Events\ImmediateInterface` and should be creat
 
 ```php
 use Icicle\Loop\Loop;
-$immediate = Loop::immmediate(function () {
+$immediate = Loop::immediate(function () {
     // Function executed when no events are active in the event loop.
 });
 ```

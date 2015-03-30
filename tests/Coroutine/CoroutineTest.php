@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Tests\Promise;
+namespace Icicle\Tests\Coroutine;
 
 use Exception;
 use Icicle\Coroutine\Coroutine;

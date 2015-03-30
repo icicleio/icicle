@@ -11,7 +11,7 @@ $stream = new Stream();
 $stream
     ->write("This is just a test.\nThis will not be read.")
     ->then(function () use ($stream) {
-        return $stream->readTo("\n");
+        return $stream->read(null, "\n");
     })
     ->then(function ($data) {
         echo $data; // Echos "This is just a test."

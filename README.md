@@ -7,22 +7,30 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.2.0-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
 
-#### Library Constructs
+#### Library Components
 
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
 - [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or await for space to write.
 - [Streams](#streams): Common interface for reading and writing data.
 - [Sockets](#sockets): Implement asynchronous network and file operations.
-- [Event Emitters](#event-emitters): Allows objects to emit events that execute a set of registered callbacks.
+
+#### Available Components
+
+- [DNS](//github.com/icicleio/Dns): Asynchronous DNS resolver, connector, and server (under development).
+
+#### Inherited Components
+
+- [Event Emitters](//github.com/icicleio/EventEmitter): Allows objects to emit events that execute a set of registered callbacks.
 
 ##### Requirements
 
-- PHP 5.4+ (PHP 5.5+ required for [coroutines](#coroutines)).
+- PHP 5.5+
 
 ##### Installation
 
@@ -31,7 +39,7 @@ The recommended way to install Icicle is with the [Composer](http://getcomposer.
 Run the following command to use Icicle in your project: 
 
 ```bash
-composer require icicleio/icicle 0.1.*
+composer require icicleio/icicle 0.2.*
 ```
 
 You can also manually edit `composer.json` to add Icicle as a project requirement.
@@ -40,7 +48,7 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 // composer.json
 {
     "require": {
-        "icicleio/icicle": "0.1.*"
+        "icicleio/icicle": "0.2.*"
     }
 }
 ```
@@ -292,16 +300,6 @@ Loop::run();
 ```
 
 **[Sockets API documentation](//github.com/icicleio/Icicle/tree/master/src/Socket)**
-
-## Event Emitters
-
-Event emitters can create a set of events identified by an integer or string to which other code can register callbacks that are invoked when the event occurs. Each event emitter should implement `Icicle\EventEmitter\EventEmitterInterface`, which can be done easily by using `Icicle\EventEmitter\EventEmitterTrait` in the class definition.
-
-This implementation differs from other event emitter libraries by ensuring that *a callback can only be registered once on an event identifier*. An attempt to register a previously registered callback is a no-op.
-
-Event identifiers are also strictly enforced to aid in debugging. *Event emitter objects must initialize event identifiers of events they wish to emit.* If an attempt to register a callback is made on a non-existent event, a `Icicle\EventEmitter\Exception\InvalidEventException` is thrown.
-
-**[Event Emitter API documentation](//github.com/icicleio/Icicle/tree/master/src/EventEmitter)**
 
 ## Example
 
