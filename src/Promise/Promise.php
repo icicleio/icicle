@@ -441,7 +441,26 @@ class Promise implements PromiseInterface
             });
         };
     }
-    
+
+    /**
+     * Adapts any object with a then(callable $onFulfilled, callable $onRejected) method to a promise usable by
+     * components depending on promises implementing PromiseInterface.
+     *
+     * @param   object $thenable Object with a then() method.
+     *
+     * @return  PromiseInterface Promise resolved by the $thenable object.
+     */
+    public static function adapt($thenable)
+    {
+        if (!is_object($thenable) || !method_exists($thenable, 'then')) {
+            return Promise::reject(new TypeException('Must provide an object with a then() method.'));
+        }
+
+        return new static(function ($resolve, $reject) use ($thenable) {
+            $thenable->then($resolve, $reject);
+        });
+    }
+
     /**
      * Returns a promise that is resolved when all promises are resolved. The returned promise will not reject by itself
      * (only if cancelled). Returned promise is fulfilled with an array of resolved promises, with keys identical and
@@ -702,7 +721,7 @@ class Promise implements PromiseInterface
                 ) {
                     if ($result->isPending()) {
                         try {
-                            if (!$predicate($value)) { // Resolve promise if $predicate returns true.
+                            if (!$predicate($value)) { // Resolve promise if $predicate returns false.
                                 $resolve($value);
                             } else {
                                 $promise = static::resolve($worker($value));
@@ -748,7 +767,7 @@ class Promise implements PromiseInterface
                 ) {
                     if ($result->isPending()) {
                         try {
-                            if (!$onRejected($exception)) { // Reject promise if $onRejected returns true.
+                            if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
                                 $reject($exception);
                             } else {
                                 $promise = static::resolve($promisor());
