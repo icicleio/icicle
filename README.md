@@ -7,7 +7,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.2.0-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.2.1-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -23,6 +23,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 #### Available Components
 
 - [DNS](//github.com/icicleio/Dns): Asynchronous DNS resolver, connector, and server (under development).
+- [React Adaptor](//github.com/icicleio/ReactAdaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
 #### Inherited Components
 
@@ -39,7 +40,7 @@ The recommended way to install Icicle is with the [Composer](http://getcomposer.
 Run the following command to use Icicle in your project: 
 
 ```bash
-composer require icicleio/icicle 0.2.*
+composer require icicleio/icicle
 ```
 
 You can also manually edit `composer.json` to add Icicle as a project requirement.
@@ -52,10 +53,6 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
     }
 }
 ```
-
-##### Download
-
-Icicle may also be [downloaded as a zip package](https://icicle.io/files/icicle-latest.zip). It is compatible with any [PSR-4](http://www.php-fig.org/psr/psr-4/) compliant autoloader when the `Icicle` namespace is loaded from the `src` directory.
 
 ##### Suggested
 

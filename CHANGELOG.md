@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.2.1
+
+- Added `Promise::adapt()` method to create promises from any object with a `then(callable $onFulfilled, callable $onRejected)` method.
+
+---
+
 ### v0.2.0
 
 - Increased minimum PHP version to 5.5 so external components can be fully compatible with Icicle and make use of Coroutines. This will avoid compatibility confusion and allow for faster development of additional components.
