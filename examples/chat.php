@@ -19,21 +19,25 @@ $coroutine = Coroutine::call(function (ServerInterface $server) {
         $name = $client->getRemoteAddress() . ':' . $client->getRemotePort();
         
         try {
+            foreach ($clients as $stream) {
+                if ($client !== $stream) {
+                    $stream->write("{$name} connected.\n");
+                }
+            }
+
             yield $client->write("Welcome {$name}!\n");
             
             while ($client->isReadable()) {
                 $data = trim(yield $client->read());
                 
-                if ("exit" === $data) {
+                if ("/exit" === $data) {
                     yield $client->end("Goodbye!\n");
-                    $message = "{$name} disconnected.\n";
-                } else {
+                } elseif ('' !== $data) {
                     $message = "{$name}: {$data}\n";
-                }
-
-                foreach ($clients as $stream) {
-                    if ($client !== $stream) {
-                        $stream->write($message);
+                    foreach ($clients as $stream) {
+                        if ($client !== $stream) {
+                            $stream->write($message);
+                        }
                     }
                 }
             }
@@ -41,6 +45,9 @@ $coroutine = Coroutine::call(function (ServerInterface $server) {
             $client->close($exception);
         } finally {
             $clients->detach($client);
+            foreach ($clients as $stream) {
+                $stream->write("{$name} disconnected.\n");
+            }
         }
     });
     
@@ -50,3 +57,4 @@ $coroutine = Coroutine::call(function (ServerInterface $server) {
 }, (new ServerFactory())->create('127.0.0.1', 60000));
 
 Loop::run();
+
