@@ -3,9 +3,6 @@ set -ev
 
 if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
     
-    # Install libevent library.
-    sudo apt-get install -y libevent-dev
-    
     # Install event PHP extension.
     curl http://pecl.php.net/get/event | tar -xz
     pushd event-*
