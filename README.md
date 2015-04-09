@@ -22,7 +22,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 #### Available Components
 
-- [DNS](//github.com/icicleio/Dns): Asynchronous DNS resolver, connector, and server (under development).
+- [DNS](//github.com/icicleio/Dns): Asynchronous DNS resolver and connector.
 - [React Adaptor](//github.com/icicleio/ReactAdaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
 #### Inherited Components
@@ -78,24 +78,27 @@ The `Icicle\Promise\PromiseInterface::done(callable $onFulfilled = null, callabl
 *[More on using callbacks to interact with promises...](//github.com/icicleio/Icicle/tree/master/src/Promise#interacting-with-promises)*
 
 ```php
+use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Client\Connector;
 
-$promise1 = doAsynchronousTask(); // Function returning a promise.
+$resolver = new Resolver(new Executor('8.8.8.8'));
+
+$promise1 = $resolver->resolve('example.com'); // Method returning a promise.
 
 $promise2 = $promise1->then(
-    function ($value) { // Called if $promise1 is fulfilled.
-        if (null === $value) {
-            throw new Exception("Invalid value!"); // Rejects $promise2.
-        }
-		
-		return anotherAsynchronousTask($value); // Another function returning a promise.
+    function (array $ips) { // Called if $promise1 is fulfilled.
+        $connector = new Connector();
+		return $connector->connect($ips[0], 80); // Method function returning a promise.
 		// $promise2 will adopt the state of the promise returned above.
     }
 );
 
 $promise2->done(
-    function ($value) { // Called if $promise2 is fulfilled.
-        echo "Asynchronous task succeeded: {$value}\n";
+    function (ClientInterface $client) { // Called if $promise2 is fulfilled.
+        echo "Asynchronously connected to example.com:80\n";
     },
     function (Exception $exception) { // Called if $promise1 or $promise2 is rejected.
         echo "Asynchronous task failed: {$exception->getMessage()}\n";
@@ -105,10 +108,10 @@ $promise2->done(
 Loop::run();
 ```
 
-In the above example, the functions `doAsynchronousTask()` and `anotherAsynchronousTask()` both return promises. `$promise1` created by `doAsynchronousTask()` will either be fulfilled or rejected:
+In the example above, the `resolve` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
 
-- If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is used as a parameter to `anotherAsynchronousTask()`, which returns a new promise. The resolution of `$promise2` will then be determined by the resolution of this promise (`$promise2` will adopt the state of the promise returned by `anotherAsynchronousTask()`).
-- If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
+- If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
+- If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`
 
 *[More on promise resolution and propagation...](//github.com/icicleio/Icicle/tree/master/src/Promise#resolution-and-propagation)*
 
@@ -131,23 +134,26 @@ When a coroutine yields a [promise](#promises), execution of the coroutine is in
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-The example below uses the `Icicle\Coroutine\Coroutine::call()` method to create a `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`.
+The example below creates an `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`. (`Icicle\Dns\Connector\Connector` in the [DNS component](//github.com/icicleio/Dns) uses a coroutine structured similarly to the one below, except it attempts to connect to other IPs returned from the resolver if the first one fails.)
 
 ```php
 use Icicle\Coroutine\Coroutine;
+use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
+use Icicle\Socket\Client\Connector;
 
 $generator = function () {
     try {
-        $value = (yield doAsynchronousTask());
+        $resolver = new Resolver(new Executor('8.8.8.8'));
+        
+        $ips = (yield $resolver->resolve('example.com'));
 		
-        if (null === $value) {
-            throw new Exception("Invalid value!");
-        }
+        $connector = new Connector();
+        
+        $client = (yield $connector->connect($ips[0], 80));
 		
-		$value = (yield anotherAsynchronousTask($value));
-		
-        echo "Asynchronous task succeeded: {$value}\n";
+        echo "Asynchronously connected to example.com:80\n";
     } catch (Exception $exception) {
         echo "Asynchronous task failed: {$exception->getMessage()}\n";
     }
@@ -160,7 +166,7 @@ Loop::run();
 
 The example above does the same thing as the example section on [promises](#promises) above, but instead uses a coroutine to **structure asynchronous code like synchronous code** using a try/catch block, rather than creating and registering callback functions.
 
-A `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
+An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
 **[Coroutine API documentation](//github.com/icicleio/Icicle/tree/master/src/Coroutine)**
 
@@ -172,20 +178,20 @@ The event loop should be accessed via the static methods of the `Icicle\Loop\Loo
 
 The `Icicle\Loop\Loop::run()` method runs the event loop and will not return until the event loop is stopped or no events are pending in the loop.
 
-The following code demonstrates how functions may be scheduled to run later using the `Icicle\Loop\Loop::schedule()` method.
+The following code demonstrates how timers can be created to execute functions after a number of seconds elapses using the `Icicle\Loop\Loop::timer()` method.
 
 ```php
 use Icicle\Loop\Loop;
 
 // Note that the Loop class is a facade to an instance of Icicle\Loop\LoopInterface (see description above).
 
-Loop::schedule(function () {
+Loop::timer(1, function () { // Executed after 1 second.
 	echo "First.\n";
-	Loop::schedule(function () {
+	Loop::timer(1.5, function () { // Executed after 1.5 seconds.
 	    echo "Second.\n";
 	});
 	echo "Third.\n";
-	Loop::schedule(function () {
+	Loop::timer(0.5, function () { // Executed after 0.5 seconds.
 		echo "Fourth.\n";
 	});
 	echo "Fifth.\n";
@@ -202,8 +208,8 @@ Starting event loop.
 First.
 Third.
 Fifth.
-Second.
 Fourth.
+Second.
 ```
 
 Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon.) `Icicle\Loop\Loop::schedule()` is used throughout Icicle to ensure callbacks are executed asynchronously.

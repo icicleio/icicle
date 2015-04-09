@@ -20,13 +20,13 @@ Note that **no callbacks need to be registered** with the promises yielded in a 
     - [Coroutine Constructor](#coroutine-constructor)
     - [async()](#async) - Returns a function that returns a coroutine when called.
     - [call()](#call) - Returns a coroutine from a callable returning a `Generator`.
+- [Coroutines as Promises](#coroutines-as-promises)
 - [Cooperation](#cooperation)
 - [Controlling Execution](#controlling-execution)
     - [pause()](#pause) - Pauses the coroutine at the next `yield` statement.
     - [resume()](#resume) - Resumes execution of the coroutine.
     - [isPaused()](#ispaused) - Determines if the coroutine is paused.
     - [cancel()](#cancel) - Cancels execution of the coroutine.
-- [Coroutines as Promises](#coroutines-as-promises)
 
 #### Function prototypes
 
@@ -293,6 +293,12 @@ Coroutine Coroutine::create(callable<Generator (mixed ...$args)> $callback, mixe
 
 Similar to `Coroutine::call()`, only arguments are passed as an array instead of as a variadic function.
 
+## Coroutines as Promises
+
+`Icicle\Coroutine\Coroutine` implements `Icicle\Coroutine\CoroutineInterface`, which extends `Icicle\Promise\PromiseInterface`. Any methods available on promises are also available on coroutines and a coroutine can be treated just like any other promise.
+
+See the [Promise API documentation](../Promise) for the complete list of the methods available in `Icicle\Promise\PromiseInterface` and the other methods available for working with promises.
+
 ## Cooperation
 
 Coroutines automatically are cooperative, allowing other code to execute once the coroutine has yielded a value.
@@ -362,9 +368,3 @@ void $coroutineInterface->cancel(Exception $exception = null)
 ```
 
 Cancels execution of the coroutine. Once the coroutine reaches a `yield` statement, the given exception is thrown into the coroutine. This continues until the contained coroutine (generator) is no longer valid or the exception is thrown from the coroutine. If no exception is given, an instance of `Icicle\Coroutine\Exception\CancelledException` will be used.
-
-## Coroutines as Promises
-
-`Icicle\Coroutine\Coroutine` implements `Icicle\Coroutine\CoroutineInterface`, which extends `Icicle\Promise\PromiseInterface`. Any methods available on promises are also available on coroutines and a coroutine can be treated just like any other promise.
-
-See the [Promise API documentation](../Promise) for the complete list of the methods available in `Icicle\Promise\PromiseInterface` and the other methods available for working with promises.

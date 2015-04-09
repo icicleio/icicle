@@ -104,7 +104,7 @@ If the resolver function throws an exception, the promise is rejected with that 
 
 ##### Example
 
-The following code creates a promise that is resolved when a connection is successfully made to a server. The `connect()` method of the `Icicle\Socket\Client` class in the [Socket](../Socket) component use a similar approach to establish connections asynchronously.
+The following code creates a promise that is resolved when a connection is successfully made to a server. The `connect()` method of the `Icicle\Socket\Client\Connector` class in the [Socket](../Socket) component use a similar approach to establish connections asynchronously.
 
 ```php
 use Icicle\Loop\Loop;
@@ -612,24 +612,27 @@ In the example above, resolving the promise with `0` causes the first callback t
 ##### Another Example
 
 ```php
+use Icicle\Dns\Executor\Executor;
+use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop\Loop;
+use Icicle\Socket\Client\ClientInterface;
+use Icicle\Socket\Client\Connector;
 
-$promise1 = doAsynchronousTask(); // Function returning a promise.
+$resolver = new Resolver(new Executor('8.8.8.8'));
+
+$promise1 = $resolver->resolve('example.com'); // Method returning a promise.
 
 $promise2 = $promise1->then(
-    function ($value) { // Called if $promise1 is fulfilled.
-        if (null === $value) {
-            throw new Exception("Invalid value!"); // Rejects $promise2.
-        }
-		
-		return anotherAsynchronousTask($value); // Another function returning a promise.
+    function (array $ips) { // Called if $promise1 is fulfilled.
+        $connector = new Connector();
+		return $connector->connect($ips[0], 80); // Method function returning a promise.
 		// $promise2 will adopt the state of the promise returned above.
     }
 );
 
 $promise2->done(
-    function ($value) { // Called if $promise2 is fulfilled.
-        echo "Asynchronous task succeeded: {$value}\n";
+    function (ClientInterface $client) { // Called if $promise2 is fulfilled.
+        echo "Asynchronously connected to example.com:80\n";
     },
     function (Exception $exception) { // Called if $promise1 or $promise2 is rejected.
         echo "Asynchronous task failed: {$exception->getMessage()}\n";
@@ -639,10 +642,10 @@ $promise2->done(
 Loop::run();
 ```
 
-In the above example, the functions `doAsynchronousTask()` and `anotherAsynchronousTask()` both return promises. `$promise1` created by `doAsynchronousTask()` will either be fulfilled or rejected:
+In the example above, the `resolve` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
 
-- If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed. If `$value` (the resolution value of `$promise1`) is `null`, `$promise2` is rejected with the exception thrown in the callback. Otherwise `$value` is used as a parameter to `anotherAsynchronousTask()`, which returns a new promise. The resolution of `$promise2` will then be determined by the resolution of this promise (`$promise2` will adopt the state of the promise returned by `anotherAsynchronousTask()`).
-- If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`.
+- If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
+- If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`
 
 ### Error Handling
 

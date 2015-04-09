@@ -407,3 +407,7 @@ bool $immediate->isPending()
 ```
 
 Determines if the immediate is pending and will be executed in the future.
+
+## Throwing Exceptions
+
+Functions scheduled using `Loop::schedule()` or callback functions used for timers, immediates, and socket events should not throw exceptions. If one of these functions throws an exception, it will be thrown from the `Loop::run()` method. These are referred to as *uncatchable exceptions* since there is no way to catch the thrown exception within the event loop. If an exception can be thrown from code within a callback, that code should be surrounded by a try/catch block and the exception handled within the callback.

@@ -4,7 +4,7 @@ set -ev
 if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
     
     # Install event PHP extension.
-    curl https://pecl.php.net/get/event | tar -xz
+    curl -LS https://pecl.php.net/get/event | tar -xz
     pushd event-*
     phpize
     ./configure
@@ -14,7 +14,7 @@ if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
     echo "extension=event.so" >> "$(php -r 'echo php_ini_loaded_file();')"
     
     # Install libevent PHP extension.
-    curl https://pecl.php.net/get/libevent | tar -xz
+    curl -LS https://pecl.php.net/get/libevent | tar -xz
     pushd libevent-*
     phpize
     ./configure
