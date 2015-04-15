@@ -76,23 +76,21 @@ trait PipeTrait
                 $count = strlen($data);
                 $bytes += $count;
 
-                $promise = $stream->write($data);
+                $promise = $stream->write($data, $timeout);
 
                 if ((null !== $byte && $data[$count - 1] === $byte) ||
                     (null !== $length && 0 >= $length -= $count)) {
-                    return $promise->always(function () use ($bytes) {
+                    return $promise->then(function () use ($bytes) {
                         return $bytes;
                     });
                 }
 
-                return $promise->then(
-                    function () use ($length, $byte, $timeout) {
-                        return $this->read($length, $byte, $timeout);
-                    },
-                    function () use ($bytes) {
+                return $promise->then(function () use ($stream, $bytes, $length, $byte, $timeout) {
+                    if (!$stream->isWritable()) {
                         return $bytes;
                     }
-                );
+                    return $this->read($length, $byte, $timeout);
+                });
             },
             function ($data) {
                 return is_string($data);

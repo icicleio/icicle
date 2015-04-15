@@ -728,19 +728,16 @@ trait ReadableStreamTestTrait
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
         
         $mock->method('isWritable')
-             ->will($this->returnValue(true));
+             ->will($this->returnCallback(function () {
+                 static $count = 0;
+                 return 3 >= ++$count;
+             }));
         
         $mock->expects($this->exactly(3))
              ->method('write')
              ->will($this->returnCallback(function ($data) {
-                 static $count = 0;
-                 ++$count;
                  $this->assertSame(StreamTest::WRITE_STRING, $data);
-                 if (3 > $count) {
-                     return Promise::resolve(strlen($data));
-                 } else {
-                     return Promise::reject(new Exception());
-                 }
+                 return Promise::resolve(strlen($data));
              }));
         
         $promise = $readable->pipe($mock);
@@ -757,7 +754,8 @@ trait ReadableStreamTestTrait
         $writable->write(StreamTest::WRITE_STRING);
         
         Loop::tick();
-        
+
+        $this->assertFalse($promise->isPending());
         $this->assertTrue($promise->isFulfilled());
         $this->assertSame(strlen(StreamTest::WRITE_STRING) * 3, $promise->getResult());
     }

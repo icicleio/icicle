@@ -7,16 +7,20 @@ use Icicle\Tests\TestCase;
 
 class StreamTest extends TestCase
 {
-    use ReadableStreamTestTrait, WritableStreamTestTrait;
+    use ReadableStreamTestTrait, WritableStreamTestTrait, WritableBufferedStreamTestTrait;
     
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
+    const CHUNK_SIZE = 8192;
+    const HWM = 16384;
     
     /**
-     * @return  [ReadableStreamInterface, WritableStreamInterface]
+     * @param   int|null $hwm
+     *
+     * @return  Stream[] Same stream instance for readable and writable.
      */
-    public function createStreams()
+    public function createStreams($hwm = null)
     {
-        $stream = new Stream();
+        $stream = new Stream($hwm);
         
         return [$stream, $stream];
     }
