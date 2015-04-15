@@ -91,7 +91,7 @@ $promise1 = $resolver->resolve('example.com'); // Method returning a promise.
 $promise2 = $promise1->then(
     function (array $ips) { // Called if $promise1 is fulfilled.
         $connector = new Connector();
-		return $connector->connect($ips[0], 80); // Method function returning a promise.
+		return $connector->connect($ips[0], 80); // Method returning a promise.
 		// $promise2 will adopt the state of the promise returned above.
     }
 );
@@ -108,7 +108,7 @@ $promise2->done(
 Loop::run();
 ```
 
-In the example above, the `resolve` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
+In the example above, the `resolve()` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
 
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`

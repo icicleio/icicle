@@ -216,7 +216,7 @@ Option | Type | Description
 
 See the [ReadableStreamInterface API documentation](../Stream#readablestreaminterface) for more information on how readable streams are used.
 
-The methods `read()`, `readTo()`, `poll()`, `pipe()`, and `pipeTo()` each accept an optional parameter `float|null $timeout = null` as the last parameter of the method. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket.
+`Icicle\Socket\Stream\ReadableStream` also implements `Icicle\Socket\Stream\ReadableSocketInterface`, which adds an optional parameter `float|null $timeout = null` as the last parameter to the methods `read()`, `poll()`, and `pipe()`. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket within the number of seconds given.
 
 When the other end of the connection is closed and a read is pending, that read will be fulfilled with an empty string. Subsequent reads will then reject with an instance of `Icicle\Stream\Exception\UnreadableException` and `isReadable()` will return `false`.
 
@@ -234,7 +234,7 @@ Creates a readable stream from the given stream socket resource.
 
 See the [WritableStreaminterface API documentation](../Stream#writablestreaminterface) for more information on how writable streams are used.
 
-The methods `write()`, `await()`, and `end()` each accept an optional parameter `float|null $timeout = null` as the last parameter of the method. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket.
+`Icicle\Socket\Stream\WritableStream` also implements `Icicle\Socket\Stream\WritableSocketInterface`, which adds an optional parameter `float|null $timeout = null` as the last parameter to the methods `write()`, `await()`, and `end()`. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket within the number of seconds given.
 
 #### WritableStream Constructor
 
@@ -246,11 +246,10 @@ Creates a writable stream from the given stream socket resource.
 
 ## DuplexStream
 
-`Icicle\Socket\Stream\DuplexStream` implements `Icicle\Stream\DuplexStreamInterface`, making it both a readable stream and a writable stream, and allowing it to interoperate between other classes implementing one of the stream interfaces. 
+`Icicle\Socket\Stream\DuplexStream` implements `Icicle\Stream\DuplexStreamInterface`, making it both a readable stream and a writable stream. It also implements `Icicle\Socket\Stream\DuplexSocketInterface`, adding an optional parameter `float|null $timeout = null` to the stream methods as described in the sections above on [ReadableStream](#readablestream) and [WritableStream](#writablestream).
 
-See the [ReadableStreamInterface API documentation](../Stream#readablestreaminterface) and [WritableStreaminterface API documentation](../Stream#writablestreaminterface) for more information on how duplex streams are used.
+See the [ReadableStreamInterface API documentation](../Stream#readablestreaminterface) and [WritableStreamInterface API documentation](../Stream#writablestreaminterface) for more information on how duplex streams are used.
 
-The methods `read()`, `readTo()`, `poll()`, `pipe()`, `pipeTo()`, `write()`, `await()`, and `end()` each accept an optional parameter `float|null $timeout = null` as the last parameter of the method. If this parameter is not `null`, the promise returned by these methods will be rejected with `Icicle\Socket\Exception\TimeoutException` if no data is received on the socket.
 
 #### DuplexStream Constructor
 
@@ -266,23 +265,23 @@ Creates a duplex stream from the given stream socket resource.
 
 The class extends `Icicle\Socket\Stream\DuplexStream`, so it inherits all the readable and writable stream methods as well as adding those below.
 
----
-
 #### Client Constructor
 
 ```php
 $client = new Client(resource $socket)
 ```
 
+---
+
 Creates a client object from the given stream socket resource.
 
 #### enableCrypto()
 
 ```php
-PromiseInterface $clientInterface->enableCrypto($method = STREAM_CRYPTO_METHOD_TLS_SERVER)
+PromiseInterface $clientInterface->enableCrypto(int $method, float|null $timeout = null)
 ```
 
-Enables encryption on the socket. For objects created from `Icicle\Socket\Server::accept()`, a PEM file must have been provided when creating the server. Use the `STREAM_CRYPTO_METHOD_*_SERVER` constants when enabling crypto on remove clients (those returned from `accept()`) and the `STREAM_CRYPTO_METHOD_*_CLIENT` constants when enabling crypto on a local client connection (those made using `connect()`).
+Enables encryption on the socket. For objects created from `Icicle\Socket\Server\Server::accept()`, a PEM file must have been provided when creating the server socket (see `Icicle\Socket\Server\ServerFactory`). Use the `STREAM_CRYPTO_METHOD_*_SERVER` constants when enabling crypto on remote clients (e.g., created by `Icicle\Socket\Server\ServerInterface::accept()`) and the `STREAM_CRYPTO_METHOD_*_CLIENT` constants when enabling crypto on a local client connection (e.g., created by `Icicle\Socket\Client\ConnectorInterface::connect()`).
 
 ---
 
@@ -326,7 +325,7 @@ Returns the remote port.
 
 ## Connector
 
-The `Icicle\Socket\Client\Connector` class (implements `Icicle\Socket\Client\ConnectorInterface`) asynchronously connects to a remote server, returning a promise that is fulfilled with an instance of `Icicle\Socket\Client\Client` when the connection is successfully established. Note that the *host should be given as an IP address*, as DNS lookups performed by PHP are synchronous (blocking). If you wish to use hostnames (e.g., `google.com` or `api.stripe.com`), see `Icicle\Dns\Connector\Connector` in the [DNS component](//github.com/icicleio/Dns).
+The `Icicle\Socket\Client\Connector` class (implements `Icicle\Socket\Client\ConnectorInterface`) asynchronously connects to a remote server, returning a promise that is fulfilled with an instance of `Icicle\Socket\Client\Client` when the connection is successfully established. Note that the *host should be given as an IP address*, as DNS lookups performed by PHP are synchronous (blocking). If you wish to use domain names instead of IPs, see `Icicle\Dns\Connector\Connector` in the [DNS component](//github.com/icicleio/Dns).
 
 #### connect()
 
