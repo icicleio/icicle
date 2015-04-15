@@ -11,29 +11,30 @@
     convertWarningsToExceptions="true"
     processIsolation="false"
     stopOnFailure="false"
-    strict="true"
 >
     <testsuites>
         <testsuite name="Icicle Loop">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Loop</directory>
+            <directory>tests/Loop</directory>
         </testsuite>
         <testsuite name="Icicle Promise">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Promise</directory>
+            <directory>tests/Promise</directory>
         </testsuite>
         <testsuite name="Icicle Coroutine">
-            <directory phpVersion="5.5.0" phpVersionOperator=">=">tests/Coroutine</directory>
+            <directory>tests/Coroutine</directory>
         </testsuite>
         <testsuite name="Icicle Stream">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Stream</directory>
+            <directory>tests/Stream</directory>
         </testsuite>
         <testsuite name="Icicle Socket">
-            <directory phpVersion="5.4.0" phpVersionOperator=">=">tests/Socket</directory>
+            <directory>tests/Socket</directory>
         </testsuite>
     </testsuites>
     <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-        </whitelist>
+        <!-- Using a blacklist since oddly a whitelist causes tests and vendor to be included in coverage -->
+        <blacklist>
+            <directory suffix=".php">tests</directory>
+            <directory suffix=".php">vendor</directory>
+        </blacklist>
     </filter>
     <logging>
         <log type="coverage-html" target="build/coverage" title="Icicle" highlight="true"/>
