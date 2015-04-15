@@ -5,7 +5,7 @@ use Icicle\Socket\SocketInterface;
 use Icicle\Stream\ReadableStreamInterface;
 use Icicle\Stream\WritableStreamInterface;
 
-interface ReadableStreamSocketInterface extends SocketInterface, ReadableStreamInterface
+interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterface
 {
     /**
      * @param   int|null $length Max number of bytes to read. Fewer bytes may be returned. Use null to read as much data

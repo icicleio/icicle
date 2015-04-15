@@ -4,7 +4,7 @@ namespace Icicle\Socket\Stream;
 use Icicle\Socket\SocketInterface;
 use Icicle\Stream\WritableStreamInterface;
 
-interface WritableStreamSocketInterface extends SocketInterface, WritableStreamInterface
+interface WritableSocketInterface extends SocketInterface, WritableStreamInterface
 {
     /**
      * Queues data to be sent on the stream. The promise returned is fulfilled once the data has successfully been

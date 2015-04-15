@@ -5,7 +5,7 @@ use Exception;
 use Icicle\Socket\Socket;
 use Icicle\Stream\Exception\ClosedException;
 
-class ReadableStream extends Socket implements ReadableStreamSocketInterface
+class ReadableStream extends Socket implements ReadableSocketInterface
 {
     use ReadableStreamTrait;
     

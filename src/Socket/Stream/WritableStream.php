@@ -5,7 +5,7 @@ use Exception;
 use Icicle\Socket\Socket;
 use Icicle\Stream\Exception\ClosedException;
 
-class WritableStream extends Socket implements WritableStreamSocketInterface
+class WritableStream extends Socket implements WritableSocketInterface
 {
     use WritableStreamTrait;
     

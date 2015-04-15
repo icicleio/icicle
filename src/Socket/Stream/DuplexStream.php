@@ -5,7 +5,7 @@ use Exception;
 use Icicle\Socket\Socket;
 use Icicle\Stream\Exception\ClosedException;
 
-class DuplexStream extends Socket implements DuplexStreamSocketInterface
+class DuplexStream extends Socket implements DuplexSocketInterface
 {
     use ReadableStreamTrait, WritableStreamTrait {
         ReadableStreamTrait::init insteadof WritableStreamTrait;
