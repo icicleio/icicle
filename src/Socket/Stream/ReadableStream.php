@@ -4,9 +4,8 @@ namespace Icicle\Socket\Stream;
 use Exception;
 use Icicle\Socket\Socket;
 use Icicle\Stream\Exception\ClosedException;
-use Icicle\Stream\ReadableStreamInterface;
 
-class ReadableStream extends Socket implements ReadableStreamInterface
+class ReadableStream extends Socket implements ReadableStreamSocketInterface
 {
     use ReadableStreamTrait;
     

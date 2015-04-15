@@ -17,6 +17,7 @@ use Icicle\Stream\WritableStreamInterface;
 trait ReadableStreamTrait
 {
     use ParserTrait;
+    use PipeTrait;
 
     /**
      * @var \Icicle\Promise\Deferred|null
@@ -42,14 +43,7 @@ trait ReadableStreamTrait
      * @return  resource Stream socket resource.
      */
     abstract protected function getResource();
-    
-    /**
-     * Determines if the stream is still open.
-     *
-     * @return  bool
-     */
-    abstract public function isOpen();
-    
+
     /**
      * Closes the socket if it is still open.
      *
@@ -129,68 +123,6 @@ trait ReadableStreamTrait
         return $this->isOpen();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function pipe(
-        WritableStreamInterface $stream,
-        $endOnClose = true,
-        $length = null,
-        $byte = null,
-        $timeout = null
-    ) {
-        if (!$stream->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is not writable.'));
-        }
-
-        $length = $this->parseLength($length);
-        if (0 === $length) {
-            return Promise::resolve(0);
-        }
-
-        $byte = $this->parseByte($byte);
-
-        $promise = Promise::iterate(
-            function ($data) use (&$length, $stream, $byte, $timeout) {
-                static $bytes = 0;
-                $count = strlen($data);
-                $bytes += $count;
-
-                $promise = $stream->write($data, $timeout);
-
-                if ((null !== $byte && $data[$count - 1] === $byte) ||
-                    (null !== $length && 0 >= $length -= $count)) {
-                    return $promise->always(function () use ($bytes) {
-                        return $bytes;
-                    });
-                }
-
-                return $promise->then(
-                    function () use ($length, $byte, $timeout) {
-                        return $this->read($length, $byte, $timeout);
-                    },
-                    function () use ($bytes) {
-                        return $bytes;
-                    }
-                );
-            },
-            function ($data) {
-                return is_string($data);
-            },
-            $this->read($length, $byte, $timeout)
-        );
-
-        if ($endOnClose) {
-            $promise->done(null, function () use ($stream) {
-                if (!$this->isOpen()) {
-                    $stream->end();
-                }
-            });
-        }
-
-        return $promise;
-    }
-    
     /**
      * @param   resource $socket Stream socket resource.
      *
