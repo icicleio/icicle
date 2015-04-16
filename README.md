@@ -7,7 +7,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.2.1-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.2.2-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -22,6 +22,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 #### Available Components
 
+- [HTTP](//github.com/icicleio/Http): Asynchronous HTTP server and client (under development).
 - [DNS](//github.com/icicleio/Dns): Asynchronous DNS resolver and connector.
 - [React Adaptor](//github.com/icicleio/ReactAdaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
@@ -108,7 +109,7 @@ $promise2->done(
 Loop::run();
 ```
 
-In the example above, the `resolve()` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
+The example above uses the [DNS component](//github.com/icicleio/Dns) to resolve the IP address for a domain, then connect to the resolved IP address. The `resolve()` method of `$resolver` and the `connect()` method of `$connector` both return promises. `$promise1` created by `resolve()` will either be fulfilled or rejected:
 
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`
@@ -147,10 +148,12 @@ $generator = function () {
     try {
         $resolver = new Resolver(new Executor('8.8.8.8'));
         
+        // Coroutine pauses until yielded promise is fulfilled or rejected.
         $ips = (yield $resolver->resolve('example.com'));
 		
         $connector = new Connector();
         
+        // Coroutine pauses again until yielded promise is fulfilled or rejected.
         $client = (yield $connector->connect($ips[0], 80));
 		
         echo "Asynchronously connected to example.com:80\n";
@@ -164,9 +167,9 @@ $coroutine = new Coroutine($generator());
 Loop::run();
 ```
 
-The example above does the same thing as the example section on [promises](#promises) above, but instead uses a coroutine to **structure asynchronous code like synchronous code** using a try/catch block, rather than creating and registering callback functions.
+The example above does the same thing as the example in the section on [promises](#promises) above, but instead uses a coroutine to **structure asynchronous code like synchronous code**. Fulfillment values of promises are accessed through simple variable assignments and exceptions used to reject promises are caught using a try/catch block, rather than creating and registering callback functions to each promise.
 
-An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. A coroutine may then yield other coroutines, suspending execution until the yielded coroutine has resolved. If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
+An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. **A coroutine may then yield other coroutines, suspending execution of the calling coroutine until the yielded coroutine has completed execution.** If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
 **[Coroutine API documentation](//github.com/icicleio/Icicle/tree/master/src/Coroutine)**
 
@@ -211,8 +214,6 @@ Fifth.
 Fourth.
 Second.
 ```
-
-Scheduled functions will always be executed in the order scheduled. (Exact timing of the execution of scheduled functions varies and should not be relied upon.) `Icicle\Loop\Loop::schedule()` is used throughout Icicle to ensure callbacks are executed asynchronously.
 
 **[Loop API documentation](//github.com/icicleio/Icicle/tree/master/src/Loop)**
 

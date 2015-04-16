@@ -1,5 +1,13 @@
 # Changelog
 
+### v0.2.2
+
+- Stream socket classes now implement `Icicle\Socket\Stream\ReadableSocketInterface`, `Icicle\Socket\Stream\WritableSocketInterface`, and `Icicle\Socket\Stream\DuplexSocketInterface`. These interfaces extend the similarly named stream interfaces and `Icicle\Socket\SocketInterface`, explicitly defining the `$timeout` parameter that is available on stream socket classes. This change does not affect compatibility, since the streams still implement the same interfaces as before, but allow for easier type-checking or type-hinting.
+- Separated `pipe()` implementations in streams and stream sockets into traits: `Icicle\Stream\PipeTrait` and `Icicle\Socket\Stream\PipeTrait`.
+- Added high water mark (HWM) feature to `Icicle\Stream\Stream`. If a HWM is provided to the constructor, writes to the stream will return pending promises if the number of bytes in the stream buffer is greater than the HWM.
+
+---
+
 ### v0.2.1
 
 - Added `Promise::adapt()` method to create promises from any object with a `then(callable $onFulfilled, callable $onRejected)` method.

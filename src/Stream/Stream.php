@@ -73,7 +73,7 @@ class Stream implements DuplexStreamInterface
             $this->deferredQueue = new \SplQueue();
         }
     }
-    
+
     /**
      * @inheritdoc
      */

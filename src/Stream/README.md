@@ -114,7 +114,7 @@ PromiseInterface $readableStreamInterface->pipe(
 )
 ```
 
-Pipes all data read from this stream to the writable stream. If `$length` is not `null`, only `$length` bytes will be piped to the writable stream. The returned promise is fulfilled with the number of bytes piped once the writable stream closes or `$length` bytes have been piped. If `$byte` is not `null`, piping will end once `$byte` is encountered in the stream.
+Pipes all data read from this stream to the writable stream. If `$length` is not `null`, only `$length` bytes will be piped to the writable stream.  If `$byte` is not `null`, piping will end once `$byte` is encountered in the stream. The returned promise is fulfilled with the number of bytes piped once the writable stream is no longer writable, `$length` bytes have been piped, or `$byte` is encountered in the stream.
 
 Resolution | Type | Description
 :-: | :-- | :--
