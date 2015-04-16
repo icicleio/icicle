@@ -6,6 +6,11 @@ use Icicle\Loop\Loop;
 trait WritableBufferedStreamTestTrait
 {
     /**
+     * @return  \Icicle\Stream\Stream[]
+     */
+    abstract public function createStreams();
+
+    /**
      * @depends testWrite
      */
     public function testCloseAfterPendingWrite()
@@ -83,13 +88,13 @@ trait WritableBufferedStreamTestTrait
         $promise->done($callback, $this->createCallback(0));
         
         $this->assertTrue($promise->isPending());
-        
+
         while ($promise->isPending()) {
-            $readable->read(); // Pull more data out of the buffer.
+            $readable->read(StreamTest::CHUNK_SIZE); // Pull more data out of the buffer.
             Loop::tick();
         }
         
-        $this->assertFalse($writable->isOpen());
+        $this->assertFalse($writable->isWritable());
     }
     
     /**

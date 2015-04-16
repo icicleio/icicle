@@ -124,24 +124,18 @@ class Stream implements DuplexStreamInterface
         $this->byte = $this->parseByte($byte);
 
         if (!$this->buffer->isEmpty()) {
-            if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
-                if (null === $this->length || $position < $this->length) {
-                    $data = $this->buffer->remove($position + 1);
-                } else {
-                    $data = $this->buffer->remove($this->length);
-                }
-            } elseif (null === $this->length) {
-                $data = $this->buffer->drain();
-            } else {
-                $data = $this->buffer->remove($this->length);
-            }
+            $data = $this->remove();
 
-            if (null !== $this->hwm && $this->buffer->getLength() < $this->hwm) {
+            if (null !== $this->hwm && $this->buffer->getLength() <= $this->hwm) {
                 while (!$this->deferredQueue->isEmpty()) {
                     /** @var \Icicle\Promise\Deferred $deferred */
                     list($length, $deferred) = $this->deferredQueue->shift();
                     $deferred->resolve($length);
                 }
+            }
+
+            if (!$this->writable && $this->buffer->isEmpty()) {
+                $this->close(new ClosedException('The stream was ended.'));
             }
 
             return Promise::resolve($data);
@@ -152,6 +146,26 @@ class Stream implements DuplexStreamInterface
         });
 
         return $this->deferred->getPromise();
+    }
+
+    /**
+     * @return  string
+     */
+    private function remove()
+    {
+        if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
+            if (null === $this->length || $position < $this->length) {
+                return $this->buffer->remove($position + 1);
+            }
+
+            return $this->buffer->remove($this->length);
+        }
+
+        if (null === $this->length) {
+            return $this->buffer->drain();
+        }
+
+        return $this->buffer->remove($this->length);
     }
 
     /**
@@ -191,26 +205,14 @@ class Stream implements DuplexStreamInterface
      */
     protected function send($data)
     {
-        $data = (string) $data; // Single cast in case an object is passed.
         $this->buffer->push($data);
 
         if (null !== $this->deferred && !$this->buffer->isEmpty()) {
-            if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
-                if (null === $this->length || $position < $this->length) {
-                    $this->deferred->resolve($this->buffer->remove($position + 1));
-                } else {
-                    $this->deferred->resolve($this->buffer->remove($this->length));
-                }
-            } elseif (null === $this->length) {
-                $this->deferred->resolve($this->buffer->drain());
-            } else {
-                $this->deferred->resolve($this->buffer->remove($this->length));
-            }
-
+            $this->deferred->resolve($this->remove());
             $this->deferred = null;
         }
 
-        if (null !== $this->hwm && $this->buffer->getLength() >= $this->hwm) {
+        if (null !== $this->hwm && $this->buffer->getLength() > $this->hwm) {
             $deferred = new Deferred();
             $this->deferredQueue->push([strlen($data), $deferred]);
             return $deferred->getPromise();
@@ -227,11 +229,11 @@ class Stream implements DuplexStreamInterface
         $promise = $this->write($data);
         
         $this->writable = false;
-        
-        $promise->after(function () {
-            $this->close();
-        });
-        
+
+        if ($this->buffer->isEmpty()) {
+            $this->close(new ClosedException('The stream was ended.'));
+        }
+
         return $promise;
     }
     
@@ -240,7 +242,17 @@ class Stream implements DuplexStreamInterface
      */
     public function await()
     {
-        return $this->write(null);
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+        }
+
+        if (null === $this->hwm || $this->buffer->getLength() <= $this->hwm) {
+            return Promise::resolve(0);
+        }
+
+        $deferred = new Deferred();
+        $this->deferredQueue->push([0, $deferred]);
+        return $deferred->getPromise();
     }
     
     /**

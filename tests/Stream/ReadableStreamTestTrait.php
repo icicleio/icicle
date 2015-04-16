@@ -8,7 +8,7 @@ use Icicle\Promise\Promise;
 trait ReadableStreamTestTrait
 {
     /**
-     * @return  [ReadableStreamInterface, WritableStreamInterface]
+     * @return  \Icicle\Stream\Stream[]
      */
     abstract public function createStreams();
     

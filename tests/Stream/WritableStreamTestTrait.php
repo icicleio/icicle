@@ -6,7 +6,7 @@ use Icicle\Loop\Loop;
 trait WritableStreamTestTrait
 {
     /**
-     * @return  [ReadableStreamInterface, WritableStreamInterface]
+     * @return  \Icicle\Stream\Stream[]
      */
     abstract public function createStreams();
 
@@ -111,7 +111,9 @@ trait WritableStreamTestTrait
                  ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
         
         $promise->done($callback, $this->createCallback(0));
-        
+
+        $this->assertTrue($writable->isOpen());
+
         $promise = $readable->read();
         
         $callback = $this->createCallback(1);
@@ -119,11 +121,10 @@ trait WritableStreamTestTrait
                  ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
-        
-        $this->assertTrue($writable->isOpen());
-        
+
         Loop::run();
-        
+
+        $this->assertFalse($writable->isWritable());
         $this->assertFalse($writable->isOpen());
     }
     
