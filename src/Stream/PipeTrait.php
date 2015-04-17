@@ -24,6 +24,13 @@ trait PipeTrait
     abstract public function read($length = null, $byte = null);
 
     /**
+     * @see     \Icicle\Stream\ReadableStreamInterface::isReadable()
+     *
+     * @return  bool
+     */
+    abstract public function isReadable();
+
+    /**
      * @see     \Icicle\Stream\ParserTrait::parseByte()
      *
      * @param   int|null $length
@@ -78,7 +85,7 @@ trait PipeTrait
                 }
 
                 return $promise->then(function () use ($stream, $bytes, $length, $byte) {
-                    if (!$stream->isWritable()) {
+                    if (!$this->isReadable() || !$stream->isWritable()) {
                         return $bytes;
                     }
                     return $this->read($length, $byte);
