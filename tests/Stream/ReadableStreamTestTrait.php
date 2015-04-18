@@ -786,7 +786,7 @@ trait ReadableStreamTestTrait
     /**
      * @depends testPipe
      */
-    public function testPipeEndOnClose()
+    public function testPipeEndOnUnexpectedClose()
     {
         list($readable, $writable) = $this->createStreams();
         
@@ -819,11 +819,46 @@ trait ReadableStreamTestTrait
         
         Loop::run();
     }
+
+    /**
+     * @depends testPipe
+     */
+    public function testPipeEndOnNormalClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($readable) {
+                $readable->close();
+                return Promise::resolve(strlen($data));
+            }));
+
+        $mock->expects($this->once())
+            ->method('end');
+
+        $promise = $readable->pipe($mock, true);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::tick();
+    }
     
     /**
      * @depends testPipe
      */
-    public function testPipeDoNotEndOnClose()
+    public function testPipeDoNotEndOnUnexpectedClose()
     {
         list($readable, $writable) = $this->createStreams();
         
@@ -855,6 +890,41 @@ trait ReadableStreamTestTrait
         $readable->close();
         
         Loop::run();
+    }
+
+    /**
+     * @depends testPipe
+     */
+    public function testPipeDoNotEndOnNormalClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($readable) {
+                $readable->close();
+                return Promise::resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = $readable->pipe($mock, false);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::tick();
     }
     
     /**
@@ -1133,7 +1203,7 @@ trait ReadableStreamTestTrait
     /**
      * @depends testPipeTo
      */
-    public function testPipeToEndOnClose()
+    public function testPipeToEndOnUnexpectedClose()
     {
         list($readable, $writable) = $this->createStreams();
         
@@ -1166,11 +1236,46 @@ trait ReadableStreamTestTrait
         
         Loop::run();
     }
+
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToEndOnNormalClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($readable) {
+                $readable->close();
+                return Promise::resolve(strlen($data));
+            }));
+
+        $mock->expects($this->once())
+            ->method('end');
+
+        $promise = $readable->pipe($mock, true, null, '!');
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::tick();
+    }
     
     /**
      * @depends testPipeTo
      */
-    public function testPipeToDoNotEndOnClose()
+    public function testPipeToDoNotEndOnUnexpectedClose()
     {
         list($readable, $writable) = $this->createStreams();
         
@@ -1202,6 +1307,41 @@ trait ReadableStreamTestTrait
         $readable->close();
         
         Loop::run();
+    }
+
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToDoNotEndOnNormalClose()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($readable) {
+                $readable->close();
+                return Promise::resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = $readable->pipe($mock, false, null, '!');
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::tick();
     }
     
     /**

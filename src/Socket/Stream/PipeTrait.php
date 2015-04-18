@@ -106,7 +106,7 @@ trait PipeTrait
         );
 
         if ($endOnClose) {
-            $promise->done(null, function () use ($stream, $timeout) {
+            $promise->after(function () use ($stream, $timeout) {
                 if (!$this->isOpen()) {
                     $stream->end(null, $timeout);
                 }

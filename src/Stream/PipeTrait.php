@@ -98,7 +98,7 @@ trait PipeTrait
         );
 
         if ($endOnClose) {
-            $promise->done(null, function () use ($stream) {
+            $promise->after(function () use ($stream) {
                 if (!$this->isOpen()) {
                     $stream->end();
                 }
