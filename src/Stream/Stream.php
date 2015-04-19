@@ -189,27 +189,44 @@ class Stream implements DuplexStreamInterface
      */
     public function write($data)
     {
-        if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
-        }
+        return $this->send($data, false);
+    }
 
-        return $this->send($data);
+    /**
+     * @inheritdoc
+     */
+    public function end($data = null)
+    {
+        return $this->send($data, true);
     }
 
     /**
      * @param   string $data
+     * @param   bool $end
      *
      * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      */
-    protected function send($data)
+    protected function send($data, $end = false)
     {
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+        }
+
         $this->buffer->push($data);
 
         if (null !== $this->deferred && !$this->buffer->isEmpty()) {
             $this->deferred->resolve($this->remove());
             $this->deferred = null;
+        }
+
+        if ($end) {
+            $this->writable = false;
+
+            if ($this->buffer->isEmpty()) {
+                $this->close(new ClosedException('The stream was ended.'));
+            }
         }
 
         if (null !== $this->hwm && $this->buffer->getLength() > $this->hwm) {
@@ -220,23 +237,7 @@ class Stream implements DuplexStreamInterface
 
         return Promise::resolve(strlen($data));
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function end($data = null)
-    {
-        $promise = $this->write($data);
-        
-        $this->writable = false;
 
-        if ($this->buffer->isEmpty()) {
-            $this->close(new ClosedException('The stream was ended.'));
-        }
-
-        return $promise;
-    }
-    
     /**
      * @inheritdoc
      */
