@@ -717,6 +717,70 @@ trait ReadableStreamTestTrait
         
         Loop::run();
     }
+
+    /**
+     * @depends testPoll
+     */
+    public function testSimultaneousPoll()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise1 = $readable->poll();
+
+        $promise2 = $readable->poll();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(''));
+
+        $promise1->done($callback, $this->createCallback(0));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceof('Icicle\Stream\Exception\BusyException'));
+
+        $promise2->done($this->createCallback(0), $callback);
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        Loop::run();
+    }
+
+    /**
+     * @depends testPoll
+     */
+    public function testCancelPoll()
+    {
+        $exception = new Exception();
+
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->poll();
+
+        $promise->cancel($exception);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::run();
+
+        $promise = $readable->poll();
+
+        $this->assertTrue($promise->isPending());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(''));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        Loop::run();
+    }
     
     /**
      * @depends testRead

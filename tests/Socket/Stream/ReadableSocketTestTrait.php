@@ -47,6 +47,36 @@ trait ReadableSocketTestTrait
 
         Loop::run(); // Should reject with UnreadableException.
     }
+
+    /**
+     * @depends testRead
+     */
+    public function testPendingReadThenEof()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->read();
+
+        fclose($writable->getResource()); // Close other end of pipe.
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(''));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+
+        $promise = $readable->read();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop::run(); // Should reject with UnreadableException.
+    }
     
     /**
      * @depends testReadTo

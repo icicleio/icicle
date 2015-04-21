@@ -91,12 +91,38 @@ trait ReadableStreamTrait
         }
 
         $this->length = $this->parseLength($length);
+        $data = '';
+
         if (null === $this->length) {
             $this->length = SocketInterface::CHUNK_SIZE;
+        } elseif (0 === $this->length) {
+            return Promise::resolve($data);
         }
 
         $this->byte = $this->parseByte($byte);
-        
+        $resource = $this->getResource();
+
+        if (null !== $this->byte) {
+            for ($i = 0; $i < $this->length; ++$i) {
+                if (false === ($byte = fgetc($resource))) {
+                    break;
+                }
+                $data .= $byte;
+                if ($byte === $this->byte) {
+                    break;
+                }
+            }
+        } else {
+            $data = (string) fread($resource, $this->length);
+        }
+
+        if ('' !== $data) {
+            return Promise::resolve($data);
+        } elseif (feof($resource)) { // Close only if no data was read and at EOF.
+            $this->close(new EofException('Connection reset by peer or reached EOF.'));
+            return Promise::resolve($data); // Resolve with empty string on EOF.
+        }
+
         $this->poll->listen($timeout);
         
         $this->deferred = new Deferred(function () {
@@ -112,7 +138,24 @@ trait ReadableStreamTrait
      */
     public function poll($timeout = null)
     {
-        return $this->read(0, null, $timeout);
+        if (null !== $this->deferred) {
+            return Promise::reject(new BusyException('Already waiting on stream.'));
+        }
+
+        if (!$this->isReadable()) {
+            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        }
+
+        $this->length = 0;
+
+        $this->poll->listen($timeout);
+
+        $this->deferred = new Deferred(function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        });
+
+        return $this->deferred->getPromise();
     }
     
     /**
