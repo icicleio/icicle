@@ -23,21 +23,6 @@ interface ReadableStreamInterface extends StreamInterface
     public function read($length = null, $byte = null);
 
     /**
-     * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
-     *
-     * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @resolve string Empty string.
-     *
-     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
-     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
-     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
-     */
-    public function poll();
-    
-    /**
      * Determines if the stream is still readable. A stream being readable does not mean there is data immediately
      * available to read. Use read() or poll() to wait for data.
      *

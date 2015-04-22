@@ -145,25 +145,4 @@ trait WritableBufferedStreamTestTrait
         
         Loop::run();
     }
-    
-    /**
-     * @depends testAwait
-     */
-    public function testAwaitAfterPendingWrite()
-    {
-        list($readable, $writable) = $this->createStreams(StreamTest::HWM);
-        
-        do { // Write until a pending promise is returned.
-            $promise = $writable->write(StreamTest::WRITE_STRING);
-        } while (!$promise->isPending());
-        
-        $promise = $writable->await();
-        
-        $promise->done($this->createCallback(1), $this->createCallback(0));
-        
-        while ($promise->isPending()) {
-            $readable->read(); // Pull more data out of the buffer.
-            Loop::tick();
-        }
-    }
 }

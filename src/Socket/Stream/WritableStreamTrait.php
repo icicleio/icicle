@@ -140,9 +140,19 @@ trait WritableStreamTrait
     }
     
     /**
-     * @inheritdoc
+     * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
+     *
+     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *          if the data cannot be written to the stream. Use null for no timeout.
+     *
+     * @return  \Icicle\Promise\PromiseInterface
+     *
+     * @resolve int Always resolves with 0.
+     *
+     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      */
-    public function await($timeout = null)
+    protected function await($timeout = null)
     {
         if (!$this->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is no longer writable.'));

@@ -127,35 +127,4 @@ trait WritableStreamTestTrait
         $this->assertFalse($writable->isWritable());
         $this->assertFalse($writable->isOpen());
     }
-    
-    public function testAwait()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $promise = $writable->await();
-        
-        $promise->done($this->createCallback(1), $this->createCallback(0));
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testAwait
-     */
-    public function testAwaitAfterClose()
-    {
-        list($readable, $writable) = $this->createStreams();
-        
-        $writable->close();
-        
-        $promise = $writable->await();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
 }

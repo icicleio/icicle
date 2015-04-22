@@ -10,9 +10,7 @@ use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\UnreadableException;
-use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\ParserTrait;
-use Icicle\Stream\WritableStreamInterface;
 
 trait ReadableStreamTrait
 {
@@ -134,9 +132,21 @@ trait ReadableStreamTrait
     }
     
     /**
-     * @inheritdoc
+     * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
+     *
+     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *          if no data is received. Use null for no timeout.
+     *
+     * @return  \Icicle\Promise\PromiseInterface
+     *
+     * @resolve string Empty string.
+     *
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
-    public function poll($timeout = null)
+    protected function poll($timeout = null)
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on stream.'));

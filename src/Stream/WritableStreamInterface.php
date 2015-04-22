@@ -19,21 +19,7 @@ interface WritableStreamInterface extends StreamInterface
      * @api
      */
     public function write($data);
-    
-    /**
-     * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
-     *
-     * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @resolve int Always resolves with 0.
-     *
-     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
-     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
-     */
-    public function await();
-    
+
     /**
      * Queues the data to be sent on the stream and closes the stream once the data has been written.
      *

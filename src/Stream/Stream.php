@@ -149,6 +149,8 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
+     * Returns bytes from the buffer based on the current length or current search byte.
+     *
      * @return  string
      */
     private function remove()
@@ -174,14 +176,6 @@ class Stream implements DuplexStreamInterface
     public function isReadable()
     {
         return $this->isOpen();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function poll()
-    {
-        return $this->read(0);
     }
 
     /**
@@ -238,24 +232,6 @@ class Stream implements DuplexStreamInterface
         return Promise::resolve(strlen($data));
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function await()
-    {
-        if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
-        }
-
-        if (null === $this->hwm || $this->buffer->getLength() <= $this->hwm) {
-            return Promise::resolve(0);
-        }
-
-        $deferred = new Deferred();
-        $this->deferredQueue->push([0, $deferred]);
-        return $deferred->getPromise();
-    }
-    
     /**
      * @inheritdoc
      */
