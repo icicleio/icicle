@@ -9,11 +9,11 @@ class DuplexStream extends Socket implements DuplexSocketInterface
 {
     use ReadableStreamTrait, WritableStreamTrait {
         ReadableStreamTrait::init insteadof WritableStreamTrait;
-        ReadableStreamTrait::free insteadof WritableStreamTrait;
+        ReadableStreamTrait::detach insteadof WritableStreamTrait;
         ReadableStreamTrait::init as initReadable;
-        ReadableStreamTrait::free as freeReadable;
+        ReadableStreamTrait::detach as detachReadable;
         WritableStreamTrait::init as initWritable;
-        WritableStreamTrait::free as freeWritable;
+        WritableStreamTrait::detach as detachWritable;
     }
     
     /**
@@ -26,20 +26,24 @@ class DuplexStream extends Socket implements DuplexSocketInterface
         $this->initReadable($socket);
         $this->initWritable($socket);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function close()
+    {
+        $this->free(new ClosedException('The connection was closed.'));
+    }
     
     /**
-     * Closes the stream.
+     * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception Reason for the stream closing.
+     * @param   \Exception $exception Reason for the stream closing.
      */
-    public function close(Exception $exception = null)
+    public function free(Exception $exception)
     {
-        if (null === $exception) {
-            $exception = new ClosedException('The connection was closed.');
-        }
-        
-        $this->freeReadable($exception);
-        $this->freeWritable($exception);
+        $this->detachReadable($exception);
+        $this->detachWritable($exception);
         
         parent::close();
     }

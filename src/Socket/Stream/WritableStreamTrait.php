@@ -38,11 +38,11 @@ trait WritableStreamTrait
     abstract protected function getResource();
     
     /**
-     * Closes the socket if it is still open.
+     * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception
+     * @param   \Exception $exception
      */
-    abstract public function close(Exception $exception = null);
+    abstract public function free(Exception $exception);
     
     /**
      * @param   resource $socket Stream socket resource.
@@ -62,7 +62,7 @@ trait WritableStreamTrait
      *
      * @param   \Exception $exception
      */
-    private function free(Exception $exception)
+    private function detach(Exception $exception)
     {
         $this->writable = false;
         
@@ -74,7 +74,7 @@ trait WritableStreamTrait
             $deferred->reject($exception);
         }
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -100,7 +100,7 @@ trait WritableStreamTrait
                     $message .= " Errno: {$error['type']}; {$error['message']}";
                 }
                 $exception = new FailureException($message);
-                $this->close($exception);
+                $this->free($exception);
                 return Promise::reject($exception);
             }
             
@@ -133,7 +133,7 @@ trait WritableStreamTrait
         $this->writable = false;
         
         $promise->after(function () {
-            $this->close(new ClosedException('The stream was ended.'));
+            $this->free(new ClosedException('The stream was ended.'));
         });
         
         return $promise;
@@ -185,7 +185,7 @@ trait WritableStreamTrait
     {
         return Loop::await($socket, function ($resource, $expired) {
             if ($expired) {
-                $this->close(new TimeoutException('Writing to the socket timed out.'));
+                $this->free(new TimeoutException('Writing to the socket timed out.'));
                 return;
             }
 
@@ -206,7 +206,7 @@ trait WritableStreamTrait
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);
-                    $this->close($exception);
+                    $this->free($exception);
                     return;
                 }
                 

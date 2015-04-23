@@ -85,14 +85,20 @@ class Stream implements DuplexStreamInterface
     /**
      * @inheritdoc
      */
-    public function close(Exception $exception = null)
+    public function close()
+    {
+        $this->free(new ClosedException('The stream was closed.'));
+    }
+
+    /**
+     * Closes the stream and rejects any pending promises.
+     *
+     * @param   \Exception $exception
+     */
+    protected function free(Exception $exception)
     {
         $this->open = false;
         $this->writable = false;
-        
-        if (null === $exception) {
-            $exception = new ClosedException('The stream was closed.');
-        }
 
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
@@ -107,6 +113,7 @@ class Stream implements DuplexStreamInterface
             }
         }
     }
+
     /**
      * @inheritdoc
      */
@@ -135,7 +142,7 @@ class Stream implements DuplexStreamInterface
             }
 
             if (!$this->writable && $this->buffer->isEmpty()) {
-                $this->close(new ClosedException('The stream was ended.'));
+                $this->free(new ClosedException('The stream was ended.'));
             }
 
             return Promise::resolve($data);
@@ -219,7 +226,7 @@ class Stream implements DuplexStreamInterface
             $this->writable = false;
 
             if ($this->buffer->isEmpty()) {
-                $this->close(new ClosedException('The stream was ended.'));
+                $this->free(new ClosedException('The stream was ended.'));
             }
         }
 

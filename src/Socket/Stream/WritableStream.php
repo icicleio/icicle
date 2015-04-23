@@ -17,19 +17,23 @@ class WritableStream extends Socket implements WritableSocketInterface
         parent::__construct($socket);
         $this->init($socket);
     }
-    
+
     /**
-     * Closes the stream.
-     *
-     * @param   \Exception|null $exception Reason for the stream closing.
+     * @inheritdoc
      */
-    public function close(Exception $exception = null)
+    public function close()
     {
-        if (null === $exception) {
-            $exception = new ClosedException('The connection was closed.');
-        }
-        
-        $this->free($exception);
+        $this->free(new ClosedException('The connection was closed.'));
+    }
+
+    /**
+     * Frees resources associated with the stream and closes the stream.
+     *
+     * @param   \Exception $exception Reason for the stream closing.
+     */
+    public function free(Exception $exception)
+    {
+        $this->detach($exception);
         
         parent::close();
     }
