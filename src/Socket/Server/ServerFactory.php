@@ -51,7 +51,7 @@ class ServerFactory implements ServerFactoryInterface
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not create server {$uri}: [Errno: {$errno}] {$errstr}");
+            throw new FailureException(sprintf('Could not create server %s: Errno: %d; %s', $uri, $errno, $errstr));
         }
         
         return new Server($socket);

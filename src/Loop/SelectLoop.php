@@ -57,12 +57,8 @@ class SelectLoop extends AbstractLoop
         TimerManagerInterface $timerManager,
         $blocking
     ) {
-        if ($blocking) {
-            $timeout = $timerManager->getInterval();
-        } else {
-            $timeout = 0;
-        }
-        
+        $timeout = $blocking ? $timerManager->getInterval() : 0;
+
         $this->select($pollManager, $awaitManager, $timeout); // Select available sockets for reading or writing.
         
         $timerManager->tick(); // Call any pending timers.
@@ -105,7 +101,12 @@ class SelectLoop extends AbstractLoop
                 $pollManager->handle($read);
                 $awaitManager->handle($write);
             }
-        } elseif (0 < $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
+
+            return;
+        }
+
+        // Otherwise sleep with time_nanosleep() if $timeout > 0.
+        if (0 < $timeout) {
             $seconds = (int) floor($timeout);
             $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
         

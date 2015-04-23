@@ -70,7 +70,9 @@ class Connector implements ConnectorInterface
         );
         
         if (!$socket || $errno) {
-            return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
+            return Promise::reject(new FailureException(
+                sprintf('Could not connect to %s; Errno: %d; %s', $uri, $errno, $errstr)
+            ));
         }
         
         return new Promise(function ($resolve, $reject) use ($socket, $timeout) {
@@ -80,9 +82,10 @@ class Connector implements ConnectorInterface
                 
                 if ($expired) {
                     $reject(new TimeoutException('Connection attempt timed out.'));
-                } else {
-                    $resolve(new Client($resource));
+                    return;
                 }
+
+                $resolve(new Client($resource));
             });
             
             $await->listen($timeout);

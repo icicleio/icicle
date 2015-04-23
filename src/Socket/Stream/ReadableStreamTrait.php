@@ -89,34 +89,25 @@ trait ReadableStreamTrait
         }
 
         $this->length = $this->parseLength($length);
-        $data = '';
 
         if (null === $this->length) {
             $this->length = SocketInterface::CHUNK_SIZE;
-        } elseif (0 === $this->length) {
-            return Promise::resolve($data);
+        }
+
+        if (0 === $this->length) {
+            return Promise::resolve('');
         }
 
         $this->byte = $this->parseByte($byte);
-        $resource = $this->getResource();
 
-        if (null !== $this->byte) {
-            for ($i = 0; $i < $this->length; ++$i) {
-                if (false === ($byte = fgetc($resource))) {
-                    break;
-                }
-                $data .= $byte;
-                if ($byte === $this->byte) {
-                    break;
-                }
-            }
-        } else {
-            $data = (string) fread($resource, $this->length);
-        }
+        $resource = $this->getResource();
+        $data = $this->fetch($resource);
 
         if ('' !== $data) {
             return Promise::resolve($data);
-        } elseif (feof($resource)) { // Close only if no data was read and at EOF.
+        }
+
+        if (feof($resource)) { // Close only if no data was read and at EOF.
             $this->free(new EofException('Connection reset by peer or reached EOF.'));
             return Promise::resolve($data); // Resolve with empty string on EOF.
         }
@@ -181,7 +172,7 @@ trait ReadableStreamTrait
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createPoll($socket)
+    private function createPoll($socket)
     {
         return Loop::poll($socket, function ($resource, $expired) {
             if ($expired) {
@@ -190,27 +181,13 @@ trait ReadableStreamTrait
                 return;
             }
 
-            $data = '';
-
             if (0 === $this->length) {
-                $this->deferred->resolve($data);
+                $this->deferred->resolve('');
                 $this->deferred = null;
                 return;
             }
 
-            if (null !== $this->byte) {
-                for ($i = 0; $i < $this->length; ++$i) {
-                    if (false === ($byte = fgetc($resource))) {
-                        break;
-                    }
-                    $data .= $byte;
-                    if ($byte === $this->byte) {
-                        break;
-                    }
-                }
-            } else {
-                $data = (string) fread($resource, $this->length);
-            }
+            $data = $this->fetch($resource);
 
             $this->deferred->resolve($data);
             $this->deferred = null;
@@ -219,5 +196,35 @@ trait ReadableStreamTrait
                 $this->free(new EofException('Connection reset by peer or reached EOF.'));
             }
         });
+    }
+
+    /**
+     * Reads data from the stream socket resource based on set length and read-to byte.
+     *
+     * @param   resource $resource
+     *
+     * @return  string
+     */
+    private function fetch($resource)
+    {
+        if (null === $this->byte) {
+            return (string) fread($resource, $this->length);
+        }
+
+        $data = '';
+
+        for ($i = 0; $i < $this->length; ++$i) {
+            if (false === ($byte = fgetc($resource))) {
+                return $data;
+            }
+
+            $data .= $byte;
+
+            if ($byte === $this->byte) {
+                return $data;
+            }
+        }
+
+        return $data;
     }
 }

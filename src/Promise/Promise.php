@@ -168,11 +168,11 @@ class Promise implements PromiseInterface
                 }
             },
             function (Exception $exception) {
-                Loop::schedule(function () use ($exception) {
-                    if (0 === --$this->children) {
+                if (0 === --$this->children) {
+                    Loop::schedule(function () use ($exception) {
                         $this->cancel($exception);
-                    }
-                });
+                    });
+                }
             }
         );
     }
@@ -184,18 +184,19 @@ class Promise implements PromiseInterface
     {
         if (null !== $this->result) {
             $this->unwrap()->done($onFulfilled, $onRejected);
+            return;
+        }
+
+        if (null !== $onFulfilled) {
+            $this->onFulfilled->push($onFulfilled);
+        }
+
+        if (null !== $onRejected) {
+            $this->onRejected->push($onRejected);
         } else {
-            if (null !== $onFulfilled) {
-                $this->onFulfilled->push($onFulfilled);
-            }
-            
-            if (null !== $onRejected) {
-                $this->onRejected->push($onRejected);
-            } else {
-                $this->onRejected->push(function (Exception $exception) {
-                    throw $exception; // Rethrow exception in uncatchable way.
-                });
-            }
+            $this->onRejected->push(function (Exception $exception) {
+                throw $exception; // Rethrow exception in uncatchable way.
+            });
         }
     }
     
@@ -206,14 +207,15 @@ class Promise implements PromiseInterface
     {
         if (null !== $this->result) {
             $this->unwrap()->cancel($reason);
-        } else {
-            if (!$reason instanceof Exception) {
-                $reason = new CancelledException($reason);
-            }
-            
-            $onCancelled = $this->onCancelled;
-            $onCancelled($reason);
+            return;
         }
+
+        if (!$reason instanceof Exception) {
+            $reason = new CancelledException($reason);
+        }
+
+        $onCancelled = $this->onCancelled;
+        $onCancelled($reason);
     }
     
     /**
@@ -246,12 +248,12 @@ class Promise implements PromiseInterface
             },
             function (Exception $exception) use (&$timer) {
                 $timer->cancel();
-                
-                Loop::schedule(function () use ($exception) {
-                    if (0 === --$this->children) {
+
+                if (0 === --$this->children) {
+                    Loop::schedule(function () use ($exception) {
                         $this->cancel($exception);
-                    }
-                });
+                    });
+                }
             }
         );
     }
@@ -283,12 +285,12 @@ class Promise implements PromiseInterface
                 if (null !== $timer) {
                     $timer->cancel();
                 }
-                
-                Loop::schedule(function () use ($exception) {
-                    if (0 === --$this->children) {
+
+                if (0 === --$this->children) {
+                    Loop::schedule(function () use ($exception) {
                         $this->cancel($exception);
-                    }
-                });
+                    });
+                }
             }
         );
     }
@@ -723,10 +725,10 @@ class Promise implements PromiseInterface
                         try {
                             if (!$predicate($value)) { // Resolve promise if $predicate returns false.
                                 $resolve($value);
-                            } else {
-                                $promise = static::resolve($worker($value));
-                                $promise->done($callback, $reject);
+                                return;
                             }
+                            $promise = static::resolve($worker($value));
+                            $promise->done($callback, $reject);
                         } catch (Exception $exception) {
                             $reject($exception);
                         }
@@ -769,10 +771,10 @@ class Promise implements PromiseInterface
                         try {
                             if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
                                 $reject($exception);
-                            } else {
-                                $promise = static::resolve($promisor());
-                                $promise->done($resolve, $callback);
+                                return;
                             }
+                            $promise = static::resolve($promisor());
+                            $promise->done($resolve, $callback);
                         } catch (Exception $exception) {
                             $reject($exception);
                         }

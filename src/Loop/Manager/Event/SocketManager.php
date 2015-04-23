@@ -114,16 +114,18 @@ abstract class SocketManager implements SocketManagerInterface
             //$this->events[$id] = new Event($this->base, $socket->getResource(), Event::READ, $this->callback, $socket);
             $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
         }
-        
-        if (null !== $timeout) {
-            $timeout = (float) $timeout;
-            if (self::MIN_TIMEOUT > $timeout) {
-                $timeout = self::MIN_TIMEOUT;
-            }
-            $this->events[$id]->add($timeout);
-        } else {
+
+        if (null === $timeout) {
             $this->events[$id]->add();
+            return;
         }
+        
+        $timeout = (float) $timeout;
+        if (self::MIN_TIMEOUT > $timeout) {
+            $timeout = self::MIN_TIMEOUT;
+        }
+
+        $this->events[$id]->add($timeout);
     }
     
     /**

@@ -97,10 +97,6 @@ class Datagram extends Socket implements DatagramInterface
         $this->poll->free();
         $this->await->free();
 
-        if (null === $exception) {
-            $exception = new ClosedException('The datagram was closed.');
-        }
-
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
             $this->deferred = null;
@@ -191,7 +187,7 @@ class Datagram extends Socket implements DatagramInterface
             if (false === $written || -1 === $written) {
                 $message = 'Failed to write to datagram.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 $exception = new FailureException($message);
                 $this->free($exception);
@@ -260,7 +256,7 @@ class Datagram extends Socket implements DatagramInterface
             if (false === $data) { // Reading failed, so close datagram.
                 $message = 'Failed to read from datagram.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 $this->free(new FailureException($message));
                 return;
@@ -296,7 +292,7 @@ class Datagram extends Socket implements DatagramInterface
                 if (false === $written || 0 >= $written) {
                     $message = 'Failed to write to datagram.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);

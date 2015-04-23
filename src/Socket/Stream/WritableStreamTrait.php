@@ -85,10 +85,11 @@ trait WritableStreamTrait
         }
         
         $data = new Buffer($data);
+        $written = 0;
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
-                return Promise::resolve(0);
+                return Promise::resolve($written);
             }
             
             // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
@@ -97,7 +98,7 @@ trait WritableStreamTrait
             if (false === $written) {
                 $message = 'Failed to write to stream.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 $exception = new FailureException($message);
                 $this->free($exception);
@@ -109,8 +110,6 @@ trait WritableStreamTrait
             }
             
             $data->remove($written);
-        } else {
-            $written = 0;
         }
         
         $deferred = new Deferred();
@@ -119,7 +118,7 @@ trait WritableStreamTrait
         if (!$this->await->isPending()) {
             $this->await->listen($timeout);
         }
-        
+
         return $deferred->getPromise();
     }
     
@@ -181,7 +180,7 @@ trait WritableStreamTrait
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createAwait($socket)
+    private function createAwait($socket)
     {
         return Loop::await($socket, function ($resource, $expired) {
             if ($expired) {
@@ -195,14 +194,16 @@ trait WritableStreamTrait
              */
             list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
             
-            if (!$data->isEmpty()) {
+            if ($data->isEmpty()) {
+                $deferred->resolve($previous);
+            } else {
                 // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
                 $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
                 
                 if (false === $written || 0 === $written) {
                     $message = 'Failed to write to stream.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);
@@ -217,8 +218,6 @@ trait WritableStreamTrait
                     $written += $previous;
                     $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
                 }
-            } else {
-                $deferred->resolve($previous);
             }
             
             if (!$this->writeQueue->isEmpty()) {

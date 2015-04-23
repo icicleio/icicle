@@ -153,7 +153,7 @@ class Server extends Socket implements ServerInterface
                 if (!$client) {
                     $message = 'Could not accept client.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     throw new AcceptException($message);
                 }

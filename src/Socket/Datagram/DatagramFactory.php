@@ -25,7 +25,9 @@ class DatagramFactory implements DatagramFactoryInterface
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not create datagram on {$uri}: [Errno: {$errno}] {$errstr}");
+            throw new FailureException(
+                sprintf('Could not create datagram on %s: Errno: %d; %s', $uri, $errno, $errstr)
+            );
         }
         
         return new Datagram($socket);
