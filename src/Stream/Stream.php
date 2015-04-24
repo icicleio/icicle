@@ -87,7 +87,9 @@ class Stream implements DuplexStreamInterface
      */
     public function close()
     {
-        $this->free(new ClosedException('The stream was closed.'));
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The stream was closed.'));
+        }
     }
 
     /**

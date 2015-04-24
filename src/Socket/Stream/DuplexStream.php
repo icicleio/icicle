@@ -32,7 +32,9 @@ class DuplexStream extends Socket implements DuplexSocketInterface
      */
     public function close()
     {
-        $this->free(new ClosedException('The connection was closed.'));
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The connection was closed.'));
+        }
     }
     
     /**
@@ -40,7 +42,7 @@ class DuplexStream extends Socket implements DuplexSocketInterface
      *
      * @param   \Exception $exception Reason for the stream closing.
      */
-    public function free(Exception $exception)
+    protected function free(Exception $exception)
     {
         $this->detachReadable($exception);
         $this->detachWritable($exception);

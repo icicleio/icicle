@@ -47,8 +47,8 @@ trait ReadableStreamTrait
      *
      * @param   \Exception $exception
      */
-    abstract public function free(Exception $exception);
-    
+    abstract protected function free(Exception $exception);
+
     /**
      * @param  resource $socket Stream socket resource.
      */
