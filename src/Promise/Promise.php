@@ -168,11 +168,11 @@ class Promise implements PromiseInterface
                 }
             },
             function (Exception $exception) {
-                if (0 === --$this->children) {
-                    Loop::schedule(function () use ($exception) {
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
                         $this->cancel($exception);
-                    });
-                }
+                    }
+                });
             }
         );
     }
@@ -249,11 +249,11 @@ class Promise implements PromiseInterface
             function (Exception $exception) use (&$timer) {
                 $timer->cancel();
 
-                if (0 === --$this->children) {
-                    Loop::schedule(function () use ($exception) {
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
                         $this->cancel($exception);
-                    });
-                }
+                    }
+                });
             }
         );
     }
@@ -286,11 +286,11 @@ class Promise implements PromiseInterface
                     $timer->cancel();
                 }
 
-                if (0 === --$this->children) {
-                    Loop::schedule(function () use ($exception) {
+                Loop::schedule(function () use ($exception) {
+                    if (0 === --$this->children) {
                         $this->cancel($exception);
-                    });
-                }
+                    }
+                });
             }
         );
     }

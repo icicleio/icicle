@@ -1304,6 +1304,25 @@ class PromiseTest extends TestCase
         $this->assertTrue($child1->isRejected());
         $this->assertTrue($child2->isRejected());
     }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellingSiblingsThenCreateSiblingPromise()
+    {
+        $child1 = $this->promise->then();
+        $child2 = $this->promise->then();
+
+        $child1->cancel();
+        $child2->cancel();
+
+        $child3 = $this->promise->then();
+
+        Loop::run();
+
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($child3->isPending());
+    }
     
     /**
      * @depends testResolveCallableWithPendingPromise
@@ -1497,6 +1516,46 @@ class PromiseTest extends TestCase
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($sibling->isPending());
     }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayAndCancelSiblingPromise()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+        $sibling = $this->promise->then();
+
+        $delayed->cancel();
+        $sibling->cancel();
+
+        Loop::run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($sibling->isRejected());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayThenCreateSiblingPromise()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $delayed->cancel();
+
+        $sibling = $this->promise->then();
+
+        Loop::run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
+    }
     
     /**
      * @depends testCancellation
@@ -1664,6 +1723,46 @@ class PromiseTest extends TestCase
         
         $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
         
+        $this->assertTrue($timeout->isRejected());
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelTimeoutAndCancelSiblingPromise()
+    {
+        $time = 0.1;
+
+        $timeout = $this->promise->timeout($time);
+        $sibling = $this->promise->then();
+
+        $timeout->cancel();
+        $sibling->cancel();
+
+        Loop::run();
+
+        $this->assertTrue($timeout->isRejected());
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($sibling->isRejected());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelTimeoutThenCreateSiblingPromise()
+    {
+        $time = 0.1;
+
+        $timeout = $this->promise->delay($time);
+
+        $timeout->cancel();
+
+        $sibling = $this->promise->then();
+
+        Loop::run();
+
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($sibling->isPending());
