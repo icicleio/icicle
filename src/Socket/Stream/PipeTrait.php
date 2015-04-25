@@ -85,8 +85,8 @@ trait PipeTrait
 
                 $promise = $stream->write($data, $timeout);
 
-                if ((null !== $byte && $data[$count - 1] === $byte) ||
-                    (null !== $length && 0 >= $length -= $count)) {
+                if ((null !== $byte && $data[$count - 1] === $byte)
+                    || (null !== $length && 0 >= $length -= $count)) {
                     return $promise->then(function () use ($bytes) {
                         return $bytes;
                     });

@@ -177,11 +177,11 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function isEmpty()
     {
-        return $this->pollManager->isEmpty() &&
-            $this->awaitManager->isEmpty() &&
-            $this->timerManager->isEmpty() &&
-            $this->callableQueue->isEmpty() &&
-            $this->immediateManager->isEmpty();
+        return $this->pollManager->isEmpty()
+            && $this->awaitManager->isEmpty()
+            && $this->timerManager->isEmpty()
+            && $this->callableQueue->isEmpty()
+            && $this->immediateManager->isEmpty();
     }
     
     /**

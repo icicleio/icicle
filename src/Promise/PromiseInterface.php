@@ -38,8 +38,8 @@ interface PromiseInterface
     public function cancel($reason = null);
     
     /**
-     * Returns a promise that is rejected in $timeout seconds if the promise is not resolved before that time.
-     * When the promise resolves, the returned promise is fulfilled or rejected with the same value.
+     * Cancels the promise with $reason if it is not resolved within $timeout seconds. When the promise resolves, the
+     * returned promise is fulfilled or rejected with the same value.
      *
      * @param   float $timeout
      * @param   mixed $reason

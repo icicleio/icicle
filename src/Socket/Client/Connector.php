@@ -23,9 +23,9 @@ class Connector implements ConnectorInterface
     public function connect($host, $port, array $options = null)
     {
         $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
-        $allowSelfSigned = isset($options['allow_self_signed']) ?
-            (bool) $options['allow_self_signed'] :
-            self::DEFAULT_ALLOW_SELF_SIGNED;
+        $allowSelfSigned = isset($options['allow_self_signed'])
+            ? (bool) $options['allow_self_signed']
+            : self::DEFAULT_ALLOW_SELF_SIGNED;
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
