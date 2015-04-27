@@ -16,14 +16,9 @@ class BufferIterator implements \SeekableIterator
      * @var     int
      */
     private $current = 0;
-    
+
     /**
-     * @var     bool
-     */
-    private $skip = false;
-    
-    /**
-     * @param   Buffer $buffer
+     * @param   \Icicle\Stream\Structures\Buffer $buffer
      */
     public function __construct(Buffer $buffer)
     {
@@ -73,11 +68,7 @@ class BufferIterator implements \SeekableIterator
      */
     public function next()
     {
-        if ($this->skip) {
-            $this->skip = false;
-        } else {
-            ++$this->current;
-        }
+        ++$this->current;
     }
     
     /**
@@ -85,7 +76,6 @@ class BufferIterator implements \SeekableIterator
      */
     public function prev()
     {
-        $this->skip = false;
         --$this->current;
     }
     
@@ -105,9 +95,11 @@ class BufferIterator implements \SeekableIterator
     }
     
     /**
-     * Inserts the given data into the buffer at the current iterator position.
+     * Inserts the given string into the buffer at the current iterator position.
      *
      * @param   string $data
+     *
+     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function insert($data)
     {
@@ -115,13 +107,17 @@ class BufferIterator implements \SeekableIterator
             throw new LogicException('The iterator is not valid!');
         }
         
-        $this->buffer[$this->current] = $this->buffer[$this->current] . $data;
+        $this->buffer[$this->current] = $data . $this->buffer[$this->current];
     }
     
     /**
+     * Replaces the byte at the current iterator position with the given string.
+     *
      * @param   string $data
      *
      * @return  string
+     *
+     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function replace($data)
     {
@@ -137,7 +133,11 @@ class BufferIterator implements \SeekableIterator
     }
     
     /**
+     * Removes the byte at the current iterator position and moves the iterator to the previous character.
+     *
      * @return  string
+     *
+     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function remove()
     {
@@ -149,8 +149,8 @@ class BufferIterator implements \SeekableIterator
         
         unset($this->buffer[$this->current]);
         
-        $this->skip = true;
-        
+        --$this->current;
+
         return $temp;
     }
 }
