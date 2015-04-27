@@ -16,6 +16,9 @@ interface ServerFactoryInterface
      *     @var string $pem Path to PEM file containing certificate and private key to enable SSL on client connections.
      *     @var string $passphrase PEM passphrase if applicable.
      *     @var string $name Name to use as SNI identifier. If not set, name will be guessed based on $host.
+     *     @var bool $verify_peer True to verify client certificate. Normally should be false on the server.
+     *     @var bool $allow_self_signed Set to true to allow self-signed certificates. Defaults to false.
+     *     @var int $verify_depth Max levels of certificate authorities the verifier will transverse. Defaults to 10.
      * }
      *
      * @return  \Icicle\Socket\Server\ServerInterface
