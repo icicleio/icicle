@@ -29,7 +29,8 @@ class Connector implements ConnectorInterface
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : $this->parseAddress($host);
+        $name = isset($options['name']) ? (string) $options['name'] : null;
+        $cn = isset($options['cn']) ? (string) $options['cn'] : $name;
         
         $context = [];
         
@@ -42,11 +43,16 @@ class Connector implements ConnectorInterface
         $context['ssl']['capture_peer_cert_chain'] = true;
         
         $context['ssl']['verify_peer'] = true;
+        $context['ssl']['verify_peer_name'] = true;
         $context['ssl']['allow_self_signed'] = $allowSelfSigned;
         $context['ssl']['verify_depth'] = $verifyDepth;
-        
-        $context['ssl']['CN_match'] = $name;
+
+        $context['ssl']['CN_match'] = $cn;
+
+        $context['ssl']['SNI_enabled'] = true;
+        $context['ssl']['SNI_server_name'] = $name;
         $context['ssl']['peer_name'] = $name;
+
         $context['ssl']['disable_compression'] = true;
         
         if (null !== $cafile) {

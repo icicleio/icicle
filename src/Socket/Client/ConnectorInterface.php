@@ -10,7 +10,8 @@ interface ConnectorInterface
      * @param   mixed[] $options {
      *     @var string $protocol The protocol to use, such as tcp, udp, s3, ssh. Defaults to tcp.
      *     @var int|float $timeout Number of seconds until connection attempt times out. Defaults to 10 seconds.
-     *     @var string $name Host name used to verify certificate (e.g., '*.google.com').
+     *     @var string $name Name to verify certificate. May match CN or SAN names on certificate. (PHP 5.6+)
+     *     @var string $cn Name to verify certificate. Must match CN exactly. (PHP 5.5) (e.g., '*.google.com').
      *     @var bool $allow_self_signed Set to true to allow self-signed certificates. Defaults to false.
      *     @var int $verify_depth Max levels of certificate authorities the verifier will transverse. Defaults to 10.
      *     @var string cafile Path to bundle of root certificates to verify against.
