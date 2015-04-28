@@ -107,7 +107,7 @@ trait PipeTrait
 
         if ($endOnClose) {
             $promise->after(function () use ($stream, $timeout) {
-                if (!$this->isOpen()) {
+                if (!$this->isReadable()) {
                     $stream->end(null, $timeout);
                 }
             });
