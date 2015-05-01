@@ -67,6 +67,7 @@ trait WritableStreamTrait
         $this->writable = false;
         
         $this->await->free();
+        $this->await = null;
         
         while (!$this->writeQueue->isEmpty()) {
             /** @var \Icicle\Promise\Deferred $deferred */

@@ -68,6 +68,7 @@ trait ReadableStreamTrait
     private function detach(Exception $exception)
     {
         $this->poll->free();
+        $this->poll = null;
         
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
