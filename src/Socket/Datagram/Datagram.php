@@ -96,6 +96,8 @@ class Datagram extends Socket implements DatagramInterface
     {
         $this->poll->free();
         $this->await->free();
+        $this->poll = null;
+        $this->await = null;
 
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);

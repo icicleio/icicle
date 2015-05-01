@@ -73,6 +73,7 @@ class Server extends Socket implements ServerInterface
     protected function free(Exception $exception)
     {
         $this->poll->free();
+        $this->poll = null;
 
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
