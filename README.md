@@ -7,7 +7,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.2.2-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.3.0-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -18,7 +18,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 - [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or await for space to write.
 - [Streams](#streams): Common interface for reading and writing data.
-- [Sockets](#sockets): Implement asynchronous network and file operations.
+- [Sockets](#sockets): Asynchronous stream sockets.
 
 #### Available Components
 
@@ -50,7 +50,7 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 // composer.json
 {
     "require": {
-        "icicleio/icicle": "0.2.*"
+        "icicleio/icicle": "0.3.*"
     }
 }
 ```
@@ -76,7 +76,7 @@ The `Icicle\Promise\PromiseInterface::then(callable $onFulfilled = null, callabl
 
 The `Icicle\Promise\PromiseInterface::done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
 
-*[More on using callbacks to interact with promises...](//github.com/icicleio/Icicle/tree/master/src/Promise#interacting-with-promises)*
+*[More on using callbacks to interact with promises...](//github.com/icicleio/Icicle/wiki/Promises#interacting-with-promises)*
 
 ```php
 use Icicle\Dns\Executor\Executor;
@@ -114,7 +114,7 @@ The example above uses the [DNS component](//github.com/icicleio/Dns) to resolve
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`
 
-*[More on promise resolution and propagation...](//github.com/icicleio/Icicle/tree/master/src/Promise#resolution-and-propagation)*
+*[More on promise resolution and propagation...](//github.com/icicleio/Icicle/wiki/Promises#resolution-and-propagation)*
 
 ##### Brief overview of promise API features
 
@@ -125,7 +125,7 @@ The example above uses the [DNS component](//github.com/icicleio/Dns) to resolve
 - Support for promise cancellation.
 - Methods to convert synchronous functions or callback-based functions into functions accepting and returning promises.
 
-**[Promise API documentation](//github.com/icicleio/Icicle/tree/master/src/Promise)**
+**[Promise API documentation](//github.com/icicleio/Icicle/wiki/Promises)**
 
 ## Coroutines
 
@@ -171,7 +171,7 @@ The example above does the same thing as the example in the section on [promises
 
 An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. **A coroutine may then yield other coroutines, suspending execution of the calling coroutine until the yielded coroutine has completed execution.** If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
-**[Coroutine API documentation](//github.com/icicleio/Icicle/tree/master/src/Coroutine)**
+**[Coroutine API documentation](//github.com/icicleio/Icicle/wiki/Coroutines)**
 
 ## Loop
 
@@ -215,7 +215,7 @@ Fourth.
 Second.
 ```
 
-**[Loop API documentation](//github.com/icicleio/Icicle/tree/master/src/Loop)**
+**[Loop API documentation](//github.com/icicleio/Icicle/wiki/Loop)**
 
 ## Streams
 
@@ -225,7 +225,7 @@ Streams represent a common promise-based API that may be implemented by classes 
 - `Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
 - `Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
 
-**[Streams API documentation](//github.com/icicleio/Icicle/tree/master/src/Stream)**
+**[Streams API documentation](//github.com/icicleio/Icicle/wiki/Streams)**
 
 ## Sockets
 
@@ -244,10 +244,10 @@ $handler = function (ClientInterface $client) use (&$handler, &$error, $server) 
     $server->accept()->done($handler, $error);
     
     $response  = "HTTP/1.1 200 OK\r\n";
-    $response .= "Content-Length: 12\r\n";
+    $response .= "Content-Length: 13\r\n";
     $response .= "Connection: close\r\n";
     $response .= "\r\n";
-    $response .= "Hello world!";
+    $response .= "Hello, world!";
     
     $client->end($response);
 };
@@ -279,10 +279,10 @@ $generator = function (ServerInterface $server) {
     
     $generator = function (ClientInterface $client) {
         $response  = "HTTP/1.1 200 OK\r\n";
-        $response .= "Content-Length: 12\r\n";
+        $response .= "Content-Length: 13\r\n";
         $response .= "Connection: close\r\n";
         $response .= "\r\n";
-        $response .= "Hello world!";
+        $response .= "Hello, world!";
         
         yield $client->write($response);
         
@@ -303,7 +303,7 @@ $coroutine = new Coroutine($generator($server));
 Loop::run();
 ```
 
-**[Sockets API documentation](//github.com/icicleio/Icicle/tree/master/src/Socket)**
+**[Sockets API documentation](//github.com/icicleio/Icicle/wiki/Sockets)**
 
 ## Example
 
