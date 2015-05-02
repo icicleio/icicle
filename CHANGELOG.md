@@ -3,8 +3,8 @@
 ### v0.3.0
 
 - New Features
-    - Added interface for seekable streams, `\Icicle\Stream\SeekableInterface`, and the class `\Icicle\Stream\Sink` that implements the interface and acts as a seekable buffered sink.
-    - Added `splat()` method to `\Icicle\Promise\PromiseInterface`. If a promise fulfills with an array or `Traversable`, this method uses the elements of the array as arguments to the given callback function similar to the `...` (splat) operator.
+    - Added interface for seekable streams, `\Icicle\Stream\SeekableStreamInterface`, and the class `\Icicle\Stream\Sink` that implements the interface and acts as a seekable buffered sink.
+    - Added `splat()` method to `\Icicle\Promise\PromiseInterface`. If a promise fulfills with an array or `Traversable` object, this method uses the elements of the array as arguments to the given callback function similar to the `...` (splat) operator.
     - Added verify peer options to `\Icicle\Socket\Server\ServerFactory`. Normally peer verification is off on the server side, but the options allow it to be turned on if desired.
     - Added `cn` option to `\Icicle\Socket\Client\Connector` that defaults to the same value as the `name` option. Needed for PHP 5.5 for certificate validation if the CN name does not exactly match the peer name as SAN support was not implemented until PHP 5.6. (e.g., `'*.google.com'` may be used for the `cn` option to match a wildcard certificate.)
 
