@@ -50,13 +50,13 @@ trait PipeTrait
      * @see     \Icicle\Stream\ReadableStreamInterface::pipe()
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose
+     * @param   bool $endWhenUnreadable
      * @param   int|null $length
      * @param   string|int|null $byte
      *
      * @return  \Icicle\Promise\PromiseInterface
      */
-    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $byte = null)
+    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = null, $byte = null)
     {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
@@ -97,7 +97,7 @@ trait PipeTrait
             $this->read($length, $byte)
         );
 
-        if ($endOnClose) {
+        if ($endWhenUnreadable) {
             $promise = $promise->cleanup(function () use ($stream) {
                 if (!$this->isReadable()) {
                     $stream->end();

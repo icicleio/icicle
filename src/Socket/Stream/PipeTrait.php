@@ -52,7 +52,7 @@ trait PipeTrait
      * @see     \Icicle\Socket\Stream\ReadableSocketInterface::pipe()
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose
+     * @param   bool $endWhenUnreadable
      * @param   int|null $length
      * @param   string|int|null $byte
      * @param   float|int|null $timeout
@@ -61,7 +61,7 @@ trait PipeTrait
      */
     public function pipe(
         WritableStreamInterface $stream,
-        $endOnClose = true,
+        $endWhenUnreadable = true,
         $length = null,
         $byte = null,
         $timeout = null
@@ -105,7 +105,7 @@ trait PipeTrait
             $this->read($length, $byte, $timeout)
         );
 
-        if ($endOnClose) {
+        if ($endWhenUnreadable) {
             $promise = $promise->cleanup(function () use ($stream, $timeout) {
                 if (!$this->isReadable()) {
                     $stream->end(null, $timeout);

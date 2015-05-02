@@ -33,7 +33,8 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * Pipes data read on this stream into the given writable stream destination.
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose Set to true to automatically end the writable stream when the readable stream closes.
+     * @param   bool $endWhenUnreadable Set to true to automatically end the writable stream when the readable stream
+     *          is no longer readable.
      * @param   int|null $length If not null, only $length bytes will be piped.
      * @param   string|int $byte Piping will stop once the given byte occurs in the stream. The search character will
      *          be piped to the writable stream string. Use null to effectively ignore this parameter and pipe all bytes.
@@ -54,7 +55,7 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      */
     public function pipe(
         WritableStreamInterface $stream,
-        $endOnClose = true,
+        $endWhenUnreadable = true,
         $length = null,
         $byte = null,
         $timeout = null
