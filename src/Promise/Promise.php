@@ -397,18 +397,13 @@ class Promise implements PromiseInterface
      */
     public static function lift(callable $worker)
     {
-        $worker = function (array $args) use ($worker) {
-            ksort($args); // Needed to ensure correct argument order.
-            return call_user_func_array($worker, $args);
-        };
-        
         /**
          * @param   mixed ...$args Promises or values.
          *
          * @return  \Icicle\Promise\PromiseInterface
          */
         return function (/* ...$args */) use ($worker) {
-            return static::join(func_get_args())->then($worker);
+            return static::join(func_get_args())->splat($worker);
         };
     }
     
@@ -491,7 +486,7 @@ class Promise implements PromiseInterface
             
             foreach ($promises as &$promise) {
                 $promise = static::resolve($promise);
-                $promise->after($after);
+                $promise->done($after, $after);
             }
         });
     }
@@ -677,19 +672,21 @@ class Promise implements PromiseInterface
             return static::resolve($initial);
         }
         
-        return new static(function ($resolve, $reject) use ($promises, $callback, $initial) {
+        return $result = new static(function ($resolve, $reject) use (&$result, $promises, $callback, $initial) {
             $pending = count($promises);
             $carry = static::resolve($initial);
             $carry->done(null, $reject);
             
-            $onFulfilled = function ($value) use (&$carry, &$pending, $callback, $resolve, $reject) {
-                $carry = $carry->then(function ($carry) use ($callback, $value) {
-                    return $callback($carry, $value);
-                });
-                $carry->done(null, $reject);
-                
-                if (0 === --$pending) {
-                    $resolve($carry);
+            $onFulfilled = function ($value) use (&$carry, &$result, &$pending, $callback, $resolve, $reject) {
+                if ($result->isPending()) {
+                    $carry = $carry->then(function ($carry) use ($callback, $value) {
+                        return $callback($carry, $value);
+                    });
+                    $carry->done(null, $reject);
+
+                    if (0 === --$pending) {
+                        $resolve($carry);
+                    }
                 }
             };
             

@@ -98,7 +98,7 @@ trait PipeTrait
         );
 
         if ($endOnClose) {
-            $promise->after(function () use ($stream) {
+            $promise = $promise->cleanup(function () use ($stream) {
                 if (!$this->isReadable()) {
                     $stream->end();
                 }

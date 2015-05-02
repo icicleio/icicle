@@ -9,15 +9,21 @@ use Icicle\Tests\TestCase;
 use InvalidArgumentException;
 use RuntimeException;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseTest extends TestCase
 {
+    /**
+     * @var \Icicle\Promise\Promise
+     */
     protected $promise;
-    
+
+    /**
+     * @var callable
+     */
     protected $resolve;
-    
+
+    /**
+     * @var callable
+     */
     protected $reject;
     
     public function setUp()
@@ -27,19 +33,20 @@ class PromiseTest extends TestCase
             $this->reject = $reject;
         });
     }
-    
-    public function tearDown()
-    {
-        Loop::clear();
-    }
-    
+
+    /**
+     * @param   mixed $value
+     */
     protected function resolve($value = null)
     {
         $resolve = $this->resolve;
         $resolve($value);
     }
-    
-    protected function reject($reason)
+
+    /**
+     * @param   mixed $reason
+     */
+    protected function reject($reason = null)
     {
         $reject = $this->reject;
         $reject($reason);
@@ -191,7 +198,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $this->promise->done($callback, $this->createCallback(0));
         
@@ -228,7 +235,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value1));
+            ->with($this->identicalTo($value1));
         
         $this->promise->done($callback, $this->createCallback(0));
         
@@ -253,7 +260,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $this->promise->done($callback, $this->createCallback(0));
         
@@ -275,7 +282,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $this->promise->done($this->createCallback(0), $callback);
         
@@ -416,7 +423,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
         
         $this->promise->done($this->createCallback(0), $callback);
         
@@ -453,7 +460,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception1));
+            ->with($this->identicalTo($exception1));
         
         $this->promise->done($this->createCallback(0), $callback);
         
@@ -479,7 +486,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $this->promise->then($callback, $this->createCallback(0));
         
@@ -498,7 +505,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $this->promise->done($callback, $this->createCallback(0));
         
@@ -517,7 +524,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $this->promise->then($this->createCallback(0), $callback);
         
@@ -536,7 +543,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $this->promise->done($this->createCallback(0), $callback);
         
@@ -761,7 +768,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
+            ->with($this->identicalTo($value));
         
         $child = $this->promise->then(null, $this->createCallback(0));
         
@@ -785,7 +792,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $child = $this->promise->then($this->createCallback(0));
         
@@ -1007,7 +1014,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $child = $this->promise->capture($callback);
         
@@ -1049,89 +1056,17 @@ class PromiseTest extends TestCase
         $this->assertSame($value, $child4->getResult());
     }
     
-    /**
-     * @depends testResolveCallableWithValue
-     */
-    public function testTapAfterFulfilled()
-    {
-        $value = 'test';
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
-        
-        $child = $this->promise->tap($callback);
-        
-        $this->resolve($value);
-        
-        Loop::run();
-        
-        $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
-    }
-    
-    /**
-     * @depends testRejectCallable
-     */
-    public function testTapAfterRejected()
-    {
-        $exception = new Exception();
-        
-        $child = $this->promise->tap($this->createCallback(0));
-        
-        $this->reject($exception);
-        
-        Loop::run();
-        
-        $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
-    }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     */
-    public function testCleanupAfterFulfilled()
-    {
-        $value = 'test';
-        
-        $child = $this->promise->cleanup($this->createCallback(1));
-        
-        $this->resolve($value);
-        
-        Loop::run();
-        
-        $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
-    }
-    
-    /**
-     * @depends testRejectCallable
-     */
-    public function testCleanupAfterRejected()
-    {
-        $exception = new Exception();
-        
-        $child = $this->promise->cleanup($this->createCallback(1));
-        
-        $this->reject($exception);
-        
-        Loop::run();
-        
-        $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
-    }
-    
     public function testCancellation()
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $promise = new Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1155,7 +1090,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1176,13 +1111,13 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $promise = new Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1200,13 +1135,13 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $promise = new Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1224,7 +1159,7 @@ class PromiseTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
         $child = $this->promise->then();
         $child->done(null, $callback);
@@ -1568,7 +1503,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -1590,7 +1525,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($exception));
+            ->with($this->identicalTo($exception));
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -1609,7 +1544,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -1766,5 +1701,373 @@ class PromiseTest extends TestCase
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($sibling->isPending());
+    }
+
+    /**
+     * @depends testResolveCallableWithValue
+     */
+    public function testTapAfterFulfilled()
+    {
+        $value = 'test';
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $child = $this->promise->tap($callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isFulfilled());
+        $this->assertSame($value, $child->getResult());
+    }
+
+    /**
+     * @depends testRejectCallable
+     */
+    public function testTapAfterRejected()
+    {
+        $exception = new Exception();
+
+        $child = $this->promise->tap($this->createCallback(0));
+
+        $this->reject($exception);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     * @depends testDelayThenFulfill
+     */
+    public function testTapCallbackReturnsPendingPromise()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $callback = function () use ($time) {
+            return Promise::resolve()->delay($time);
+        };
+
+        $child = $this->promise->tap($callback);
+
+        $this->resolve($value);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+
+        $this->assertTrue($child->isFulfilled());
+        $this->assertSame($value, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testTapCallbackReturnsRejectedPromise()
+    {
+        $value = 'test';
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            return Promise::reject($exception);
+        };
+
+        $child = $this->promise->tap($callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testTapCallbackThrowsException()
+    {
+        $value = 'test';
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            throw $exception;
+        };
+
+        $child = $this->promise->tap($callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testResolveCallableWithValue
+     */
+    public function testCleanupAfterFulfilled()
+    {
+        $value = 'test';
+
+        $child = $this->promise->cleanup($this->createCallback(1));
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isFulfilled());
+        $this->assertSame($value, $child->getResult());
+    }
+
+    /**
+     * @depends testRejectCallable
+     */
+    public function testCleanupAfterRejected()
+    {
+        $exception = new Exception();
+
+        $child = $this->promise->cleanup($this->createCallback(1));
+
+        $this->reject($exception);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testCleanupAfterFulfilled
+     * @depends testDelayThenFulfill
+     */
+    public function testCleanupAfterFulfilledCallbackReturnsPendingPromise()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $callback = function () use ($time) {
+            return Promise::resolve()->delay($time);
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->resolve($value);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+
+        $this->assertTrue($child->isFulfilled());
+        $this->assertSame($value, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testCleanupAfterFulfilledCallbackReturnsRejectedPromise()
+    {
+        $value = 'test';
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            return Promise::reject($exception);
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testCleanupAfterFulfilledCallbackThrowsException()
+    {
+        $value = 'test';
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            throw $exception;
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testCleanupAfterRejected
+     * @depends testDelayThenFulfill
+     */
+    public function testCleanupAfterRejectedCallbackReturnsPendingPromise()
+    {
+        $exception = new Exception();
+        $time = 0.1;
+
+        $callback = function () use ($time) {
+            return Promise::resolve()->delay($time);
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->reject($exception);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testCleanupAfterRejectedCallbackReturnsRejectedPromise()
+    {
+        $value = 'test';
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            return Promise::reject($exception);
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->reject();
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testTapAfterFulfilled
+     */
+    public function testCleanupAfterRejectedCallbackThrowsException()
+    {
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            throw $exception;
+        };
+
+        $child = $this->promise->cleanup($callback);
+
+        $this->reject();
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    public function testSplat()
+    {
+        $values = [1, 'test', 3.14];
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(1), $this->identicalTo('test'), $this->identicalTo(3.14));
+
+        $child = $this->promise->splat($callback);
+
+        $this->resolve($values);
+
+        Loop::run();
+
+        $this->assertTrue($child->isFulfilled());
+    }
+
+    /**
+     * @return  array
+     */
+    public function getInvalidSplatValues()
+    {
+        return [
+            ['test'],
+            [3.14],
+            [0],
+            [new \stdClass()],
+            [null],
+        ];
+    }
+
+    /**
+     * @dataProvider getInvalidSplatValues
+     * @depends testSplat
+     *
+     * @param   mixed $value
+     */
+    public function testSplatWithNonArray($value)
+    {
+        $child = $this->promise->splat($this->createCallback(0));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TypeException'));
+
+        $child->done($this->createCallback(0), $callback);
+
+        $this->resolve($value);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+    }
+
+    /**
+     * @depends testSplat
+     */
+    public function testSplatWithRejectedPromise()
+    {
+        $exception = new Exception();
+
+        $callback = $this->createCallback(0);
+
+        $child = $this->promise->splat($callback);
+
+        $this->reject($exception);
+
+        Loop::run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    public function testSplatWithTraversable()
+    {
+        $values = [1, 'test', 3.14];
+
+        $traversable = function () use ($values) {
+            foreach ($values as $value) {
+                yield $value;
+            }
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(1), $this->identicalTo('test'), $this->identicalTo(3.14));
+
+        $child = $this->promise->splat($callback);
+
+        $this->resolve($traversable());
+
+        Loop::run();
+
+        $this->assertTrue($child->isFulfilled());
     }
 }

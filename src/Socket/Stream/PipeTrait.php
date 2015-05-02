@@ -106,7 +106,7 @@ trait PipeTrait
         );
 
         if ($endOnClose) {
-            $promise->after(function () use ($stream, $timeout) {
+            $promise = $promise->cleanup(function () use ($stream, $timeout) {
                 if (!$this->isReadable()) {
                     $stream->end(null, $timeout);
                 }

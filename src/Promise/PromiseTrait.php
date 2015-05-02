@@ -1,6 +1,8 @@
 <?php
 namespace Icicle\Promise;
 
+use Icicle\Promise\Exception\TypeException;
+
 trait PromiseTrait
 {
     /**
@@ -12,22 +14,6 @@ trait PromiseTrait
     abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
     
     /**
-     * @param   callable $onFulfilled
-     * @param   callable $onRejected
-     *
-     * @return  \Icicle\Promise\PromiseInterface
-     */
-    abstract public function done(callable $onFulfilled = null, callable $onRejected = null);
-    
-    /**
-     * @inheritdoc
-     */
-    public function always(callable $onResolved)
-    {
-        return $this->then($onResolved, $onResolved);
-    }
-    
-    /**
      * @inheritdoc
      */
     public function capture(callable $onRejected)
@@ -35,7 +21,7 @@ trait PromiseTrait
         return $this->then(null, function (\Exception $exception) use ($onRejected) {
             if (is_array($onRejected)) { // Methods passed as an array.
                 $reflection = new \ReflectionMethod($onRejected[0], $onRejected[1]);
-            } elseif (is_object($onRejected) && !$onRejected instanceof \Closure) { // Callable objects that are not Closures.
+            } elseif (is_object($onRejected) && !$onRejected instanceof \Closure) { // Callable objects.
                 $reflection = new \ReflectionMethod($onRejected, '__invoke');
             } else { // Everything else (note method names delimited by :: do not work with $callable() syntax).
                 $reflection = new \ReflectionFunction($onRejected);
@@ -53,25 +39,18 @@ trait PromiseTrait
                 return $onRejected($exception);
             }
             
-            return $this; // Type-hint does not match. $this is now a rejected promise.
+            return $this; // Type-hint does not match.
         });
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function after(callable $onResolved)
-    {
-        $this->done($onResolved, $onResolved);
-    }
-    
+
     /**
      * @inheritdoc
      */
     public function tap(callable $onFulfilled) {
         return $this->then(function ($value) use ($onFulfilled) {
-            $onFulfilled($value);
-            return $this; // $this is now a fulfilled promise.
+            return Promise::resolve($onFulfilled($value))->then(function () {
+                return $this;
+            });
         });
     }
     
@@ -80,9 +59,34 @@ trait PromiseTrait
      */
     public function cleanup(callable $onResolved)
     {
-        return $this->always(function () use ($onResolved) {
-            $onResolved();
-            return $this; // $this is now a resolved promise.
+        $onResolved = function () use ($onResolved) {
+            return Promise::resolve($onResolved())->then(function () {
+                return $this;
+            });
+        };
+
+        return $this->then($onResolved, $onResolved);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function splat(callable $onFulfilled)
+    {
+        return $this->then(function ($values) use ($onFulfilled) {
+            if ($values instanceof \Traversable) {
+                $values = iterator_to_array($values);
+            }
+
+            if (!is_array($values)) {
+                throw new TypeException(sprintf(
+                    'Expected array or Traversable for promise result, got %s',
+                    is_object($values) ? get_class($values) : gettype($values)
+                ));
+            }
+
+            ksort($values); // Ensures correct argument order.
+            return call_user_func_array($onFulfilled, $values);
         });
     }
 }

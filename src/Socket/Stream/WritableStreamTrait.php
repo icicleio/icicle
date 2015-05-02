@@ -132,11 +132,9 @@ trait WritableStreamTrait
         
         $this->writable = false;
         
-        $promise->after(function () {
+        return $promise->cleanup(function () {
             $this->free(new ClosedException('The stream was ended.'));
         });
-        
-        return $promise;
     }
     
     /**
