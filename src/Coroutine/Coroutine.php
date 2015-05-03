@@ -339,7 +339,9 @@ class Coroutine implements CoroutineInterface
      *
      * @param   float $time Time to sleep in seconds.
      *
-     * @return  float Actual time slept in seconds.
+     * @return  \Generator
+     *
+     * @resolve float Actual time slept in seconds.
      */
     public static function sleep($time)
     {
