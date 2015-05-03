@@ -184,18 +184,19 @@ class Promise implements PromiseInterface
     {
         if (null !== $this->result) {
             $this->unwrap()->done($onFulfilled, $onRejected);
+            return;
+        }
+
+        if (null !== $onFulfilled) {
+            $this->onFulfilled->push($onFulfilled);
+        }
+
+        if (null !== $onRejected) {
+            $this->onRejected->push($onRejected);
         } else {
-            if (null !== $onFulfilled) {
-                $this->onFulfilled->push($onFulfilled);
-            }
-            
-            if (null !== $onRejected) {
-                $this->onRejected->push($onRejected);
-            } else {
-                $this->onRejected->push(function (Exception $exception) {
-                    throw $exception; // Rethrow exception in uncatchable way.
-                });
-            }
+            $this->onRejected->push(function (Exception $exception) {
+                throw $exception; // Rethrow exception in uncatchable way.
+            });
         }
     }
     
@@ -206,14 +207,15 @@ class Promise implements PromiseInterface
     {
         if (null !== $this->result) {
             $this->unwrap()->cancel($reason);
-        } else {
-            if (!$reason instanceof Exception) {
-                $reason = new CancelledException($reason);
-            }
-            
-            $onCancelled = $this->onCancelled;
-            $onCancelled($reason);
+            return;
         }
+
+        if (!$reason instanceof Exception) {
+            $reason = new CancelledException($reason);
+        }
+
+        $onCancelled = $this->onCancelled;
+        $onCancelled($reason);
     }
     
     /**
@@ -246,7 +248,7 @@ class Promise implements PromiseInterface
             },
             function (Exception $exception) use (&$timer) {
                 $timer->cancel();
-                
+
                 Loop::schedule(function () use ($exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
@@ -283,7 +285,7 @@ class Promise implements PromiseInterface
                 if (null !== $timer) {
                     $timer->cancel();
                 }
-                
+
                 Loop::schedule(function () use ($exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
@@ -395,18 +397,13 @@ class Promise implements PromiseInterface
      */
     public static function lift(callable $worker)
     {
-        $worker = function (array $args) use ($worker) {
-            ksort($args); // Needed to ensure correct argument order.
-            return call_user_func_array($worker, $args);
-        };
-        
         /**
          * @param   mixed ...$args Promises or values.
          *
          * @return  \Icicle\Promise\PromiseInterface
          */
         return function (/* ...$args */) use ($worker) {
-            return static::join(func_get_args())->then($worker);
+            return static::join(func_get_args())->splat($worker);
         };
     }
     
@@ -489,7 +486,7 @@ class Promise implements PromiseInterface
             
             foreach ($promises as &$promise) {
                 $promise = static::resolve($promise);
-                $promise->after($after);
+                $promise->done($after, $after);
             }
         });
     }
@@ -675,19 +672,21 @@ class Promise implements PromiseInterface
             return static::resolve($initial);
         }
         
-        return new static(function ($resolve, $reject) use ($promises, $callback, $initial) {
+        return $result = new static(function ($resolve, $reject) use (&$result, $promises, $callback, $initial) {
             $pending = count($promises);
             $carry = static::resolve($initial);
             $carry->done(null, $reject);
             
-            $onFulfilled = function ($value) use (&$carry, &$pending, $callback, $resolve, $reject) {
-                $carry = $carry->then(function ($carry) use ($callback, $value) {
-                    return $callback($carry, $value);
-                });
-                $carry->done(null, $reject);
-                
-                if (0 === --$pending) {
-                    $resolve($carry);
+            $onFulfilled = function ($value) use (&$carry, &$result, &$pending, $callback, $resolve, $reject) {
+                if ($result->isPending()) {
+                    $carry = $carry->then(function ($carry) use ($callback, $value) {
+                        return $callback($carry, $value);
+                    });
+                    $carry->done(null, $reject);
+
+                    if (0 === --$pending) {
+                        $resolve($carry);
+                    }
                 }
             };
             
@@ -723,10 +722,10 @@ class Promise implements PromiseInterface
                         try {
                             if (!$predicate($value)) { // Resolve promise if $predicate returns false.
                                 $resolve($value);
-                            } else {
-                                $promise = static::resolve($worker($value));
-                                $promise->done($callback, $reject);
+                                return;
                             }
+                            $promise = static::resolve($worker($value));
+                            $promise->done($callback, $reject);
                         } catch (Exception $exception) {
                             $reject($exception);
                         }
@@ -769,10 +768,10 @@ class Promise implements PromiseInterface
                         try {
                             if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
                                 $reject($exception);
-                            } else {
-                                $promise = static::resolve($promisor());
-                                $promise->done($resolve, $callback);
+                                return;
                             }
+                            $promise = static::resolve($promisor());
+                            $promise->done($resolve, $callback);
                         } catch (Exception $exception) {
                             $reject($exception);
                         }

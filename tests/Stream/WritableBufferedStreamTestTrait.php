@@ -6,6 +6,11 @@ use Icicle\Loop\Loop;
 trait WritableBufferedStreamTestTrait
 {
     /**
+     * @return  \Icicle\Stream\Stream[]
+     */
+    abstract public function createStreams();
+
+    /**
      * @depends testWrite
      */
     public function testCloseAfterPendingWrite()
@@ -83,13 +88,13 @@ trait WritableBufferedStreamTestTrait
         $promise->done($callback, $this->createCallback(0));
         
         $this->assertTrue($promise->isPending());
-        
+
         while ($promise->isPending()) {
-            $readable->read(); // Pull more data out of the buffer.
+            $readable->read(StreamTest::CHUNK_SIZE); // Pull more data out of the buffer.
             Loop::tick();
         }
         
-        $this->assertFalse($writable->isOpen());
+        $this->assertFalse($writable->isWritable());
     }
     
     /**
@@ -139,26 +144,5 @@ trait WritableBufferedStreamTestTrait
         $promise->done($this->createCallback(0), $this->createCallback(1));
         
         Loop::run();
-    }
-    
-    /**
-     * @depends testAwait
-     */
-    public function testAwaitAfterPendingWrite()
-    {
-        list($readable, $writable) = $this->createStreams(StreamTest::HWM);
-        
-        do { // Write until a pending promise is returned.
-            $promise = $writable->write(StreamTest::WRITE_STRING);
-        } while (!$promise->isPending());
-        
-        $promise = $writable->await();
-        
-        $promise->done($this->createCallback(1), $this->createCallback(0));
-        
-        while ($promise->isPending()) {
-            $readable->read(); // Pull more data out of the buffer.
-            Loop::tick();
-        }
     }
 }

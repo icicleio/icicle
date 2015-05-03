@@ -23,13 +23,14 @@ class Connector implements ConnectorInterface
     public function connect($host, $port, array $options = null)
     {
         $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
-        $allowSelfSigned = isset($options['allow_self_signed']) ?
-            (bool) $options['allow_self_signed'] :
-            self::DEFAULT_ALLOW_SELF_SIGNED;
+        $allowSelfSigned = isset($options['allow_self_signed'])
+            ? (bool) $options['allow_self_signed']
+            : self::DEFAULT_ALLOW_SELF_SIGNED;
         $timeout = isset($options['timeout']) ? (float) $options['timeout'] : self::DEFAULT_CONNECT_TIMEOUT;
         $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
         $cafile = isset($options['cafile']) ? (string) $options['cafile'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : $this->parseAddress($host);
+        $name = isset($options['name']) ? (string) $options['name'] : null;
+        $cn = isset($options['cn']) ? (string) $options['cn'] : $name;
         
         $context = [];
         
@@ -42,11 +43,16 @@ class Connector implements ConnectorInterface
         $context['ssl']['capture_peer_cert_chain'] = true;
         
         $context['ssl']['verify_peer'] = true;
+        $context['ssl']['verify_peer_name'] = true;
         $context['ssl']['allow_self_signed'] = $allowSelfSigned;
         $context['ssl']['verify_depth'] = $verifyDepth;
-        
-        $context['ssl']['CN_match'] = $name;
+
+        $context['ssl']['CN_match'] = $cn;
+
+        $context['ssl']['SNI_enabled'] = true;
+        $context['ssl']['SNI_server_name'] = $name;
         $context['ssl']['peer_name'] = $name;
+
         $context['ssl']['disable_compression'] = true;
         
         if (null !== $cafile) {
@@ -70,7 +76,9 @@ class Connector implements ConnectorInterface
         );
         
         if (!$socket || $errno) {
-            return Promise::reject(new FailureException("Could not connect to {$uri}; Errno: {$errno}; {$errstr}"));
+            return Promise::reject(new FailureException(
+                sprintf('Could not connect to %s; Errno: %d; %s', $uri, $errno, $errstr)
+            ));
         }
         
         return new Promise(function ($resolve, $reject) use ($socket, $timeout) {
@@ -80,9 +88,10 @@ class Connector implements ConnectorInterface
                 
                 if ($expired) {
                     $reject(new TimeoutException('Connection attempt timed out.'));
-                } else {
-                    $resolve(new Client($resource));
+                    return;
                 }
+
+                $resolve(new Client($resource));
             });
             
             $await->listen($timeout);

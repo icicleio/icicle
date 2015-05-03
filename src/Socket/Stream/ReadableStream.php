@@ -17,20 +17,26 @@ class ReadableStream extends Socket implements ReadableSocketInterface
         parent::__construct($socket);
         $this->init($socket);
     }
-    
+
     /**
-     * Closes the stream.
-     *
-     * @param   \Exception|null $exception Reason for the stream closing.
+     * @inheritdoc
      */
-    public function close(Exception $exception = null)
+    public function close()
     {
-        if (null === $exception) {
-            $exception = new ClosedException('The connection was closed.');
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The connection was closed.'));
         }
-        
-        $this->free($exception);
-        
+    }
+
+    /**
+     * Frees resources associated with the stream and closes the stream.
+     *
+     * @param   \Exception $exception Reason for the stream closing.
+     */
+    protected function free(Exception $exception)
+    {
+        $this->detach($exception);
+
         parent::close();
     }
 }

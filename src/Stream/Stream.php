@@ -85,14 +85,22 @@ class Stream implements DuplexStreamInterface
     /**
      * @inheritdoc
      */
-    public function close(Exception $exception = null)
+    public function close()
+    {
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The stream was closed.'));
+        }
+    }
+
+    /**
+     * Closes the stream and rejects any pending promises.
+     *
+     * @param   \Exception $exception
+     */
+    protected function free(Exception $exception)
     {
         $this->open = false;
         $this->writable = false;
-        
-        if (null === $exception) {
-            $exception = new ClosedException('The stream was closed.');
-        }
 
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
@@ -107,6 +115,7 @@ class Stream implements DuplexStreamInterface
             }
         }
     }
+
     /**
      * @inheritdoc
      */
@@ -124,24 +133,18 @@ class Stream implements DuplexStreamInterface
         $this->byte = $this->parseByte($byte);
 
         if (!$this->buffer->isEmpty()) {
-            if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
-                if (null === $this->length || $position < $this->length) {
-                    $data = $this->buffer->remove($position + 1);
-                } else {
-                    $data = $this->buffer->remove($this->length);
-                }
-            } elseif (null === $this->length) {
-                $data = $this->buffer->drain();
-            } else {
-                $data = $this->buffer->remove($this->length);
-            }
+            $data = $this->remove();
 
-            if (null !== $this->hwm && $this->buffer->getLength() < $this->hwm) {
+            if (null !== $this->hwm && $this->buffer->getLength() <= $this->hwm) {
                 while (!$this->deferredQueue->isEmpty()) {
                     /** @var \Icicle\Promise\Deferred $deferred */
                     list($length, $deferred) = $this->deferredQueue->shift();
                     $deferred->resolve($length);
                 }
+            }
+
+            if (!$this->writable && $this->buffer->isEmpty()) {
+                $this->free(new ClosedException('The stream was ended.'));
             }
 
             return Promise::resolve($data);
@@ -155,6 +158,28 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
+     * Returns bytes from the buffer based on the current length or current search byte.
+     *
+     * @return  string
+     */
+    private function remove()
+    {
+        if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
+            if (null === $this->length || $position < $this->length) {
+                return $this->buffer->remove($position + 1);
+            }
+
+            return $this->buffer->remove($this->length);
+        }
+
+        if (null === $this->length) {
+            return $this->buffer->drain();
+        }
+
+        return $this->buffer->remove($this->length);
+    }
+
+    /**
      * @inheritdoc
      */
     public function isReadable()
@@ -165,52 +190,49 @@ class Stream implements DuplexStreamInterface
     /**
      * @inheritdoc
      */
-    public function poll()
+    public function write($data)
     {
-        return $this->read(0);
+        return $this->send($data, false);
     }
 
     /**
      * @inheritdoc
      */
-    public function write($data)
+    public function end($data = null)
     {
-        if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
-        }
-
-        return $this->send($data);
+        return $this->send($data, true);
     }
 
     /**
      * @param   string $data
+     * @param   bool $end
      *
      * @return  \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      */
-    protected function send($data)
+    protected function send($data, $end = false)
     {
-        $data = (string) $data; // Single cast in case an object is passed.
+        if (!$this->isWritable()) {
+            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+        }
+
         $this->buffer->push($data);
 
         if (null !== $this->deferred && !$this->buffer->isEmpty()) {
-            if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
-                if (null === $this->length || $position < $this->length) {
-                    $this->deferred->resolve($this->buffer->remove($position + 1));
-                } else {
-                    $this->deferred->resolve($this->buffer->remove($this->length));
-                }
-            } elseif (null === $this->length) {
-                $this->deferred->resolve($this->buffer->drain());
-            } else {
-                $this->deferred->resolve($this->buffer->remove($this->length));
-            }
-
+            $this->deferred->resolve($this->remove());
             $this->deferred = null;
         }
 
-        if (null !== $this->hwm && $this->buffer->getLength() >= $this->hwm) {
+        if ($end) {
+            $this->writable = false;
+
+            if ($this->buffer->isEmpty()) {
+                $this->free(new ClosedException('The stream was ended.'));
+            }
+        }
+
+        if (null !== $this->hwm && $this->buffer->getLength() > $this->hwm) {
             $deferred = new Deferred();
             $this->deferredQueue->push([strlen($data), $deferred]);
             return $deferred->getPromise();
@@ -218,31 +240,7 @@ class Stream implements DuplexStreamInterface
 
         return Promise::resolve(strlen($data));
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function end($data = null)
-    {
-        $promise = $this->write($data);
-        
-        $this->writable = false;
-        
-        $promise->after(function () {
-            $this->close();
-        });
-        
-        return $promise;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function await()
-    {
-        return $this->write(null);
-    }
-    
+
     /**
      * @inheritdoc
      */

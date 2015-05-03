@@ -8,14 +8,14 @@ use Icicle\Stream\WritableStreamInterface;
 trait PipeTrait
 {
     /**
-     * @see     \Icicle\Stream\StreamInterface::isOpen()
+     * @see     \Icicle\Socket\SocketInterface::isOpen()
      *
      * @return  bool
      */
     abstract public function isOpen();
 
     /**
-     * @see     \Icicle\Socket\Stream\ReadableStreamSocketInterface::read()
+     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::read()
      *
      * @param   int|null $length
      * @param   string|int|null $byte
@@ -24,6 +24,13 @@ trait PipeTrait
      * @return  \Icicle\Promise\PromiseInterface
      */
     abstract public function read($length = null, $byte = null, $timeout = null);
+
+    /**
+     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::isReadable()
+     *
+     * @return  bool
+     */
+    abstract public function isReadable();
 
     /**
      * @see     \Icicle\Stream\ParserTrait::parseByte()
@@ -42,10 +49,10 @@ trait PipeTrait
     abstract protected function parseByte($byte);
 
     /**
-     * @see     \Icicle\Socket\Stream\ReadableStreamSocketInterface::pipe()
+     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::pipe()
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose
+     * @param   bool $endWhenUnreadable
      * @param   int|null $length
      * @param   string|int|null $byte
      * @param   float|int|null $timeout
@@ -54,7 +61,7 @@ trait PipeTrait
      */
     public function pipe(
         WritableStreamInterface $stream,
-        $endOnClose = true,
+        $endWhenUnreadable = true,
         $length = null,
         $byte = null,
         $timeout = null
@@ -78,15 +85,15 @@ trait PipeTrait
 
                 $promise = $stream->write($data, $timeout);
 
-                if ((null !== $byte && $data[$count - 1] === $byte) ||
-                    (null !== $length && 0 >= $length -= $count)) {
+                if ((null !== $byte && $data[$count - 1] === $byte)
+                    || (null !== $length && 0 >= $length -= $count)) {
                     return $promise->then(function () use ($bytes) {
                         return $bytes;
                     });
                 }
 
                 return $promise->then(function () use ($stream, $bytes, $length, $byte, $timeout) {
-                    if (!$stream->isWritable()) {
+                    if (!$this->isReadable() || !$stream->isWritable()) {
                         return $bytes;
                     }
                     return $this->read($length, $byte, $timeout);
@@ -98,9 +105,9 @@ trait PipeTrait
             $this->read($length, $byte, $timeout)
         );
 
-        if ($endOnClose) {
-            $promise->done(null, function () use ($stream, $timeout) {
-                if (!$this->isOpen()) {
+        if ($endWhenUnreadable) {
+            $promise = $promise->cleanup(function () use ($stream, $timeout) {
+                if (!$this->isReadable()) {
                     $stream->end(null, $timeout);
                 }
             });

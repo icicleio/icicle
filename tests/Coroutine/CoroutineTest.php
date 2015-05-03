@@ -95,10 +95,9 @@ class CoroutineTest extends TestCase
     public function testYieldPendingPromise()
     {
         $value = 1;
-        $timeout = 0.1;
-        
-        $generator = function () use (&$yielded, $value, $timeout) {
-            $yielded = (yield Promise::resolve($value)->delay($timeout));
+
+        $generator = function () use (&$yielded, $value) {
+            $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
         };
         
         $coroutine = new Coroutine($generator());
@@ -192,6 +191,167 @@ class CoroutineTest extends TestCase
         
         Loop::run();
         
+        $this->assertTrue($coroutine->isRejected());
+        $this->assertSame($exception, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testCatchingRejectedPromiseException
+     */
+    public function testGeneratorCatchingThrownExceptionWithoutFurtherYield()
+    {
+        $exception = new Exception();
+        $value = 1;
+
+        $generator = function () use ($exception, $value) {
+            try {
+                yield $value;
+                throw $exception;
+            } catch (Exception $exception) {
+                // Exception caught, but no further yields.
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $child = $coroutine->then($callback, $this->createCallback(0));
+
+        Loop::run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertSame($value, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testGeneratorThrowingExceptionRejectsCoroutine
+     */
+    public function testGeneratorThrowingExceptionWithFinallyRejectsCoroutine()
+    {
+        $exception = new Exception();
+
+        $callback = $this->createCallback(1);
+
+        $generator = function () use ($exception, $callback) {
+            try {
+                throw $exception;
+                yield;
+            } finally {
+                $callback();
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop::run();
+
+        $this->assertTrue($coroutine->isRejected());
+        $this->assertSame($exception, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testYieldRejectedPromise
+     * @depends testGeneratorThrowingExceptionWithFinallyRejectsCoroutine
+     */
+    public function testGeneratorYieldingRejectedPromiseWithFinallyRejectsCoroutine()
+    {
+        $exception = new Exception();
+
+        $callback = $this->createCallback(1);
+
+        $generator = function () use ($exception, $callback) {
+            try {
+                yield Promise::reject($exception);
+            } finally {
+                $callback();
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop::run();
+
+        $this->assertTrue($coroutine->isRejected());
+        $this->assertSame($exception, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testGeneratorThrowingExceptionRejectsCoroutine
+     */
+    public function testGeneratorThrowingExceptionAfterPendingPromiseWithFinallyRejectsCoroutine()
+    {
+        $exception = new Exception();
+        $value = 1;
+
+        $callback = $this->createCallback(1);
+
+        $generator = function () use (&$yielded, $exception, $callback, $value) {
+            try {
+                $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
+                throw $exception;
+            } finally {
+                $callback();
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+
+        $this->assertSame($value, $yielded);
+        $this->assertTrue($coroutine->isRejected());
+        $this->assertSame($exception, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testYieldPendingPromise
+     * @depends testGeneratorThrowingExceptionWithFinallyRejectsCoroutine
+     */
+    public function testGeneratorThrowingExceptionWithFinallyYieldingPendingPromise()
+    {
+        $exception = new Exception();
+        $value = 1;
+
+        $generator = function () use (&$yielded, $exception, $value) {
+            try {
+                throw $exception;
+            } finally {
+                $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+
+        $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
     }
@@ -650,7 +810,7 @@ class CoroutineTest extends TestCase
         
         $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
     }
-    
+
     /**
      * @depends testYieldGenerator
      */

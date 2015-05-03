@@ -38,11 +38,11 @@ trait WritableStreamTrait
     abstract protected function getResource();
     
     /**
-     * Closes the socket if it is still open.
+     * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception
+     * @param   \Exception $exception
      */
-    abstract public function close(Exception $exception = null);
+    abstract protected function free(Exception $exception);
     
     /**
      * @param   resource $socket Stream socket resource.
@@ -62,11 +62,12 @@ trait WritableStreamTrait
      *
      * @param   \Exception $exception
      */
-    private function free(Exception $exception)
+    private function detach(Exception $exception)
     {
         $this->writable = false;
         
         $this->await->free();
+        $this->await = null;
         
         while (!$this->writeQueue->isEmpty()) {
             /** @var \Icicle\Promise\Deferred $deferred */
@@ -74,7 +75,7 @@ trait WritableStreamTrait
             $deferred->reject($exception);
         }
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -85,10 +86,11 @@ trait WritableStreamTrait
         }
         
         $data = new Buffer($data);
+        $written = 0;
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
-                return Promise::resolve(0);
+                return Promise::resolve($written);
             }
             
             // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
@@ -97,10 +99,10 @@ trait WritableStreamTrait
             if (false === $written) {
                 $message = 'Failed to write to stream.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 $exception = new FailureException($message);
-                $this->close($exception);
+                $this->free($exception);
                 return Promise::reject($exception);
             }
             
@@ -109,8 +111,6 @@ trait WritableStreamTrait
             }
             
             $data->remove($written);
-        } else {
-            $written = 0;
         }
         
         $deferred = new Deferred();
@@ -119,7 +119,7 @@ trait WritableStreamTrait
         if (!$this->await->isPending()) {
             $this->await->listen($timeout);
         }
-        
+
         return $deferred->getPromise();
     }
     
@@ -132,17 +132,25 @@ trait WritableStreamTrait
         
         $this->writable = false;
         
-        $promise->after(function () {
-            $this->close(new ClosedException('The stream was ended.'));
+        return $promise->cleanup(function () {
+            $this->free(new ClosedException('The stream was ended.'));
         });
-        
-        return $promise;
     }
     
     /**
-     * @inheritdoc
+     * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
+     *
+     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *          if the data cannot be written to the stream. Use null for no timeout.
+     *
+     * @return  \Icicle\Promise\PromiseInterface
+     *
+     * @resolve int Always resolves with 0.
+     *
+     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      */
-    public function await($timeout = null)
+    protected function await($timeout = null)
     {
         if (!$this->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is no longer writable.'));
@@ -171,11 +179,11 @@ trait WritableStreamTrait
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createAwait($socket)
+    private function createAwait($socket)
     {
         return Loop::await($socket, function ($resource, $expired) {
             if ($expired) {
-                $this->close(new TimeoutException('Writing to the socket timed out.'));
+                $this->free(new TimeoutException('Writing to the socket timed out.'));
                 return;
             }
 
@@ -185,18 +193,20 @@ trait WritableStreamTrait
              */
             list($data, $previous, $timeout, $deferred) = $this->writeQueue->shift();
             
-            if (!$data->isEmpty()) {
+            if ($data->isEmpty()) {
+                $deferred->resolve($previous);
+            } else {
                 // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
                 $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
                 
                 if (false === $written || 0 === $written) {
                     $message = 'Failed to write to stream.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);
-                    $this->close($exception);
+                    $this->free($exception);
                     return;
                 }
                 
@@ -207,8 +217,6 @@ trait WritableStreamTrait
                     $written += $previous;
                     $this->writeQueue->unshift([$data, $written, $timeout, $deferred]);
                 }
-            } else {
-                $deferred->resolve($previous);
             }
             
             if (!$this->writeQueue->isEmpty()) {

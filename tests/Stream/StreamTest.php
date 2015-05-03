@@ -16,7 +16,7 @@ class StreamTest extends TestCase
     /**
      * @param   int|null $hwm
      *
-     * @return  Stream[] Same stream instance for readable and writable.
+     * @return  \Icicle\Stream\Stream[] Same stream instance for readable and writable.
      */
     public function createStreams($hwm = null)
     {
@@ -28,5 +28,66 @@ class StreamTest extends TestCase
     public function tearDown()
     {
         Loop::clear();
+    }
+
+    public function testEndWithPendingRead()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->read();
+
+        $this->assertTrue($promise->isPending());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(StreamTest::WRITE_STRING));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        $promise = $writable->end(StreamTest::WRITE_STRING);
+
+        $this->assertFalse($writable->isWritable());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+
+        $this->assertFalse($readable->isReadable());
+    }
+
+    /**
+     * @depends testEndWithPendingRead
+     */
+    public function testEndWithPendingReadWritingNoData()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->read();
+
+        $this->assertTrue($promise->isPending());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Stream\Exception\ClosedException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise = $writable->end();
+
+        $this->assertFalse($writable->isWritable());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(0));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        Loop::run();
+
+        $this->assertFalse($readable->isReadable());
     }
 }

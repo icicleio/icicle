@@ -51,28 +51,35 @@ class Server extends Socket implements ServerInterface
         try {
             list($this->address, $this->port) = $this->getName(false);
         } catch (Exception $exception) {
-            $this->close($exception);
+            $this->free($exception);
         }
     }
     
     /**
      * @inheritdoc
-     *
-     * @param   \Exception|null $exception Reason for closing.
      */
-    public function close(Exception $exception = null)
+    public function close()
+    {
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The server has closed.'));
+        }
+    }
+
+    /**
+     * Frees resources associated with the server and closes the server.
+     *
+     * @param   Exception $exception Reason for closing the server.
+     */
+    protected function free(Exception $exception)
     {
         $this->poll->free();
-        
+        $this->poll = null;
+
         if (null !== $this->deferred) {
-            if (null === $exception) {
-                $exception = new ClosedException('The server has closed.');
-            }
-            
             $this->deferred->reject($exception);
             $this->deferred = null;
         }
-        
+
         parent::close();
     }
     
@@ -147,7 +154,7 @@ class Server extends Socket implements ServerInterface
                 if (!$client) {
                     $message = 'Could not accept client.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     throw new AcceptException($message);
                 }

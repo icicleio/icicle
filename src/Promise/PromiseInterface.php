@@ -38,8 +38,8 @@ interface PromiseInterface
     public function cancel($reason = null);
     
     /**
-     * Returns a promise that is rejected in $timeout seconds if the promise is not resolved before that time.
-     * When the promise resolves, the returned promise is fulfilled or rejected with the same value.
+     * Cancels the promise with $reason if it is not resolved within $timeout seconds. When the promise resolves, the
+     * returned promise is fulfilled or rejected with the same value.
      *
      * @param   float $timeout
      * @param   mixed $reason
@@ -61,23 +61,11 @@ interface PromiseInterface
      * @api
      */
     public function delay($time);
-    
-    /**
-     * Assigns a callback function to be called if the promise is fulfilled or rejected.
-     * Shortcut to calling PromiseInterface::then($onResolved, $onResolved)
-     *
-     * @param   callable $onResolved
-     *
-     * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
-     */
-    public function always(callable $onResolved);
-    
+
     /**
      * Assigns a callback function that is called when the promise is rejected. If a typehint is defined on the callable
-     * (ex: function (RuntimeException $exception) {}), then the function will only be called if the exception is an instance
-     * of the typehinted exception.
+     * (ex: function (RuntimeException $exception) {}), then the function will only be called if the exception is an
+     * instance of the typehinted exception.
      *
      * @param   callable $onRejected
      *
@@ -86,18 +74,7 @@ interface PromiseInterface
      * @api
      */
     public function capture(callable $onRejected);
-    
-    /**
-     * Assigns a callback to be called if the promise is fulfilled or rejected. Returned values are ignored and
-     * thrown exceptions are rethrown in an uncatchable way.
-     * Shortcut to calling PromiseInterface::done($onResolved, $onResolved)
-     *
-     * @param   callable $onResolved
-     *
-     * @api
-     */
-    public function after(callable $onResolved);
-    
+
     /**
      * Calls the given function with the value used to fulfill the promise, then fulfills the returned promise with
      * the same value. If the promise is rejected, the returned promise is also rejected and $onFulfilled is not called.
@@ -125,6 +102,18 @@ interface PromiseInterface
      * @api
      */
     public function cleanup(callable $onResolved);
+
+    /**
+     * If the promises returns an array or a Traversable object, this function use the array (or array generated from
+     * traversing the iterator) as arguments to the given function. The array is key sorted before used as arguments.
+     * If the promise does not return an array, the returned promise will be rejected with an
+     * \Icicle\Promise\Exception\InvalidArgumentException.
+     *
+     * @param   callable $onFulfilled
+     *
+     * @return  mixed
+     */
+    public function splat(callable $onFulfilled);
     
     /**
      * Returns true if the promise has not been resolved.

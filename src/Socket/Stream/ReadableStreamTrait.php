@@ -10,9 +10,7 @@ use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\UnreadableException;
-use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\ParserTrait;
-use Icicle\Stream\WritableStreamInterface;
 
 trait ReadableStreamTrait
 {
@@ -45,12 +43,12 @@ trait ReadableStreamTrait
     abstract protected function getResource();
 
     /**
-     * Closes the socket if it is still open.
+     * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception
+     * @param   \Exception $exception
      */
-    abstract public function close(Exception $exception = null);
-    
+    abstract protected function free(Exception $exception);
+
     /**
      * @param  resource $socket Stream socket resource.
      */
@@ -67,9 +65,10 @@ trait ReadableStreamTrait
      *
      * @param   \Exception $exception
      */
-    private function free(Exception $exception)
+    private function detach(Exception $exception)
     {
         $this->poll->free();
+        $this->poll = null;
         
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
@@ -91,12 +90,29 @@ trait ReadableStreamTrait
         }
 
         $this->length = $this->parseLength($length);
+
         if (null === $this->length) {
             $this->length = SocketInterface::CHUNK_SIZE;
         }
 
+        if (0 === $this->length) {
+            return Promise::resolve('');
+        }
+
         $this->byte = $this->parseByte($byte);
-        
+
+        $resource = $this->getResource();
+        $data = $this->fetch($resource);
+
+        if ('' !== $data) {
+            return Promise::resolve($data);
+        }
+
+        if (feof($resource)) { // Close only if no data was read and at EOF.
+            $this->free(new EofException('Connection reset by peer or reached EOF.'));
+            return Promise::resolve($data); // Resolve with empty string on EOF.
+        }
+
         $this->poll->listen($timeout);
         
         $this->deferred = new Deferred(function () {
@@ -108,11 +124,40 @@ trait ReadableStreamTrait
     }
     
     /**
-     * @inheritdoc
+     * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
+     *
+     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *          if no data is received. Use null for no timeout.
+     *
+     * @return  \Icicle\Promise\PromiseInterface
+     *
+     * @resolve string Empty string.
+     *
+     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
-    public function poll($timeout = null)
+    protected function poll($timeout = null)
     {
-        return $this->read(0, null, $timeout);
+        if (null !== $this->deferred) {
+            return Promise::reject(new BusyException('Already waiting on stream.'));
+        }
+
+        if (!$this->isReadable()) {
+            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+        }
+
+        $this->length = 0;
+
+        $this->poll->listen($timeout);
+
+        $this->deferred = new Deferred(function () {
+            $this->poll->cancel();
+            $this->deferred = null;
+        });
+
+        return $this->deferred->getPromise();
     }
     
     /**
@@ -128,7 +173,7 @@ trait ReadableStreamTrait
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createPoll($socket)
+    private function createPoll($socket)
     {
         return Loop::poll($socket, function ($resource, $expired) {
             if ($expired) {
@@ -137,34 +182,50 @@ trait ReadableStreamTrait
                 return;
             }
 
-            $data = '';
-
             if (0 === $this->length) {
-                $this->deferred->resolve($data);
+                $this->deferred->resolve('');
                 $this->deferred = null;
                 return;
             }
 
-            if (null !== $this->byte) {
-                for ($i = 0; $i < $this->length; ++$i) {
-                    if (false === ($byte = fgetc($resource))) {
-                        break;
-                    }
-                    $data .= $byte;
-                    if ($byte === $this->byte) {
-                        break;
-                    }
-                }
-            } else {
-                $data = (string) fread($resource, $this->length);
-            }
+            $data = $this->fetch($resource);
 
             $this->deferred->resolve($data);
             $this->deferred = null;
 
             if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
-                $this->close(new EofException('Connection reset by peer or reached EOF.'));
+                $this->free(new EofException('Connection reset by peer or reached EOF.'));
             }
         });
+    }
+
+    /**
+     * Reads data from the stream socket resource based on set length and read-to byte.
+     *
+     * @param   resource $resource
+     *
+     * @return  string
+     */
+    private function fetch($resource)
+    {
+        if (null === $this->byte) {
+            return (string) fread($resource, $this->length);
+        }
+
+        $data = '';
+
+        for ($i = 0; $i < $this->length; ++$i) {
+            if (false === ($byte = fgetc($resource))) {
+                return $data;
+            }
+
+            $data .= $byte;
+
+            if ($byte === $this->byte) {
+                return $data;
+            }
+        }
+
+        return $data;
     }
 }

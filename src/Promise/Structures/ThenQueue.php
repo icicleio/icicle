@@ -35,12 +35,13 @@ class ThenQueue
      */
     public function push(callable $resolver)
     {
-        if ($resolver instanceof self) {
-            foreach ($resolver->queue as $callback) {
-                $this->queue->push($callback);
-            }
-        } else {
+        if (!$resolver instanceof self) {
             $this->queue->push($resolver);
+            return;
+        }
+
+        foreach ($resolver->queue as $callback) {
+            $this->queue->push($callback);
         }
     }
 }

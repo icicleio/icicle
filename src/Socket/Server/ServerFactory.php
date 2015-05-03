@@ -10,6 +10,11 @@ class ServerFactory implements ServerFactoryInterface
     use ParserTrait;
 
     const DEFAULT_BACKLOG = SOMAXCONN;
+
+    // Verify peer should normally be off on the server side.
+    const DEFAULT_VERIFY_PEER = false;
+    const DEFAULT_ALLOW_SELF_SIGNED = false;
+    const DEFAULT_VERIFY_DEPTH = 10;
     
     /**
      * @inheritdoc
@@ -19,8 +24,14 @@ class ServerFactory implements ServerFactoryInterface
         $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
         $pem = isset($options['pem']) ? (string) $options['pem'] : null;
         $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;
-        $name = isset($options['name']) ? (string) $options['name'] : $this->parseAddress($host);
-        
+        $name = isset($options['name']) ? (string) $options['name'] : null;
+
+        $verify = isset($options['verify_peer']) ? (string) $options['verify_peer'] : self::DEFAULT_VERIFY_PEER;
+        $allowSelfSigned = isset($options['allow_self_signed'])
+            ? (bool) $options['allow_self_signed']
+            : self::DEFAULT_ALLOW_SELF_SIGNED;
+        $verifyDepth = isset($options['verify_depth']) ? (int) $options['verify_depth'] : self::DEFAULT_VERIFY_DEPTH;
+
         $context = [];
         
         $context['socket'] = [];
@@ -33,8 +44,15 @@ class ServerFactory implements ServerFactoryInterface
             }
             
             $context['ssl'] = [];
+
+            $context['ssl']['verify_peer'] = $verify;
+            $context['ssl']['verify_peer_name'] = $verify;
+            $context['ssl']['allow_self_signed'] = $allowSelfSigned;
+            $context['ssl']['verify_depth'] = $verifyDepth;
+
             $context['ssl']['local_cert'] = $pem;
             $context['ssl']['disable_compression'] = true;
+
             $context['ssl']['SNI_enabled'] = true;
             $context['ssl']['SNI_server_name'] = $name;
             $context['ssl']['peer_name'] = $name;
@@ -51,7 +69,7 @@ class ServerFactory implements ServerFactoryInterface
         $socket = @stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         
         if (!$socket || $errno) {
-            throw new FailureException("Could not create server {$uri}: [Errno: {$errno}] {$errstr}");
+            throw new FailureException(sprintf('Could not create server %s: Errno: %d; %s', $uri, $errno, $errstr));
         }
         
         return new Server($socket);

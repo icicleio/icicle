@@ -43,7 +43,7 @@ class Client extends DuplexStream implements ClientInterface
             list($this->remoteAddress, $this->remotePort) = $this->getName(true);
             list($this->localAddress, $this->localPort) = $this->getName(false);
         } catch (Exception $exception) {
-            $this->close($exception);
+            $this->free($exception);
         }
     }
     
@@ -61,7 +61,7 @@ class Client extends DuplexStream implements ClientInterface
             if (false === $result) {
                 $message = 'Failed to enable crypto.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 throw new FailureException($message);
             }

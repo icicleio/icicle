@@ -57,6 +57,8 @@ class BufferIteratorTest extends TestCase
     
     public function testInsert()
     {
+        $this->iterator->next();
+
         $this->iterator->insert(self::APPEND_STRING);
         
         $this->assertSame(substr(self::INITIAL_STRING, 0, 1) . self::APPEND_STRING . substr(self::INITIAL_STRING, 1), (string) $this->buffer);
@@ -64,7 +66,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testInsert
-     * @expectedException Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\LogicException
      */
     public function testInsertOnInvalidIterator()
     {
@@ -82,7 +84,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testReplace
-     * @expectedException Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\LogicException
      */
     public function testReplaceOnInvalidIterator()
     {
@@ -106,7 +108,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testRemove
-     * @expectedException Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\LogicException
      */
     public function testRemoveOnInvalidIterator()
     {

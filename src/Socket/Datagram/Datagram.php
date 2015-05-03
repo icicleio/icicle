@@ -11,10 +11,13 @@ use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
 use Icicle\Socket\Socket;
+use Icicle\Stream\ParserTrait;
 use Icicle\Stream\Structures\Buffer;
 
 class Datagram extends Socket implements DatagramInterface
 {
+    use ParserTrait;
+
     /**
      * @var string
      */
@@ -70,7 +73,7 @@ class Datagram extends Socket implements DatagramInterface
         try {
             list($this->address, $this->port) = $this->getName(false);
         } catch (Exception $exception) {
-            $this->close($exception);
+            $this->free($exception);
         }
     }
     
@@ -79,13 +82,23 @@ class Datagram extends Socket implements DatagramInterface
      */
     public function close(Exception $exception = null)
     {
+        if ($this->isOpen()) {
+            $this->free(new ClosedException('The datagram was closed.'));
+        }
+    }
+
+    /**
+     * Frees resources associated with the datagram and closes the datagram.
+     *
+     * @param   \Exception $exception Reason for closing the datagram.
+     */
+    protected function free(Exception $exception)
+    {
         $this->poll->free();
         $this->await->free();
-        
-        if (null === $exception) {
-            $exception = new ClosedException('The datagram was closed.');
-        }
-        
+        $this->poll = null;
+        $this->await = null;
+
         if (null !== $this->deferred) {
             $this->deferred->reject($exception);
             $this->deferred = null;
@@ -96,7 +109,7 @@ class Datagram extends Socket implements DatagramInterface
             list( , , , $deferred) = $this->writeQueue->shift();
             $deferred->reject($exception);
         }
-        
+
         parent::close();
     }
     
@@ -128,14 +141,10 @@ class Datagram extends Socket implements DatagramInterface
         if (!$this->isOpen()) {
             return Promise::reject(new UnavailableException('The datagram is no longer readable.'));
         }
-        
+
+        $this->length = $this->parseLength($length);
         if (null === $length) {
             $this->length = self::CHUNK_SIZE;
-        } else {
-            $this->length = (int) $length;
-            if (0 > $this->length) {
-                $this->length = 0;
-            }
         }
         
         $this->poll->listen($timeout);
@@ -166,12 +175,12 @@ class Datagram extends Socket implements DatagramInterface
         }
         
         $data = new Buffer($data);
-        
+        $written = 0;
         $peer = $this->makeName($address, $port);
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
-                return Promise::resolve(0);
+                return Promise::resolve($written);
             }
             
             $written = stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
@@ -180,10 +189,10 @@ class Datagram extends Socket implements DatagramInterface
             if (false === $written || -1 === $written) {
                 $message = 'Failed to write to datagram.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 $exception = new FailureException($message);
-                $this->close($exception);
+                $this->free($exception);
                 return Promise::reject($exception);
             }
             
@@ -192,8 +201,6 @@ class Datagram extends Socket implements DatagramInterface
             }
             
             $data->remove($written);
-        } else {
-            $written = 0;
         }
         
         $deferred = new Deferred();
@@ -251,9 +258,9 @@ class Datagram extends Socket implements DatagramInterface
             if (false === $data) { // Reading failed, so close datagram.
                 $message = 'Failed to read from datagram.';
                 if (null !== ($error = error_get_last())) {
-                    $message .= " Errno: {$error['type']}; {$error['message']}";
+                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
-                $this->close(new FailureException($message));
+                $this->free(new FailureException($message));
                 return;
             }
             
@@ -278,18 +285,20 @@ class Datagram extends Socket implements DatagramInterface
              */
             list($data, $previous, $peer, $deferred) = $this->writeQueue->shift();
             
-            if (!$data->isEmpty()) {
+            if ($data->isEmpty()) {
+                $deferred->resolve($previous);
+            } else {
                 $written = stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
                 
                 // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
                 if (false === $written || 0 >= $written) {
                     $message = 'Failed to write to datagram.';
                     if (null !== ($error = error_get_last())) {
-                        $message .= " Errno: {$error['type']}; {$error['message']}";
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
                     $exception = new FailureException($message);
                     $deferred->reject($exception);
-                    $this->close($exception);
+                    $this->free($exception);
                     return;
                 }
                 
@@ -300,8 +309,6 @@ class Datagram extends Socket implements DatagramInterface
                     $written += $previous;
                     $this->writeQueue->unshift([$data, $written, $peer, $deferred]);
                 }
-            } else {
-                $deferred->resolve($previous);
             }
             
             if (!$this->writeQueue->isEmpty()) {

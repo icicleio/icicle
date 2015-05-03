@@ -24,6 +24,13 @@ trait PipeTrait
     abstract public function read($length = null, $byte = null);
 
     /**
+     * @see     \Icicle\Stream\ReadableStreamInterface::isReadable()
+     *
+     * @return  bool
+     */
+    abstract public function isReadable();
+
+    /**
      * @see     \Icicle\Stream\ParserTrait::parseByte()
      *
      * @param   int|null $length
@@ -43,13 +50,13 @@ trait PipeTrait
      * @see     \Icicle\Stream\ReadableStreamInterface::pipe()
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose
+     * @param   bool $endWhenUnreadable
      * @param   int|null $length
      * @param   string|int|null $byte
      *
      * @return  \Icicle\Promise\PromiseInterface
      */
-    public function pipe(WritableStreamInterface $stream, $endOnClose = true, $length = null, $byte = null)
+    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = null, $byte = null)
     {
         if (!$stream->isWritable()) {
             return Promise::reject(new UnwritableException('The stream is not writable.'));
@@ -70,15 +77,15 @@ trait PipeTrait
 
                 $promise = $stream->write($data);
 
-                if ((null !== $byte && $data[$count - 1] === $byte) ||
-                    (null !== $length && 0 >= $length -= $count)) {
+                if ((null !== $byte && $data[$count - 1] === $byte)
+                    || (null !== $length && 0 >= $length -= $count)) {
                     return $promise->then(function () use ($bytes) {
                         return $bytes;
                     });
                 }
 
                 return $promise->then(function () use ($stream, $bytes, $length, $byte) {
-                    if (!$stream->isWritable()) {
+                    if (!$this->isReadable() || !$stream->isWritable()) {
                         return $bytes;
                     }
                     return $this->read($length, $byte);
@@ -90,9 +97,9 @@ trait PipeTrait
             $this->read($length, $byte)
         );
 
-        if ($endOnClose) {
-            $promise->done(null, function () use ($stream) {
-                if (!$this->isOpen()) {
+        if ($endWhenUnreadable) {
+            $promise = $promise->cleanup(function () use ($stream) {
+                if (!$this->isReadable()) {
                     $stream->end();
                 }
             });

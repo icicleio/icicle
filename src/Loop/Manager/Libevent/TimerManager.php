@@ -138,11 +138,11 @@ class TimerManager implements TimerManagerInterface
     protected function createCallback()
     {
         return function ($resource, $what, TimerInterface $timer) {
-            if (!$timer->isPeriodic()) {
+            if ($timer->isPeriodic()) {
+                event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
+            } else {
                 event_free($this->timers[$timer]);
                 unset($this->timers[$timer]);
-            } else {
-                event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
             }
             
             $timer->call();

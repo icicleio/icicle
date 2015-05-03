@@ -30,29 +30,11 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
     public function read($length = null, $byte = null, $timeout = null);
 
     /**
-     * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
-     *
-     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
-     *          if no data is received. Use null for no timeout.
-     *
-     * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @resolve string Empty string.
-     *
-     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
-     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
-     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
-     *
-     * @api
-     */
-    public function poll($timeout = null);
-
-    /**
      * Pipes data read on this stream into the given writable stream destination.
      *
      * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endOnClose Set to true to automatically end the writable stream when the readable stream closes.
+     * @param   bool $endWhenUnreadable Set to true to automatically end the writable stream when the readable stream
+     *          is no longer readable.
      * @param   int|null $length If not null, only $length bytes will be piped.
      * @param   string|int $byte Piping will stop once the given byte occurs in the stream. The search character will
      *          be piped to the writable stream string. Use null to effectively ignore this parameter and pipe all bytes.
@@ -73,7 +55,7 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      */
     public function pipe(
         WritableStreamInterface $stream,
-        $endOnClose = true,
+        $endWhenUnreadable = true,
         $length = null,
         $byte = null,
         $timeout = null
