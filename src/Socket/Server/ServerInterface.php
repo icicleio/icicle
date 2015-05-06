@@ -21,7 +21,7 @@ interface ServerInterface extends SocketInterface
     public function accept();
     
     /**
-     * Returns the IP address on which the server is listening.
+     * Returns the IP address or socket path on which the server is listening.
      *
      * @return  string
      *
@@ -30,9 +30,9 @@ interface ServerInterface extends SocketInterface
     public function getAddress();
     
     /**
-     * Returns the port on which the server is listening.
+     * Returns the port on which the server is listening (or null if unix socket).
      *
-     * @return  int
+     * @return  int|null
      *
      * @api
      */

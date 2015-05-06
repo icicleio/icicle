@@ -33,7 +33,7 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
     public function isCryptoEnabled();
     
     /**
-     * Returns the remote IP as a string representation.
+     * Returns the remote IP or socket path as a string representation.
      *
      * @return  string
      *
@@ -42,16 +42,16 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
     public function getRemoteAddress();
     
     /**
-     * Returns the remote port number.
+     * Returns the remote port number (or null if unix socket).
      *
-     * @return  int
+     * @return  int|null
      *
      * @api
      */
     public function getRemotePort();
     
     /**
-     * Returns the remote IP as a string representation.
+     * Returns the local IP or socket path as a string representation.
      *
      * @return  string
      *
@@ -60,9 +60,9 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
     public function getLocalAddress();
     
     /**
-     * Returns the local port number.
+     * Returns the local port number (or null if unix socket).
      *
-     * @return  int
+     * @return  int|null
      *
      * @api
      */
