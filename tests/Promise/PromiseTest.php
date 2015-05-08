@@ -1290,7 +1290,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1308,7 +1308,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($delayed->isRejected());
         $this->assertSame($exception, $delayed->getResult());
@@ -1326,7 +1326,7 @@ class PromiseTest extends TestCase
         
         $delayed = $this->promise->delay($time);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1344,7 +1344,7 @@ class PromiseTest extends TestCase
         
         $delayed = $this->promise->delay($time);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($delayed->isRejected());
         $this->assertSame($exception, $delayed->getResult());
@@ -1368,7 +1368,7 @@ class PromiseTest extends TestCase
         
         $pendingResolve($value);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1507,7 +1507,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertInstanceOf('Icicle\Promise\Exception\TimeoutException', $this->promise->getResult());
@@ -1529,7 +1529,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
     }
     
     /**
@@ -1548,7 +1548,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertSame($reason, $this->promise->getResult()->getReason());
         $this->assertSame($reason, $timeout->getResult()->getReason());
@@ -1566,7 +1566,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isFulfilled());
         $this->assertSame($value, $timeout->getResult());
@@ -1584,7 +1584,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertSame($exception, $timeout->getResult());
@@ -1602,7 +1602,7 @@ class PromiseTest extends TestCase
         
         $timeout = $this->promise->timeout($time);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isFulfilled());
         $this->assertSame($value, $timeout->getResult());
@@ -1620,7 +1620,7 @@ class PromiseTest extends TestCase
         
         $timeout = $this->promise->timeout($time);
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertSame($exception, $timeout->getResult());
@@ -1638,7 +1638,7 @@ class PromiseTest extends TestCase
         
         $timeout->cancel();
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isRejected());
@@ -1656,7 +1656,7 @@ class PromiseTest extends TestCase
         
         $timeout->cancel();
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
@@ -1758,7 +1758,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1859,7 +1859,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1926,7 +1926,7 @@ class PromiseTest extends TestCase
 
         $this->reject($exception);
 
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', $time);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
