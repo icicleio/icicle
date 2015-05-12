@@ -1,11 +1,11 @@
 <?php
-namespace Icicle\Loop\Manager\Event;
+namespace Icicle\Loop\Events\Manager\Event;
 
 use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\UnreferencableObjectStorage;
 
 class TimerManager implements TimerManagerInterface

@@ -1,11 +1,11 @@
 <?php
-namespace Icicle\Loop\Manager\Select;
+namespace Icicle\Loop\Events\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
-use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\SelectLoop;
 
 class SocketManager implements SocketManagerInterface

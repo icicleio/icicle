@@ -1,12 +1,12 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
 
 class Immediate implements ImmediateInterface
 {
     /**
-     * @var \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @var \Icicle\Loop\Events\Manager\ImmediateManagerInterface
      */
     private $manager;
     
@@ -16,7 +16,7 @@ class Immediate implements ImmediateInterface
     private $callback;
     
     /**
-     * @param   \Icicle\Loop\Manager\ImmediateManagerInterface $manager
+     * @param   \Icicle\Loop\Events\Manager\ImmediateManagerInterface $manager
      * @param   callable $callback Function called when the interval expires.
      * @param   array $args Optional array of arguments to pass the callback function.
      */

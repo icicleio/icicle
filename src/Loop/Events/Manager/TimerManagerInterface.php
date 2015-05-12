@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Loop\Manager;
+namespace Icicle\Loop\Events\Manager;
 
 use Icicle\Loop\Events\TimerInterface;
 

@@ -5,11 +5,11 @@ use Exception;
 use Icicle\EventEmitter\EventEmitterTrait;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\ImmediateManager;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
-use Icicle\Loop\Manager\ImmediateManager;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\CallableQueue;
 
 /**
@@ -33,22 +33,22 @@ abstract class AbstractLoop implements LoopInterface
     private $callableQueue;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManagerInterface
+     * @var \Icicle\Loop\Events\Manager\SocketManagerInterface
      */
     private $pollManager;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManagerInterface
+     * @var \Icicle\Loop\Events\Manager\SocketManagerInterface
      */
     private $awaitManager;
     
     /**
-     * @var \Icicle\Loop\Manager\TimerManagerInterface
+     * @var \Icicle\Loop\Events\Manager\TimerManagerInterface
      */
     private $timerManager;
     
     /**
-     * @var \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @var \Icicle\Loop\Events\Manager\ImmediateManagerInterface
      */
     private $immediateManager;
     
@@ -65,9 +65,9 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * Dispatches all pending I/O, timers, and signal callbacks.
      *
-     * @param   \Icicle\Loop\Manager\SocketManagerInterface $pollManager
-     * @param   \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
-     * @param   \Icicle\Loop\Manager\TimerManagerInterface $timerManager
+     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
+     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
+     * @param   \Icicle\Loop\Events\Manager\TimerManagerInterface $timerManager
      * @param   bool $blocking
      */
     abstract protected function dispatch(
@@ -80,21 +80,21 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface
      *
-     * @return  \Icicle\Loop\Manager\SocketManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\SocketManagerInterface
      */
     abstract protected function createPollManager(EventFactoryInterface $eventFactory);
     
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface
      *
-     * @return  \Icicle\Loop\Manager\SocketManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\SocketManagerInterface
      */
     abstract protected function createAwaitManager(EventFactoryInterface $eventFactory);
     
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface
      *
-     * @return  \Icicle\Loop\Manager\TimerManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\TimerManagerInterface
      */
     abstract protected function createTimerManager(EventFactoryInterface $eventFactory);
     
@@ -131,7 +131,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return  \Icicle\Loop\Manager\SocketManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\SocketManagerInterface
      *
      * @codeCoverageIgnore
      */
@@ -141,7 +141,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return  \Icicle\Loop\Manager\SocketManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\SocketManagerInterface
      *
      * @codeCoverageIgnore
      */
@@ -151,7 +151,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return  \Icicle\Loop\Manager\TimerManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\TimerManagerInterface
      *
      * @codeCoverageIgnore
      */
@@ -161,7 +161,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return  \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\ImmediateManagerInterface
      *
      * @codeCoverageIgnore
      */
@@ -396,7 +396,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      *
-     * @return  \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @return  \Icicle\Loop\Events\Manager\ImmediateManagerInterface
      */
     protected function createImmediateManager(EventFactoryInterface $factory)
     {

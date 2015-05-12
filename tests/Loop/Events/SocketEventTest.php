@@ -12,7 +12,7 @@ class SocketEventTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock('Icicle\Loop\Manager\SocketManagerInterface');
+        $this->manager = $this->getMock('Icicle\Loop\Events\Manager\SocketManagerInterface');
     }
     
     public function createSocketEvent($resource, callable $callback)

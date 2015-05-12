@@ -3,12 +3,11 @@ namespace Icicle\Tests\Loop;
 
 use Exception;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Implementations\ImmediateManager;
 use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Exception\LogicException;
-use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Tests\TestCase;
 
 /**

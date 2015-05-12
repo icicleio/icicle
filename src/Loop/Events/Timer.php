@@ -1,14 +1,14 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 
 class Timer implements TimerInterface
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
     /**
-     * @var \Icicle\Loop\Manager\TimerManagerInterface
+     * @var \Icicle\Loop\Events\Manager\TimerManagerInterface
      */
     private $manager;
     
@@ -34,7 +34,7 @@ class Timer implements TimerInterface
     private $periodic;
     
     /**
-     * @param   \Icicle\Loop\Manager\TimerManagerInterface $manager
+     * @param   \Icicle\Loop\Events\Manager\TimerManagerInterface $manager
      * @param   callable $callback Function called when the interval expires.
      * @param   int|float $interval Number of seconds until the callback function is called.
      * @param   bool $periodic True to repeat the timer, false to only run it once.

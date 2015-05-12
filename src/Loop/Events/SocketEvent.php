@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Loop\Events;
 
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Exception\InvalidArgumentException;
-use Icicle\Loop\Manager\SocketManagerInterface;
 
 /**
  * Represents read and write (poll and await) socket events.
@@ -10,7 +10,7 @@ use Icicle\Loop\Manager\SocketManagerInterface;
 class SocketEvent implements SocketEventInterface
 {
     /**
-     * @var \Icicle\Loop\Manager\SocketManagerInterface
+     * @var \Icicle\Loop\Events\Manager\SocketManagerInterface
      */
     private $manager;
     
@@ -25,7 +25,7 @@ class SocketEvent implements SocketEventInterface
     private $callback;
     
     /**
-     * @param   \Icicle\Loop\Manager\SocketManagerInterface $manager
+     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $manager
      * @param   resource $resource
      * @param   callable $callback
      */

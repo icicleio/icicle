@@ -10,7 +10,7 @@ class ImmediateTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
+        $this->manager = $this->getMock('Icicle\Loop\Events\Manager\ImmediateManagerInterface');
     }
     
     public function createImmediate(callable $callback, array $args = null)

@@ -26,7 +26,7 @@ class EventFactoryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
 
-        $manager = $this->getMock('Icicle\Loop\Manager\SocketManagerInterface');
+        $manager = $this->getMock('Icicle\Loop\Events\Manager\SocketManagerInterface');
 
         $poll = $this->factory->socket($manager, $socket, $callback);
         
@@ -43,7 +43,7 @@ class EventFactoryTest extends TestCase
         $timeout = 0.1;
         $periodic = true;
 
-        $manager = $this->getMock('Icicle\Loop\Manager\TimerManagerInterface');
+        $manager = $this->getMock('Icicle\Loop\Events\Manager\TimerManagerInterface');
 
         $timer = $this->factory->timer($manager, $this->createCallback(1), $timeout, $periodic);
         
@@ -58,7 +58,7 @@ class EventFactoryTest extends TestCase
     
     public function testCreateImmediate()
     {
-        $manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
+        $manager = $this->getMock('Icicle\Loop\Events\Manager\ImmediateManagerInterface');
 
         $immediate = $this->factory->immediate($manager, $this->createCallback(1));
         

@@ -4,12 +4,12 @@ namespace Icicle\Loop;
 use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\Event\AwaitManager;
+use Icicle\Loop\Events\Manager\Event\PollManager;
+use Icicle\Loop\Events\Manager\Event\TimerManager;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Exception\UnsupportedException;
-use Icicle\Loop\Manager\Event\AwaitManager;
-use Icicle\Loop\Manager\Event\PollManager;
-use Icicle\Loop\Manager\Event\TimerManager;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.

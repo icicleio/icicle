@@ -1,9 +1,9 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 
 /**
  * Default event factory implementation.
