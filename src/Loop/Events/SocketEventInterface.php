@@ -24,8 +24,6 @@ interface SocketEventInterface extends EventInterface
      * Sets the function to be called when an event occurs on the socket.
      *
      * @param   callable $callback
-     *
-     * @api
      */
     public function setCallback(callable $callback);
     
@@ -34,22 +32,16 @@ interface SocketEventInterface extends EventInterface
      *
      * @param   int|float|null $timeout Number of seconds until the callback is invoked with the expired param set to true.
      *          Use null for no timeout.
-     *
-     * @api
      */
     public function listen($timeout = null);
     
     /**
      * Frees the resources used to listen for events on the socket.
-     *
-     * @api
      */
     public function free();
     
     /**
      * @return  bool
-     *
-     * @api
      */
     public function isFreed();
 }

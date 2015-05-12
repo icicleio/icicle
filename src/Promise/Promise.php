@@ -355,8 +355,6 @@ class Promise implements PromiseInterface
      * @param   mixed $value
      *
      * @return  PromiseInterface
-     *
-     * @api
      */
     public static function resolve($value = null)
     {
@@ -373,8 +371,6 @@ class Promise implements PromiseInterface
      * @param   mixed $reason
      *
      * @return  PromiseInterface
-     *
-     * @api
      */
     public static function reject($reason = null)
     {
@@ -392,8 +388,6 @@ class Promise implements PromiseInterface
      * @param   callable $worker
      *
      * @return  callable
-     *
-     * @api
      */
     public static function lift(callable $worker)
     {
@@ -415,8 +409,6 @@ class Promise implements PromiseInterface
      * @param   int $index Position of callback in $worker argument list (0-indexed).
      *
      * @return  callable
-     *
-     * @api
      */
     public static function promisify(callable $worker, $index = 0)
     {
@@ -466,8 +458,6 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function settle(array $promises)
     {
@@ -499,8 +489,6 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function join(array $promises)
     {
@@ -531,8 +519,6 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function any(array $promises)
     {
@@ -565,8 +551,6 @@ class Promise implements PromiseInterface
      * @param   int $required Number of promises that must be fulfilled to fulfill the returned promise.
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function some(array $promises, $required)
     {
@@ -613,8 +597,6 @@ class Promise implements PromiseInterface
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function choose(array $promises)
     {
@@ -640,8 +622,6 @@ class Promise implements PromiseInterface
      * @param   callable $callback (mixed $value) : mixed
      *
      * @return  \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
-     *
-     * @api
      */
     public static function map(array $promises, callable $callback)
     {
@@ -663,8 +643,6 @@ class Promise implements PromiseInterface
      * @param   mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function reduce(array $promises, callable $callback, $initial = null)
     {
@@ -708,8 +686,6 @@ class Promise implements PromiseInterface
      * @param   mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function iterate(callable $worker, callable $predicate, $seed = null)
     {
@@ -754,8 +730,6 @@ class Promise implements PromiseInterface
      *          operation.
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public static function retry(callable $promisor, callable $onRejected)
     {

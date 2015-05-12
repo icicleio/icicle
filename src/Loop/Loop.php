@@ -20,8 +20,6 @@ abstract class Loop
      * @param   \Icicle\Loop\LoopInterface $loop
      *
      * @throws  \Icicle\Loop\Exception\InitializedException If another loop has been set or created.
-     *
-     * @api
      */
     public static function init(LoopInterface $loop)
     {
@@ -55,8 +53,6 @@ abstract class Loop
      * Returns the global event loop.
      *
      * @return  \Icicle\Loop\LoopInterface
-     *
-     * @api
      */
     public static function getInstance()
     {
@@ -74,8 +70,6 @@ abstract class Loop
      *
      * @param   callable $callback
      * @param   mixed ...$args
-     *
-     * @api
      */
     public static function schedule(callable $callback /* , ...$args */)
     {
@@ -90,8 +84,6 @@ abstract class Loop
      * @param   int|null $depth
      *
      * @return  int Current max depth if $depth = null or previous max depth otherwise.
-     *
-     * @api
      */
     public static function maxScheduleDepth($depth = null)
     {
@@ -102,8 +94,6 @@ abstract class Loop
      * Executes a single tick of the event loop.
      *
      * @param   bool $blocking
-     *
-     * @api
      */
     public static function tick($blocking = false)
     {
@@ -116,8 +106,6 @@ abstract class Loop
      * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
-     *
-     * @api
      */
     public static function run()
     {
@@ -128,8 +116,6 @@ abstract class Loop
      * Determines if the event loop is running.
      *
      * @return  bool
-     *
-     * @api
      */
     public static function isRunning()
     {
@@ -138,8 +124,6 @@ abstract class Loop
     
     /**
      * Stops the event loop.
-     *
-     * @api
      */
     public static function stop()
     {
@@ -224,8 +208,6 @@ abstract class Loop
      * Determines if signal handling is enabled.
      *
      * @return  bool
-     *
-     * @api
      */
     public static function signalHandlingEnabled()
     {
@@ -238,8 +220,6 @@ abstract class Loop
      * @param   int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
      * @param   callable $listener
      * @param   bool $once The handler will only be executed on the next signal received if this is true.
-     *
-     * @api
      */
     public static function addSignalHandler($signo, callable $listener, $once = false)
     {
@@ -254,8 +234,6 @@ abstract class Loop
      *
      * @param   int $signo
      * @param   callable $listener
-     *
-     * @api
      */
     public static function removeSignalHandler($signo, callable $listener)
     {
@@ -269,8 +247,6 @@ abstract class Loop
      * Removes all signal handlers for the given signal number, or all signal handlers if no number is given.
      *
      * @param   int|null $signo
-     *
-     * @api
      */
     public static function removeAllSignalHandlers($signo = null)
     {
@@ -282,8 +258,6 @@ abstract class Loop
     
     /**
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
-     *
-     * @api
      */
     public static function clear()
     {
@@ -292,8 +266,6 @@ abstract class Loop
     
     /**
      * Performs any reinitializing necessary after forking.
-     *
-     * @api
      */
     public static function reInit()
     {
