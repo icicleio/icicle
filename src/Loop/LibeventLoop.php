@@ -48,13 +48,13 @@ class LibeventLoop extends AbstractLoop
         if (!self::enabled()) {
             throw new UnsupportedException(__CLASS__ . ' requires the libevent extension.');
         } // @codeCoverageIgnoreEnd
-        
-        $this->base = $base;
-        
+
         // @codeCoverageIgnoreStart
-        if (!is_resource($this->base)) {
+        if (!is_resource($base)) {
             $this->base = event_base_new();
-        } // @codeCoverageIgnoreEnd
+        } else { // @codeCoverageIgnoreEnd
+            $this->base = $base;
+        }
         
         parent::__construct($eventFactory);
         

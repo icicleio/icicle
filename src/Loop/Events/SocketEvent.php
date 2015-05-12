@@ -43,18 +43,18 @@ class SocketEvent implements SocketEventInterface
     /**
      * @inheritdoc
      */
-    public function call($resource, $expired = false)
+    public function call($expired)
     {
         $callback = $this->callback;
-        $callback($resource, $expired);
+        $callback($this->resource, $expired);
     }
     
     /**
      * @inheritdoc
      */
-    public function __invoke($resource, $expired = false)
+    public function __invoke($expired)
     {
-        $this->call($resource, $expired);
+        $this->call($expired);
     }
     
     /**

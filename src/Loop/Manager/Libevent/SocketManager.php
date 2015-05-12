@@ -210,7 +210,7 @@ abstract class SocketManager implements SocketManagerInterface
     {
         return function ($resource, $what, SocketEventInterface $socket) {
             $this->pending[(int) $resource] = false;
-            $socket->call($resource, 0 !== (EV_TIMEOUT & $what));
+            $socket->call(0 !== (EV_TIMEOUT & $what));
         };
     }
 }

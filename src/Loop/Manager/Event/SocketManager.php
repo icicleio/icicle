@@ -111,7 +111,6 @@ abstract class SocketManager implements SocketManagerInterface
         }
         
         if (!isset($this->events[$id])) {
-            //$this->events[$id] = new Event($this->base, $socket->getResource(), Event::READ, $this->callback, $socket);
             $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
         }
 
@@ -196,7 +195,7 @@ abstract class SocketManager implements SocketManagerInterface
     protected function createCallback()
     {
         return function ($resource, $what, SocketEventInterface $socket) {
-            $socket->call($resource, 0 !== (Event::TIMEOUT & $what));
+            $socket->call(0 !== (Event::TIMEOUT & $what));
         };
     }
 }

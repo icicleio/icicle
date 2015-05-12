@@ -22,7 +22,10 @@ abstract class AbstractLoopTest extends TestCase
     const WRITE_STRING = '1234567890';
     const RESOURCE = 1;
     const CHUNK_SIZE = 8192;
-    
+
+    /**
+     * @var \Icicle\Loop\LoopInterface
+     */
     protected $loop;
     
     public function setUp()
@@ -32,6 +35,8 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * Creates the loop implementation to test.
+     *
+     * @param   \Icicle\Loop\Events\EventFactoryInterface $eventFactory
      *
      * @return  LoopInterface
      */
@@ -235,7 +240,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $poll = $this->loop->poll($socket, $callback);
         
@@ -276,7 +281,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(2);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $poll = $this->loop->poll($socket, $callback);
         
@@ -303,7 +308,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($readable), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $poll = $this->loop->poll($readable, $callback);
         
@@ -322,7 +327,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($writable), $this->identicalTo(true));
+                 ->with($this->identicalTo(true));
         
         $poll = $this->loop->poll($writable, $callback);
         
@@ -343,7 +348,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($writable), $this->identicalTo(true));
+                 ->with($this->identicalTo(true));
         
         $poll = $this->loop->poll($writable, $callback);
         
@@ -429,7 +434,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreateAwait
-     * @expectedException Icicle\Loop\Exception\ResourceBusyException
+     * @expectedException \Icicle\Loop\Exception\ResourceBusyException
      */
     public function testDoubleAwait()
     {
@@ -450,7 +455,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $await = $this->loop->await($socket, $callback);
         
@@ -471,7 +476,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(2);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $await = $this->loop->await($socket, $callback);
         
@@ -518,7 +523,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo($writable), $this->identicalTo(false));
+                 ->with($this->identicalTo(false));
         
         $await = $this->loop->await($writable, $callback);
         
@@ -526,34 +531,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->tick(false);
     }
-    
-    /**
-     * @depends testListenPollWithTimeout
-     */
-/*
-    public function testListenAwaitWithExpiredTimeout()
-    {
-        list($readable, $writable) = $this->createSockets();
-        
-        $length = strlen(self::WRITE_STRING);
-        
-        fclose($writable); // A closed socket will never be writable.
-        
-        $callback = $this->createCallback(1);
-        
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($writable), $this->identicalTo(true));
-        
-        $await = $this->loop->await($writable, $callback);
-        
-        $await->listen(self::TIMEOUT);
-        
-        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
-        
-        $this->loop->tick(false);
-    }
-*/
-    
+
     /**
      * @depends testListenPollWithTimeout
      */
@@ -562,9 +540,6 @@ abstract class AbstractLoopTest extends TestCase
         list($readable, $writable) = $this->createSockets();
         
         $callback = $this->createCallback(1);
-        
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($writable));
         
         $await = $this->loop->await($writable, $callback);
         
@@ -595,7 +570,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenAwait
-     * @expectedException Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedException
      */
     public function testFreeAwait()
     {
@@ -617,7 +592,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testFreeAwait
-     * @expectedException Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedException
      */
     public function testFreeAwaitWithTimeout()
     {
@@ -639,7 +614,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenPoll
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromPollCallback()
     {
@@ -668,7 +643,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenAwait
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
     {
@@ -768,7 +743,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testSchedule
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromScheduleCallback()
     {
@@ -793,7 +768,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testRunThrowsAfterThrownExceptionFromScheduleCallback
-     * @expectedException Icicle\Loop\Exception\RunningException
+     * @expectedException \Icicle\Loop\Exception\RunningException
      */
     public function testRunThrowsExceptionWhenAlreadyRunning()
     {
@@ -864,7 +839,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreateImmediate
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromImmediateCallback()
     {
@@ -1011,7 +986,7 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @medium
      * @depends testCreateTimer
-     * @expectedException Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\LogicException
      */
     public function testRunThrowsAfterThrownExceptionFromTimerCallback()
     {

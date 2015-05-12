@@ -11,16 +11,14 @@ interface SocketEventInterface extends EventInterface
     public function getResource();
     
     /**
-     * @param   resource $resource
      * @param   bool $expired
      */
-    public function call($resource, $expired = false);
+    public function call($expired);
     
     /**
-     * @param   resource $resource
      * @param   bool $expired
      */
-    public function __invoke($resource, $expired = false);
+    public function __invoke($expired);
     
     /**
      * Sets the function to be called when an event occurs on the socket.

@@ -70,8 +70,8 @@ class SocketEventTest extends TestCase
         
         $poll = $this->createSocketEvent($socket, $callback);
         
-        $poll->call($socket, false);
-        $poll->call($socket, false);
+        $poll->call(false);
+        $poll->call(false);
     }
     
     /**
@@ -87,8 +87,8 @@ class SocketEventTest extends TestCase
         
         $poll = $this->createSocketEvent($socket, $callback);
         
-        $poll($socket, false);
-        $poll($socket, false);
+        $poll(false);
+        $poll(false);
     }
     
     /**

@@ -104,7 +104,6 @@ class SocketManager implements SocketManagerInterface
             
             if (isset($this->timers[$id])) {
                 $this->timers[$id]->cancel();
-                unset($this->timers[$id]);
             }
         }
     }
@@ -170,10 +169,9 @@ class SocketManager implements SocketManagerInterface
                 
                 if (isset($this->timers[$id])) {
                     $this->timers[$id]->cancel();
-                    unset($this->timers[$id]);
                 }
                 
-                $this->sockets[$id]->call($resource, false);
+                $this->sockets[$id]->call(false);
             }
         }
     }
@@ -207,12 +205,11 @@ class SocketManager implements SocketManagerInterface
     protected function createTimerCallback()
     {
         return function (SocketEventInterface $socket) {
-            $resource = $socket->getResource();
-            $id = (int) $resource;
+            $id = (int) $socket->getResource();
             unset($this->pending[$id]);
             unset($this->timers[$id]);
             
-            $socket->call($resource, true);
+            $socket->call(true);
         };
     }
 }

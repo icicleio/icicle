@@ -49,13 +49,8 @@ class EventLoop extends AbstractLoop
             throw new UnsupportedException(__CLASS__ . ' requires the event extension.');
         } // @codeCoverageIgnoreEnd
         
-        $this->base = $base;
+        $this->base = $base ?: new EventBase();
 
-        // @codeCoverageIgnoreStart
-        if (null === $this->base) {
-            $this->base = new EventBase();
-        } // @codeCoverageIgnoreEnd
-        
         parent::__construct($eventFactory);
         
         if ($this->signalHandlingEnabled()) {
