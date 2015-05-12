@@ -145,6 +145,16 @@ abstract class Loop
     {
         static::getInstance()->stop();
     }
+
+    /**
+     * Determines if there are any pending events in the loop. Returns true if there are no pending events.
+     *
+     * @return  bool
+     */
+    public static function isEmpty()
+    {
+        return static::getInstance()->isEmpty();
+    }
     
     /**
      * @param   resource $socket Stream socket resource.

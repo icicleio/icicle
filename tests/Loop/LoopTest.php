@@ -34,7 +34,7 @@ class LoopTest extends TestCase
         
         Loop::init($loop);
     }
-    
+
     /**
      * @depends testInit
      */
@@ -58,7 +58,21 @@ class LoopTest extends TestCase
         
         Loop::tick(true);
     }
-    
+
+    /**
+     * @depends testSchedule
+     */
+    public function testIsEmpty()
+    {
+        $this->assertTrue(Loop::isEmpty());
+
+        Loop::schedule(function () {});
+
+        $this->assertFalse(Loop::isEmpty());
+
+        Loop::tick(true);
+    }
+
     public function testPoll()
     {
         list($readable, $writable) = $this->createSockets();
