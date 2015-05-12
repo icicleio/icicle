@@ -44,6 +44,13 @@ interface LoopInterface extends EventEmitterInterface
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
      */
     public function clear();
+
+    /**
+     * Determines if there are any pending events in the loop. Returns true if there are no pending events.
+     *
+     * @return  bool
+     */
+    public function isEmpty();
     
     /**
      * Performs any reinitializing necessary after forking.
