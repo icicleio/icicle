@@ -79,19 +79,19 @@ class SelectLoop extends AbstractLoop
     {
         // Use stream_select() if there are any streams in the loop.
         if (!$pollManager->isEmpty() || !$awaitManager->isEmpty()) {
-            $seconds = (int) floor($timeout);
+            $seconds = (int) $timeout;
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
             
             $read = [];
             $write = [];
             $except = null;
             
-            foreach ($pollManager->getPending() as $id => $resource) {
-                $read[$id] = $resource;
+            foreach ($pollManager->getPending() as $resource) {
+                $read[] = $resource;
             }
             
-            foreach ($awaitManager->getPending() as $id => $resource) {
-                $write[$id] = $resource;
+            foreach ($awaitManager->getPending() as $resource) {
+                $write[] = $resource;
             }
             
             // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
@@ -107,7 +107,7 @@ class SelectLoop extends AbstractLoop
 
         // Otherwise sleep with time_nanosleep() if $timeout > 0.
         if (0 < $timeout) {
-            $seconds = (int) floor($timeout);
+            $seconds = (int) $timeout;
             $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
         
             time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
