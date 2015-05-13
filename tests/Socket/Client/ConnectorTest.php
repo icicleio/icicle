@@ -315,6 +315,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
+     * @requires extension openssl
      * @depends testConnect
      */
     public function testSecureConnect()
@@ -362,7 +363,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
-     * @depends testConnect
+     * @depends testSecureConnect
      */
     public function testSecureConnectNameMismatch()
     {
@@ -409,7 +410,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
-     * @depends testConnect
+     * @depends testSecureConnect
      */
     public function testSecureConnectNoSelfSigned()
     {
