@@ -72,8 +72,6 @@ class SelectLoop extends AbstractLoop
      * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
      * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
      * @param   int|float|null $timeout
-     *
-     * @return  bool
      */
     protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
     {
@@ -82,18 +80,10 @@ class SelectLoop extends AbstractLoop
             $seconds = (int) $timeout;
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
             
-            $read = [];
-            $write = [];
+            $read = $pollManager->getPending();
+            $write = $awaitManager->getPending();
             $except = null;
-            
-            foreach ($pollManager->getPending() as $resource) {
-                $read[] = $resource;
-            }
-            
-            foreach ($awaitManager->getPending() as $resource) {
-                $write[] = $resource;
-            }
-            
+
             // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
             $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
             

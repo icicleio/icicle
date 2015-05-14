@@ -344,8 +344,7 @@ abstract class AbstractLoop implements LoopInterface
         } // @codeCoverageIgnoreEnd
         
         return function ($signo) {
-            switch ($signo)
-            {
+            switch ($signo) {
                 case SIGHUP:
                 case SIGINT:
                 case SIGQUIT:

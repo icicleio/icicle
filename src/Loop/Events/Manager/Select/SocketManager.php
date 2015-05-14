@@ -163,9 +163,7 @@ class SocketManager implements SocketManagerInterface
      */
     public function handle(array $active)
     {
-        foreach ($active as $resource) {
-            $id = (int) $resource;
-
+        foreach ($active as $id => $resource) {
             if (isset($this->sockets[$id], $this->pending[$id])) { // Event may have been removed from a previous call.
                 unset($this->pending[$id]);
                 
