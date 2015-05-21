@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.4.1
+
+- Changes
+    - Added tests back into distributions so users could verify their setup and so other components could use base test classes.
+
+---
+
 ### v0.4.0
 
 - New Features
@@ -10,7 +17,7 @@
     - Added ability to restart timers if they were stopped using the `start()` method. Note that the methods on `Icicle\Loop\Events\TimerInterface` have changed (see Changes section).
     - Added `execute()` method to `Icicle\Loop\Evnets\ImmediateInterface` to execute the immediate again if desired.
 
-- Changes:
+- Changes
     - The Event Emitter package is no longer a dependency since process signals have been refactored into event objects (see above). `Icicle\Loop\LoopInterface` no longer extends `Icicle\EventEmitter\EventEmitterInterface`.
     - Related to the above changes to signal handling, following methods have been removed from `Icicle\Loop\Loop`:
         - `addSignalHandler()`
@@ -61,7 +68,7 @@
 ### v0.2.0
 
 - Increased minimum PHP version to 5.5 so external components can be fully compatible with Icicle and make use of Coroutines. This will avoid compatibility confusion and allow for faster development of additional components.
-- Refactored loop implementations to make use of [Managers](../src/Loop/Manager). These interfaces and classes are implementation details of each loop, as these objects are never revealed to the user. However, this change allowed `Icicle\Loop\LoopInterface` to be much simpler (as event objects now interact with the manager object instead of the loop object) and exposes only methods that should be publicly available.
+- Refactored loop implementations to make use of [Managers](../src/Loop/Events/Manager). These interfaces and classes are implementation details of each loop, as these objects are never revealed to the user. However, this change allowed `Icicle\Loop\LoopInterface` to be much simpler (as event objects now interact with the manager object instead of the loop object) and exposes only methods that should be publicly available.
 - `Icicle\Loop\Events\PollInterface` and `Icicle\Loop\Events\AwaitInterface` have been eliminated in favor of a single object, `Icicle\Loop\Events\SocketEventInterface`. `Icicle\Loop\Loop::poll()` and `Icicle\Loop\Loop::await()` (and the corresponding methods in objects implementing `Icicle\Loop\LoopInterface`) both return an object implementing this interface. The mode (read or write) the returned object uses when listening on the given socket depends on which method created the `Icicle\Loop\Events\SocketEventInterface` object.
 - Reorganized the Socket component into more specific namespaces under `Icicle\Socket`: `Client`, `Datagram`, `Server`, and `Stream`.
 - Removed static constructors from Server, Datagram, and Client classes, replacing them with interfaced factories.

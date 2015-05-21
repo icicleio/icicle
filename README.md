@@ -7,7 +7,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.4.0-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/badge/semver-v0.4.1-yellow.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
