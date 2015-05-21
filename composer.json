@@ -24,8 +24,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5",
-        "icicleio/event-emitter": "~1"
+        "php": ">=5.5"
     },
     "require-dev": {
         "phpunit/phpunit": "~4",
@@ -45,6 +44,11 @@
     "autoload": {
         "psr-4": {
             "Icicle\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Icicle\\Tests\\": "tests"
         }
     }
 }
