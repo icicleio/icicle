@@ -8,8 +8,8 @@ interface ServerFactoryInterface
      *
      * Note: Current CA file in PEM format can be downloaded from http://curl.haxx.se/ca/cacert.pem
      *
-     * @param   string|int $host
-     * @param   int $port
+     * @param   string|int $host IP address or unix socket path.
+     * @param   int|null $port Port number or null for unix socket.
      * @param   mixed[]|null $options {
      *     @var int $backlog Connection backlog size. Note that operating system setting SOMAXCONN may set an upper
      *          limit and may need to be changed to allow a larger backlog size.

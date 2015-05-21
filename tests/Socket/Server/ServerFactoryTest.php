@@ -11,6 +11,7 @@ class ServerFactoryTest extends TestCase
 {
     const HOST_IPv4 = '127.0.0.1';
     const HOST_IPv6 = '[::1]';
+    const HOST_UNIX = '/tmp/icicle-tmp.sock';
     const PORT = 51337;
     const TIMEOUT = 0.1;
     const CONNECT_TIMEOUT = 1;
@@ -55,6 +56,18 @@ class ServerFactoryTest extends TestCase
         $this->assertSame(self::HOST_IPv6, $this->server->getAddress());
         $this->assertSame(self::PORT, $this->server->getPort());
     }
+
+    public function testCreateUnix()
+    {
+        $this->server = $this->factory->create(self::HOST_UNIX, null, ['protocol' => 'unix']);
+
+        $this->assertInstanceOf('Icicle\Socket\Server\ServerInterface', $this->server);
+
+        $this->assertSame(self::HOST_UNIX, $this->server->getAddress());
+        $this->assertSame(null, $this->server->getPort());
+
+        unlink(self::HOST_UNIX);
+    }
     
     /**
      * @medium
@@ -70,7 +83,7 @@ class ServerFactoryTest extends TestCase
     
     /**
      * @medium
-     * @require extension openssl
+     * @requires extension openssl
      * @depends testCreate
      */
     public function testCreateWithPem()

@@ -118,7 +118,7 @@ class ClientTest extends TestCase
     
     /**
      * @medium
-     * @require extension openssl
+     * @requires extension openssl
      */
     public function testEnableCrypto()
     {
@@ -297,7 +297,7 @@ class ClientTest extends TestCase
     
     /**
      * @medium
-     * @require extension openssl
+     * @requires extension openssl
      */
     public function testEnableCryptoFailure()
     {

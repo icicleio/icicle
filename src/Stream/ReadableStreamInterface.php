@@ -17,8 +17,6 @@ interface ReadableStreamInterface extends StreamInterface
      * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function read($length = null, $byte = null);
 
@@ -27,8 +25,6 @@ interface ReadableStreamInterface extends StreamInterface
      * available to read. Use read() or poll() to wait for data.
      *
      * @return  bool
-     *
-     * @api
      */
     public function isReadable();
     
@@ -50,8 +46,6 @@ interface ReadableStreamInterface extends StreamInterface
      * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = null, $byte = null);
 }

@@ -1,9 +1,9 @@
 <?php
-namespace Icicle\Loop\Manager;
+namespace Icicle\Loop\Events\Manager;
 
 use Icicle\Loop\Events\ImmediateInterface;
 
-interface ImmediateManagerInterface extends ManagerInterface
+interface ImmediateManagerInterface
 {
     /**
      * Creates an immediate object connected to the manager.
@@ -14,14 +14,21 @@ interface ImmediateManagerInterface extends ManagerInterface
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */
     public function create(callable $callback, array $args = null);
-    
+
     /**
-     * Removes the immediate from the loop.
+     * Puts the immediate in the loop again for execution.
+     *
+     * @param   \Icicle\Loop\Events\ImmediateInterface $immediate
+     */
+    public function execute(ImmediateInterface $immediate);
+
+    /**
+     * Cancels the immeidate.
      *
      * @param   \Icicle\Loop\Events\ImmediateInterface $immediate
      */
     public function cancel(ImmediateInterface $immediate);
-    
+
     /**
      * Determines if the immediate is active in the loop.
      *
@@ -30,7 +37,19 @@ interface ImmediateManagerInterface extends ManagerInterface
      * @return  bool
      */
     public function isPending(ImmediateInterface $immediate);
-    
+
+    /**
+     * Determines if any immediates are pending in the manager.
+     *
+     * @return  bool
+     */
+    public function isEmpty();
+
+    /**
+     * Clears all pending immediates from the manager.
+     */
+    public function clear();
+
     /**
      * Calls the next pending immediate. Returns true if an immediate was executed, false if not.
      *

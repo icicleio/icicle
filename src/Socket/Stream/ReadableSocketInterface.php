@@ -24,8 +24,6 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
-     *
-     * @api
      */
     public function read($length = null, $byte = null, $timeout = null);
 
@@ -50,8 +48,6 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
-     *
-     * @api
      */
     public function pipe(
         WritableStreamInterface $stream,

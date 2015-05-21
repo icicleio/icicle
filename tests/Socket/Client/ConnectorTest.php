@@ -11,6 +11,7 @@ class ConnectorTest extends TestCase
 {
     const HOST_IPv4 = '127.0.0.1';
     const HOST_IPv6 = '[::1]';
+    const HOST_UNIX = '/tmp/icicle-tmp.sock';
     const PORT = 51337;
     const TIMEOUT = 1;
 
@@ -32,7 +33,7 @@ class ConnectorTest extends TestCase
         $context = stream_context_create($context);
         
         $socket = stream_socket_server(
-            "tcp://{$host}:{$port}",
+            sprintf('tcp://%s:%d', $host, $port),
             $errno,
             $errstr,
             STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
@@ -40,7 +41,7 @@ class ConnectorTest extends TestCase
         );
         
         if (!$socket || $errno) {
-            $this->fail("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            $this->fail(sprintf('Could not create server %s:%d: [Errno: %d] %s', $host, $port, $errno, $errstr));
         }
         
         return $socket;
@@ -59,7 +60,7 @@ class ConnectorTest extends TestCase
         $context = stream_context_create($context);
         
         $socket = stream_socket_server(
-            "tcp://{$host}:{$port}",
+            sprintf('tcp://%s:%d', $host, $port),
             $errno,
             $errstr,
             STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
@@ -67,9 +68,33 @@ class ConnectorTest extends TestCase
         );
         
         if (!$socket || $errno) {
-            $this->fail("Could not create server {$host}:{$port}: [Errno: {$errno}] {$errstr}");
+            $this->fail(sprintf('Could not create server %s:%d: [Errno: %d] %s', $host, $port, $errno, $errstr));
         }
         
+        return $socket;
+    }
+
+    public function createServerUnix($path)
+    {
+        $context = [];
+
+        $context['socket'] = [];
+        $context['socket']['bindto'] = $path;
+
+        $context = stream_context_create($context);
+
+        $socket = stream_socket_server(
+            sprintf('unix://%s', $path),
+            $errno,
+            $errstr,
+            STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+            $context
+        );
+
+        if (!$socket || $errno) {
+            $this->fail(sprintf('Could not create server %s: [Errno: %d] %s', $path, $errno, $errstr));
+        }
+
         return $socket;
     }
 
@@ -143,6 +168,7 @@ class ConnectorTest extends TestCase
         $promise->done($callback, $this->createCallback(0));
         
         $promise->done(function (Client $client) {
+            $this->assertTrue($client->isOpen());
             $this->assertSame($client->getLocalAddress(), self::HOST_IPv4);
             $this->assertSame($client->getRemoteAddress(), self::HOST_IPv4);
             $this->assertInternalType('integer', $client->getLocalPort());
@@ -170,6 +196,7 @@ class ConnectorTest extends TestCase
         $promise->done($callback, $this->createCallback(0));
         
         $promise->done(function (Client $client) {
+            $this->assertTrue($client->isOpen());
             $this->assertSame($client->getLocalAddress(), self::HOST_IPv6);
             $this->assertSame($client->getRemoteAddress(), self::HOST_IPv6);
             $this->assertInternalType('integer', $client->getLocalPort());
@@ -179,6 +206,33 @@ class ConnectorTest extends TestCase
         Loop::run();
         
         fclose($server);
+    }
+
+    /**
+     * @depends testConnect
+     */
+    public function testConnectUnix()
+    {
+        $server = $this->createServerUnix(self::HOST_UNIX);
+
+        $promise = $this->connector->connect(self::HOST_UNIX, null, ['protocol' => 'unix']);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+
+        $promise->done($callback, $this->createCallback(0));
+
+        $promise->done(function (Client $client) {
+            $this->assertTrue($client->isOpen());
+            $this->assertSame(self::HOST_UNIX, $client->getRemoteAddress());
+            $this->assertSame(null, $client->getRemotePort());
+        });
+
+        Loop::run();
+
+        fclose($server);
+        unlink(self::HOST_UNIX);
     }
     
     /**
@@ -261,6 +315,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
+     * @requires extension openssl
      * @depends testConnect
      */
     public function testSecureConnect()
@@ -308,7 +363,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
-     * @depends testConnect
+     * @depends testSecureConnect
      */
     public function testSecureConnectNameMismatch()
     {
@@ -355,7 +410,7 @@ class ConnectorTest extends TestCase
 
     /**
      * @medium
-     * @depends testConnect
+     * @depends testSecureConnect
      */
     public function testSecureConnectNoSelfSigned()
     {

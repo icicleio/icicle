@@ -15,8 +15,6 @@ interface WritableStreamInterface extends StreamInterface
      *
      * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function write($data);
 
@@ -31,8 +29,6 @@ interface WritableStreamInterface extends StreamInterface
      *
      * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function end($data = null);
     
@@ -40,8 +36,6 @@ interface WritableStreamInterface extends StreamInterface
      * Determines if the stream is still writable.
      *
      * @return  bool
-     *
-     * @api
      */
     public function isWritable();
 }

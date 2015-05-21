@@ -1,19 +1,19 @@
 <?php
-namespace Icicle\Loop\Manager\Select;
+namespace Icicle\Loop\Events\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\SelectLoop;
+use Icicle\Loop\LoopInterface;
 
 class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
 
     /**
-     * @var SelectLoop
+     * @var \Icicle\Loop\LoopInterface
      */
     private $loop;
     
@@ -43,10 +43,10 @@ class SocketManager implements SocketManagerInterface
     private $timerCallback;
     
     /**
-     * @param   \Icicle\Loop\SelectLoop $loop
+     * @param   \Icicle\Loop\LoopInterface $loop
      * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
+    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {
         $this->loop = $loop;
         $this->factory = $factory;
@@ -88,7 +88,7 @@ class SocketManager implements SocketManagerInterface
                 $timeout = self::MIN_TIMEOUT;
             }
             
-            $this->timers[$id] = $this->loop->timer($this->timerCallback, $timeout, false, [$socket]);
+            $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, [$socket]);
         }
     }
     
@@ -103,8 +103,7 @@ class SocketManager implements SocketManagerInterface
             unset($this->pending[$id]);
             
             if (isset($this->timers[$id])) {
-                $this->timers[$id]->cancel();
-                unset($this->timers[$id]);
+                $this->timers[$id]->stop();
             }
         }
     }
@@ -131,7 +130,7 @@ class SocketManager implements SocketManagerInterface
             unset($this->pending[$id]);
             
             if (isset($this->timers[$id])) {
-                $this->timers[$id]->cancel();
+                $this->timers[$id]->stop();
                 unset($this->timers[$id]);
             }
         }
@@ -169,11 +168,10 @@ class SocketManager implements SocketManagerInterface
                 unset($this->pending[$id]);
                 
                 if (isset($this->timers[$id])) {
-                    $this->timers[$id]->cancel();
-                    unset($this->timers[$id]);
+                    $this->timers[$id]->stop();
                 }
                 
-                $this->sockets[$id]->call($resource, false);
+                $this->sockets[$id]->call(false);
             }
         }
     }
@@ -195,7 +193,7 @@ class SocketManager implements SocketManagerInterface
         $this->pending = [];
         
         foreach ($this->timers as $timer) {
-            $timer->cancel();
+            $timer->stop();
         }
         
         $this->timers = [];
@@ -207,12 +205,11 @@ class SocketManager implements SocketManagerInterface
     protected function createTimerCallback()
     {
         return function (SocketEventInterface $socket) {
-            $resource = $socket->getResource();
-            $id = (int) $resource;
+            $id = (int) $socket->getResource();
             unset($this->pending[$id]);
             unset($this->timers[$id]);
             
-            $socket->call($resource, true);
+            $socket->call(true);
         };
     }
 }

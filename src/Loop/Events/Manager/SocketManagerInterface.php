@@ -1,9 +1,9 @@
 <?php
-namespace Icicle\Loop\Manager;
+namespace Icicle\Loop\Events\Manager;
 
 use Icicle\Loop\Events\SocketEventInterface;
 
-interface SocketManagerInterface extends ManagerInterface
+interface SocketManagerInterface
 {
     /**
      * Returns a SocketEventInterface object for the given stream socket resource.
@@ -22,14 +22,14 @@ interface SocketManagerInterface extends ManagerInterface
     public function listen(SocketEventInterface $event, $timeout = null);
     
     /**
-     * Cancels the given poll operation.
+     * Cancels the given socket operation.
      *
      * @param   \Icicle\Loop\Events\SocketEventInterface $event
      */
     public function cancel(SocketEventInterface $event);
     
     /**
-     * Determines if the poll is pending (listening for data).
+     * Determines if the socket event is enabled (listening for data or space to write).
      *
      * @param   \Icicle\Loop\Events\SocketEventInterface $event
      *
@@ -38,18 +38,30 @@ interface SocketManagerInterface extends ManagerInterface
     public function isPending(SocketEventInterface $event);
     
     /**
-     * Frees the given poll.
+     * Frees the given socket event.
      *
      * @param   \Icicle\Loop\Events\SocketEventInterface $event
      */
     public function free(SocketEventInterface $event);
     
     /**
-     * Determines if the poll has been freed.
+     * Determines if the socket event has been freed.
      *
      * @param   \Icicle\Loop\Events\SocketEventInterface $event
      *
      * @return  bool
      */
     public function isFreed(SocketEventInterface $event);
+
+    /**
+     * Determines if any socket events are pending in the manager.
+     *
+     * @return  bool
+     */
+    public function isEmpty();
+
+    /**
+     * Clears all socket events from the manager.
+     */
+    public function clear();
 }

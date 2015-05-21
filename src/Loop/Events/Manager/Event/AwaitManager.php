@@ -1,17 +1,17 @@
 <?php
-namespace Icicle\Loop\Manager\Event;
+namespace Icicle\Loop\Events\Manager\Event;
 
 use Event;
 use EventBase;
 use Icicle\Loop\Events\SocketEventInterface;
 
-class PollManager extends SocketManager
+class AwaitManager extends SocketManager
 {
     /**
      * @inheritdoc
      */
     protected function createEvent(EventBase $base, SocketEventInterface $socket, callable $callback)
     {
-        return new Event($base, $socket->getResource(), Event::READ, $callback, $socket);
+        return new Event($base, $socket->getResource(), Event::WRITE, $callback, $socket);
     }
 }
