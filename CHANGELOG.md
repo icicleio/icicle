@@ -1,5 +1,27 @@
 # Changelog
 
+### v0.4.0
+
+- New Features
+    - Process signals are now treated like other loop events and are represented by objects implementing `Icicle\Loop\Events\SignalInterface`. Use the `Icicle\Loop\Loop::signal()` method to create signal event objects. See the [documentation](//github.com/icicleio/Icicle/wiki/Loop#signal) for more information.
+    - Added method `isEmpty()` to `Icicle\Loop\Loop` that determines if there are any events pending in the loop.
+    - Support for unix sockets added to `Icicle\Socket\Client\Connector` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
+    - Support for unix sockets also added to `Icicle\Socket\Server\ServerFactory` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
+    - Added ability to restart timers if they were stopped using the `start()` method. Note that the methods on `Icicle\Loop\Events\TimerInterface` have changed (see Changes section).
+    - Added `execute()` method to `Icicle\Loop\Evnets\ImmediateInterface` to execute the immediate again if desired.
+
+- Changes:
+    - The Event Emitter package is no longer a dependency since process signals have been refactored into event objects (see above). `Icicle\Loop\LoopInterface` no longer extends `Icicle\EventEmitter\EventEmitterInterface`.
+    - Related to the above changes to signal handling, following methods have been removed from `Icicle\Loop\Loop`:
+        - `addSignalHandler()`
+        - `removeSignalHandler()`
+        - `removeAllSignalHandlers()`
+    - `Icicle\Loop\Events\TimerInterface` changed to support restarting timers. `start()` method added, `cancel()` renamed to `stop()`.
+    - `Icicle\Loop\LoopInterface` objects should no longer pass the socket resource to socket event callbacks. This only affects custom implementations of `Icicle\Loop\LoopInterface`, no changes need to be made to code using socket event objects.
+    - Changed order of arguments to create timers in `Icicle\Loop\LoopInterface` to be consistent with other methods creating events. Again, this change only will affect custom loop implementations, not user code since argument order did not change in `Icicle\Loop\Loop`.
+
+---
+
 ### v0.3.0
 
 - New Features
@@ -19,6 +41,8 @@
 - Bug Fixes
     - Fixed bug in `\Icicle\Stream\PipeTrait` and `\Icicle\Socket\Stream\PipeTrait` that would rejected the returned promise even if the stream was closed or ended normally.
     - Fixed circular reference in stream sockets and servers that delayed garbage collection after closing the server or stream.
+
+---
 
 ### v0.2.2
 
