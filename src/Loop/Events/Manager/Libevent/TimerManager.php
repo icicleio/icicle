@@ -11,7 +11,7 @@ class TimerManager implements TimerManagerInterface
     const MICROSEC_PER_SEC = 1e6;
     
     /**
-     * @var \EventBase
+     * @var resource
      */
     private $base;
     
@@ -70,25 +70,35 @@ class TimerManager implements TimerManagerInterface
     /**
      * @inheritdoc
      */
-    public function create(callable $callback, $interval, $periodic = false, array $args = null)
+    public function create($interval, $periodic, callable $callback, array $args = null)
     {
-        $timer = $this->factory->timer($this, $callback, $interval, $periodic, $args);
+        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
-        $event = event_new();
-        event_timer_set($event, $this->callback, $timer);
-        event_base_set($event, $this->base);
-        
-        $this->timers[$timer] = $event;
-        
-        event_add($event, $timer->getInterval() * self::MICROSEC_PER_SEC);
+        $this->start($timer);
         
         return $timer;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function start(TimerInterface $timer)
+    {
+        if (!isset($this->timers[$timer])) {
+            $event = event_new();
+            event_timer_set($event, $this->callback, $timer);
+            event_base_set($event, $this->base);
+
+            $this->timers[$timer] = $event;
+
+            event_add($event, $timer->getInterval() * self::MICROSEC_PER_SEC);
+        }
     }
     
     /**
      * @inheritdoc
      */
-    public function cancel(TimerInterface $timer)
+    public function stop(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
             event_free($this->timers[$timer]);

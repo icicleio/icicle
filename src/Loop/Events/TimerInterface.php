@@ -1,15 +1,30 @@
 <?php
 namespace Icicle\Loop\Events;
 
-interface TimerInterface extends EventInterface
+interface TimerInterface
 {
+    /**
+     * @return  bool
+     */
+    public function isPending();
+
+    /**
+     * Start the timer if not pending.
+     */
+    public function start();
+
+    /**
+     * Stops the timer if not pending.
+     */
+    public function stop();
+
     /**
      * Gets the interval for this timer in seconds.
      *
      * @return  float
      */
     public function getInterval();
-    
+
     /**
      * Determines if the timer will be repeated.
      *

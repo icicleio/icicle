@@ -240,14 +240,14 @@ class Promise implements PromiseInterface
                 
                 $onResolved = function () use ($resolve, $timer) {
                     $resolve($this->result);
-                    $timer->cancel();
+                    $timer->stop();
                 };
                 
                 $this->onFulfilled->push($onResolved);
                 $this->onRejected->push($onResolved);
             },
             function (Exception $exception) use (&$timer) {
-                $timer->cancel();
+                $timer->stop();
 
                 Loop::schedule(function () use ($exception) {
                     if (0 === --$this->children) {
@@ -283,7 +283,7 @@ class Promise implements PromiseInterface
             },
             function (Exception $exception) use (&$timer) {
                 if (null !== $timer) {
-                    $timer->cancel();
+                    $timer->stop();
                 }
 
                 Loop::schedule(function () use ($exception) {

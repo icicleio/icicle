@@ -2,12 +2,9 @@
 namespace Icicle\Loop;
 
 use Exception;
-use Icicle\EventEmitter\EventEmitterTrait;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\Manager\ImmediateManager;
-use Icicle\Loop\Events\Manager\SocketManagerInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Exception\RunningException;
 use Icicle\Loop\Exception\SignalHandlingDisabledException;
 use Icicle\Loop\Structures\CallableQueue;
@@ -18,15 +15,8 @@ use Icicle\Loop\Structures\CallableQueue;
  */
 abstract class AbstractLoop implements LoopInterface
 {
-    use EventEmitterTrait;
-    
     const DEFAULT_MAX_DEPTH = 1000;
-    
-    /**
-     * @var bool
-     */
-    private $signalHandlingEnabled;
-    
+
     /**
      * @var \Icicle\Loop\Structures\CallableQueue
      */
@@ -51,6 +41,11 @@ abstract class AbstractLoop implements LoopInterface
      * @var \Icicle\Loop\Events\Manager\ImmediateManagerInterface
      */
     private $immediateManager;
+
+    /**
+     * @var \Icicle\Loop\Events\Manager\SignalManagerInterface
+     */
+    private $signalManager;
     
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
@@ -65,17 +60,9 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * Dispatches all pending I/O, timers, and signal callbacks.
      *
-     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
-     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
-     * @param   \Icicle\Loop\Events\Manager\TimerManagerInterface $timerManager
      * @param   bool $blocking
      */
-    abstract protected function dispatch(
-        SocketManagerInterface $pollManager,
-        SocketManagerInterface $awaitManager,
-        TimerManagerInterface $timerManager,
-        $blocking
-    );
+    abstract protected function dispatch($blocking);
     
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface
@@ -97,7 +84,14 @@ abstract class AbstractLoop implements LoopInterface
      * @return  \Icicle\Loop\Events\Manager\TimerManagerInterface
      */
     abstract protected function createTimerManager(EventFactoryInterface $eventFactory);
-    
+
+    /**
+     * @param   \Icicle\Loop\Events\EventFactoryInterface
+     *
+     * @return  \Icicle\Loop\Events\Manager\SignalManagerInterface
+     */
+    abstract protected function createSignalManager(EventFactoryInterface $eventFactory);
+
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      */
@@ -117,7 +111,9 @@ abstract class AbstractLoop implements LoopInterface
         $this->pollManager = $this->createPollManager($this->eventFactory);
         $this->awaitManager = $this->createAwaitManager($this->eventFactory);
         
-        $this->signalHandlingEnabled = extension_loaded('pcntl');
+        if (extension_loaded('pcntl')) {
+            $this->signalManager = $this->createSignalManager($this->eventFactory);
+        }
     }
     
     /**
@@ -169,6 +165,16 @@ abstract class AbstractLoop implements LoopInterface
     {
         return $this->immediateManager;
     }
+
+    /**
+     * @return  \Icicle\Loop\Events\Manager\SignalManagerInterface
+     *
+     * @codeCoverageIgnore
+     */
+    protected function getSignalManager()
+    {
+        return $this->signalManager;
+    }
     
     /**
      * Determines if there are any pending tasks in the loop.
@@ -192,7 +198,7 @@ abstract class AbstractLoop implements LoopInterface
         $blocking = $blocking && $this->callableQueue->isEmpty() && $this->immediateManager->isEmpty();
         
         // Dispatch all pending I/O, timers, and signal callbacks.
-        $this->dispatch($this->pollManager, $this->awaitManager, $this->timerManager, $blocking);
+        $this->dispatch($blocking);
         
         $this->immediateManager->tick(); // Call the next immediate.
         
@@ -277,9 +283,9 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @inheritdoc
      */
-    public function timer(callable $callback, $interval, $periodic = false, array $args = null)
+    public function timer($interval, $periodic, callable $callback, array $args = null)
     {
-        return $this->timerManager->create($callback, $interval, $periodic, $args);
+        return $this->timerManager->create($interval, $periodic, $callback, $args);
     }
     
     /**
@@ -289,99 +295,44 @@ abstract class AbstractLoop implements LoopInterface
     {
         return $this->immediateManager->create($callback, $args);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function signal($signo, callable $callback)
+    {
+        // @codeCoverageIgnoreStart
+        if (null === $this->signalManager) {
+            throw new SignalHandlingDisabledException(
+                'The pcntl extension must be installed for signal constants to be defined.'
+            );
+        } // @codeCoverageIgnoreEnd
+
+        return $this->signalManager->create($signo, $callback);
+    }
     
     /**
      * @return  bool
      */
     public function signalHandlingEnabled()
     {
-        return $this->signalHandlingEnabled;
+        return null !== $this->signalManager;
     }
-    
-    /**
-     * Returns an array of signals to be handled. Exploits the fact that PHP will not notice the signal constants are
-     * undefined if the pcntl extension is not installed.
-     *
-     * @return  int[]
-     *
-     * @throws  \Icicle\Loop\Exception\SignalHandlingDisabledException
-     */
-    public function getSignalList()
-    {
-        // @codeCoverageIgnoreStart
-        if (!$this->signalHandlingEnabled()) {
-            throw new SignalHandlingDisabledException('The pcntl extension must be installed for signal constants to be defined.');
-        } // @codeCoverageIgnoreEnd
-        
-        return [
-            'SIGHUP' => SIGHUP,
-            'SIGINT' => SIGINT,
-            'SIGQUIT' => SIGQUIT,
-            'SIGILL' => SIGILL,
-            'SIGABRT' => SIGABRT,
-            'SIGTERM' => SIGTERM,
-            'SIGCHLD' => SIGCHLD,
-            'SIGCONT' => SIGCONT,
-            'SIGTSTP' => SIGTSTP,
-            'SIGPIPE' => SIGPIPE,
-            'SIGUSR1' => SIGUSR1,
-            'SIGUSR2' => SIGUSR2
-        ];
-    }
-    
-    /**
-     * Creates callback function for handling signals.
-     *
-     * @return  callable function (int $signo)
-     *
-     * @throws  \Icicle\Loop\Exception\SignalHandlingDisabledException
-     */
-    protected function createSignalCallback()
-    {
-        // @codeCoverageIgnoreStart
-        if (!$this->signalHandlingEnabled()) {
-            throw new SignalHandlingDisabledException('The pcntl extension must be installed for signal constants to be defined.');
-        } // @codeCoverageIgnoreEnd
-        
-        return function ($signo) {
-            switch ($signo) {
-                case SIGHUP:
-                case SIGINT:
-                case SIGQUIT:
-                    if (!$this->emit($signo, $signo)) {
-                        $this->stop();
-                    }
-                    break;
-                    
-                case SIGTERM:
-                    $this->emit($signo, $signo);
-                    $this->stop();
-                    break;
-                    
-                case SIGCHLD:
-                    while (0 < ($pid = pcntl_wait($status, WNOHANG))) {
-                        $this->emit($signo, $signo, $pid, $status);
-                    }
-                    break;
-                    
-                default:
-                    $this->emit($signo, $signo);
-            }
-        };
-    }
-    
+
     /**
      * @inheritdoc
      */
     public function clear()
     {
-        $this->removeAllListeners();
-        
         $this->callableQueue->clear();
         $this->immediateManager->clear();
         $this->pollManager->clear();
         $this->awaitManager->clear();
         $this->timerManager->clear();
+
+        if (null !== $this->signalManager) {
+            $this->signalManager->clear();
+        }
     }
     
     /**

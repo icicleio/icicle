@@ -3,8 +3,6 @@ namespace Icicle\Loop\Events\Manager;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\ImmediateInterface;
-use SplObjectStorage;
-use SplQueue;
 
 class ImmediateManager implements ImmediateManagerInterface
 {
@@ -29,8 +27,8 @@ class ImmediateManager implements ImmediateManagerInterface
     public function __construct(EventFactoryInterface $factory)
     {
         $this->factory = $factory;
-        $this->queue = new SplQueue();
-        $this->immediates = new SplObjectStorage();
+        $this->queue = new \SplQueue();
+        $this->immediates = new \SplObjectStorage();
     }
     
     /**
@@ -40,8 +38,7 @@ class ImmediateManager implements ImmediateManagerInterface
     {
         $immediate = $this->factory->immediate($this, $callback, $args);
         
-        $this->queue->push($immediate);
-        $this->immediates->attach($immediate);
+        $this->execute($immediate);
         
         return $immediate;
     }
@@ -53,7 +50,18 @@ class ImmediateManager implements ImmediateManagerInterface
     {
         return $this->immediates->contains($immediate);
     }
-    
+
+    /**
+     * @inheritdoc
+     */
+    public function execute(ImmediateInterface $immediate)
+    {
+        if (!$this->immediates->contains($immediate)) {
+            $this->queue->push($immediate);
+            $this->immediates->attach($immediate);
+        }
+    }
+
     /**
      * @inheritdoc
      */
@@ -61,6 +69,13 @@ class ImmediateManager implements ImmediateManagerInterface
     {
         if ($this->immediates->contains($immediate)) {
             $this->immediates->detach($immediate);
+
+            foreach ($this->queue as $key => $event) {
+                if ($event === $immediate) {
+                    unset($this->queue[$key]);
+                    break;
+                }
+            }
         }
     }
 
@@ -77,8 +92,8 @@ class ImmediateManager implements ImmediateManagerInterface
      */
     public function clear()
     {
-        $this->queue = new SplQueue();
-        $this->immediates = new SplObjectStorage();
+        $this->queue = new \SplQueue();
+        $this->immediates = new \SplObjectStorage();
     }
     
     /**
@@ -86,19 +101,17 @@ class ImmediateManager implements ImmediateManagerInterface
      */
     public function tick()
     {
-        while (!$this->queue->isEmpty()) {
+        if (!$this->queue->isEmpty()) {
             $immediate = $this->queue->shift();
-            
-            if ($this->immediates->contains($immediate)) {
-                $this->immediates->detach($immediate);
-                
-                // Execute the immediate.
-                $immediate->call();
-                
-                return true;
-            }
+
+            $this->immediates->detach($immediate);
+
+            // Execute the immediate.
+            $immediate->call();
+
+            return true;
         }
-        
+
         return false;
     }
 }

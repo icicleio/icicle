@@ -20,8 +20,6 @@ class SelectLoopTest extends AbstractLoopTest
     {
         list($readable, $writable) = $this->createSockets();
         
-        $length = strlen(self::WRITE_STRING);
-        
         fclose($writable); // A closed socket will never be writable, but is invalid in other loop implementations.
         
         $callback = $this->createCallback(1);

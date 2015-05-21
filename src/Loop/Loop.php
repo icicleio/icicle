@@ -173,7 +173,7 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->timer($callback, $interval, false, $args);
+        return static::getInstance()->timer($interval, false, $callback, $args);
     }
     
     /**
@@ -187,13 +187,12 @@ abstract class Loop
     {
         $args = array_slice(func_get_args(), 2);
         
-        return static::getInstance()->timer($callback, $interval, true, $args);
+        return static::getInstance()->timer($interval, true, $callback, $args);
     }
     
     /**
      * @param   callable $callback Function to invoke when no other active events are available.
      * @param   mixed ...$args Arguments to pass to the callback function.
-     *
      *
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */
@@ -202,6 +201,17 @@ abstract class Loop
         $args = array_slice(func_get_args(), 1);
         
         return static::getInstance()->immediate($callback, $args);
+    }
+
+    /**
+     * @param   int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
+     * @param   callable $callback Function to invoke when the given signal arrives.
+     *
+     * @return  \Icicle\Loop\Events\SignalInterface
+     */
+    public static function signal($signo, callable $callback)
+    {
+        return static::getInstance()->signal($signo, $callback);
     }
     
     /**
@@ -213,49 +223,7 @@ abstract class Loop
     {
         return static::getInstance()->signalHandlingEnabled();
     }
-    
-    /**
-     * Adds a signal handler function for the given signal number.
-     *
-     * @param   int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
-     * @param   callable $listener
-     * @param   bool $once The handler will only be executed on the next signal received if this is true.
-     */
-    public static function addSignalHandler($signo, callable $listener, $once = false)
-    {
-        $instance = static::getInstance();
-        if ($instance->signalHandlingEnabled()) {
-            $instance->addListener($signo, $listener, $once);
-        }
-    }
-    
-    /**
-     * Removes a signal handler function for the given signal number.
-     *
-     * @param   int $signo
-     * @param   callable $listener
-     */
-    public static function removeSignalHandler($signo, callable $listener)
-    {
-        $instance = static::getInstance();
-        if ($instance->signalHandlingEnabled()) {
-            $instance->removeListener($signo, $listener);
-        }
-    }
-    
-    /**
-     * Removes all signal handlers for the given signal number, or all signal handlers if no number is given.
-     *
-     * @param   int|null $signo
-     */
-    public static function removeAllSignalHandlers($signo = null)
-    {
-        $instance = static::getInstance();
-        if ($instance->signalHandlingEnabled()) {
-            $instance->removeAllListeners($signo);
-        }
-    }
-    
+
     /**
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
      */

@@ -15,25 +15,14 @@ class TimerTest extends TestCase
         $this->manager = $this->getMock('Icicle\Loop\Events\Manager\TimerManagerInterface');
     }
     
-    public function createTimer(callable $callback, $interval, $periodic = false, array $args = null)
+    public function createTimer($interval, $periodic, callable $callback, array $args = null)
     {
-        return new Timer($this->manager, $callback, $interval, $periodic, $args);
+        return new Timer($this->manager, $interval, $periodic, $callback, $args);
     }
 
-    public function testGetCallback()
-    {
-        $timer = $this->createTimer($this->createCallback(1), self::TIMEOUT);
-        
-        $callback = $timer->getCallback();
-        
-        $this->assertTrue(is_callable($callback));
-        
-        $callback();
-    }
-    
     public function testGetInterval()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->assertSame(self::TIMEOUT, $timer->getInterval());
     }
@@ -43,14 +32,14 @@ class TimerTest extends TestCase
      */
     public function testInvalidInterval()
     {
-        $timer = $this->createTimer($this->createCallback(0), -1);
+        $timer = $this->createTimer(-1, false, $this->createCallback(0));
         
         $this->assertGreaterThanOrEqual(0, $timer->getInterval());
     }
     
     public function testCall()
     {
-        $timer = $this->createTimer($this->createCallback(2), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(2));
         
         $timer->call();
         $timer->call();
@@ -61,7 +50,7 @@ class TimerTest extends TestCase
      */
     public function testInvoke()
     {
-        $timer = $this->createTimer($this->createCallback(2), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(2));
         
         $timer();
         $timer();
@@ -69,7 +58,7 @@ class TimerTest extends TestCase
     
     public function testIsPending()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('isPending')
@@ -81,29 +70,40 @@ class TimerTest extends TestCase
     
     public function testIsPeriodic()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT, true);
+        $timer = $this->createTimer(self::TIMEOUT, true, $this->createCallback(0));
         
         $this->assertTrue($timer->isPeriodic());
         
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT, false);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->assertFalse($timer->isPeriodic());
     }
-    
-    public function testCancel()
+
+    public function testStart()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('start')
+            ->with($this->identicalTo($timer));
+
+        $timer->start();
+    }
+
+    public function testStop()
+    {
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->manager->expects($this->once())
-            ->method('cancel')
+            ->method('stop')
             ->with($this->identicalTo($timer));
         
-        $timer->cancel();
+        $timer->stop();
     }
     
     public function testUnreference()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('unreference')
@@ -114,7 +114,7 @@ class TimerTest extends TestCase
     
     public function testReference()
     {
-        $timer = $this->createTimer($this->createCallback(0), self::TIMEOUT);
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('reference')
@@ -142,7 +142,7 @@ class TimerTest extends TestCase
                      $this->identicalTo($arg4)
                  );
         
-        $timer = $this->createTimer($callback, self::TIMEOUT, false, [$arg1, $arg2, $arg3, $arg4]);
+        $timer = $this->createTimer(self::TIMEOUT, false, $callback, [$arg1, $arg2, $arg3, $arg4]);
         
         $timer->call();
     }

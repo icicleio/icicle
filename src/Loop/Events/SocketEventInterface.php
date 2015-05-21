@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Loop\Events;
 
-interface SocketEventInterface extends EventInterface
+interface SocketEventInterface
 {
     /**
      * Returns the PHP resource.
@@ -19,21 +19,26 @@ interface SocketEventInterface extends EventInterface
      * @param   bool $expired
      */
     public function __invoke($expired);
-    
+
     /**
-     * Sets the function to be called when an event occurs on the socket.
+     * Listens for data or the ability to write.
      *
-     * @param   callable $callback
-     */
-    public function setCallback(callable $callback);
-    
-    /**
-     * Listens for events on the socket.
-     *
-     * @param   int|float|null $timeout Number of seconds until the callback is invoked with the expired param set to true.
-     *          Use null for no timeout.
+     * @param   int|float|null $timeout Number of seconds until the callback is invoked with $expired set to true if
+     *          no data is received or the socket does not become writable. Use null for no timeout.
      */
     public function listen($timeout = null);
+
+    /**
+     * Stops listening for data or the ability to write on the socket.
+     */
+    public function cancel();
+
+    /**
+     * Determines if the socket event is currently listening for data or the ability to write.
+     *
+     * @return  bool
+     */
+    public function isPending();
     
     /**
      * Frees the resources used to listen for events on the socket.

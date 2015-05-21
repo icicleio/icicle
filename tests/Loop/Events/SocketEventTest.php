@@ -29,9 +29,9 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
         
-        $this->assertSame($socket, $poll->getResource());
+        $this->assertSame($socket, $event->getResource());
     }
     
     /**
@@ -40,24 +40,7 @@ class SocketEventTest extends TestCase
      */
     public function testInvalidResource()
     {
-        $poll = $this->createSocketEvent(1, $this->createCallbacK(0));
-    }
-    
-    public function testGetCallback()
-    {
-        list($socket) = $this->createSockets();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
-        
-        $poll = $this->createSocketEvent($socket, $callback);
-        
-        $callback = $poll->getCallback();
-        
-        $this->assertTrue(is_callable($callback));
-        
-        $callback($socket, false);
+        $event = $this->createSocketEvent(1, $this->createCallbacK(0));
     }
     
     public function testCall()
@@ -68,10 +51,10 @@ class SocketEventTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $poll = $this->createSocketEvent($socket, $callback);
+        $event = $this->createSocketEvent($socket, $callback);
         
-        $poll->call(false);
-        $poll->call(false);
+        $event->call(false);
+        $event->call(false);
     }
     
     /**
@@ -85,45 +68,23 @@ class SocketEventTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $poll = $this->createSocketEvent($socket, $callback);
+        $event = $this->createSocketEvent($socket, $callback);
         
-        $poll(false);
-        $poll(false);
-    }
-    
-    /**
-     * @depends testGetCallback
-     */
-    public function testSetCallback()
-    {
-        list($socket) = $this->createSockets();
-        
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
-        
-        $poll->setCallback($callback);
-        
-        $callback = $poll->getCallback();
-        
-        $this->assertTrue(is_callable($callback));
-        
-        $callback($socket, false);
+        $event(false);
+        $event(false);
     }
     
     public function testListen()
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('listen')
-            ->with($this->identicalTo($poll));
+            ->with($this->identicalTo($event));
         
-        $poll->listen();
+        $event->listen();
     }
     
     /**
@@ -133,60 +94,60 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('listen')
-            ->with($this->identicalTo($poll), $this->identicalTo(self::TIMEOUT));
+            ->with($this->identicalTo($event), $this->identicalTo(self::TIMEOUT));
         
-        $poll->listen(self::TIMEOUT);
+        $event->listen(self::TIMEOUT);
     }
     
     public function testIsPending()
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('isPending')
-            ->with($this->identicalTo($poll))
+            ->with($this->identicalTo($event))
             ->will($this->returnValue(true));
         
-        $this->assertTrue($poll->isPending());
+        $this->assertTrue($event->isPending());
     }
     
     public function testFree()
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('free')
-            ->with($this->identicalTo($poll))
+            ->with($this->identicalTo($event))
             ->will($this->returnValue(true));
         
         $this->manager->expects($this->once())
             ->method('isFreed')
-            ->with($this->identicalTo($poll))
+            ->with($this->identicalTo($event))
             ->will($this->returnValue(true));
         
-        $poll->free();
+        $event->free();
         
-        $this->assertTrue($poll->isFreed());
+        $this->assertTrue($event->isFreed());
     }
     
     public function testCancel()
     {
         list($socket) = $this->createSockets();
         
-        $poll = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('cancel')
-            ->with($this->identicalTo($poll));
+            ->with($this->identicalTo($event));
         
-        $poll->cancel();
+        $event->cancel();
     }
 }

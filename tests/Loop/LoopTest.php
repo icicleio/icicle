@@ -140,7 +140,7 @@ class LoopTest extends TestCase
         
         $callback = function () use (&$timer, $callback) {
             $callback();
-            $timer->cancel();
+            $timer->stop();
         };
         
         $timer = Loop::periodic(self::TIMEOUT, $callback);
@@ -160,7 +160,7 @@ class LoopTest extends TestCase
                  ->with(1, 2, 3.14, 'test');
         
         $callback = function (/* ...$args */) use (&$timer, $callback) {
-            $timer->cancel();
+            $timer->stop();
             call_user_func_array($callback, func_get_args());
         };
         
@@ -278,7 +278,7 @@ class LoopTest extends TestCase
      * @requires extension pcntl
      * @depends testInit
      */
-    public function testAddSignalHandler()
+    public function testSignal()
     {
         $pid = posix_getpid();
         
@@ -292,98 +292,14 @@ class LoopTest extends TestCase
         
         $callback3 = $this->createCallback(1);
         
-        Loop::addSignalHandler(SIGUSR1, $callback1);
-        Loop::addSignalHandler(SIGUSR2, $callback2);
-        Loop::addSignalHandler(SIGUSR1, $callback3);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-    }
-    
-    /**
-     * @depends testAddSignalHandler
-     */
-    public function testRemoveSignalHandler()
-    {
-        $pid = posix_getpid();
-        
-        $callback1 = $this->createCallback(2);
-        $callback2 = $this->createCallback(1);
-        
-        Loop::addSignalHandler(SIGUSR1, $callback1);
-        Loop::addSignalHandler(SIGUSR2, $callback2);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-        
-        Loop::removeSignalHandler(SIGUSR2, $callback2);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-        
-        Loop::removeSignalHandler(SIGUSR1, $callback1);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-    }
-    
-    /**
-     * @depends testAddSignalHandler
-     */
-    public function testRemoveAllSignalHandlersWithNoSignal()
-    {
-        $pid = posix_getpid();
-        
-        $callback1 = $this->createCallback(1);
-        $callback2 = $this->createCallback(1);
-        $callback3 = $this->createCallback(1);
-        
-        Loop::addSignalHandler(SIGUSR1, $callback1);
-        Loop::addSignalHandler(SIGUSR2, $callback2);
-        Loop::addSignalHandler(SIGUSR2, $callback3);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-        
-        Loop::removeAllSignalHandlers();
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-    }
-    
-    /**
-     * @depends testAddSignalHandler
-     */
-    public function testRemoveAllSignalHandlersWithSignal()
-    {
-        $pid = posix_getpid();
-        
-        $callback1 = $this->createCallback(2);
-        $callback2 = $this->createCallback(1);
-        $callback3 = $this->createCallback(1);
-        
-        Loop::addSignalHandler(SIGUSR1, $callback1);
-        Loop::addSignalHandler(SIGUSR2, $callback2);
-        Loop::addSignalHandler(SIGUSR2, $callback3);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop::tick(false);
-        
-        Loop::removeAllSignalHandlers(SIGUSR2);
+        $signal = Loop::signal(SIGUSR1, $callback1);
+        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+
+        $signal = Loop::signal(SIGUSR2, $callback2);
+        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+
+        $signal = Loop::signal(SIGUSR1, $callback3);
+        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
         
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);

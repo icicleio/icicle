@@ -4,9 +4,8 @@ namespace Icicle\Loop;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\Manager\Libevent\AwaitManager;
 use Icicle\Loop\Events\Manager\Libevent\PollManager;
+use Icicle\Loop\Events\Manager\Libevent\SignalManager;
 use Icicle\Loop\Events\Manager\Libevent\TimerManager;
-use Icicle\Loop\Events\Manager\SocketManagerInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Exception\UnsupportedException;
 
 /**
@@ -20,12 +19,7 @@ class LibeventLoop extends AbstractLoop
      * @var resource
      */
     private $base;
-    
-    /**
-     * @var resource[]
-     */
-    private $signalEvents = [];
-    
+
     /**
      * Determines if the libevent extension is loaded, which is required for this class.
      *
@@ -57,31 +51,8 @@ class LibeventLoop extends AbstractLoop
         }
         
         parent::__construct($eventFactory);
-        
-        if ($this->signalHandlingEnabled()) {
-            $callback = $this->createSignalCallback();
-            
-            foreach ($this->getSignalList() as $signal) {
-                $this->createEvent($signal);
-                $event = event_new();
-                event_set($event, $signal, EV_SIGNAL | EV_PERSIST, $callback);
-                event_base_set($event, $this->base);
-                event_add($event);
-                $this->signalEvents[$signal] = $event;
-            }
-        }
     }
-    
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __destruct()
-    {
-        foreach ($this->signalEvents as $event) {
-            event_free($event);
-        }
-    }
-    
+
     /**
      * @return  resource
      *
@@ -103,12 +74,8 @@ class LibeventLoop extends AbstractLoop
     /**
      * @inheritdoc
      */
-    protected function dispatch(
-        SocketManagerInterface $pollManager,
-        SocketManagerInterface $awaitManager,
-        TimerManagerInterface $timerManager,
-        $blocking
-    ) {
+    protected function dispatch($blocking)
+    {
         $flags = EVLOOP_ONCE;
         
         if (!$blocking) {
@@ -140,5 +107,13 @@ class LibeventLoop extends AbstractLoop
     protected function createTimerManager(EventFactoryInterface $factory)
     {
         return new TimerManager($factory, $this->base);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSignalManager(EventFactoryInterface $factory)
+    {
+        return new SignalManager($this, $factory, $this->base);
     }
 }

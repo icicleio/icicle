@@ -6,6 +6,9 @@ use Icicle\Tests\TestCase;
 
 class EventFactoryTest extends TestCase
 {
+    /**
+     * @var \Icicle\Loop\Events\EventFactory
+     */
     protected $factory;
     
     public function setUp()
@@ -28,14 +31,13 @@ class EventFactoryTest extends TestCase
 
         $manager = $this->getMock('Icicle\Loop\Events\Manager\SocketManagerInterface');
 
-        $poll = $this->factory->socket($manager, $socket, $callback);
+        $event = $this->factory->socket($manager, $socket, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
+        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $event);
         
-        $this->assertSame($socket, $poll->getResource());
-        
-        $callback = $poll->getCallback();
-        $callback($socket, false);
+        $this->assertSame($socket, $event->getResource());
+
+        $event->call(false);
     }
     
     public function testCreateTimer()
@@ -45,15 +47,14 @@ class EventFactoryTest extends TestCase
 
         $manager = $this->getMock('Icicle\Loop\Events\Manager\TimerManagerInterface');
 
-        $timer = $this->factory->timer($manager, $this->createCallback(1), $timeout, $periodic);
+        $timer = $this->factory->timer($manager, $timeout, $periodic, $this->createCallback(1));
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
         $this->assertSame($timeout, $timer->getInterval());
         $this->assertSame($periodic, $timer->isPeriodic());
         
-        $callback = $timer->getCallback();
-        $callback();
+        $timer->call();
     }
     
     public function testCreateImmediate()
@@ -64,7 +65,19 @@ class EventFactoryTest extends TestCase
         
         $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
         
-        $callback = $immediate->getCallback();
-        $callback();
+        $immediate->call();
+    }
+
+    public function testCreateSignal()
+    {
+        $signo = 1;
+
+        $manager = $this->getMock('Icicle\Loop\Events\Manager\SignalManagerInterface');
+
+        $signal = $this->factory->signal($manager, $signo, $this->createCallback(1));
+
+        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+
+        $signal->call();
     }
 }

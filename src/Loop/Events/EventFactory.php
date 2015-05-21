@@ -2,6 +2,7 @@
 namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Events\Manager\SignalManagerInterface;
 use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Events\Manager\TimerManagerInterface;
 
@@ -21,9 +22,14 @@ class EventFactory implements EventFactoryInterface
     /**
      * @inheritdoc
      */
-    public function timer(TimerManagerInterface $manager, callable $callback, $interval, $periodic = false, array $args = null)
-    {
-        return new Timer($manager, $callback, $interval, $periodic, $args);
+    public function timer(
+        TimerManagerInterface$manager,
+        $interval,
+        $periodic,
+        callable $callback,
+        array $args = null
+    ) {
+        return new Timer($manager, $interval, $periodic, $callback, $args);
     }
     
     /**
@@ -32,5 +38,13 @@ class EventFactory implements EventFactoryInterface
     public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
         return new Immediate($manager, $callback, $args);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function signal(SignalManagerInterface $manager, $signo, callable $callback)
+    {
+        return new Signal($manager, $signo, $callback);
     }
 }

@@ -2,10 +2,10 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\Select\SignalManager;
 use Icicle\Loop\Events\Manager\Select\SocketManager;
 use Icicle\Loop\Events\Manager\Select\TimerManager;
 use Icicle\Loop\Events\Manager\SocketManagerInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -25,24 +25,7 @@ class SelectLoop extends AbstractLoop
     {
         return true;
     }
-    
-    /**
-     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
-     */
-    public function __construct(EventFactoryInterface $eventFactory = null)
-    {
-        parent::__construct($eventFactory);
-        
-        if ($this->signalHandlingEnabled()) {
-            $callback = $this->createSignalCallback();
-            
-            foreach ($this->getSignalList() as $signal) {
-                $this->createEvent($signal);
-                pcntl_signal($signal, $callback);
-            }
-        }
-    }
-    
+
     /**
      * @inheritdoc
      */
@@ -51,20 +34,19 @@ class SelectLoop extends AbstractLoop
     /**
      * @inheritdoc
      */
-    protected function dispatch(
-        SocketManagerInterface $pollManager,
-        SocketManagerInterface $awaitManager,
-        TimerManagerInterface $timerManager,
-        $blocking
-    ) {
+    protected function dispatch($blocking)
+    {
+        $timerManager = $this->getTimerManager();
+
         $timeout = $blocking ? $timerManager->getInterval() : 0;
 
-        $this->select($pollManager, $awaitManager, $timeout); // Select available sockets for reading or writing.
+        // Select available sockets for reading or writing.
+        $this->select($this->getPollManager(), $this->getAwaitManager(), $timeout);
         
         $timerManager->tick(); // Call any pending timers.
         
         if ($this->signalHandlingEnabled()) {
-            pcntl_signal_dispatch(); // Dispatch any signals that may have arrived.
+            $this->getSignalManager()->tick(); // Dispatch any signals that may have arrived.
         }
     }
     
@@ -126,5 +108,13 @@ class SelectLoop extends AbstractLoop
     protected function createTimerManager(EventFactoryInterface $factory)
     {
         return new TimerManager($factory);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSignalManager(EventFactoryInterface $factory)
+    {
+        return new SignalManager($this, $factory);
     }
 }

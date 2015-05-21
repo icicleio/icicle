@@ -57,20 +57,20 @@ class Immediate implements ImmediateInterface
     {
         return $this->manager->isPending($this);
     }
-    
+
+    /**
+     * @inheritdoc
+     */
+    public function execute()
+    {
+        $this->manager->execute($this);
+    }
+
     /**
      * @inheritdoc
      */
     public function cancel()
     {
         $this->manager->cancel($this);
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function getCallback()
-    {
-        return $this->callback;
     }
 }

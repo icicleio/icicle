@@ -67,28 +67,36 @@ class TimerManager implements TimerManagerInterface
     /**
      * @inheritdoc
      */
-    public function create(callable $callback, $interval, $periodic = false, array $args = null)
+    public function create($interval, $periodic, callable $callback, array $args = null)
     {
-        $timer = $this->factory->timer($this, $callback, $interval, $periodic, $args);
+        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
+        $this->start($timer);
+        
+        return $timer;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function start(TimerInterface $timer)
+    {
         $flags = Event::TIMEOUT;
         if ($timer->isPeriodic()) {
             $flags |= Event::PERSIST;
         }
-        
+
         $event = new Event($this->base, -1, $flags, $this->callback, $timer);
-        
+
         $this->timers[$timer] = $event;
-        
+
         $event->add($timer->getInterval());
-        
-        return $timer;
     }
     
     /**
      * @inheritdoc
      */
-    public function cancel(TimerInterface $timer)
+    public function stop(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
             $this->timers[$timer]->free();

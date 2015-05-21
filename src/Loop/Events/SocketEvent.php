@@ -56,23 +56,7 @@ class SocketEvent implements SocketEventInterface
     {
         $this->call($expired);
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function setCallback(callable $callback)
-    {
-        $this->callback = $callback;
-    }
-    
-    /**
-     * @inheritdoc
-     */
-    public function getCallback()
-    {
-        return $this->callback;
-    }
-    
+
     /**
      * @inheritdoc
      */
