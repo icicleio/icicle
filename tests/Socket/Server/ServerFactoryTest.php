@@ -83,7 +83,7 @@ class ServerFactoryTest extends TestCase
     
     /**
      * @medium
-     * @require extension openssl
+     * @requires extension openssl
      * @depends testCreate
      */
     public function testCreateWithPem()
