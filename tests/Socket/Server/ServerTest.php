@@ -77,6 +77,8 @@ class ServerTest extends TestCase
         $promise->done($callback, $this->createCallback(0));
         
         Loop::run();
+
+        fclose($client);
     }
     
     /**
@@ -196,7 +198,7 @@ class ServerTest extends TestCase
             $errno,
             $errstr,
             self::CONNECT_TIMEOUT,
-            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+            STREAM_CLIENT_CONNECT
         );
         
         $callback = $this->createCallback(1);
@@ -212,6 +214,8 @@ class ServerTest extends TestCase
         $promise2->done($this->createCallback(0), $callback);
         
         Loop::run();
+
+        fclose($client);
     }
     
     /**
@@ -228,20 +232,20 @@ class ServerTest extends TestCase
             $errno,
             $errstr,
             self::CONNECT_TIMEOUT,
-            STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+            STREAM_CLIENT_CONNECT
         );
         
         if (!$client || $errno) {
             $this->fail("Could not create client socket. [Errno {$errno}] {$errstr}");
         }
+
+        fclose($client);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
         
         $promise->done($callback, $this->createCallback(0));
-        
-        fclose($client);
         
         Loop::run();
     }

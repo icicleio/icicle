@@ -1,8 +1,23 @@
 <?php
 namespace Icicle\Loop\Events;
 
-interface ImmediateInterface extends EventInterface
+interface ImmediateInterface
 {
+    /**
+     * @return  bool
+     */
+    public function isPending();
+
+    /**
+     * Execute the immediate if not pending.
+     */
+    public function execute();
+
+    /**
+     * Cancels the immediate if pending.
+     */
+    public function cancel();
+
     /**
      * Calls the callback associated with the timer.
      */

@@ -10,25 +10,14 @@ class ImmediateTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock('Icicle\Loop\Manager\ImmediateManagerInterface');
+        $this->manager = $this->getMock('Icicle\Loop\Events\Manager\ImmediateManagerInterface');
     }
     
     public function createImmediate(callable $callback, array $args = null)
     {
         return new Immediate($this->manager, $callback, $args);
     }
-    
-    public function testGetCallback()
-    {
-        $immediate = $this->createImmediate($this->createCallback(1));
-        
-        $callback = $immediate->getCallback();
-        
-        $this->assertTrue(is_callable($callback));
-        
-        $callback();
-    }
-    
+
     public function testCall()
     {
         $immediate = $this->createImmediate($this->createCallback(2));
@@ -60,17 +49,28 @@ class ImmediateTest extends TestCase
         $this->assertTrue($immediate->isPending());
     }
     
-    public function testCancel()
+    public function testExecute()
     {
         $immediate = $this->createImmediate($this->createCallback(0));
         
+        $this->manager->expects($this->once())
+            ->method('execute')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->execute();
+    }
+
+    public function testCancel()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
         $this->manager->expects($this->once())
             ->method('cancel')
             ->with($this->identicalTo($immediate));
 
         $immediate->cancel();
     }
-    
+
     /**
      * @depends testCall
      */

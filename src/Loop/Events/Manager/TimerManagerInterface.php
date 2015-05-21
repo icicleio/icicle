@@ -1,28 +1,35 @@
 <?php
-namespace Icicle\Loop\Manager;
+namespace Icicle\Loop\Events\Manager;
 
 use Icicle\Loop\Events\TimerInterface;
 
-interface TimerManagerInterface extends ManagerInterface
+interface TimerManagerInterface
 {
     /**
      * Creates a timer object connected to the manager.
      *
-     * @param   callable $callback
      * @param   int|float $interval
      * @param   bool $periodic
+     * @param   callable $callback
      * @param   mixed[] $args
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
-    public function create(callable $callback, $interval, $periodic = false, array $args = null);
-    
+    public function create($interval, $periodic, callable $callback, array $args = null);
+
+    /**
+     * Starts the given timer if it is not already pending.
+     *
+     * @param   \Icicle\Loop\Events\TimerInterface $timer
+     */
+    public function start(TimerInterface $timer);
+
     /**
      * Cancels the given timer.
      *
      * @param   \Icicle\Loop\Events\TimerInterface $timer
      */
-    public function cancel(TimerInterface $timer);
+    public function stop(TimerInterface $timer);
     
     /**
      * Determines if the timer is pending.
@@ -47,4 +54,16 @@ interface TimerManagerInterface extends ManagerInterface
      * @param   \Icicle\Loop\Events\TimerInterface $timer
      */
     public function reference(TimerInterface $timer);
+
+    /**
+     * Determines if any referenced timers are pending in the manager.
+     *
+     * @return  bool
+     */
+    public function isEmpty();
+
+    /**
+     * Clears all timers from the manager.
+     */
+    public function clear();
 }

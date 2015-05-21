@@ -1,21 +1,20 @@
 <?php
-namespace Icicle\Loop\Manager\Libevent;
+namespace Icicle\Loop\Events\Manager\Event;
 
 use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedException;
 use Icicle\Loop\Exception\ResourceBusyException;
-use Icicle\Loop\Manager\SocketManagerInterface;
 
 abstract class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
-    const MICROSEC_PER_SEC = 1e6;
 
     /**
-     * @var resource
+     * @var \EventBase
      */
     private $base;
     
@@ -25,7 +24,7 @@ abstract class SocketManager implements SocketManagerInterface
     private $factory;
     
     /**
-     * @var resource[]
+     * @var \Event[]
      */
     private $events = [];
     
@@ -35,31 +34,26 @@ abstract class SocketManager implements SocketManagerInterface
     private $sockets = [];
     
     /**
-     * @var bool[]
-     */
-    private $pending = [];
-    
-    /**
      * @var callable
      */
     private $callback;
     
     /**
-     * Creates an event resource on the given event base for the SocketEventInterface.
+     * Creates an Event object on the given EventBase for the SocketEventInterface.
      *
-     * @param   resource $base Event base resource.
+     * @param   \EventBase $base
      * @param   \Icicle\Loop\Events\SocketEventInterface $event
      * @param   callable $callback
      *
-     * @return  resource Event resource.
+     * @return  \Event
      */
-    abstract protected function createEvent($base, SocketEventInterface $event, callable $callback);
+    abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback);
     
     /**
      * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param   resource $base
+     * @param   \EventBase $base
      */
-    public function __construct(EventFactoryInterface $factory, $base)
+    public function __construct(EventFactoryInterface $factory, EventBase $base)
     {
         $this->factory = $factory;
         $this->base = $base;
@@ -73,7 +67,7 @@ abstract class SocketManager implements SocketManagerInterface
     public function __destruct()
     {
         foreach ($this->events as $event) {
-            event_free($event);
+            $event->free();
         }
     }
     
@@ -82,8 +76,8 @@ abstract class SocketManager implements SocketManagerInterface
      */
     public function isEmpty()
     {
-        foreach ($this->pending as $pending) {
-            if ($pending) {
+        foreach ($this->events as $event) {
+            if ($event->pending) {
                 return false;
             }
         }
@@ -99,13 +93,10 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyException('An event has already been created for that resource.');
+            throw new ResourceBusyException('A poll has already been created for that resource.');
         }
         
-        $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
-        $this->pending[$id] = false;
-        
-        return $this->sockets[$id];
+        return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
     }
     
     /**
@@ -123,19 +114,17 @@ abstract class SocketManager implements SocketManagerInterface
             $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
         }
 
-        $this->pending[$id] = true;
-
         if (null === $timeout) {
-            event_add($this->events[$id]);
+            $this->events[$id]->add();
             return;
         }
-
+        
         $timeout = (float) $timeout;
         if (self::MIN_TIMEOUT > $timeout) {
             $timeout = self::MIN_TIMEOUT;
         }
 
-        event_add($this->events[$id], $timeout * self::MICROSEC_PER_SEC);
+        $this->events[$id]->add($timeout);
     }
     
     /**
@@ -146,8 +135,7 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id]) {
-            event_del($this->events[$id]);
-            $this->pending[$id] = false;
+            $this->events[$id]->del();
         }
     }
     
@@ -158,7 +146,7 @@ abstract class SocketManager implements SocketManagerInterface
     {
         $id = (int) $socket->getResource();
         
-        return isset($this->sockets[$id], $this->pending[$id]) && $socket === $this->sockets[$id] && $this->pending[$id];
+        return isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id] && $this->events[$id]->pending;
     }
     
     /**
@@ -170,10 +158,9 @@ abstract class SocketManager implements SocketManagerInterface
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
             unset($this->sockets[$id]);
-            unset($this->pending[$id]);
             
             if (isset($this->events[$id])) {
-                event_free($this->events[$id]);
+                $this->events[$id]->free();
                 unset($this->events[$id]);
             }
         }
@@ -195,12 +182,11 @@ abstract class SocketManager implements SocketManagerInterface
     public function clear()
     {
         foreach ($this->events as $event) {
-            event_free($event);
+            $event->free();
         }
         
         $this->events = [];
         $this->sockets = [];
-        $this->pending = [];
     }
     
     /**
@@ -209,8 +195,7 @@ abstract class SocketManager implements SocketManagerInterface
     protected function createCallback()
     {
         return function ($resource, $what, SocketEventInterface $socket) {
-            $this->pending[(int) $resource] = false;
-            $socket->call($resource, 0 !== (EV_TIMEOUT & $what));
+            $socket->call(0 !== (Event::TIMEOUT & $what));
         };
     }
 }

@@ -18,8 +18,6 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
      * @reject  \Icicle\Socket\Exception\FailureException If enabling crypto fails.
      * @reject  \Icicle\Socket\Exception\ClosedException If the client has been closed.
      * @reject  \Icicle\Socket\Exception\BusyException If the client was already busy waiting to read.
-     *
-     * @api
      */
     public function enableCrypto($method);
     
@@ -27,44 +25,34 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
      * Determines if cyrpto has been enabled.
      *
      * @return  bool
-     *
-     * @api
      */
     public function isCryptoEnabled();
     
     /**
-     * Returns the remote IP as a string representation.
+     * Returns the remote IP or socket path as a string representation.
      *
      * @return  string
-     *
-     * @api
      */
     public function getRemoteAddress();
     
     /**
-     * Returns the remote port number.
+     * Returns the remote port number (or null if unix socket).
      *
-     * @return  int
-     *
-     * @api
+     * @return  int|null
      */
     public function getRemotePort();
     
     /**
-     * Returns the remote IP as a string representation.
+     * Returns the local IP or socket path as a string representation.
      *
      * @return  string
-     *
-     * @api
      */
     public function getLocalAddress();
     
     /**
-     * Returns the local port number.
+     * Returns the local port number (or null if unix socket).
      *
-     * @return  int
-     *
-     * @api
+     * @return  int|null
      */
     public function getLocalPort();
 }

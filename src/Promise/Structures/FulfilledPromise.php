@@ -69,7 +69,7 @@ class FulfilledPromise extends ResolvedPromise
                 });
             },
             function () use (&$timer) {
-                $timer->cancel();
+                $timer->stop();
             }
         );
     }

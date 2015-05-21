@@ -108,7 +108,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
@@ -317,7 +317,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
@@ -349,7 +349,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
@@ -824,7 +824,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->pause();
         
-        $this->assertRunTimeLessThan('Icicle\Loop\Loop::run', self::TIMEOUT);
+        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
     }
     
     /**
@@ -844,7 +844,7 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-        $this->assertRunTimeBetween('Icicle\Loop\Loop::run', self::TIMEOUT, self::TIMEOUT * 2);
+        $this->assertRunTimeBetween(['Icicle\Loop\Loop', 'run'], self::TIMEOUT, self::TIMEOUT * 2);
         
         $coroutine->resume();
         
@@ -874,7 +874,7 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-        $this->assertRunTimeGreaterThan('Icicle\Loop\Loop::run', self::TIMEOUT * 2);
+        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT * 2);
     }
     
     /**

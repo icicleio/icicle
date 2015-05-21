@@ -1,9 +1,7 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\EventEmitter\EventEmitterInterface;
-
-interface LoopInterface extends EventEmitterInterface
+interface LoopInterface
 {
     /**
      * Determines if the necessary components for the loop class are available.
@@ -44,6 +42,13 @@ interface LoopInterface extends EventEmitterInterface
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
      */
     public function clear();
+
+    /**
+     * Determines if there are any pending events in the loop. Returns true if there are no pending events.
+     *
+     * @return  bool
+     */
+    public function isEmpty();
     
     /**
      * Performs any reinitializing necessary after forking.
@@ -95,14 +100,14 @@ interface LoopInterface extends EventEmitterInterface
     /**
      * Creates a timer object connected to the loop.
      *
-     * @param   callable $callback
      * @param   int|float $interval
+     * @param   callable $callback
      * @param   bool $periodic
      * @param   array $args
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
-    public function timer(callable $callback, $interval, $periodic = false, array $args = null);
+    public function timer($interval, $periodic = false, callable $callback, array $args = null);
     
     /**
      * Creates an immediate object connected to the loop.
@@ -113,6 +118,14 @@ interface LoopInterface extends EventEmitterInterface
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */
     public function immediate(callable $callback, array $args = null);
+
+    /**
+     * @param   int $signo
+     * @param   callable $callback
+     *
+     * @return  \Icicle\Loop\Events\SignalInterface
+     */
+    public function signal($signo, callable $callback);
 
     /**
      * Determines if signal handling is enabled.

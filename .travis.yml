@@ -10,13 +10,29 @@ matrix:
         - php: 7.0
     fast_finish: true
 
-addons:
-    apt:
-        packages:
-            - libevent
+install:
+  - if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
+    curl -LS https://pecl.php.net/get/event | tar -xz;
+    pushd event-*;
+    phpize;
+    ./configure;
+    make;
+    make install;
+    popd;
+    echo "extension=event.so" >> "$(php -r 'echo php_ini_loaded_file();')";
+    curl -LS https://pecl.php.net/get/libevent | tar -xz;
+    pushd libevent-*;
+    phpize;
+    ./configure;
+    make;
+    make install;
+    popd;
+    echo "extension=libevent.so" >> "$(php -r 'echo php_ini_loaded_file();')";
+    fi
+  - composer install --no-interaction --prefer-source
 
-install: scripts/travis-install.sh
+script:
+  - vendor/bin/phpunit --coverage-text
 
-script: vendor/bin/phpunit --coverage-text
-
-after_script: scripts/travis-coverage.sh
+after_script:
+  - vendor/bin/coveralls -v --exclude-no-stmt

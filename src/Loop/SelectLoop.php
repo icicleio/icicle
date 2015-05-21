@@ -2,10 +2,10 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Manager\Select\SocketManager;
-use Icicle\Loop\Manager\Select\TimerManager;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\Manager\Select\SignalManager;
+use Icicle\Loop\Events\Manager\Select\SocketManager;
+use Icicle\Loop\Events\Manager\Select\TimerManager;
+use Icicle\Loop\Events\Manager\SocketManagerInterface;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -25,24 +25,7 @@ class SelectLoop extends AbstractLoop
     {
         return true;
     }
-    
-    /**
-     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
-     */
-    public function __construct(EventFactoryInterface $eventFactory = null)
-    {
-        parent::__construct($eventFactory);
-        
-        if ($this->signalHandlingEnabled()) {
-            $callback = $this->createSignalCallback();
-            
-            foreach ($this->getSignalList() as $signal) {
-                $this->createEvent($signal);
-                pcntl_signal($signal, $callback);
-            }
-        }
-    }
-    
+
     /**
      * @inheritdoc
      */
@@ -51,49 +34,38 @@ class SelectLoop extends AbstractLoop
     /**
      * @inheritdoc
      */
-    protected function dispatch(
-        SocketManagerInterface $pollManager,
-        SocketManagerInterface $awaitManager,
-        TimerManagerInterface $timerManager,
-        $blocking
-    ) {
+    protected function dispatch($blocking)
+    {
+        $timerManager = $this->getTimerManager();
+
         $timeout = $blocking ? $timerManager->getInterval() : 0;
 
-        $this->select($pollManager, $awaitManager, $timeout); // Select available sockets for reading or writing.
+        // Select available sockets for reading or writing.
+        $this->select($this->getPollManager(), $this->getAwaitManager(), $timeout);
         
         $timerManager->tick(); // Call any pending timers.
         
         if ($this->signalHandlingEnabled()) {
-            pcntl_signal_dispatch(); // Dispatch any signals that may have arrived.
+            $this->getSignalManager()->tick(); // Dispatch any signals that may have arrived.
         }
     }
     
     /**
-     * @param   \Icicle\Loop\Manager\SocketManagerInterface $pollManager
-     * @param   \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
+     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
+     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
      * @param   int|float|null $timeout
-     *
-     * @return  bool
      */
     protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
     {
         // Use stream_select() if there are any streams in the loop.
         if (!$pollManager->isEmpty() || !$awaitManager->isEmpty()) {
-            $seconds = (int) floor($timeout);
+            $seconds = (int) $timeout;
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
             
-            $read = [];
-            $write = [];
+            $read = $pollManager->getPending();
+            $write = $awaitManager->getPending();
             $except = null;
-            
-            foreach ($pollManager->getPending() as $id => $resource) {
-                $read[$id] = $resource;
-            }
-            
-            foreach ($awaitManager->getPending() as $id => $resource) {
-                $write[$id] = $resource;
-            }
-            
+
             // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
             $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
             
@@ -107,7 +79,7 @@ class SelectLoop extends AbstractLoop
 
         // Otherwise sleep with time_nanosleep() if $timeout > 0.
         if (0 < $timeout) {
-            $seconds = (int) floor($timeout);
+            $seconds = (int) $timeout;
             $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
         
             time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
@@ -136,5 +108,13 @@ class SelectLoop extends AbstractLoop
     protected function createTimerManager(EventFactoryInterface $factory)
     {
         return new TimerManager($factory);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSignalManager(EventFactoryInterface $factory)
+    {
+        return new SignalManager($this, $factory);
     }
 }

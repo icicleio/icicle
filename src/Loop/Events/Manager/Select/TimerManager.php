@@ -1,16 +1,16 @@
 <?php
-namespace Icicle\Loop\Manager\Select;
+namespace Icicle\Loop\Events\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 
 class TimerManager implements TimerManagerInterface
 {
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
@@ -38,13 +38,11 @@ class TimerManager implements TimerManagerInterface
     /**
      * @inheritdoc
      */
-    public function create(callable $callback, $interval, $periodic = false, array $args = null)
+    public function create($interval, $periodic, callable $callback, array $args = null)
     {
-        $timer = $this->factory->timer($this, $callback, $interval, $periodic, $args);
+        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
-        $timeout = microtime(true) + $timer->getInterval();
-        $this->queue->insert($timer, -$timeout);
-        $this->timers[$timer] = $timeout;
+        $this->start($timer);
         
         return $timer;
     }
@@ -56,13 +54,25 @@ class TimerManager implements TimerManagerInterface
     {
         return $this->timers->contains($timer);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function start(TimerInterface $timer)
+    {
+        if (!$this->timers->contains($timer)) {
+            $timeout = microtime(true) + $timer->getInterval();
+            $this->queue->insert([$timer, $timeout], -$timeout);
+            $this->timers[$timer] = $timeout;
+        }
+    }
     
     /**
      * @inheritdoc
      */
-    public function cancel(TimerInterface $timer)
+    public function stop(TimerInterface $timer)
     {
-        if (isset($this->timers[$timer])) {
+        if ($this->timers->contains($timer)) {
             $this->timers->detach($timer);
         }
     }
@@ -111,14 +121,14 @@ class TimerManager implements TimerManagerInterface
     public function getInterval()
     {
         while (!$this->queue->isEmpty()) {
-            $timer = $this->queue->top();
+            list($timer, $timeout) = $this->queue->top();
 
-            if (!$this->timers->contains($timer)) { // Timer was removed from queue.
-                $this->queue->extract();
+            if (!$this->timers->contains($timer) || $timeout !== $this->timers[$timer]) {
+                $this->queue->extract(); // Timer was removed from queue.
                 continue;
             }
 
-            $timeout = $this->timers[$timer] - microtime(true);
+            $timeout -= microtime(true);
 
             if (0 > $timeout) {
                 return 0;
@@ -142,10 +152,10 @@ class TimerManager implements TimerManagerInterface
         $count = 0;
         
         while (!$this->queue->isEmpty()) {
-            $timer = $this->queue->top();
-            
-            if (!$this->timers->contains($timer)) { // Timer was removed from queue.
-                $this->queue->extract();
+            list($timer, $timeout) = $this->queue->top();
+
+            if (!$this->timers->contains($timer) || $timeout !== $this->timers[$timer]) {
+                $this->queue->extract(); // Timer was removed from queue.
                 continue;
             }
 
@@ -158,7 +168,7 @@ class TimerManager implements TimerManagerInterface
 
             if ($timer->isPeriodic()) {
                 $timeout = microtime(true) + $timer->getInterval();
-                $this->queue->insert($timer, -$timeout);
+                $this->queue->insert([$timer, $timeout], -$timeout);
                 $this->timers[$timer] = $timeout;
             } else {
                 $this->timers->detach($timer);

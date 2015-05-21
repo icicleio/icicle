@@ -10,8 +10,6 @@ interface PromiseInterface
      * @param   callable|null $onRejected (Exception $exception) : mixed
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -21,8 +19,6 @@ interface PromiseInterface
      *
      * @param   callable|null $onFulfilled (mixed $value) : mixed
      * @param   callable|null $onRejected (Exception $exception) : mixed
-     *
-     * @api
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -32,8 +28,6 @@ interface PromiseInterface
      * given.
      *
      * @param   mixed $reason
-     *
-     * @api
      */
     public function cancel($reason = null);
     
@@ -45,8 +39,6 @@ interface PromiseInterface
      * @param   mixed $reason
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function timeout($timeout, $reason = null);
     
@@ -57,8 +49,6 @@ interface PromiseInterface
      * @param   float $time
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function delay($time);
 
@@ -70,8 +60,6 @@ interface PromiseInterface
      * @param   callable $onRejected
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function capture(callable $onRejected);
 
@@ -84,8 +72,6 @@ interface PromiseInterface
      * @param   callable $onFulfilled
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function tap(callable $onFulfilled);
     
@@ -98,8 +84,6 @@ interface PromiseInterface
      * @param   callable $onResolved
      *
      * @return  \Icicle\Promise\PromiseInterface
-     *
-     * @api
      */
     public function cleanup(callable $onResolved);
 
@@ -119,8 +103,6 @@ interface PromiseInterface
      * Returns true if the promise has not been resolved.
      *
      * @return  bool
-     *
-     * @api
      */
     public function isPending();
     
@@ -128,8 +110,6 @@ interface PromiseInterface
      * Returns true if the promise has been fulfilled.
      *
      * @return bool
-     *
-     * @api
      */
     public function isFulfilled();
     
@@ -137,8 +117,6 @@ interface PromiseInterface
      * Returns true if the promise has been rejected.
      *
      * @return bool
-     *
-     * @api
      */
     public function isRejected();
     
@@ -148,8 +126,6 @@ interface PromiseInterface
      * @return  mixed
      *
      * @throws  \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
-     *
-     * @api
      */
     public function getResult();
     

@@ -20,8 +20,6 @@ interface WritableSocketInterface extends SocketInterface, WritableStreamInterfa
      *
      * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function write($data, $timeout = null);
 
@@ -38,8 +36,6 @@ interface WritableSocketInterface extends SocketInterface, WritableStreamInterfa
      *
      * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     *
-     * @api
      */
     public function end($data = null, $timeout = null);
 }
