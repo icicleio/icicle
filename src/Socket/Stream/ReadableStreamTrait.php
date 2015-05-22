@@ -43,6 +43,11 @@ trait ReadableStreamTrait
     abstract protected function getResource();
 
     /**
+     * Closes the stream socket.
+     */
+    abstract public function close();
+
+    /**
      * Frees resources associated with the stream and closes the stream.
      *
      * @param   \Exception $exception
@@ -109,7 +114,7 @@ trait ReadableStreamTrait
         }
 
         if (feof($resource)) { // Close only if no data was read and at EOF.
-            $this->free(new EofException('Connection reset by peer or reached EOF.'));
+            $this->close();
             return Promise::resolve($data); // Resolve with empty string on EOF.
         }
 
@@ -194,7 +199,7 @@ trait ReadableStreamTrait
             $this->deferred = null;
 
             if ('' === $data && feof($resource)) { // Close only if no data was read and at EOF.
-                $this->free(new EofException('Connection reset by peer or reached EOF.'));
+                $this->close();
             }
         });
     }
