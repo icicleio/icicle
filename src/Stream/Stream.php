@@ -87,31 +87,39 @@ class Stream implements DuplexStreamInterface
      */
     public function close()
     {
-        if ($this->isOpen()) {
-            $this->free(new ClosedException('The stream was closed.'));
-        }
+        $this->free();
     }
 
     /**
      * Closes the stream and rejects any pending promises.
      *
-     * @param   \Exception $exception
+     * @param   \Exception|null $exception
      */
-    protected function free(Exception $exception)
+    protected function free(Exception $exception = null)
     {
         $this->open = false;
         $this->writable = false;
 
         if (null !== $this->deferred) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
             $this->deferred->reject($exception);
             $this->deferred = null;
         }
 
         if (null !== $this->hwm) {
-            while (!$this->deferredQueue->isEmpty()) {
-                /** @var \Icicle\Promise\Deferred $deferred */
-                list( , $deferred) = $this->deferredQueue->shift();
-                $deferred->reject($exception);
+            if (!$this->deferredQueue->isEmpty()) {
+                if (null === $exception) {
+                    $exception = new ClosedException('The stream was unexpectedly closed.');
+                }
+
+                do {
+                    /** @var \Icicle\Promise\Deferred $deferred */
+                    list( , $deferred) = $this->deferredQueue->shift();
+                    $deferred->reject($exception);
+                } while (!$this->deferredQueue->isEmpty());
             }
         }
     }
@@ -144,7 +152,7 @@ class Stream implements DuplexStreamInterface
             }
 
             if (!$this->writable && $this->buffer->isEmpty()) {
-                $this->free(new ClosedException('The stream was ended.'));
+                $this->free();
             }
 
             return Promise::resolve($data);
@@ -228,7 +236,7 @@ class Stream implements DuplexStreamInterface
             $this->writable = false;
 
             if ($this->buffer->isEmpty()) {
-                $this->free(new ClosedException('The stream was ended.'));
+                $this->free();
             }
         }
 
