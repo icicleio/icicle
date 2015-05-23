@@ -161,27 +161,7 @@ class ServerTest extends TestCase
         
         Loop::run();
     }
-    
-    /**
-     * @depends testAccept
-     */
-    public function testAcceptOnClosedSocket()
-    {
-        $this->server = $this->createServer();
-        
-        fclose($this->server->getResource());
-        
-        $promise = $this->server->accept();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\UnavailableException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::tick();
-    }
-    
+
     /**
      * @depends testAccept
      */

@@ -29,7 +29,7 @@ class SocketTest extends TestCase
     }
     
     /**
-     * @expectedException Icicle\Socket\Exception\InvalidArgumentException
+     * @expectedException \Icicle\Socket\Exception\InvalidArgumentException
      */
     public function testConstructWithNonResource()
     {
@@ -45,12 +45,5 @@ class SocketTest extends TestCase
         
         $this->assertFalse($this->socket->isOpen());
         $this->assertFalse(is_resource($this->socket->getResource()));
-    }
-    
-    public function testGetId()
-    {
-        $id = $this->socket->getId();
-        $this->assertInternalType('integer', $id);
-        $this->assertGreaterThan(0, $id);
     }
 }

@@ -442,27 +442,7 @@ class DatagramTest extends TestCase
         
         Loop::run();
     }
-    
-    /**
-     * @depends testReceive
-     */
-    public function testReceiveAfterEof()
-    {
-        $this->datagram = $this->createDatagram();
-        
-        fclose($this->datagram->getResource());
-        
-        $promise = $this->datagram->receive();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\UnavailableException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
-    
+
     public function testPoll()
     {
         $this->datagram = $this->createDatagram();

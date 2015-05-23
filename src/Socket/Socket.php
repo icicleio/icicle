@@ -48,7 +48,7 @@ abstract class Socket implements SocketInterface
      */
     public function isOpen()
     {
-        return is_resource($this->socket);
+        return null !== $this->socket;
     }
     
     /**
@@ -58,27 +58,18 @@ abstract class Socket implements SocketInterface
     {
         if (is_resource($this->socket)) {
             fclose($this->socket);
+            $this->socket = null;
         }
     }
     
     /**
-     * Returns the stream socket resource.
+     * Returns the stream socket resource or null if the socket has been closed.
      *
-     * @return  resource
+     * @return  resource|null
      */
     public function getResource()
     {
         return $this->socket;
-    }
-    
-    /**
-     * Integer ID of the stream socket resource.
-     *
-     * @return  int
-     */
-    public function getId()
-    {
-        return (int) $this->socket;
     }
 
     /**
