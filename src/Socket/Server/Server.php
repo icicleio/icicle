@@ -60,9 +60,7 @@ class Server extends Socket implements ServerInterface
      */
     public function close()
     {
-        if ($this->isOpen()) {
-            $this->free(new ClosedException('The server has closed.'));
-        }
+        $this->free();
     }
 
     /**
@@ -70,12 +68,18 @@ class Server extends Socket implements ServerInterface
      *
      * @param   Exception $exception Reason for closing the server.
      */
-    protected function free(Exception $exception)
+    protected function free(Exception $exception = null)
     {
-        $this->poll->free();
-        $this->poll = null;
+        if (null !== $this->poll) {
+            $this->poll->free();
+            $this->poll = null;
+        }
 
         if (null !== $this->deferred) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
             $this->deferred->reject($exception);
             $this->deferred = null;
         }

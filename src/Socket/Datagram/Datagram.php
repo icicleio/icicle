@@ -82,32 +82,45 @@ class Datagram extends Socket implements DatagramInterface
      */
     public function close(Exception $exception = null)
     {
-        if ($this->isOpen()) {
-            $this->free(new ClosedException('The datagram was closed.'));
-        }
+        $this->free();
     }
 
     /**
      * Frees resources associated with the datagram and closes the datagram.
      *
-     * @param   \Exception $exception Reason for closing the datagram.
+     * @param   \Exception|null $exception Reason for closing the datagram.
      */
-    protected function free(Exception $exception)
+    protected function free(Exception $exception = null)
     {
-        $this->poll->free();
-        $this->await->free();
-        $this->poll = null;
-        $this->await = null;
+        if (null !== $this->poll) {
+            $this->poll->free();
+            $this->poll = null;
+        }
+
+        if (null !== $this->await) {
+            $this->await->free();
+            $this->await = null;
+        }
 
         if (null !== $this->deferred) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
             $this->deferred->reject($exception);
             $this->deferred = null;
         }
 
-        /** @var \Icicle\Promise\Deferred $deferred */
-        while (!$this->writeQueue->isEmpty()) {
-            list( , , , $deferred) = $this->writeQueue->shift();
-            $deferred->reject($exception);
+        if (!$this->writeQueue->isEmpty()) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
+            do {
+                /** @var \Icicle\Promise\Deferred $deferred */
+                list( , , , $deferred) = $this->writeQueue->shift();
+                $deferred->reject($exception);
+            } while (!$this->writeQueue->isEmpty());
         }
 
         parent::close();

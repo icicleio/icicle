@@ -36,14 +36,14 @@ trait WritableStreamTrait
      * @return  resource Stream socket resource.
      */
     abstract protected function getResource();
-    
+
     /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception $exception
+     * @param   \Exception|null $exception
      */
-    abstract protected function free(Exception $exception);
-    
+    abstract protected function free(Exception $exception = null);
+
     /**
      * @param   resource $socket Stream socket resource.
      */
@@ -56,23 +56,39 @@ trait WritableStreamTrait
         
         $this->await = $this->createAwait($socket);
     }
-    
+
+    /**
+     * Closes the stream socket.
+     */
+    public function close()
+    {
+        $this->free();
+    }
+
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   \Exception $exception
+     * @param   \Exception|null $exception
      */
-    private function detach(Exception $exception)
+    private function detach(Exception $exception = null)
     {
         $this->writable = false;
-        
-        $this->await->free();
-        $this->await = null;
-        
-        while (!$this->writeQueue->isEmpty()) {
-            /** @var \Icicle\Promise\Deferred $deferred */
-            list( , , , $deferred) = $this->writeQueue->shift();
-            $deferred->reject($exception);
+
+        if (null !== $this->await) {
+            $this->await->free();
+            $this->await = null;
+        }
+
+        if (!$this->writeQueue->isEmpty()) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
+            do {
+                /** @var \Icicle\Promise\Deferred $deferred */
+                list( , , , $deferred) = $this->writeQueue->shift();
+                $deferred->reject($exception);
+            } while (!$this->writeQueue->isEmpty());
         }
     }
 
@@ -133,7 +149,7 @@ trait WritableStreamTrait
         $this->writable = false;
         
         return $promise->cleanup(function () {
-            $this->free(new ClosedException('The stream was ended.'));
+            $this->close();
         });
     }
     

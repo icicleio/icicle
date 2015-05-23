@@ -3,13 +3,13 @@ namespace Icicle\Socket\Stream;
 
 use Exception;
 use Icicle\Socket\Socket;
-use Icicle\Stream\Exception\ClosedException;
 
 class DuplexStream extends Socket implements DuplexSocketInterface
 {
     use ReadableStreamTrait, WritableStreamTrait {
         ReadableStreamTrait::init insteadof WritableStreamTrait;
         ReadableStreamTrait::detach insteadof WritableStreamTrait;
+        ReadableStreamTrait::close insteadof WritableStreamTrait;
         ReadableStreamTrait::init as initReadable;
         ReadableStreamTrait::detach as detachReadable;
         WritableStreamTrait::init as initWritable;
@@ -28,25 +28,14 @@ class DuplexStream extends Socket implements DuplexSocketInterface
     }
 
     /**
-     * @inheritdoc
-     */
-    public function close()
-    {
-        if ($this->isOpen()) {
-            $this->free(new ClosedException('The connection was closed.'));
-        }
-    }
-    
-    /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception $exception Reason for the stream closing.
+     * @param   \Exception|null $exception Reason for the stream closing.
      */
-    protected function free(Exception $exception)
+    protected function free(Exception $exception = null)
     {
         $this->detachReadable($exception);
         $this->detachWritable($exception);
-        
         parent::close();
     }
 }

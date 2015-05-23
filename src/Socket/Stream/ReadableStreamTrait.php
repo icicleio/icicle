@@ -5,10 +5,10 @@ use Exception;
 use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
-use Icicle\Socket\Exception\EofException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Socket\SocketInterface;
+use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\ParserTrait;
 
@@ -43,16 +43,19 @@ trait ReadableStreamTrait
     abstract protected function getResource();
 
     /**
-     * Closes the stream socket.
-     */
-    abstract public function close();
-
-    /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception $exception
+     * @param   \Exception|null $exception
      */
-    abstract protected function free(Exception $exception);
+    abstract protected function free(Exception $exception = null);
+
+    /**
+     * Closes the stream socket.
+     */
+    public function close()
+    {
+        $this->free();
+    }
 
     /**
      * @param  resource $socket Stream socket resource.
@@ -68,14 +71,20 @@ trait ReadableStreamTrait
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   \Exception $exception
+     * @param   \Exception|null $exception
      */
-    private function detach(Exception $exception)
+    private function detach(Exception $exception = null)
     {
-        $this->poll->free();
-        $this->poll = null;
+        if (null !== $this->poll) {
+            $this->poll->free();
+            $this->poll = null;
+        }
         
         if (null !== $this->deferred) {
+            if (null === $exception) {
+                $exception = new ClosedException('The stream was unexpectedly closed.');
+            }
+
             $this->deferred->reject($exception);
             $this->deferred = null;
         }

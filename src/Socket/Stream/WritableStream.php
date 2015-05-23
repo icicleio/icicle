@@ -3,7 +3,6 @@ namespace Icicle\Socket\Stream;
 
 use Exception;
 use Icicle\Socket\Socket;
-use Icicle\Stream\Exception\ClosedException;
 
 class WritableStream extends Socket implements WritableSocketInterface
 {
@@ -19,24 +18,13 @@ class WritableStream extends Socket implements WritableSocketInterface
     }
 
     /**
-     * @inheritdoc
-     */
-    public function close()
-    {
-        if ($this->isOpen()) {
-            $this->free(new ClosedException('The connection was closed.'));
-        }
-    }
-
-    /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception $exception Reason for the stream closing.
+     * @param   \Exception|null $exception Reason for the stream closing.
      */
-    protected function free(Exception $exception)
+    protected function free(Exception $exception = null)
     {
         $this->detach($exception);
-        
         parent::close();
     }
 }
