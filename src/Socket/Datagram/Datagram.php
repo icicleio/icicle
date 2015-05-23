@@ -159,7 +159,7 @@ class Datagram extends Socket implements DatagramInterface
         if (null === $length) {
             $this->length = self::CHUNK_SIZE;
         }
-        
+
         $this->poll->listen($timeout);
         
         $this->deferred = new Deferred(function () {
@@ -169,15 +169,7 @@ class Datagram extends Socket implements DatagramInterface
         
         return $this->deferred->getPromise();
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function poll($timeout = null)
-    {
-        return $this->receive(0, $timeout);
-    }
-    
+
     /**
      * @inheritdoc
      */
@@ -225,61 +217,44 @@ class Datagram extends Socket implements DatagramInterface
         
         return $deferred->getPromise();
     }
-    
-    /**
-     * @inheritdoc
-     */
-    public function await()
-    {
-        if (!$this->isOpen()) {
-            return Promise::reject(new UnavailableException('The datagram is no longer writable.'));
-        }
-        
-        $deferred = new Deferred();
-        $this->writeQueue->push([new Buffer(), 0, null, $deferred]);
-        
-        if (!$this->await->isPending()) {
-            $this->await->listen();
-        }
-        
-        return $deferred->getPromise();
-    }
-    
+
     /**
      * @param   resource $socket Stream socket resource.
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createPoll($socket)
+    private function createPoll($socket)
     {
         return Loop::poll($socket, function ($resource, $expired) {
-            if ($expired) {
-                $this->deferred->reject(new TimeoutException('The datagram timed out.'));
-                $this->deferred = null;
-                return;
-            }
-            
-            if (0 === $this->length) {
-                $this->deferred->resolve([null, null, '']);
-                $this->deferred = null;
-                return;
-            }
-            
-            $data = stream_socket_recvfrom($resource, $this->length, 0, $peer);
-            
-            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-            if (false === $data) { // Reading failed, so close datagram.
-                $message = 'Failed to read from datagram.';
-                if (null !== ($error = error_get_last())) {
-                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
+            try {
+                if ($expired) {
+                    throw new TimeoutException('The datagram timed out.');
                 }
-                $this->free(new FailureException($message));
-                return;
+
+                if (0 === $this->length) {
+                    $result = [null, null, ''];
+                } else {
+                    $data = stream_socket_recvfrom($resource, $this->length, 0, $peer);
+
+                    // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+                    if (false === $data) { // Reading failed, so close datagram.
+                        $message = 'Failed to read from datagram.';
+                        if (null !== ($error = error_get_last())) {
+                            $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
+                        }
+                        throw new FailureException($message);
+                    }
+
+                    list($address, $port) = $this->parseName($peer);
+
+                    $result = [$address, $port, $data];
+                }
+
+                $this->deferred->resolve($result);
+            } catch (Exception $exception) {
+                $this->deferred->reject($exception);
             }
-            
-            list($address, $port) = $this->parseName($peer);
-            
-            $this->deferred->resolve([$address, $port, $data]);
+
             $this->deferred = null;
         });
     }
@@ -289,7 +264,7 @@ class Datagram extends Socket implements DatagramInterface
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createAwait($socket)
+    private function createAwait($socket)
     {
         return Loop::await($socket, function ($resource) use (&$onWrite) {
             /**
