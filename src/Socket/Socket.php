@@ -58,8 +58,9 @@ abstract class Socket implements SocketInterface
     {
         if (is_resource($this->socket)) {
             fclose($this->socket);
-            $this->socket = null;
         }
+
+        $this->socket = null;
     }
     
     /**
