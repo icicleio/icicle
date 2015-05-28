@@ -80,26 +80,7 @@ class ServerTest extends TestCase
 
         fclose($client);
     }
-    
-    /**
-     * @depends testAccept
-     */
-    public function testAcceptWithTimeout()
-    {
-        $this->server = $this->createServer();
-        
-        $promise = $this->server->accept(self::TIMEOUT);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
-        
-        $promise->done($this->createCallback(0), $callback);
-        
-        Loop::run();
-    }
 
-    
     /**
      * @depends testAccept
      */

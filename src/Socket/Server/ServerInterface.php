@@ -12,8 +12,6 @@ interface ServerInterface extends SocketInterface
      *
      * @resolve \Icicle\Socket\Client\ClientInterface
      *
-     * @reject  \Icicle\Socket\Exception\AcceptException If an error occurs when accepting the client.
-     * @reject  \Icicle\Socket\Exception\FailureException If creating the client fails.
      * @reject  \Icicle\Socket\Exception\UnavailableException If an accept request was already pending on the server.
      */
     public function accept();

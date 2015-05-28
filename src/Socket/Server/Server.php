@@ -6,10 +6,8 @@ use Icicle\Loop\Loop;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Promise;
 use Icicle\Socket\Client\Client;
-use Icicle\Socket\Exception\AcceptException;
 use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
-use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\Exception\UnavailableException;
 use Icicle\Socket\Socket;
 
@@ -90,7 +88,7 @@ class Server extends Socket implements ServerInterface
     /**
      * @inheritdoc
      */
-    public function accept($timeout = null)
+    public function accept()
     {
         if (null !== $this->deferred) {
             return Promise::reject(new BusyException('Already waiting on server.'));
@@ -99,8 +97,8 @@ class Server extends Socket implements ServerInterface
         if (!$this->isOpen()) {
             return Promise::reject(new UnavailableException('The server has been closed.'));
         }
-        
-        $this->poll->listen($timeout);
+
+        $this->poll->listen();
         
         $this->deferred = new Deferred(function () {
             $this->poll->cancel();
@@ -125,49 +123,40 @@ class Server extends Socket implements ServerInterface
     {
         return $this->port;
     }
-    
+
     /**
      * @param   resource $socket Stream socket resource.
      *
      * @return  \Icicle\Socket\Client\ClientInterface
-     *
-     * @throws  \Icicle\Socket\Exception\FailureException If creating the client fails.
      */
     protected function createClient($socket)
     {
         return new Client($socket);
     }
-    
+
     /**
      * @param   resource $socket Stream socket server resource.
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    protected function createPoll($socket)
+    private function createPoll($socket)
     {
-        return Loop::poll($socket, function ($resource, $expired) {
+        return Loop::poll($socket, function ($resource) {
+            // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
+            $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
+
+            // Having difficulty finding a test to cover this scenario, but it has been seen in production.
+            if (!$client) {
+                $this->poll->listen(); // Accept failed, let's go around again.
+                return;
+            }
+
             try {
-                if ($expired) {
-                    throw new TimeoutException('Client accept timed out.');
-                }
-                
-                // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
-                $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
-                
-                // Having difficulty finding a test to cover this scenario, but it has been seen in production.
-                if (!$client) {
-                    $message = 'Could not accept client.';
-                    if (null !== ($error = error_get_last())) {
-                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                    }
-                    throw new AcceptException($message);
-                }
-            
                 $this->deferred->resolve($this->createClient($client));
             } catch (Exception $exception) {
                 $this->deferred->reject($exception);
             }
-            
+
             $this->deferred = null;
         });
     }

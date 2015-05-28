@@ -89,7 +89,6 @@ class ServerFactoryTest extends TestCase
     public function testCreateWithPem()
     {
         $path = tempnam(sys_get_temp_dir(), 'Icicle');
-        $passphrase = 'icicle';
 
         /** @var callable $generateCert */
 
@@ -103,11 +102,11 @@ class ServerFactoryTest extends TestCase
             'Security',
             'localhost',
             'hello@icicle.io',
-            $passphrase,
+            null,
             $path
         );
 
-        $this->server = $this->factory->create(self::HOST_IPv4, self::PORT, ['pem' => $path, 'passphrase' => $passphrase]);
+        $this->server = $this->factory->create(self::HOST_IPv4, self::PORT, ['pem' => $path]);
         
         $this->assertInstanceOf('Icicle\Socket\Server\ServerInterface', $this->server);
         
