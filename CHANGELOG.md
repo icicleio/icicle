@@ -1,9 +1,23 @@
 # Changelog
 
+### v0.4.2
+
+- New Features
+    - `Icicle\Socket\Datagram` classes and interfaces added to documentation and can now be used.
+
+- Changes
+    - The promise returned from `Icicle\Socket\Server\Server::accept()` will no longer be rejected with an `AcceptException` if accepting the client fails. The timeout option was also removed from this method, as retrying after a failed accept would make the timeout unreliable.
+    - Removed tests from distributions after updating other components to no longer depend on test classes from this package. Use the `--prefer-source` option when installing with Composer if you wish to have tests included.
+
+- Bug Fixes
+    - Updated stream closing methods to avoid constructing an exception object if there are no pending promises to be rejected.
+
+---
+
 ### v0.4.1
 
 - Changes
-    - Added tests back into distributions so users could verify their setup and so other components could use base test classes.
+    - ~~Added tests back into distributions so users could verify their setup and so other components could use base test classes.~~ (Removed in v0.4.2)
 
 ---
 
@@ -15,7 +29,7 @@
     - Support for unix sockets added to `Icicle\Socket\Client\Connector` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
     - Support for unix sockets also added to `Icicle\Socket\Server\ServerFactory` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
     - Added ability to restart timers if they were stopped using the `start()` method. Note that the methods on `Icicle\Loop\Events\TimerInterface` have changed (see Changes section).
-    - Added `execute()` method to `Icicle\Loop\Evnets\ImmediateInterface` to execute the immediate again if desired.
+    - Added `execute()` method to `Icicle\Loop\Events\ImmediateInterface` to execute the immediate again if desired.
 
 - Changes
     - The Event Emitter package is no longer a dependency since process signals have been refactored into event objects (see above). `Icicle\Loop\LoopInterface` no longer extends `Icicle\EventEmitter\EventEmitterInterface`.
@@ -77,7 +91,7 @@
     - `Icicle\Socket\Client\Connector`: Connects to a given host and port, with various options to control how the connection is created.
 - `Icicle\Stream\ReadableStreamInterface::readTo()` was eliminated, and the behavior added to `Icicle\Stream\ReadableStreamInterface::read()`. A second parameter, `$byte` was added  to `Icicle\Stream\ReadableStreamInterface::read()` that provides the same behavior. This parameter defaults to `null`, allowing any bytes to be read.
 - Similar to above, `Icicle\Stream\ReadableStreamInterface::pipeTo()` was eliminated and a `$byte` parameter added to `Icicle\Stream\ReadableStreamInterface::pipe()`.
-- Stream socket classes implementing `Icicle\Stream\ReadableStreamInterface::read()` (`Icicle\Socket\Stream\ReadableStream` and `Icicle\Socket\Stream\DuplexStream`) now fulfill with an empty string when the socket closes instead of rejecting with an `Icicle\Socket\Exception\EofException`. Subsequent reads will still reject with an `Icicle\Stream\Exception\UnreadableException`. This makes reading from stream in a Coroutine easier (no need for a try/catch block to only catch normal closing of the connection if looping while checking `Icicle\Stream\ReadableStreamInterface::isReadable()`).
+- Stream socket classes implementing `Icicle\Stream\ReadableStreamInterface::read()` (`Icicle\Socket\Stream\ReadableStream` and `Icicle\Socket\Stream\DuplexStream`) now fulfill with an empty string when the socket closes instead of rejecting with an `Icicle\Socket\Exception\EofException`. Subsequent reads will still reject with an `Icicle\Stream\Exception\UnreadableException`. This makes reading from stream in a Coroutine easier (no need for a try/catch block to only catch normal closing of the connection).
 - `Promise::iterate()` and `Promise::retry()` were modified to better handle cancellation. Cancelling the promise returned by these methods will now also cancel any promises generated internally.
 
 ---
@@ -102,4 +116,4 @@
 
 ### v0.1.0
 
-- Initial Release.
+- Initial release.
