@@ -2,25 +2,22 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseLiftTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testNoArguments()
     {
         $worker = function () { return 1; };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -28,7 +25,7 @@ class PromiseLiftTest extends TestCase
         
         $lifted()->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testValueArguments()
@@ -37,7 +34,7 @@ class PromiseLiftTest extends TestCase
             return $left - $right;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -45,7 +42,7 @@ class PromiseLiftTest extends TestCase
         
         $lifted(1, 2)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testFulfilledPromiseArguments()
@@ -54,16 +51,16 @@ class PromiseLiftTest extends TestCase
             return $left - $right;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo(-1));
         
-        $lifted(Promise::resolve(1), Promise::resolve(2))
+        $lifted(Promise\resolve(1), Promise\resolve(2))
             ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPendingPromiseArguments()
@@ -72,19 +69,19 @@ class PromiseLiftTest extends TestCase
             return $left - $right;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo(-1));
         
         $lifted(
-            Promise::resolve(1)->delay(0.2),
-            Promise::resolve(2)->delay(0.1)
+            Promise\resolve(1)->delay(0.2),
+            Promise\resolve(2)->delay(0.1)
         )
         ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testRejectedPromiseArguments()
@@ -95,27 +92,27 @@ class PromiseLiftTest extends TestCase
             return $left - $right;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        $lifted(Promise::resolve(1), Promise::reject($exception))
+        $lifted(Promise\resolve(1), Promise\reject($exception))
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testLiftedFunctionReturnsPromise()
     {
-        $promise = Promise::resolve(1);
+        $promise = Promise\resolve(1);
         
         $worker = function () use ($promise) {
             return $promise;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -123,7 +120,7 @@ class PromiseLiftTest extends TestCase
         
         $lifted()->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testRejectIfLiftedFunctionThrowsException()
@@ -134,7 +131,7 @@ class PromiseLiftTest extends TestCase
             throw $exception;
         };
         
-        $lifted = Promise::lift($worker);
+        $lifted = Promise\lift($worker);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -142,6 +139,6 @@ class PromiseLiftTest extends TestCase
         
         $lifted()->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 }

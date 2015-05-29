@@ -2,9 +2,9 @@
 namespace Icicle\Socket\Server;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Promise\Promise;
 use Icicle\Socket\Client\Client;
 use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
@@ -91,11 +91,11 @@ class Server extends Socket implements ServerInterface
     public function accept()
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on server.'));
+            return Promise\reject(new BusyException('Already waiting on server.'));
         }
         
         if (!$this->isOpen()) {
-            return Promise::reject(new UnavailableException('The server has been closed.'));
+            return Promise\reject(new UnavailableException('The server has been closed.'));
         }
 
         $this->poll->listen();
@@ -141,7 +141,7 @@ class Server extends Socket implements ServerInterface
      */
     private function createPoll($socket)
     {
-        return Loop::poll($socket, function ($resource) {
+        return Loop\poll($socket, function ($resource) {
             // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
             $client = @stream_socket_accept($resource, 0); // Timeout of 0 to be non-blocking.
 

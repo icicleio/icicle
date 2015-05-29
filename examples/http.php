@@ -4,7 +4,7 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Server\ServerInterface;
 use Icicle\Socket\Server\ServerFactory;
@@ -51,4 +51,4 @@ $coroutine->cleanup(function () use ($server) {
 
 echo "Server started.\n";
 
-Loop::run();
+Loop\run();

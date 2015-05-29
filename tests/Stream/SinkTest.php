@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Stream\Sink;
 use Icicle\Tests\TestCase;
 
@@ -9,7 +9,7 @@ class SinkTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     /**
@@ -35,7 +35,7 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testEmptySinkIsWritable()
@@ -52,7 +52,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertSame(strlen(StreamTest::WRITE_STRING), $sink->getLength());
 
@@ -68,7 +68,7 @@ class SinkTest extends TestCase
     {
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(0, $sink->tell());
@@ -81,7 +81,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -97,7 +97,7 @@ class SinkTest extends TestCase
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
@@ -109,7 +109,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($sink->isReadable());
         $this->assertSame($length, $sink->tell());
@@ -126,7 +126,7 @@ class SinkTest extends TestCase
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
@@ -138,7 +138,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
         $this->assertSame(strlen(StreamTest::WRITE_STRING), $sink->tell());
@@ -153,7 +153,7 @@ class SinkTest extends TestCase
     {
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
@@ -165,7 +165,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($sink->isReadable());
         $this->assertSame(0, $sink->tell());
@@ -180,7 +180,7 @@ class SinkTest extends TestCase
     {
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
@@ -192,7 +192,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($sink->isReadable());
         $this->assertSame(0, $sink->tell());
@@ -210,7 +210,7 @@ class SinkTest extends TestCase
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
@@ -222,7 +222,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($sink->isReadable());
         $this->assertSame($position + 1, $sink->tell());
@@ -237,7 +237,7 @@ class SinkTest extends TestCase
     {
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->write(StreamTest::WRITE_STRING);
 
@@ -247,13 +247,13 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(0, $sink->tell());
@@ -266,7 +266,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -280,17 +280,17 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->write($string);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(0, $sink->tell());
@@ -303,7 +303,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -320,7 +320,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertFalse($sink->isReadable());
@@ -338,11 +338,11 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek($position);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame($position, $sink->tell());
@@ -355,7 +355,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -371,11 +371,11 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek($position);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame($position, $sink->tell());
@@ -388,13 +388,13 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertSame($position + strlen(StreamTest::WRITE_STRING), $sink->tell());
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(0, $sink->tell());
@@ -410,7 +410,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -426,18 +426,18 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek(-$position, SEEK_CUR);
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(strlen(StreamTest::WRITE_STRING) - $position, $sink->tell());
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek(-$position, SEEK_CUR);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(strlen(StreamTest::WRITE_STRING) - $position * 2, $sink->tell());
@@ -450,7 +450,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -463,11 +463,11 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek(-$position, SEEK_END);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(strlen(StreamTest::WRITE_STRING) - $position, $sink->tell());
@@ -480,7 +480,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
     }
@@ -491,7 +491,7 @@ class SinkTest extends TestCase
 
         $sink->write(StreamTest::WRITE_STRING);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek(-1);
 
@@ -501,7 +501,7 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         $promise = $sink->seek($sink->getLength());
 
@@ -511,7 +511,7 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         return $sink;
     }
@@ -531,7 +531,7 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -551,7 +551,7 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -565,13 +565,13 @@ class SinkTest extends TestCase
 
         $this->assertFalse($sink->isWritable());
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
 
         $promise = $sink->seek(0);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($promise->isPending());
         $this->assertSame(0, $sink->tell());
@@ -585,7 +585,7 @@ class SinkTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($sink->isReadable());
 
@@ -607,6 +607,6 @@ class SinkTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 }

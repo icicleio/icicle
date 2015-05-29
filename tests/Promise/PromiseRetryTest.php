@@ -2,20 +2,17 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseRetryTest extends TestCase
 {
     const TIMEOUT = 0.1;
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testPromisorReturningScalar()
@@ -23,17 +20,17 @@ class PromiseRetryTest extends TestCase
         $value = 'testing';
         
         $promisor = function () use ($value) {
-            return Promise::resolve($value);
+            return Promise\resolve($value);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        Promise::retry($promisor, $this->createCallback(0))
+        Promise\retry($promisor, $this->createCallback(0))
             ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPromisorReturnsFulfilledPromise()
@@ -41,17 +38,17 @@ class PromiseRetryTest extends TestCase
         $value = 'testing';
         
         $promisor = function () use ($value) {
-            return Promise::resolve($value);
+            return Promise\resolve($value);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        Promise::retry($promisor, $this->createCallback(0))
+        Promise\retry($promisor, $this->createCallback(0))
             ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPromisorReturnsPendingPromise()
@@ -59,17 +56,17 @@ class PromiseRetryTest extends TestCase
         $value = 'testing';
         
         $promisor = function () use ($value) {
-            return Promise::resolve($value)->delay(self::TIMEOUT);
+            return Promise\resolve($value)->delay(self::TIMEOUT);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        Promise::retry($promisor, $this->createCallback(0))
+        Promise\retry($promisor, $this->createCallback(0))
             ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPromisorThrowsException()
@@ -84,10 +81,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::retry($promisor, $this->createCallback(0))
+        Promise\retry($promisor, $this->createCallback(0))
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPromiseRejectingCallsOnRejected()
@@ -95,7 +92,7 @@ class PromiseRetryTest extends TestCase
         $exception = new Exception();
         
         $promisor = function () use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
         
         $onRejected = function ($value) use ($exception) {
@@ -107,10 +104,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -121,7 +118,7 @@ class PromiseRetryTest extends TestCase
         $exception = new Exception();
         
         $promisor = function () use ($exception) {
-            $promise = new Promise(function () {});
+            $promise = new Promise\Promise(function () {});
             return $promise->timeout(self::TIMEOUT, $exception);
         };
         
@@ -134,10 +131,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -148,7 +145,7 @@ class PromiseRetryTest extends TestCase
         $exception = new Exception();
         
         $promisor = function () {
-            return Promise::reject();
+            return Promise\reject();
         };
         
         $onRejected = function () use ($exception) {
@@ -159,10 +156,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -177,10 +174,10 @@ class PromiseRetryTest extends TestCase
             static $initial = true;
             if ($initial) {
                 $initial = false;
-                return Promise::reject($exception);
+                return Promise\reject($exception);
             }
             
-            return Promise::resolve($value);
+            return Promise\resolve($value);
         };
         
         $onRejected = function ($value) use ($exception) {
@@ -192,10 +189,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -210,7 +207,7 @@ class PromiseRetryTest extends TestCase
             static $initial = true;
             if ($initial) {
                 $initial = false;
-                return Promise::reject($exception1);
+                return Promise\reject($exception1);
             }
             
             throw $exception2;
@@ -225,10 +222,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception2));
         
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -239,7 +236,7 @@ class PromiseRetryTest extends TestCase
         $exception = new Exception();
 
         $promisor = function () use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
 
         $onRejected = function () {};
@@ -248,10 +245,10 @@ class PromiseRetryTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
 
-        Promise::retry($promisor, $onRejected)
+        Promise\retry($promisor, $onRejected)
             ->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testInitialPromiseCancelledOnCancellation()
@@ -260,7 +257,7 @@ class PromiseRetryTest extends TestCase
 
         $exception = new Exception();
 
-        $promise = Promise::resolve()->delay($delay * 2);
+        $promise = Promise\resolve()->delay($delay * 2);
 
         $promisor = function () use ($promise) {
             return $promise;
@@ -272,10 +269,10 @@ class PromiseRetryTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        $promise = Promise::retry($promisor, $this->createCallback(0));
-        Loop::timer($delay, [$promise, 'cancel'], $exception);
+        $promise = Promise\retry($promisor, $this->createCallback(0));
+        Loop\timer($delay, [$promise, 'cancel'], $exception);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -288,13 +285,13 @@ class PromiseRetryTest extends TestCase
         $exception = new Exception();
         $reason = new Exception();
 
-        $promise = Promise::resolve()->delay($delay * 2);
+        $promise = Promise\resolve()->delay($delay * 2);
 
         $promisor = function () use ($promise, $reason) {
             static $initial = true;
             if ($initial) {
                 $initial = false;
-                return Promise::reject($reason);
+                return Promise\reject($reason);
             } else {
                 return $promise;
             }
@@ -315,9 +312,9 @@ class PromiseRetryTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        $promise = Promise::retry($promisor, $onRejected);
-        Loop::timer($delay, [$promise, 'cancel'], $exception);
+        $promise = Promise\retry($promisor, $onRejected);
+        Loop\timer($delay, [$promise, 'cancel'], $exception);
 
-        Loop::run();
+        Loop\run();
     }
 }

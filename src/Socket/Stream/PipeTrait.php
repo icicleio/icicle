@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Socket\Stream;
 
-use Icicle\Promise\Promise;
+use Icicle\Promise;
 use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\WritableStreamInterface;
 
@@ -67,17 +67,17 @@ trait PipeTrait
         $timeout = null
     ) {
         if (!$stream->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is not writable.'));
+            return Promise\reject(new UnwritableException('The stream is not writable.'));
         }
 
         $length = $this->parseLength($length);
         if (0 === $length) {
-            return Promise::resolve(0);
+            return Promise\resolve(0);
         }
 
         $byte = $this->parseByte($byte);
 
-        $promise = Promise::iterate(
+        $promise = Promise\iterate(
             function ($data) use (&$length, $stream, $byte, $timeout) {
                 static $bytes = 0;
                 $count = strlen($data);

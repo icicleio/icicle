@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Socket\Stream\ReadableStream;
 use Icicle\Tests\Stream\ReadableStreamTestTrait;
 
@@ -29,13 +29,13 @@ class ReadableStreamTest extends StreamTest
                  ->will($this->returnValue(true));
         
         $writable->method('write')
-                 ->will($this->returnCallback(function ($data) use ($write) {
-                     $length = strlen($data);
-                     if ($length) {
-                        fwrite($write, $data);
-                     }
-                     return Promise::resolve($length);
-                 }));
+            ->will($this->returnCallback(function ($data) use ($write) {
+                $length = strlen($data);
+                if ($length) {
+                    fwrite($write, $data);
+                }
+                return Promise\resolve($length);
+            }));
         
         $writable->method('close')
                  ->will($this->returnCallback(function () use ($write) {

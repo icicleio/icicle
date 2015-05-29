@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Stream;
 
-use Icicle\Promise\Promise;
+use Icicle\Promise;
 use Icicle\Stream\Exception\InvalidArgumentException;
 use Icicle\Stream\Exception\OutOfBoundsException;
 use Icicle\Stream\Exception\UnreadableException;
@@ -80,14 +80,14 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     public function read($length = null, $byte = null)
     {
         if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+            return Promise\reject(new UnreadableException('The stream is no longer readable.'));
         }
 
         $length = $this->parseLength($length);
         $byte = $this->parseByte($byte);
 
         if (0 === $length) {
-            return Promise::resolve('');
+            return Promise\resolve('');
         }
 
         if (null !== $byte) {
@@ -99,7 +99,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
                 $data .= $char;
             } while ($char !== $byte && (null === $length || ++$i < $length) && $this->iterator->valid());
 
-            return Promise::resolve($data);
+            return Promise\resolve($data);
         }
 
         if (null === $length) {
@@ -116,7 +116,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
 
         $this->iterator->seek($position);
 
-        return Promise::resolve($data);
+        return Promise\resolve($data);
     }
 
     /**
@@ -152,7 +152,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     protected function send($data, $end = false)
     {
         if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+            return Promise\reject(new UnwritableException('The stream is no longer writable.'));
         }
 
         if ($end) {
@@ -169,7 +169,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
 
         $this->iterator->seek($this->iterator->key() + $length);
 
-        return Promise::resolve($length);
+        return Promise\resolve($length);
     }
 
     /**
@@ -178,7 +178,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     public function seek($offset, $whence = SEEK_SET)
     {
         if (!$this->isOpen()) {
-            return Promise::reject(new UnseekableException('The stream is no longer seekable.'));
+            return Promise\reject(new UnseekableException('The stream is no longer seekable.'));
         }
 
         $offset = (int) $offset;
@@ -196,18 +196,18 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
                 break;
 
             default:
-                return Promise::reject(
+                return Promise\reject(
                     new InvalidArgumentException('Invalid value for whence. Use SEEK_SET, SEEK_CUR, or SEEK_END.')
                 );
         }
 
         if (0 > $offset || $this->buffer->getLength() <= $offset) {
-            return Promise::reject(new OutOfBoundsException(sprintf('Invalid offset: %s.', $offset)));
+            return Promise\reject(new OutOfBoundsException(sprintf('Invalid offset: %s.', $offset)));
         }
 
         $this->iterator->seek($offset);
 
-        return Promise::resolve($offset);
+        return Promise\resolve($offset);
     }
 
     /**

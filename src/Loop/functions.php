@@ -3,65 +3,47 @@ namespace Icicle\Loop;
 
 use Icicle\Loop\Exception\InitializedException;
 
-/**
- * Facade class for accessing a Icicle\Loop\LoopInterface instance. A specific instance of Icicle\Loop\LoopInterface
- * can be given using the init() method, or an instance is automatically generated based on available extensions.
- */
-abstract class Loop
-{
+if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
-     * @var LoopInterface|null
-     */
-    private static $instance;
-    
-    /**
-     * Used to set the loop to a custom class. This method should be one of the first calls in a script.
+     * Returns the global event loop.
      *
-     * @param   \Icicle\Loop\LoopInterface $loop
-     *
-     * @throws  \Icicle\Loop\Exception\InitializedException If another loop has been set or created.
+     * @param   \Icicle\Loop\LoopInterface|null $loop
+     * 
+     * @return  \Icicle\Loop\LoopInterface
      */
-    public static function init(LoopInterface $loop)
+    function loop(LoopInterface $loop = null)
     {
+        static $instance;
+
         // @codeCoverageIgnoreStart
-        if (null !== self::$instance) {
-            throw new InitializedException('The loop has already been initialized.');
+        if (null !== $loop) {
+            if (null !== $instance) {
+                throw new InitializedException('The loop has already been initialized.');
+            }
+            $instance = $loop;
+        } elseif (null === $instance) {
+            $instance = create();
         } // @codeCoverageIgnoreEnd
-        
-        self::$instance = $loop;
+
+        return $instance;
     }
-    
+
     /**
      * @return  \Icicle\Loop\LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected static function create()
+    function create()
     {
         if (EventLoop::enabled()) {
             return new EventLoop();
         }
-        
+
         if (LibeventLoop::enabled()) {
             return new LibeventLoop();
         }
-        
+
         return new SelectLoop();
-    }
-    
-    /**
-     * Returns the global event loop.
-     *
-     * @return  \Icicle\Loop\LoopInterface
-     */
-    public static function getInstance()
-    {
-        // @codeCoverageIgnoreStart
-        if (null === self::$instance) {
-            self::$instance = static::create();
-        } // @codeCoverageIgnoreEnd
-        
-        return self::$instance;
     }
     
     /**
@@ -71,11 +53,11 @@ abstract class Loop
      * @param   callable $callback
      * @param   mixed ...$args
      */
-    public static function schedule(callable $callback /* , ...$args */)
+    function schedule(callable $callback /* , ...$args */)
     {
         $args = array_slice(func_get_args(), 1);
-        
-        static::getInstance()->schedule($callback, $args);
+
+        loop()->schedule($callback, $args);
     }
     
     /**
@@ -85,9 +67,9 @@ abstract class Loop
      *
      * @return  int Current max depth if $depth = null or previous max depth otherwise.
      */
-    public static function maxScheduleDepth($depth = null)
+    function maxScheduleDepth($depth = null)
     {
-        return static::getInstance()->maxScheduleDepth($depth);
+        return loop()->maxScheduleDepth($depth);
     }
     
     /**
@@ -95,9 +77,9 @@ abstract class Loop
      *
      * @param   bool $blocking
      */
-    public static function tick($blocking = false)
+    function tick($blocking = false)
     {
-        static::getInstance()->tick($blocking);
+        loop()->tick($blocking);
     }
     
     /**
@@ -107,9 +89,9 @@ abstract class Loop
      *
      * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
      */
-    public static function run()
+    function run()
     {
-        return static::getInstance()->run();
+        return loop()->run();
     }
     
     /**
@@ -117,17 +99,17 @@ abstract class Loop
      *
      * @return  bool
      */
-    public static function isRunning()
+    function isRunning()
     {
-        return static::getInstance()->isRunning();
+        return loop()->isRunning();
     }
     
     /**
      * Stops the event loop.
      */
-    public static function stop()
+    function stop()
     {
-        static::getInstance()->stop();
+        loop()->stop();
     }
 
     /**
@@ -135,9 +117,9 @@ abstract class Loop
      *
      * @return  bool
      */
-    public static function isEmpty()
+    function isEmpty()
     {
-        return static::getInstance()->isEmpty();
+        return loop()->isEmpty();
     }
     
     /**
@@ -146,9 +128,9 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    public static function poll($socket, callable $callback)
+    function poll($socket, callable $callback)
     {
-        return static::getInstance()->poll($socket, $callback);
+        return loop()->poll($socket, $callback);
     }
     
     /**
@@ -157,9 +139,9 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\SocketEventInterface
      */
-    public static function await($socket, callable $callback)
+    function await($socket, callable $callback)
     {
-        return static::getInstance()->await($socket, $callback);
+        return loop()->await($socket, $callback);
     }
     
     /**
@@ -169,11 +151,11 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
-    public static function timer($interval, callable $callback /* , ...$args */)
+    function timer($interval, callable $callback /* , ...$args */)
     {
         $args = array_slice(func_get_args(), 2);
-        
-        return static::getInstance()->timer($interval, false, $callback, $args);
+
+        return loop()->timer($interval, false, $callback, $args);
     }
     
     /**
@@ -183,11 +165,11 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
-    public static function periodic($interval, callable $callback /* , ...$args */)
+    function periodic($interval, callable $callback /* , ...$args */)
     {
         $args = array_slice(func_get_args(), 2);
-        
-        return static::getInstance()->timer($interval, true, $callback, $args);
+
+        return loop()->timer($interval, true, $callback, $args);
     }
     
     /**
@@ -196,11 +178,11 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */
-    public static function immediate(callable $callback /* , ...$args */)
+    function immediate(callable $callback /* , ...$args */)
     {
         $args = array_slice(func_get_args(), 1);
-        
-        return static::getInstance()->immediate($callback, $args);
+
+        return loop()->immediate($callback, $args);
     }
 
     /**
@@ -209,9 +191,9 @@ abstract class Loop
      *
      * @return  \Icicle\Loop\Events\SignalInterface
      */
-    public static function signal($signo, callable $callback)
+    function signal($signo, callable $callback)
     {
-        return static::getInstance()->signal($signo, $callback);
+        return loop()->signal($signo, $callback);
     }
     
     /**
@@ -219,24 +201,24 @@ abstract class Loop
      *
      * @return  bool
      */
-    public static function signalHandlingEnabled()
+    function signalHandlingEnabled()
     {
-        return static::getInstance()->signalHandlingEnabled();
+        return loop()->signalHandlingEnabled();
     }
 
     /**
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
      */
-    public static function clear()
+    function clear()
     {
-        static::getInstance()->clear();
+        loop()->clear();
     }
     
     /**
      * Performs any reinitializing necessary after forking.
      */
-    public static function reInit()
+    function reInit()
     {
-        static::getInstance()->reInit();
+        loop()->reInit();
     }
 }

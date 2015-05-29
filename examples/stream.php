@@ -3,7 +3,7 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Stream\Stream;
 
 $stream = new Stream();
@@ -17,4 +17,4 @@ $stream
         echo $data; // Echos "This is just a test."
     });
 
-Loop::run();
+Loop\run();

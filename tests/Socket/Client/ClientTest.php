@@ -2,8 +2,8 @@
 namespace Icicle\Tests\Socket\Client;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Socket\Client\Client;
 use Icicle\Tests\TestCase;
 
@@ -47,8 +47,8 @@ class ClientTest extends TestCase
             $this->fail("Could not connect to {$uri}; Errno: {$errno}; {$errstr}");
         }
         
-        return new Promise(function ($resolve, $reject) use ($socket) {
-            $await = Loop::await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
+        return new Promise\Promise(function ($resolve, $reject) use ($socket) {
+            $await = Loop\await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
                 $await->free();
                 $resolve(new Client($resource));
             });
@@ -106,7 +106,7 @@ class ClientTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testInvalidSocketType()
@@ -143,7 +143,7 @@ class ClientTest extends TestCase
         
         $promise->done($this->createCallback(1));
         
-        Loop::run();
+        Loop\run();
         
         fclose($server);
         unlink($path);
@@ -169,7 +169,7 @@ class ClientTest extends TestCase
             ->then(function (Client $client) {
                 $promise1 = $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
                 $promise2 = $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
-                return Promise::join([$promise1, $promise2]);
+                return Promise\join([$promise1, $promise2]);
             });
 
         $callback = $this->createCallback(1);
@@ -178,7 +178,7 @@ class ClientTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -207,9 +207,9 @@ class ClientTest extends TestCase
                 return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
             });
 
-        Loop::tick(); // Run a few ticks to move into the enable crypto loop.
-        Loop::tick();
-        Loop::tick();
+        Loop\tick(); // Run a few ticks to move into the enable crypto loop.
+        Loop\tick();
+        Loop\tick();
 
         $promise->cancel($exception);
 
@@ -219,7 +219,7 @@ class ClientTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -254,7 +254,7 @@ class ClientTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -289,7 +289,7 @@ class ClientTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -323,7 +323,7 @@ class ClientTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         fclose($server);
         unlink($path);

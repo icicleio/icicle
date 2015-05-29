@@ -2,7 +2,7 @@
 namespace Icicle\Promise\Structures;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Promise\Exception\RejectedException;
 use Icicle\Promise\Promise;
 
@@ -35,7 +35,7 @@ class RejectedPromise extends ResolvedPromise
         }
         
         return new Promise(function ($resolve, $reject) use ($onRejected) {
-            Loop::schedule(function () use ($resolve, $reject, $onRejected) {
+            Loop\schedule(function () use ($resolve, $reject, $onRejected) {
                 try {
                     $resolve($onRejected($this->exception));
                 } catch (Exception $exception) {
@@ -51,9 +51,9 @@ class RejectedPromise extends ResolvedPromise
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onRejected) {
-            Loop::schedule($onRejected, $this->exception);
+            Loop\schedule($onRejected, $this->exception);
         } else {
-            Loop::schedule(function () {
+            Loop\schedule(function () {
                 throw $this->exception; // Rethrow exception in uncatchable way.
             });
         }

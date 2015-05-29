@@ -2,8 +2,8 @@
 namespace Icicle\Stream;
 
 use Exception;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Promise\Promise;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
@@ -130,11 +130,11 @@ class Stream implements DuplexStreamInterface
     public function read($length = null, $byte = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyException('Already waiting on stream.'));
         }
 
         if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+            return Promise\reject(new UnreadableException('The stream is no longer readable.'));
         }
 
         $this->length = $this->parseLength($length);
@@ -155,7 +155,7 @@ class Stream implements DuplexStreamInterface
                 $this->free();
             }
 
-            return Promise::resolve($data);
+            return Promise\resolve($data);
         }
 
         $this->deferred = new Deferred(function () {
@@ -222,7 +222,7 @@ class Stream implements DuplexStreamInterface
     protected function send($data, $end = false)
     {
         if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+            return Promise\reject(new UnwritableException('The stream is no longer writable.'));
         }
 
         $this->buffer->push($data);
@@ -246,7 +246,7 @@ class Stream implements DuplexStreamInterface
             return $deferred->getPromise();
         }
 
-        return Promise::resolve(strlen($data));
+        return Promise\resolve(strlen($data));
     }
 
     /**

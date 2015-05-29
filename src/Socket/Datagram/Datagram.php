@@ -2,9 +2,9 @@
 namespace Icicle\Socket\Datagram;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\BusyException;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
@@ -148,11 +148,11 @@ class Datagram extends Socket implements DatagramInterface
     public function receive($length = null, $timeout = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on datagram.'));
+            return Promise\reject(new BusyException('Already waiting on datagram.'));
         }
         
         if (!$this->isOpen()) {
-            return Promise::reject(new UnavailableException('The datagram is no longer readable.'));
+            return Promise\reject(new UnavailableException('The datagram is no longer readable.'));
         }
 
         $this->length = $this->parseLength($length);
@@ -176,7 +176,7 @@ class Datagram extends Socket implements DatagramInterface
     public function send($address, $port, $data)
     {
         if (!$this->isOpen()) {
-            return Promise::reject(new UnavailableException('The datagram is no longer writable.'));
+            return Promise\reject(new UnavailableException('The datagram is no longer writable.'));
         }
         
         $data = new Buffer($data);
@@ -185,7 +185,7 @@ class Datagram extends Socket implements DatagramInterface
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
-                return Promise::resolve($written);
+                return Promise\resolve($written);
             }
             
             $written = stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
@@ -198,11 +198,11 @@ class Datagram extends Socket implements DatagramInterface
                 }
                 $exception = new FailureException($message);
                 $this->free($exception);
-                return Promise::reject($exception);
+                return Promise\reject($exception);
             }
             
             if ($data->getLength() <= $written) {
-                return Promise::resolve($written);
+                return Promise\resolve($written);
             }
             
             $data->remove($written);
@@ -225,7 +225,7 @@ class Datagram extends Socket implements DatagramInterface
      */
     private function createPoll($socket)
     {
-        return Loop::poll($socket, function ($resource, $expired) {
+        return Loop\poll($socket, function ($resource, $expired) {
             try {
                 if ($expired) {
                     throw new TimeoutException('The datagram timed out.');
@@ -266,7 +266,7 @@ class Datagram extends Socket implements DatagramInterface
      */
     private function createAwait($socket)
     {
-        return Loop::await($socket, function ($resource) use (&$onWrite) {
+        return Loop\await($socket, function ($resource) use (&$onWrite) {
             /**
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred

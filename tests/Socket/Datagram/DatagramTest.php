@@ -2,9 +2,8 @@
 namespace Icicle\Tests\Socket\Datagram;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Datagram\Datagram;
-use Icicle\Socket\Socket;
 use Icicle\Tests\TestCase;
 
 class DatagramTest extends TestCase
@@ -22,7 +21,7 @@ class DatagramTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
         
         if ($this->datagram instanceof Datagram) {
             $this->datagram->close();
@@ -110,7 +109,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testReceiveFromIPv6()
@@ -143,7 +142,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -163,7 +162,7 @@ class DatagramTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -183,7 +182,7 @@ class DatagramTest extends TestCase
         
         $this->datagram->close();
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -227,7 +226,7 @@ class DatagramTest extends TestCase
         
         $promise2->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -265,7 +264,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -300,7 +299,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -334,7 +333,7 @@ class DatagramTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $promise = $this->datagram->receive();
         
@@ -350,7 +349,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -362,7 +361,7 @@ class DatagramTest extends TestCase
         
         $promise = $this->datagram->receive();
         
-        Loop::tick();
+        Loop\tick();
         
         $this->assertTrue($promise->isPending());
     }
@@ -400,7 +399,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $string = "This is a string to write.\n";
         
@@ -422,7 +421,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -440,7 +439,7 @@ class DatagramTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 
     public function testSend()
@@ -468,7 +467,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $data = stream_socket_recvfrom($client, self::CHUNK_SIZE);
         
@@ -505,7 +504,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $data = stream_socket_recvfrom($client, self::CHUNK_SIZE);
         
@@ -542,7 +541,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $data = stream_socket_recvfrom($client, self::CHUNK_SIZE);
         
@@ -566,7 +565,7 @@ class DatagramTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testSendEmptyString()
@@ -592,7 +591,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $promise = $this->datagram->send($address, $port, '0');
         
@@ -602,7 +601,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $data = stream_socket_recvfrom($client, self::CHUNK_SIZE);
         
@@ -644,7 +643,7 @@ class DatagramTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -682,6 +681,6 @@ class DatagramTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 }

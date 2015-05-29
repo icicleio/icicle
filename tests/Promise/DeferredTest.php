@@ -2,18 +2,16 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class DeferredTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testResolve()
@@ -30,7 +28,7 @@ class DeferredTest extends TestCase
         
         $deferred->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($deferred->getPromise()->isFulfilled());
     }
@@ -49,7 +47,7 @@ class DeferredTest extends TestCase
         
         $deferred->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($deferred->getPromise()->isRejected());
     }
@@ -71,7 +69,7 @@ class DeferredTest extends TestCase
         
         $deferred->reject($reason);
         
-        Loop::run();
+        Loop\run();
         
         $promise = $deferred->getPromise();
         
@@ -97,7 +95,7 @@ class DeferredTest extends TestCase
         
         $deferred->getPromise()->cancel($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($deferred->getPromise()->isRejected());
         $this->assertSame($exception, $deferred->getPromise()->getResult());

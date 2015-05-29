@@ -2,9 +2,9 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Promise\Exception\LogicException;
-use Icicle\Promise\Promise;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 use InvalidArgumentException;
 use RuntimeException;
@@ -28,7 +28,7 @@ class PromiseTest extends TestCase
     
     public function setUp()
     {
-        $this->promise = new Promise(function ($resolve, $reject) {
+        $this->promise = new Promise\Promise(function ($resolve, $reject) {
             $this->resolve = $resolve;
             $this->reject = $reject;
         });
@@ -58,7 +58,7 @@ class PromiseTest extends TestCase
     {
         $exception = new Exception();
         
-        $promise = new Promise(function () use ($exception) {
+        $promise = new Promise\Promise(function () use ($exception) {
             throw $exception;
         });
         
@@ -74,10 +74,10 @@ class PromiseTest extends TestCase
     
     public function testResolve()
     {
-        $this->assertSame($this->promise, Promise::resolve($this->promise));
+        $this->assertSame($this->promise, Promise\resolve($this->promise));
         
         $value = 'test';
-        $fulfilled = Promise::resolve($value);
+        $fulfilled = Promise\resolve($value);
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $fulfilled);
         
@@ -91,7 +91,7 @@ class PromiseTest extends TestCase
     {
         $exception = new Exception();
         
-        $rejected = Promise::reject($exception);
+        $rejected = Promise\reject($exception);
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $rejected);
         
@@ -108,7 +108,7 @@ class PromiseTest extends TestCase
     {
         $reason = 'String to reject promise.';
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $rejected);
         
@@ -129,7 +129,7 @@ class PromiseTest extends TestCase
     {
         $reason = new \stdClass();
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $result = $rejected->getResult();
         
@@ -143,7 +143,7 @@ class PromiseTest extends TestCase
     {
         $reason = [1, 2, 3];
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $result = $rejected->getResult();
         
@@ -157,7 +157,7 @@ class PromiseTest extends TestCase
     {
         $reason = 404;
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $result = $rejected->getResult();
         
@@ -171,7 +171,7 @@ class PromiseTest extends TestCase
     {
         $reason = 3.14159;
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $result = $rejected->getResult();
         
@@ -185,7 +185,7 @@ class PromiseTest extends TestCase
     {
         $reason = false;
         
-        $rejected = Promise::reject($reason);
+        $rejected = Promise\reject($reason);
         
         $result = $rejected->getResult();
         
@@ -204,7 +204,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isFulfilled());
@@ -219,7 +219,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
     }
@@ -243,7 +243,7 @@ class PromiseTest extends TestCase
         $this->resolve($value2);
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
         $this->assertSame($value1, $this->promise->getResult());
@@ -256,7 +256,7 @@ class PromiseTest extends TestCase
     public function testResolveCallableWithFulfilledPromise()
     {
         $value = 'test';
-        $fulfilled = Promise::resolve($value);
+        $fulfilled = Promise\resolve($value);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -266,7 +266,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($fulfilled);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
         $this->assertSame($value, $this->promise->getResult());
@@ -278,7 +278,7 @@ class PromiseTest extends TestCase
     public function testResolveCallableWithRejectedPromise()
     {
         $exception = new Exception();
-        $rejected = Promise::reject($exception);
+        $rejected = Promise\reject($exception);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -288,7 +288,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($rejected);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
     }
@@ -299,11 +299,11 @@ class PromiseTest extends TestCase
      */
     public function testResolveCallableWithPendingPromise()
     {
-        $promise = new Promise(function () {});
+        $promise = new Promise\Promise(function () {});
         
         $this->resolve($promise);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isPending());
     }
@@ -315,17 +315,17 @@ class PromiseTest extends TestCase
     {
         $value = 'test';
         
-        $promise = new Promise(function ($resolve) use (&$pendingResolve) {
+        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
             $pendingResolve = $resolve;
         });
         
         $this->resolve($promise);
         
-        Loop::run();
+        Loop\run();
         
         $pendingResolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
         $this->assertSame($value, $this->promise->getResult());
@@ -339,17 +339,17 @@ class PromiseTest extends TestCase
     {
         $exception = new Exception();
         
-        $promise = new Promise(function ($resolve, $reject) use (&$pendingReject) {
+        $promise = new Promise\Promise(function ($resolve, $reject) use (&$pendingReject) {
             $pendingReject = $reject;
         });
         
         $this->resolve($promise);
         
-        Loop::run();
+        Loop\run();
         
         $pendingReject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertSame($exception, $this->promise->getResult());
@@ -372,7 +372,7 @@ class PromiseTest extends TestCase
      */
     public function testResolveWithCircularReferenceRejectsPromise()
     {
-        $promise = new Promise(function ($resolve) use (&$pendingResolve) {
+        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
             $pendingResolve = $resolve;
         });
         
@@ -382,11 +382,11 @@ class PromiseTest extends TestCase
         
         $pendingResolve($child);
         
-        Loop::run();
+        Loop\run();
         
         $this->resolve();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isRejected());
         $this->assertInstanceOf('Icicle\Promise\Exception\TypeException', $child->getResult());
@@ -407,7 +407,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
@@ -429,7 +429,7 @@ class PromiseTest extends TestCase
         
         $this->reject($reason);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
@@ -444,7 +444,7 @@ class PromiseTest extends TestCase
         $exception = new Exception();
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
     }
@@ -468,7 +468,7 @@ class PromiseTest extends TestCase
         $this->resolve($value);
         $this->reject($exception2);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertSame($exception1, $this->promise->getResult());
@@ -482,7 +482,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -490,7 +490,7 @@ class PromiseTest extends TestCase
         
         $this->promise->then($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -501,7 +501,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -509,7 +509,7 @@ class PromiseTest extends TestCase
         
         $this->promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -520,7 +520,7 @@ class PromiseTest extends TestCase
         $exception = new Exception();
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -528,7 +528,7 @@ class PromiseTest extends TestCase
         
         $this->promise->then($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -539,7 +539,7 @@ class PromiseTest extends TestCase
         $exception = new Exception();
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -547,7 +547,7 @@ class PromiseTest extends TestCase
         
         $this->promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -561,7 +561,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -584,7 +584,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value1);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
@@ -608,7 +608,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulFilled());
@@ -632,7 +632,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
@@ -656,7 +656,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception1);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
@@ -680,7 +680,7 @@ class PromiseTest extends TestCase
         
         $child = $this->promise->then($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
@@ -704,7 +704,7 @@ class PromiseTest extends TestCase
         
         $child = $this->promise->then($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulFilled());
@@ -728,7 +728,7 @@ class PromiseTest extends TestCase
         
         $child = $this->promise->then($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
@@ -752,7 +752,7 @@ class PromiseTest extends TestCase
         
         $child = $this->promise->then($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
@@ -776,7 +776,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -800,7 +800,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -818,14 +818,14 @@ class PromiseTest extends TestCase
         
         $callback = function ($value) use (&$parameter, $value2) {
             $parameter = $value;
-            return Promise::resolve($value2);
+            return Promise\resolve($value2);
         };
         
         $child = $this->promise->then($callback, $this->createCallback(0));
         
         $this->resolve($value1);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
@@ -843,14 +843,14 @@ class PromiseTest extends TestCase
         
         $callback = function ($value) use (&$parameter, $exception) {
             $parameter = $value;
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
         
         $child = $this->promise->then($callback, $this->createCallback(0));
         
         $this->resolve($value);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
@@ -868,14 +868,14 @@ class PromiseTest extends TestCase
         
         $callback = function ($exception) use (&$parameter, $value) {
             $parameter = $exception;
-            return Promise::resolve($value);
+            return Promise\resolve($value);
         };
         
         $child = $this->promise->then($this->createCallback(0), $callback);
         
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulfilled());
@@ -893,14 +893,14 @@ class PromiseTest extends TestCase
         
         $callback = function ($exception) use (&$parameter, $exception2) {
             $parameter = $exception;
-            return Promise::reject($exception2);
+            return Promise\reject($exception2);
         };
         
         $child = $this->promise->then($this->createCallback(0), $callback);
         
         $this->reject($exception1);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
@@ -909,7 +909,7 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testRejectCallable
-     * @expectedException Icicle\Promise\Exception\LogicException
+     * @expectedException \Icicle\Promise\Exception\LogicException
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionAfter()
     {
@@ -919,12 +919,12 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        Loop::run(); // Exception will be thrown from loop.
+        Loop\run(); // Exception will be thrown from loop.
     }
     
     /**
      * @depends testRejectCallable
-     * @expectedException Icicle\Promise\Exception\LogicException
+     * @expectedException \Icicle\Promise\Exception\LogicException
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionBefore()
     {
@@ -934,7 +934,7 @@ class PromiseTest extends TestCase
         
         $this->promise->done($this->createCallback(0));
         
-        Loop::run(); // Exception will be thrown from loop.
+        Loop\run(); // Exception will be thrown from loop.
     }
     
     /**
@@ -945,7 +945,7 @@ class PromiseTest extends TestCase
     {
         $this->resolve();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
         
@@ -962,7 +962,7 @@ class PromiseTest extends TestCase
         
         $string .= '<after>';
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame('<before><after><onFulfilled><onFulfilled>', $string);
     }
@@ -975,7 +975,7 @@ class PromiseTest extends TestCase
     {
         $this->reject(new Exception());
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
         
@@ -992,13 +992,13 @@ class PromiseTest extends TestCase
         
         $string .= '<after>';
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame('<before><after><onRejected><onRejected>', $string);
     }
     
     /**
-     * @expectedException Icicle\Promise\Exception\UnresolvedException
+     * @expectedException \Icicle\Promise\Exception\UnresolvedException
      */
     public function testGettingResultBeforeResolution()
     {
@@ -1020,7 +1020,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isFulfilled());
         $this->assertNull($child->getResult());
@@ -1041,7 +1041,7 @@ class PromiseTest extends TestCase
         $exception = new RuntimeException();
         $this->reject($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child1->isRejected());
         $this->assertSame($exception, $child1->getResult());
@@ -1062,7 +1062,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
-        $promise = new Promise(function () {}, $callback);
+        $promise = new Promise\Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1072,7 +1072,7 @@ class PromiseTest extends TestCase
         
         $promise->cancel();
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -1086,7 +1086,7 @@ class PromiseTest extends TestCase
             throw $exception;
         };
         
-        $promise = new Promise(function () {}, $onCancelled);
+        $promise = new Promise\Promise(function () {}, $onCancelled);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1096,7 +1096,7 @@ class PromiseTest extends TestCase
         
         $promise->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($promise->isRejected());
         $this->assertSame($exception, $promise->getResult());
@@ -1113,7 +1113,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
         
-        $promise = new Promise(function () {}, $callback);
+        $promise = new Promise\Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1123,7 +1123,7 @@ class PromiseTest extends TestCase
         
         $promise->cancel($exception);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -1137,7 +1137,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
         
-        $promise = new Promise(function () {}, $callback);
+        $promise = new Promise\Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1147,7 +1147,7 @@ class PromiseTest extends TestCase
         
         $promise->cancel($reason);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($reason, $promise->getResult()->getReason());
     }
@@ -1166,7 +1166,7 @@ class PromiseTest extends TestCase
         
         $this->promise->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertTrue($child->isRejected());
@@ -1181,7 +1181,7 @@ class PromiseTest extends TestCase
         
         $child->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
@@ -1198,7 +1198,7 @@ class PromiseTest extends TestCase
         
         $child1->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($child1->isRejected());
@@ -1216,7 +1216,7 @@ class PromiseTest extends TestCase
         $child1->cancel();
         $child2->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($child1->isRejected());
@@ -1233,7 +1233,7 @@ class PromiseTest extends TestCase
         
         $this->promise->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($child1->isRejected());
@@ -1253,7 +1253,7 @@ class PromiseTest extends TestCase
 
         $child3 = $this->promise->then();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($child3->isPending());
@@ -1266,13 +1266,13 @@ class PromiseTest extends TestCase
     {
         $exception = new Exception();
         
-        $promise = new Promise(function () {});
+        $promise = new Promise\Promise(function () {});
         
         $this->resolve($promise);
         
         $this->promise->cancel($exception);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($promise->isRejected());
         $this->assertSame($exception, $promise->getResult());
@@ -1290,7 +1290,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1308,7 +1308,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($delayed->isRejected());
         $this->assertSame($exception, $delayed->getResult());
@@ -1326,7 +1326,7 @@ class PromiseTest extends TestCase
         
         $delayed = $this->promise->delay($time);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1344,7 +1344,7 @@ class PromiseTest extends TestCase
         
         $delayed = $this->promise->delay($time);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($delayed->isRejected());
         $this->assertSame($exception, $delayed->getResult());
@@ -1358,7 +1358,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $time = 0.1;
         
-        $promise = new Promise(function ($resolve) use (&$pendingResolve) {
+        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
             $pendingResolve = $resolve;
         });
         
@@ -1368,7 +1368,7 @@ class PromiseTest extends TestCase
         
         $pendingResolve($value);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -1387,7 +1387,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        Loop::tick(false);
+        Loop\tick(false);
         
         $delayed->cancel();
         
@@ -1408,7 +1408,7 @@ class PromiseTest extends TestCase
         
         $delayed = $this->promise->delay($time);
         
-        Loop::tick(false);
+        Loop\tick(false);
         
         $delayed->cancel();
         
@@ -1427,7 +1427,7 @@ class PromiseTest extends TestCase
         
         $delayed->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isRejected());
@@ -1445,7 +1445,7 @@ class PromiseTest extends TestCase
         
         $delayed->cancel();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isPending());
@@ -1465,7 +1465,7 @@ class PromiseTest extends TestCase
         $delayed->cancel();
         $sibling->cancel();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($delayed->isRejected());
         $this->assertFalse($this->promise->isPending());
@@ -1485,7 +1485,7 @@ class PromiseTest extends TestCase
 
         $sibling = $this->promise->then();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isPending());
@@ -1507,7 +1507,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($this->promise->isRejected());
         $this->assertInstanceOf('Icicle\Promise\Exception\TimeoutException', $this->promise->getResult());
@@ -1529,7 +1529,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
     }
     
     /**
@@ -1548,7 +1548,7 @@ class PromiseTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertSame($reason, $this->promise->getResult()->getReason());
         $this->assertSame($reason, $timeout->getResult()->getReason());
@@ -1566,7 +1566,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isFulfilled());
         $this->assertSame($value, $timeout->getResult());
@@ -1584,7 +1584,7 @@ class PromiseTest extends TestCase
         
         $this->reject($exception);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertSame($exception, $timeout->getResult());
@@ -1602,7 +1602,7 @@ class PromiseTest extends TestCase
         
         $timeout = $this->promise->timeout($time);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isFulfilled());
         $this->assertSame($value, $timeout->getResult());
@@ -1620,7 +1620,7 @@ class PromiseTest extends TestCase
         
         $timeout = $this->promise->timeout($time);
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertSame($exception, $timeout->getResult());
@@ -1638,7 +1638,7 @@ class PromiseTest extends TestCase
         
         $timeout->cancel();
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isRejected());
@@ -1656,7 +1656,7 @@ class PromiseTest extends TestCase
         
         $timeout->cancel();
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
@@ -1676,7 +1676,7 @@ class PromiseTest extends TestCase
         $timeout->cancel();
         $sibling->cancel();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($timeout->isRejected());
         $this->assertFalse($this->promise->isPending());
@@ -1696,7 +1696,7 @@ class PromiseTest extends TestCase
 
         $sibling = $this->promise->then();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isPending());
@@ -1718,7 +1718,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1735,7 +1735,7 @@ class PromiseTest extends TestCase
 
         $this->reject($exception);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1751,14 +1751,14 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $callback = function () use ($time) {
-            return Promise::resolve()->delay($time);
+            return Promise\resolve()->delay($time);
         };
 
         $child = $this->promise->tap($callback);
 
         $this->resolve($value);
 
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1773,14 +1773,14 @@ class PromiseTest extends TestCase
         $exception = new Exception();
 
         $callback = function () use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
 
         $child = $this->promise->tap($callback);
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1802,7 +1802,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1819,7 +1819,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1836,7 +1836,7 @@ class PromiseTest extends TestCase
 
         $this->reject($exception);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1852,14 +1852,14 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $callback = function () use ($time) {
-            return Promise::resolve()->delay($time);
+            return Promise\resolve()->delay($time);
         };
 
         $child = $this->promise->cleanup($callback);
 
         $this->resolve($value);
 
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isFulfilled());
         $this->assertSame($value, $child->getResult());
@@ -1874,14 +1874,14 @@ class PromiseTest extends TestCase
         $exception = new Exception();
 
         $callback = function () use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
 
         $child = $this->promise->cleanup($callback);
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1903,7 +1903,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1919,14 +1919,14 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $callback = function () use ($time) {
-            return Promise::resolve()->delay($time);
+            return Promise\resolve()->delay($time);
         };
 
         $child = $this->promise->cleanup($callback);
 
         $this->reject($exception);
 
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], $time);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1941,14 +1941,14 @@ class PromiseTest extends TestCase
         $exception = new Exception();
 
         $callback = function () use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
 
         $child = $this->promise->cleanup($callback);
 
         $this->reject();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1969,7 +1969,7 @@ class PromiseTest extends TestCase
 
         $this->reject();
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -1987,7 +1987,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($values);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isFulfilled());
     }
@@ -2024,7 +2024,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($value);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
     }
@@ -2042,7 +2042,7 @@ class PromiseTest extends TestCase
 
         $this->reject($exception);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isRejected());
         $this->assertSame($exception, $child->getResult());
@@ -2066,7 +2066,7 @@ class PromiseTest extends TestCase
 
         $this->resolve($traversable());
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($child->isFulfilled());
     }

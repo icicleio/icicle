@@ -2,7 +2,7 @@
 namespace Icicle\Tests\Socket\Server;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Server\Server;
 use Icicle\Socket\Server\ServerFactory;
 use Icicle\Tests\TestCase;
@@ -28,7 +28,7 @@ class ServerFactoryTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
         
         if ($this->server instanceof Server) {
             $this->server->close();
@@ -126,7 +126,7 @@ class ServerFactoryTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         unlink($path);
     }

@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Stream\Stream;
 use Icicle\Tests\TestCase;
 
@@ -27,7 +27,7 @@ class StreamTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
 
     public function testEndWithPendingRead()
@@ -54,7 +54,7 @@ class StreamTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($readable->isReadable());
     }
@@ -86,7 +86,7 @@ class StreamTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($readable->isReadable());
     }

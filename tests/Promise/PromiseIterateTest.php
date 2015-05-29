@@ -2,18 +2,15 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseIterateTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testSeedReturnedWhenPredicateImmediatelyReturnsFalse()
@@ -29,10 +26,10 @@ class PromiseIterateTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($seed));
         
-        Promise::iterate($this->createCallback(0), $predicate, $seed)
+        Promise\iterate($this->createCallback(0), $predicate, $seed)
                ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($seed, $parameter);
     }
@@ -43,7 +40,7 @@ class PromiseIterateTest extends TestCase
     public function testFulfilledPromiseAsSeed()
     {
         $seed = 1;
-        $promise = Promise::resolve($seed);
+        $promise = Promise\resolve($seed);
         
         $predicate = function ($value) use (&$parameter) {
             $parameter = $value;
@@ -54,10 +51,10 @@ class PromiseIterateTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($seed));
         
-        Promise::iterate($this->createCallback(0), $predicate, $promise)
+        Promise\iterate($this->createCallback(0), $predicate, $promise)
                ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($seed, $parameter);
     }
@@ -68,16 +65,16 @@ class PromiseIterateTest extends TestCase
     public function testRejectedPromiseAsSeed()
     {
         $exception = new Exception();
-        $promise = Promise::reject($exception);
+        $promise = Promise\reject($exception);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::iterate($this->createCallback(0), $this->createCallback(0), $promise)
+        Promise\iterate($this->createCallback(0), $this->createCallback(0), $promise)
                ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testRejectedWhenPredicateThrowsException()
@@ -88,9 +85,9 @@ class PromiseIterateTest extends TestCase
         $predicate->method('__invoke')
                   ->will($this->throwException($exception));
         
-        Promise::iterate($this->createCallback(0), $predicate, 1);
+        Promise\iterate($this->createCallback(0), $predicate, 1);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testRejectedWhenWorkerThrowsException()
@@ -105,9 +102,9 @@ class PromiseIterateTest extends TestCase
         $worker->method('__invoke')
                ->will($this->throwException($exception));
         
-        Promise::iterate($worker, $predicate, 1);
+        Promise\iterate($worker, $predicate, 1);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testWorkerReturnsFulfilledPromise()
@@ -118,17 +115,17 @@ class PromiseIterateTest extends TestCase
         };
         
         $worker = function ($value) {
-            return Promise::resolve($value + 1);
+            return Promise\resolve($value + 1);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo(2));
         
-        Promise::iterate($worker, $predicate, 1)
+        Promise\iterate($worker, $predicate, 1)
                ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testWorkerReturnsRejectedPromise()
@@ -141,17 +138,17 @@ class PromiseIterateTest extends TestCase
         };
         
         $worker = function ($value) use ($exception) {
-            return Promise::reject($exception);
+            return Promise\reject($exception);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise::iterate($worker, $predicate, 1)
+        Promise\iterate($worker, $predicate, 1)
                ->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testWorkerReturnsPendingPromise()
@@ -162,17 +159,17 @@ class PromiseIterateTest extends TestCase
         };
         
         $worker = function ($value) {
-            return Promise::resolve($value + 1)->delay(0.1);
+            return Promise\resolve($value + 1)->delay(0.1);
         };
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo(2));
         
-        Promise::iterate($worker, $predicate, 1)
+        Promise\iterate($worker, $predicate, 1)
                ->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -192,10 +189,10 @@ class PromiseIterateTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($seed));
 
-        Promise::iterate($worker, $predicate, $seed)
+        Promise\iterate($worker, $predicate, $seed)
                ->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testInnerPromiseCancelledOnCancellation()
@@ -209,7 +206,7 @@ class PromiseIterateTest extends TestCase
             return 0 !== --$count;
         };
 
-        $promise = Promise::resolve()->delay($delay * 2);
+        $promise = Promise\resolve()->delay($delay * 2);
 
         $worker = function () use ($promise) {
             return $promise;
@@ -221,10 +218,10 @@ class PromiseIterateTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        $promise = Promise::iterate($worker, $predicate);
-        Loop::timer($delay, [$promise, 'cancel'], $exception);
+        $promise = Promise\iterate($worker, $predicate);
+        Loop\timer($delay, [$promise, 'cancel'], $exception);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -240,7 +237,7 @@ class PromiseIterateTest extends TestCase
             return true;
         };
 
-        $promise = Promise::resolve();
+        $promise = Promise\resolve();
 
         $worker = function () use ($promise) {
             return $promise;
@@ -250,11 +247,11 @@ class PromiseIterateTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
 
-        $promise = Promise::iterate($worker, $predicate);
+        $promise = Promise\iterate($worker, $predicate);
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::timer($delay, [$promise, 'cancel'], $exception);
+        Loop\timer($delay, [$promise, 'cancel'], $exception);
 
-        Loop::run();
+        Loop\run();
     }
 }

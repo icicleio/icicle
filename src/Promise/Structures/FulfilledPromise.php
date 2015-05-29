@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Promise\Exception\TypeException;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
@@ -37,7 +37,7 @@ class FulfilledPromise extends ResolvedPromise
         }
         
         return new Promise(function ($resolve, $reject) use ($onFulfilled) {
-            Loop::schedule(function () use ($resolve, $reject, $onFulfilled) {
+            Loop\schedule(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
                 } catch (\Exception $exception) {
@@ -53,7 +53,7 @@ class FulfilledPromise extends ResolvedPromise
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onFulfilled) {
-            Loop::schedule($onFulfilled, $this->value);
+            Loop\schedule($onFulfilled, $this->value);
         }
     }
     
@@ -64,7 +64,7 @@ class FulfilledPromise extends ResolvedPromise
     {
         return new Promise(
             function ($resolve) use (&$timer, $time) {
-                $timer = Loop::timer($time, function () use ($resolve) {
+                $timer = Loop\timer($time, function () use ($resolve) {
                     $resolve($this);
                 });
             },

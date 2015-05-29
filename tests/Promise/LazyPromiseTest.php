@@ -2,24 +2,20 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\LazyPromise;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class LazyPromiseTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testPromisorNotCalledOnConstruct()
     {
-        $lazy = new LazyPromise($this->createCallback(0));
+        $lazy = Promise\lazy($this->createCallback(0));
     }
     
     /**
@@ -33,7 +29,7 @@ class LazyPromiseTest extends TestCase
             $called = true;
         };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $this->assertFalse($called);
         
@@ -53,7 +49,7 @@ class LazyPromiseTest extends TestCase
             $called = true;
         };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $this->assertFalse($called);
         
@@ -73,7 +69,7 @@ class LazyPromiseTest extends TestCase
             $called = true;
         };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $this->assertFalse($called);
         
@@ -93,7 +89,7 @@ class LazyPromiseTest extends TestCase
             $called = true;
         };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $this->assertFalse($called);
         
@@ -113,7 +109,7 @@ class LazyPromiseTest extends TestCase
             $called = true;
         };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $this->assertFalse($called);
         
@@ -133,7 +129,7 @@ class LazyPromiseTest extends TestCase
         $promisor->method('__invoke')
                  ->will($this->throwException($exception));
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $child = $lazy->then($this->createCallback(0), $this->createCallback(1));
         
@@ -142,68 +138,43 @@ class LazyPromiseTest extends TestCase
         $this->assertTrue($lazy->isRejected());
         $this->assertSame($exception, $lazy->getResult());
         
-        Loop::run();
+        Loop\run();
     }
-    
+
     /**
      * @depends testPromisorCalledWhenDoneCalled
      */
-    public function testCallWithoutArguments()
+    public function testConstructWithArguments()
     {
         $value = 'test';
-        
-        $promisor = function () use ($value) { return $value; };
-        
-        $lazy = LazyPromise::call($promisor);
-        
-        $this->assertInstanceOf('Icicle\Promise\LazyPromise', $lazy);
-        $this->assertFalse($lazy->isPending());
-        $this->assertSame($value, $lazy->getResult());
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($this->identicalTo($value));
-        
-        $lazy->done($callback, $this->createCallback(0));
-        
-        Loop::run();
-    }
-    
-    /**
-     * @depends testPromisorCalledWhenDoneCalled
-     */
-    public function testCallWithArguments()
-    {
-        $value = 'test';
-        
+
         $promisor = function ($value) { return $value; };
-        
-        $lazy = LazyPromise::call($promisor, $value);
-        
-        $this->assertInstanceOf('Icicle\Promise\LazyPromise', $lazy);
+
+        $lazy = Promise\lazy($promisor, $value);
+
         $this->assertFalse($lazy->isPending());
         $this->assertSame($value, $lazy->getResult());
-        
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
-        
+
         $lazy->done($callback, $this->createCallback(0));
-        
-        Loop::run();
+
+        Loop\run();
     }
-    
+
     /**
      * @depends testPromisorCalledWhenDoneCalled
      */
     public function testPromisorReturnsFulfilledPromise()
     {
         $value = 'test';
-        $promise = Promise::resolve($value);
+        $promise = Promise\resolve($value);
         
         $promisor = function () use ($promise) { return $promise; };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -211,7 +182,7 @@ class LazyPromiseTest extends TestCase
         
         $lazy->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -220,11 +191,11 @@ class LazyPromiseTest extends TestCase
     public function testPromisorReturnsRejectedPromise()
     {
         $exception = new Exception();
-        $promise = Promise::reject($exception);
+        $promise = Promise\reject($exception);
         
         $promisor = function () use ($promise) { return $promise; };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -232,7 +203,7 @@ class LazyPromiseTest extends TestCase
         
         $lazy->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -240,11 +211,11 @@ class LazyPromiseTest extends TestCase
      */
     public function testPromisorReturnsPendingPromise()
     {
-        $promise = new Promise(function () {});
+        $promise = new Promise\Promise(function () {});
         
         $promisor = function () use ($promise) { return $promise; };
         
-        $lazy = new LazyPromise($promisor);
+        $lazy = Promise\lazy($promisor);
         
         $lazy->done($this->createCallback(0), $this->createCallback(0));
         
@@ -258,10 +229,10 @@ class LazyPromiseTest extends TestCase
     {
         $value = 'test';
         
-        $promise = new Promise(function ($resolve) use ($value) {
-            $promise = Promise::resolve($value);
+        $promise = new Promise\Promise(function ($resolve) use ($value) {
+            $promise = Promise\resolve($value);
             $promisor = function () use ($promise) { return $promise; };
-            $resolve(new LazyPromise($promisor));
+            $resolve(Promise\lazy($promisor));
         });
         
         $callback = $this->createCallback(1);
@@ -270,6 +241,6 @@ class LazyPromiseTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
 }

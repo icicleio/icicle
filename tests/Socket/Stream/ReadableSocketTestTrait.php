@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 
 trait ReadableSocketTestTrait
 {
@@ -25,7 +25,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run(); // Drain readable buffer.
+        Loop\run(); // Drain readable buffer.
 
         $promise = $readable->read();
 
@@ -35,7 +35,7 @@ trait ReadableSocketTestTrait
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run(); // Should get an empty string.
+        Loop\run(); // Should get an empty string.
 
         $promise = $readable->read();
 
@@ -45,7 +45,7 @@ trait ReadableSocketTestTrait
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run(); // Should reject with UnreadableException.
+        Loop\run(); // Should reject with UnreadableException.
     }
 
     /**
@@ -65,7 +65,7 @@ trait ReadableSocketTestTrait
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $promise = $readable->read();
 
@@ -75,7 +75,7 @@ trait ReadableSocketTestTrait
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run(); // Should reject with UnreadableException.
+        Loop\run(); // Should reject with UnreadableException.
     }
     
     /**
@@ -97,7 +97,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run(); // Drain readable buffer.
+        Loop\run(); // Drain readable buffer.
 
         $promise = $readable->read(null, "\0");
 
@@ -107,7 +107,7 @@ trait ReadableSocketTestTrait
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run(); // Should get an empty string.
+        Loop\run(); // Should get an empty string.
 
         $promise = $readable->read(null, "\0");
         
@@ -117,7 +117,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run(); // Should reject with UnreadableException.
+        Loop\run(); // Should reject with UnreadableException.
     }
     
     /**
@@ -135,7 +135,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -153,7 +153,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -174,7 +174,7 @@ trait ReadableSocketTestTrait
              ->method('write')
              ->will($this->returnCallback(function ($data) {
                  $this->assertSame(StreamTest::WRITE_STRING, $data);
-                 return Promise::resolve(strlen($data));
+                 return Promise\resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
@@ -188,7 +188,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($readable->isOpen());
     }
@@ -212,7 +212,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) use ($length) {
-                 return Promise::resolve(strlen($data));
+                 return Promise\resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
@@ -226,7 +226,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($readable->isOpen());
     }
@@ -249,7 +249,7 @@ trait ReadableSocketTestTrait
              ->method('write')
              ->will($this->returnCallback(function ($data) {
                  $this->assertSame(StreamTest::WRITE_STRING, $data);
-                 return Promise::resolve(strlen($data));
+                 return Promise\resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
@@ -263,7 +263,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($readable->isOpen());
     }
@@ -287,7 +287,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) use ($length) {
-                 return Promise::resolve(strlen($data));
+                 return Promise\resolve(strlen($data));
              }));
         
         $mock->expects($this->never())
@@ -301,7 +301,7 @@ trait ReadableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($readable->isOpen());
     }

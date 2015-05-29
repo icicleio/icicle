@@ -2,9 +2,9 @@
 namespace Icicle\Socket\Stream;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Socket\SocketInterface;
@@ -96,11 +96,11 @@ trait ReadableStreamTrait
     public function read($length = null, $byte = null, $timeout = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyException('Already waiting on stream.'));
         }
         
         if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+            return Promise\reject(new UnreadableException('The stream is no longer readable.'));
         }
 
         $this->length = $this->parseLength($length);
@@ -110,7 +110,7 @@ trait ReadableStreamTrait
         }
 
         if (0 === $this->length) {
-            return Promise::resolve('');
+            return Promise\resolve('');
         }
 
         $this->byte = $this->parseByte($byte);
@@ -119,12 +119,12 @@ trait ReadableStreamTrait
         $data = $this->fetch($resource);
 
         if ('' !== $data) {
-            return Promise::resolve($data);
+            return Promise\resolve($data);
         }
 
         if (feof($resource)) { // Close only if no data was read and at EOF.
             $this->close();
-            return Promise::resolve($data); // Resolve with empty string on EOF.
+            return Promise\resolve($data); // Resolve with empty string on EOF.
         }
 
         $this->poll->listen($timeout);
@@ -155,11 +155,11 @@ trait ReadableStreamTrait
     protected function poll($timeout = null)
     {
         if (null !== $this->deferred) {
-            return Promise::reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyException('Already waiting on stream.'));
         }
 
         if (!$this->isReadable()) {
-            return Promise::reject(new UnreadableException('The stream is no longer readable.'));
+            return Promise\reject(new UnreadableException('The stream is no longer readable.'));
         }
 
         $this->length = 0;
@@ -189,7 +189,7 @@ trait ReadableStreamTrait
      */
     private function createPoll($socket)
     {
-        return Loop::poll($socket, function ($resource, $expired) {
+        return Loop\poll($socket, function ($resource, $expired) {
             if ($expired) {
                 $this->deferred->reject(new TimeoutException('The connection timed out.'));
                 $this->deferred = null;

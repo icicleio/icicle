@@ -2,18 +2,15 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseSettleTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testEmptyArray()
@@ -22,9 +19,9 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([]));
         
-        Promise::settle([])->done($callback, $this->createCallback(0));
+        Promise\settle([])->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testValuesArray()
@@ -42,48 +39,48 @@ class PromiseSettleTest extends TestCase
             return true;
         }));
         
-        Promise::settle($values)->done($callback, $this->createCallback(0));
+        Promise\settle($values)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testFulfilledPromisesArray()
     {
-        $promises = [Promise::resolve(1), Promise::resolve(2), Promise::resolve(3)];
+        $promises = [Promise\resolve(1), Promise\resolve(2), Promise\resolve(3)];
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise::settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testPendingPromisesArray()
     {
         $promises = [
-            Promise::resolve(1)->delay(0.2),
-            Promise::resolve(2)->delay(0.3),
-            Promise::resolve(3)->delay(0.1)
+            Promise\resolve(1)->delay(0.2),
+            Promise\resolve(2)->delay(0.3),
+            Promise\resolve(3)->delay(0.1)
         ];
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise::settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testArrayKeysPreserved()
     {
         $values = ['one' => 1, 'two' => 2, 'three' => 3];
         $promises = [
-            'one' => Promise::resolve(1)->delay(0.2),
-            'two' => Promise::resolve(2)->delay(0.3),
-            'three' => Promise::resolve(3)->delay(0.1)
+            'one' => Promise\resolve(1)->delay(0.2),
+            'two' => Promise\resolve(2)->delay(0.3),
+            'three' => Promise\resolve(3)->delay(0.1)
         ];
         
         $callback = $this->createCallback(1);
@@ -94,26 +91,26 @@ class PromiseSettleTest extends TestCase
             return array_keys($result) === array_keys($promises);
         }));
         
-        Promise::settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testFulfilledWithRejectedInputPromises()
     {
         $exception = new Exception();
         $promises = [
-            Promise::resolve(1)->delay(0.1),
-            Promise::reject($exception), 
-            Promise::resolve(3)
+            Promise\resolve(1)->delay(0.1),
+            Promise\reject($exception), 
+            Promise\resolve(3)
         ];
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise::settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
 }

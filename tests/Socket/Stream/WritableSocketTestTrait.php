@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 trait WritableSocketTestTrait
 {
@@ -23,7 +23,7 @@ trait WritableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -43,6 +43,6 @@ trait WritableSocketTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
 }
