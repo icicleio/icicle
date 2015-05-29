@@ -5,7 +5,7 @@ use Icicle\Loop\Exception\InitializedException;
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
-     * Returns the global event loop.
+     * Returns the active event loop. Can be used to set the active event loop if the event loop has not been accessed.
      *
      * @param   \Icicle\Loop\LoopInterface|null $loop
      * 
@@ -15,15 +15,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         static $instance;
 
-        // @codeCoverageIgnoreStart
-        if (null !== $loop) {
-            if (null !== $instance) {
-                throw new InitializedException('The loop has already been initialized.');
-            }
-            $instance = $loop;
-        } elseif (null === $instance) {
-            $instance = create();
-        } // @codeCoverageIgnoreEnd
+        if (null === $instance) {
+            $instance = $loop ?: create();
+        } elseif (null !== $loop) {
+            throw new InitializedException('The loop has already been initialized.');
+        }
 
         return $instance;
     }
@@ -59,7 +55,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
 
         loop()->schedule($callback, $args);
     }
-    
+
     /**
      * Sets the maximum number of callbacks set with nextTick() that will be executed per tick.
      *
@@ -71,7 +67,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->maxScheduleDepth($depth);
     }
-    
+
     /**
      * Executes a single tick of the event loop.
      *
@@ -81,7 +77,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         loop()->tick($blocking);
     }
-    
+
     /**
      * Runs the event loop, dispatching I/O events, timers, etc.
      *
@@ -93,7 +89,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->run();
     }
-    
+
     /**
      * Determines if the event loop is running.
      *
@@ -103,7 +99,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->isRunning();
     }
-    
+
     /**
      * Stops the event loop.
      */
@@ -121,7 +117,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->isEmpty();
     }
-    
+
     /**
      * @param   resource $socket Stream socket resource.
      * @param   callable $callback Callback to be invoked when data is available on the socket.
@@ -132,7 +128,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->poll($socket, $callback);
     }
-    
+
     /**
      * @param   resource $socket Stream socket resource.
      * @param   callable $callback Callback to be invoked when the socket is available to write.
@@ -143,7 +139,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->await($socket, $callback);
     }
-    
+
     /**
      * @param   float|int $interval Number of seconds before the callback is invoked.
      * @param   callable $callback Function to invoke when the timer expires.
@@ -157,7 +153,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
 
         return loop()->timer($interval, false, $callback, $args);
     }
-    
+
     /**
      * @param   float|int $interval Number of seconds between invocations of the callback.
      * @param   callable $callback Function to invoke when the timer expires.
@@ -171,7 +167,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
 
         return loop()->timer($interval, true, $callback, $args);
     }
-    
+
     /**
      * @param   callable $callback Function to invoke when no other active events are available.
      * @param   mixed ...$args Arguments to pass to the callback function.
@@ -195,7 +191,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         return loop()->signal($signo, $callback);
     }
-    
+
     /**
      * Determines if signal handling is enabled.
      *
@@ -213,7 +209,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         loop()->clear();
     }
-    
+
     /**
      * Performs any reinitializing necessary after forking.
      */
