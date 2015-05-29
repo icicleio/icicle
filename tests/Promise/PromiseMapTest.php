@@ -17,7 +17,7 @@ class PromiseMapTest extends TestCase
     {
         $values = [];
         
-        $result = Promise\map($values, $this->createCallback(0));
+        $result = Promise\map($this->createCallback(0), $values);
         
         $this->assertSame($result, $values);
     }
@@ -32,7 +32,7 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise\map($values, $callback);
+        $result = Promise\map($callback, $values);
         
         Loop\run();
         
@@ -57,7 +57,7 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise\map($promises, $callback);
+        $result = Promise\map($callback, $promises);
         
         Loop\run();
         
@@ -84,7 +84,7 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise\map($promises, $callback);
+        $result = Promise\map($callback, $promises);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
@@ -112,7 +112,7 @@ class PromiseMapTest extends TestCase
             Promise\reject($exception)
         ];
         
-        $result = Promise\map($promises, $this->createCallback(0));
+        $result = Promise\map($this->createCallback(0), $promises);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
@@ -133,7 +133,7 @@ class PromiseMapTest extends TestCase
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
         
-        $result = Promise\map($values, $callback);
+        $result = Promise\map($callback, $values);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);

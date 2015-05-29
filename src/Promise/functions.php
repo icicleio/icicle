@@ -115,8 +115,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
     /**
      * Returns a promise that calls $promisor only when the result of the promise is requested (e.g., then() or done()
-     * is called on the returned promise. $pormisor can return a promise or any value. If $promisor throws an exception,
-     * the returned promise is rejected with that exception.
+     * is called on the returned promise). $promisor can return a promise or any value. If $promisor throws an
+     * exception, the returned promise is rejected with that exception.
      *
      * @param   callable $promisor
      * @param   mixed ...$args
@@ -304,20 +304,16 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * array is rejected for the same reason. Tip: Use join() or settle() method to determine when all promises in the
      * array have been resolved.
      *
+     * @param   callable<(mixed[] $promises): mixed> $callback
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
-     * @param   callable $callback (mixed $value) : mixed
      *
      * @return  \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      */
-    function map(array $promises, callable $callback)
+    function map(callable $callback, array $promises)
     {
-        $results = [];
-
-        foreach ($promises as $key => $promise) {
-            $results[$key] = resolve($promise)->then($callback);
-        }
-
-        return $results;
+        return array_map(function ($promise) use ($callback) {
+            return resolve($promise)->then($callback);
+        }, $promises);
     }
     
     /**
