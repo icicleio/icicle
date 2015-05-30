@@ -101,13 +101,13 @@ interface LoopInterface
      * Creates a timer object connected to the loop.
      *
      * @param   int|float $interval
-     * @param   callable $callback
      * @param   bool $periodic
+     * @param   callable $callback
      * @param   array $args
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
-    public function timer($interval, $periodic = false, callable $callback, array $args = null);
+    public function timer($interval, $periodic, callable $callback, array $args = null);
     
     /**
      * Creates an immediate object connected to the loop.
