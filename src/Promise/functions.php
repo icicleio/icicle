@@ -304,7 +304,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * array is rejected for the same reason. Tip: Use join() or settle() method to determine when all promises in the
      * array have been resolved.
      *
-     * @param   callable<(mixed[] $promises): mixed> $callback
+     * @param   callable<mixed (mixed $value)> $callback
      * @param   mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return  \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
