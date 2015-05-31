@@ -37,14 +37,19 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.4-dev",
-            "dev-development": "0.5-dev"
+            "dev-master": "0.5-dev",
+            "dev-development": "0.6-dev"
         }
     },
     "autoload": {
         "psr-4": {
             "Icicle\\": "src"
-        }
+        },
+        "files": [
+            "src/Coroutine/functions.php",
+            "src/Loop/functions.php",
+            "src/Promise/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

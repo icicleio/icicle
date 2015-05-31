@@ -88,14 +88,14 @@ interface PromiseInterface
     public function cleanup(callable $onResolved);
 
     /**
-     * If the promises returns an array or a Traversable object, this function use the array (or array generated from
-     * traversing the iterator) as arguments to the given function. The array is key sorted before used as arguments.
-     * If the promise does not return an array, the returned promise will be rejected with an
-     * \Icicle\Promise\Exception\InvalidArgumentException.
+     * If the promise returns an array or a Traversable object, this function uses the array (or array generated from
+     * traversing the iterator) as arguments to the given function. The array is key sorted before being used as
+     * function arguments. If the promise does not return an array, the returned promise will be rejected with an
+     * \Icicle\Promise\Exception\TypeException.
      *
      * @param   callable $onFulfilled
      *
-     * @return  mixed
+     * @return  \Icicle\Promise\PromiseInterface
      */
     public function splat(callable $onFulfilled);
     

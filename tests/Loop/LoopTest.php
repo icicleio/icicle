@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Loop;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
 
@@ -15,34 +15,34 @@ class LoopTest extends TestCase
         return stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
     }
     
-    public function testInit()
+    public function testLoop()
     {
         $loop = new SelectLoop();
         
-        Loop::init($loop);
+        Loop\loop($loop);
         
-        $this->assertSame($loop, Loop::getInstance());
+        $this->assertSame($loop, Loop\loop());
     }
     
     /**
-     * @depends testInit
+     * @depends testLoop
      * @expectedException \Icicle\Loop\Exception\InitializedException
      */
-    public function testInitAfterInitialized()
+    public function testLoopAfterInitialized()
     {
-        $loop = Loop::getInstance();
+        $loop = Loop\loop();
         
-        Loop::init($loop);
+        Loop\loop($loop);
     }
 
     /**
-     * @depends testInit
+     * @depends testLoop
      */
     public function testSchedule()
     {
-        Loop::schedule($this->createCallback(1));
+        Loop\schedule($this->createCallback(1));
         
-        Loop::tick(true);
+        Loop\tick(true);
     }
     
     /**
@@ -54,9 +54,9 @@ class LoopTest extends TestCase
         $callback->method('__invoke')
                  ->with(1, 2, 3.14, 'test');
         
-        Loop::schedule($callback, 1, 2, 3.14, 'test');
+        Loop\schedule($callback, 1, 2, 3.14, 'test');
         
-        Loop::tick(true);
+        Loop\tick(true);
     }
 
     /**
@@ -64,13 +64,13 @@ class LoopTest extends TestCase
      */
     public function testIsEmpty()
     {
-        $this->assertTrue(Loop::isEmpty());
+        $this->assertTrue(Loop\isEmpty());
 
-        Loop::schedule(function () {});
+        Loop\schedule(function () {});
 
-        $this->assertFalse(Loop::isEmpty());
+        $this->assertFalse(Loop\isEmpty());
 
-        Loop::tick(true);
+        Loop\tick(true);
     }
 
     public function testPoll()
@@ -83,13 +83,13 @@ class LoopTest extends TestCase
         $callback->method('__invoke')
                  ->with($readable, false);
         
-        $poll = Loop::poll($readable, $callback);
+        $poll = Loop\poll($readable, $callback);
         
         $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
         
         $poll->listen();
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testAwait()
@@ -100,22 +100,22 @@ class LoopTest extends TestCase
         $callback->method('__invoke')
                  ->with($writable, false);
         
-        $await = Loop::await($writable, $callback);
+        $await = Loop\await($writable, $callback);
         
         $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $await);
         
         $await->listen();
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testTimer()
     {
-        $timer = Loop::timer(self::TIMEOUT, $this->createCallback(1));
+        $timer = Loop\timer(self::TIMEOUT, $this->createCallback(1));
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -127,11 +127,11 @@ class LoopTest extends TestCase
         $callback->method('__invoke')
                  ->with(1, 2, 3.14, 'test');
         
-        $timer = Loop::timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
-        Loop::tick(true);
+        Loop\tick(true);
     }
     
     public function testPeriodic()
@@ -143,11 +143,11 @@ class LoopTest extends TestCase
             $timer->stop();
         };
         
-        $timer = Loop::periodic(self::TIMEOUT, $callback);
+        $timer = Loop\periodic(self::TIMEOUT, $callback);
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -164,20 +164,20 @@ class LoopTest extends TestCase
             call_user_func_array($callback, func_get_args());
         };
         
-        $timer = Loop::periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
         $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
         
-        Loop::run();
+        Loop\run();
     }
     
     public function testImmediate()
     {
-        $immediate = Loop::immediate($this->createCallback(1));
+        $immediate = Loop\immediate($this->createCallback(1));
         
         $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -189,11 +189,11 @@ class LoopTest extends TestCase
         $callback->method('__invoke')
                  ->with(1, 2, 3.14, 'test');
         
-        $immediate = Loop::immediate($callback, 1, 2, 3.14, 'test');
+        $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
         
         $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -202,12 +202,12 @@ class LoopTest extends TestCase
     public function testScheduleWithinScheduledCallback()
     {
         $callback = function () {
-            Loop::schedule($this->createCallback(1));
+            Loop\schedule($this->createCallback(1));
         };
         
-        Loop::schedule($callback);
+        Loop\schedule($callback);
         
-        Loop::tick(true);
+        Loop\tick(true);
     }
     
     /**
@@ -215,26 +215,26 @@ class LoopTest extends TestCase
      */
     public function testMaxScheduleDepth()
     {
-        $previous = Loop::maxScheduleDepth(1);
+        $previous = Loop\maxScheduleDepth(1);
         
-        $this->assertSame(1, Loop::maxScheduleDepth());
+        $this->assertSame(1, Loop\maxScheduleDepth());
         
-        Loop::schedule($this->createCallback(1));
-        Loop::schedule($this->createCallback(0));
+        Loop\schedule($this->createCallback(1));
+        Loop\schedule($this->createCallback(0));
         
-        Loop::tick(true);
+        Loop\tick(true);
         
-        Loop::maxScheduleDepth($previous);
+        Loop\maxScheduleDepth($previous);
         
-        $this->assertSame($previous, Loop::maxScheduleDepth());
+        $this->assertSame($previous, Loop\maxScheduleDepth());
     }
     
     /**
-     * @depends testInit
+     * @depends testLoop
      */
     public function testSignalHandlingEnabled()
     {
-        $this->assertSame(extension_loaded('pcntl'), Loop::signalHandlingEnabled());
+        $this->assertSame(extension_loaded('pcntl'), Loop\signalHandlingEnabled());
     }
     
     /**
@@ -243,20 +243,20 @@ class LoopTest extends TestCase
     public function testIsRunning()
     {
         $callback = function () {
-            $this->assertTrue(Loop::isRunning());
+            $this->assertTrue(Loop\isRunning());
         };
         
-        Loop::schedule($callback);
+        Loop\schedule($callback);
         
-        Loop::run();
+        Loop\run();
         
         $callback = function () {
-            $this->assertFalse(Loop::isRunning());
+            $this->assertFalse(Loop\isRunning());
         };
         
-        Loop::schedule($callback);
+        Loop\schedule($callback);
         
-        Loop::tick(true);
+        Loop\tick(true);
     }
     
     /**
@@ -265,18 +265,18 @@ class LoopTest extends TestCase
     public function testStop()
     {
         $callback = function () {
-            Loop::stop();
-            $this->assertFalse(Loop::isRunning());
+            Loop\stop();
+            $this->assertFalse(Loop\isRunning());
         };
         
-        Loop::schedule($callback);
+        Loop\schedule($callback);
         
-        $this->assertTrue(Loop::run());
+        $this->assertTrue(Loop\run());
     }
     
     /**
      * @requires extension pcntl
-     * @depends testInit
+     * @depends testLoop
      */
     public function testSignal()
     {
@@ -292,42 +292,42 @@ class LoopTest extends TestCase
         
         $callback3 = $this->createCallback(1);
         
-        $signal = Loop::signal(SIGUSR1, $callback1);
+        $signal = Loop\signal(SIGUSR1, $callback1);
         $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
 
-        $signal = Loop::signal(SIGUSR2, $callback2);
+        $signal = Loop\signal(SIGUSR2, $callback2);
         $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
 
-        $signal = Loop::signal(SIGUSR1, $callback3);
+        $signal = Loop\signal(SIGUSR1, $callback3);
         $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
         
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
         
-        Loop::tick(false);
+        Loop\tick(false);
     }
     
     /**
-     * @depends testInit
+     * @depends testLoop
      */
     public function testClear()
     {
-        Loop::schedule($this->createCallback(0));
+        Loop\schedule($this->createCallback(0));
         
-        Loop::clear();
+        Loop\clear();
         
-        Loop::tick(false);
+        Loop\tick(false);
     }
     
     /**
-     * @depends testInit
+     * @depends testLoop
      */
     public function testReInit()
     {
-        Loop::schedule($this->createCallback(1));
+        Loop\schedule($this->createCallback(1));
         
-        Loop::reInit();
+        Loop\reInit();
         
-        Loop::tick(false);
+        Loop\tick(false);
     }
 }

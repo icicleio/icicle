@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Tests\TestCase;
 
 abstract class StreamTest extends TestCase
@@ -17,6 +17,6 @@ abstract class StreamTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
 }

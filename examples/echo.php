@@ -4,7 +4,7 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Server\ServerFactory;
 use Icicle\Socket\Server\Server;
@@ -46,4 +46,4 @@ $generator = function (Server $server) {
 
 $coroutine = new Coroutine($generator((new ServerFactory())->create('127.0.0.1', 60000)));
 
-Loop::run();
+Loop\run();

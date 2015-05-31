@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Tests\Socket\Client;
 
-use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Client\Client;
 use Icicle\Socket\Client\Connector;
 use Icicle\Tests\TestCase;
@@ -152,7 +151,7 @@ class ConnectorTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testConnect()
@@ -175,7 +174,7 @@ class ConnectorTest extends TestCase
             $this->assertSame($client->getRemotePort(), self::PORT);
         });
         
-        Loop::run();
+        Loop\run();
         
         fclose($server);
     }
@@ -203,7 +202,7 @@ class ConnectorTest extends TestCase
             $this->assertSame($client->getRemotePort(), self::PORT);
         });
         
-        Loop::run();
+        Loop\run();
         
         fclose($server);
     }
@@ -229,7 +228,7 @@ class ConnectorTest extends TestCase
             $this->assertSame(null, $client->getRemotePort());
         });
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink(self::HOST_UNIX);
@@ -249,7 +248,7 @@ class ConnectorTest extends TestCase
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -266,7 +265,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -287,7 +286,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
 
@@ -308,7 +307,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
     }
@@ -355,7 +354,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -402,7 +401,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);
@@ -449,7 +448,7 @@ class ConnectorTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         fclose($server);
         unlink($path);

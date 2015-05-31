@@ -48,7 +48,7 @@ trait PromiseTrait
      */
     public function tap(callable $onFulfilled) {
         return $this->then(function ($value) use ($onFulfilled) {
-            return Promise::resolve($onFulfilled($value))->then(function () {
+            return resolve($onFulfilled($value))->then(function () {
                 return $this;
             });
         });
@@ -60,7 +60,7 @@ trait PromiseTrait
     public function cleanup(callable $onResolved)
     {
         $onResolved = function () use ($onResolved) {
-            return Promise::resolve($onResolved())->then(function () {
+            return resolve($onResolved())->then(function () {
                 return $this;
             });
         };
@@ -76,9 +76,7 @@ trait PromiseTrait
         return $this->then(function ($values) use ($onFulfilled) {
             if ($values instanceof \Traversable) {
                 $values = iterator_to_array($values);
-            }
-
-            if (!is_array($values)) {
+            } elseif (!is_array($values)) {
                 throw new TypeException(sprintf(
                     'Expected array or Traversable for promise result, got %s',
                     is_object($values) ? get_class($values) : gettype($values)

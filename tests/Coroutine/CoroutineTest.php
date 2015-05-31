@@ -4,20 +4,17 @@ namespace Icicle\Tests\Coroutine;
 use Exception;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableException;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.5
- */
 class CoroutineTest extends TestCase
 {
     const TIMEOUT = 0.1;
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testYieldScalar()
@@ -36,7 +33,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
@@ -48,7 +45,7 @@ class CoroutineTest extends TestCase
         $value = 1;
         
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise::resolve($value));
+            $yielded = (yield Promise\resolve($value));
         };
         
         $coroutine = new Coroutine($generator());
@@ -59,7 +56,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
@@ -71,7 +68,7 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$yielded, $exception) {
-            $yielded = (yield Promise::reject($exception));
+            $yielded = (yield Promise\reject($exception));
         };
         
         $coroutine = new Coroutine($generator());
@@ -82,7 +79,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertNull($yielded);
         $this->assertTrue($coroutine->isRejected());
@@ -97,7 +94,7 @@ class CoroutineTest extends TestCase
         $value = 1;
 
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
+            $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
         };
         
         $coroutine = new Coroutine($generator());
@@ -108,7 +105,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
@@ -136,7 +133,7 @@ class CoroutineTest extends TestCase
         
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $child);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($child->isFulfilled());
     }
@@ -152,7 +149,7 @@ class CoroutineTest extends TestCase
         
         $generator = function () use ($value, $exception) {
             try {
-                yield Promise::reject($exception);
+                yield Promise\reject($exception);
             } catch (Exception $exception) {
                 yield $value;
             }
@@ -166,7 +163,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->getResult());
@@ -189,7 +186,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -220,7 +217,7 @@ class CoroutineTest extends TestCase
 
         $child = $coroutine->then($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->getResult());
@@ -252,7 +249,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -270,7 +267,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use ($exception, $callback) {
             try {
-                yield Promise::reject($exception);
+                yield Promise\reject($exception);
             } finally {
                 $callback();
             }
@@ -284,7 +281,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
 
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -302,7 +299,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use (&$yielded, $exception, $callback, $value) {
             try {
-                $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
+                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
                 throw $exception;
             } finally {
                 $callback();
@@ -317,7 +314,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
@@ -337,7 +334,7 @@ class CoroutineTest extends TestCase
             try {
                 throw $exception;
             } finally {
-                $yielded = (yield Promise::resolve($value)->delay(self::TIMEOUT));
+                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
             }
         };
 
@@ -349,7 +346,7 @@ class CoroutineTest extends TestCase
 
         $coroutine->done($this->createCallback(0), $callback);
 
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
@@ -379,7 +376,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
@@ -406,7 +403,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
     }
@@ -434,7 +431,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -462,7 +459,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -493,7 +490,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -507,12 +504,12 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$promise) {
-            yield ($promise = Promise::resolve(1)->delay(0.1));
+            yield ($promise = Promise\resolve(1)->delay(0.1));
         };
         
         $coroutine = new Coroutine($generator());
         
-        Loop::tick(); // Get to first yield statement.
+        Loop\tick(); // Get to first yield statement.
         
         $this->assertTrue($coroutine->isPending());
         $this->assertInstanceOf('Icicle\Promise\Promise', $promise);
@@ -525,7 +522,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($promise->isRejected());
         $this->assertSame($exception, $promise->getResult());
@@ -540,15 +537,15 @@ class CoroutineTest extends TestCase
         
         $generator = function () use (&$promise) {
             try {
-                yield Promise::resolve(1)->delay(0.1);
+                yield Promise\resolve(1)->delay(0.1);
             } catch (Exception $exception) {
-                yield ($promise = Promise::resolve(2)->delay(0.1));
+                yield ($promise = Promise\resolve(2)->delay(0.1));
             }
         };
         
         $coroutine = new Coroutine($generator());
         
-        Loop::tick(); // Get to first yield statement.
+        Loop\tick(); // Get to first yield statement.
         
         $coroutine->cancel($exception);
         
@@ -558,7 +555,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertInstanceOf('Icicle\Promise\Promise', $promise);
         $this->assertTrue($promise->isRejected());
@@ -571,7 +568,7 @@ class CoroutineTest extends TestCase
     public function testTimeout()
     {
         $generator = function () use (&$promise) {
-            yield ($promise = new Promise(function () {
+            yield ($promise = new Promise\Promise(function () {
             })); // Yield promise that will never resolve.
         };
         
@@ -587,7 +584,7 @@ class CoroutineTest extends TestCase
         
         $timeout->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertTrue($timeout->isRejected());
@@ -614,7 +611,7 @@ class CoroutineTest extends TestCase
         
         $delayed->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($delayed->isFulfilled());
         $this->assertSame($value, $delayed->getResult());
@@ -638,7 +635,7 @@ class CoroutineTest extends TestCase
         
         $this->expectOutputString('[1][2][3][1][2][3][1][2][1][2][1][2][1][1][1]');
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -662,7 +659,7 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($this->createCallback(0), $this->createCallback(1));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertInstanceOf('Icicle\Coroutine\Exception\InvalidGeneratorException', $coroutine->getResult());
@@ -674,7 +671,7 @@ class CoroutineTest extends TestCase
      */
     public function testAsync()
     {
-        $async = Coroutine::async(function ($left, $right) {
+        $async = \Icicle\Coroutine\async(function ($left, $right) {
             yield $left - $right;
         });
         
@@ -699,7 +696,7 @@ class CoroutineTest extends TestCase
         
         $coroutine2->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine1->isFulfilled());
         $this->assertSame(-1, $coroutine1->getResult());
@@ -716,7 +713,7 @@ class CoroutineTest extends TestCase
         $callback = function () {
         };
         
-        $async = Coroutine::async($callback);
+        $async = \Icicle\Coroutine\async($callback);
         
         try {
             $coroutine = $async();
@@ -735,7 +732,7 @@ class CoroutineTest extends TestCase
             throw new Exception();
         };
         
-        $async = Coroutine::async($callback);
+        $async = \Icicle\Coroutine\async($callback);
         
         try {
             $coroutine = $async();
@@ -748,9 +745,9 @@ class CoroutineTest extends TestCase
     /**
      * @depends testYieldScalar
      */
-    public function testCall()
+    public function testCreate()
     {
-        $coroutine = Coroutine::call(function ($left, $right) {
+        $coroutine = \Icicle\Coroutine\create(function ($left, $right) {
             yield $left - $right;
         }, 1, 2);
         
@@ -760,22 +757,22 @@ class CoroutineTest extends TestCase
         
         $coroutine->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame(-1, $coroutine->getResult());
     }
     
     /**
-     * @depends testCall
+     * @depends testCreate
      */
-    public function testCallWithNonGeneratorCallable()
+    public function testCreateWithNonGeneratorCallable()
     {
         $callback = function () {
         };
         
         try {
-            $coroutine = Coroutine::call($callback);
+            $coroutine = \Icicle\Coroutine\create($callback);
             $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -783,16 +780,16 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testCall
+     * @depends testCreate
      */
-    public function testCallWithCallableThrowningException()
+    public function testCreateWithCallableThrowningException()
     {
         $callback = function () {
             throw new Exception();
         };
         
         try {
-            $coroutine = Coroutine::call($callback);
+            $coroutine = \Icicle\Coroutine\create($callback);
             $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -804,9 +801,9 @@ class CoroutineTest extends TestCase
      */
     public function testSleep()
     {
-        $coroutine = new Coroutine(Coroutine::sleep(self::TIMEOUT));
+        $coroutine = new Coroutine(\Icicle\Coroutine\sleep(self::TIMEOUT));
         
-        Loop::run();
+        Loop\run();
         
         $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
     }
@@ -817,14 +814,14 @@ class CoroutineTest extends TestCase
     public function testPause()
     {
         $generator = function () {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
         
         $coroutine->pause();
         
-        $this->assertRunTimeLessThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT);
+        $this->assertRunTimeLessThan('Icicle\Loop\run', self::TIMEOUT);
     }
     
     /**
@@ -833,26 +830,26 @@ class CoroutineTest extends TestCase
     public function testResume()
     {
         $generator = function () use (&$coroutine) {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
             
             $coroutine->pause();
             
             yield $coroutine->isPaused();
             
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
         
-        $this->assertRunTimeBetween(['Icicle\Loop\Loop', 'run'], self::TIMEOUT, self::TIMEOUT * 2);
+        $this->assertRunTimeBetween('Icicle\Loop\run', self::TIMEOUT, self::TIMEOUT * 2);
         
         $coroutine->resume();
         
-        Loop::run();
+        Loop\run();
         
         $coroutine->resume();
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($coroutine->isPending());
         $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
@@ -864,17 +861,17 @@ class CoroutineTest extends TestCase
     public function testResumeImmediatelyAfterPause()
     {
         $generator = function () use (&$coroutine) {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
             
             $coroutine->pause();
             $coroutine->resume();
             
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
         
-        $this->assertRunTimeGreaterThan(['Icicle\Loop\Loop', 'run'], self::TIMEOUT * 2);
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT * 2);
     }
     
     /**
@@ -883,18 +880,18 @@ class CoroutineTest extends TestCase
     public function testResumeOnPendingPromise()
     {
         $generator = function () use (&$coroutine) {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
             
             $coroutine->pause();
             
-            Loop::schedule([$coroutine, 'resume']);
+            Loop\schedule([$coroutine, 'resume']);
             
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
         
-        Loop::run();
+        Loop\run();
         
         $this->assertFalse($coroutine->isPending());
         $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
@@ -906,22 +903,22 @@ class CoroutineTest extends TestCase
     public function testResumeOnFulfilledPromise()
     {
         $generator = function () use (&$coroutine) {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
             
             $coroutine->pause();
             
-            yield Promise::resolve(1);
+            yield Promise\resolve(1);
         };
         
         $coroutine = new Coroutine($generator());
         
-        Loop::run();
+        Loop\run();
         
         $coroutine->resume();
         
         $this->assertTrue($coroutine->isPending());
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame(1, $coroutine->getResult());
@@ -935,22 +932,22 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$coroutine, &$exception) {
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
             
             $coroutine->pause();
             
-            yield $promise = Promise::reject($exception);
+            yield $promise = Promise\reject($exception);
         };
         
         $coroutine = new Coroutine($generator());
         
-        Loop::run();
+        Loop\run();
         
         $coroutine->resume();
         
         $this->assertTrue($coroutine->isPending());
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
         $this->assertSame($exception, $coroutine->getResult());
@@ -964,36 +961,36 @@ class CoroutineTest extends TestCase
         $generator = function () use (&$coroutine) {
             $coroutine->pause();
 
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
 
             $coroutine->pause();
 
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
 
             $coroutine->pause();
 
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
 
             $coroutine->pause();
 
-            yield Coroutine::sleep(self::TIMEOUT);
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
 
             throw new Exception('Coroutine should not reach this point.');
         };
 
         $coroutine = new Coroutine($generator());
 
-        Loop::run();
+        Loop\run();
 
         $coroutine->resume();
 
-        Loop::run();
+        Loop\run();
 
         $coroutine->resume();
 
-        Loop::run();
+        Loop\run();
 
-        Loop::run();
+        Loop\run();
 
         $coroutine->resume();
 
@@ -1010,7 +1007,7 @@ class CoroutineTest extends TestCase
             yield 'test';
         };
         
-        $promise = new Promise(function ($resolve) use ($generator) {
+        $promise = new Promise\Promise(function ($resolve) use ($generator) {
             $resolve(new Coroutine($generator()));
         });
         
@@ -1020,6 +1017,6 @@ class CoroutineTest extends TestCase
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
 }

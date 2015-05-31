@@ -1,11 +1,15 @@
 # Changelog
 
-### v0.4.2
+### v0.5.0
 
 - New Features
     - `Icicle\Socket\Datagram` classes and interfaces added to documentation and can now be used.
 
 - Changes
+    - The Loop facade class has been replaced by a set of functions defined in the `Icicle\Loop` namespace. Generally, calls to the Loop facade such as `Loop::run()` can be replaced with `Loop\run()` (using `Icicle\Loop` instead of `Icicle\Loop\Loop`). See the [Loop documentation](https://github.com/icicleio/Icicle/wiki/Loop) for more information.
+    - Static functions in `Icicle\Promise\Promise` have been replaced with functions defined in the `Icicle\Promise` namespace. Calls such as `Promise::resolve()` can be replace with `Promise\resolve()` (using `Icicle\Promise` instead of `Icicle\Promise\Promise`). See the [Promises documentation](https://github.com/icicleio/Icicle/wiki/Promises) for more information.
+    - Static functions in `Icicle\Coroutine\Coroutine` have been replaced with functions defined in the `Icicle\Coroutine` namespace. Like promises above, calls such as `Coroutine::async()` can be replace with `Coroutine\async()` (using `Icicle\Coroutine` instead of `Icicle\Coroutine\Coroutine`). See the [Coroutine documentation](https://github.com/icicleio/Icicle/wiki/Coroutine) for more information.
+    - Lazy promises should now be created with the function `Icicle\Promise\lazy()` instead of directly constructing a `LazyPromise` instance. `Icicle\Promise\LazyPromise` has been moved to `Icicle\Promise\Structures\LazyPromise` and should not be created directly, but rather is an implementation detail of `Icicle\Promise\lazy()`.
     - The promise returned from `Icicle\Socket\Server\Server::accept()` will no longer be rejected with an `AcceptException` if accepting the client fails. The timeout option was also removed from this method, as retrying after a failed accept would make the timeout unreliable.
     - Removed tests from distributions after updating other components to no longer depend on test classes from this package. Use the `--prefer-source` option when installing with Composer if you wish to have tests included.
 
@@ -17,14 +21,14 @@
 ### v0.4.1
 
 - Changes
-    - ~~Added tests back into distributions so users could verify their setup and so other components could use base test classes.~~ (Removed in v0.4.2)
+    - ~~Added tests back into distributions so users could verify their setup and so other components could use base test classes.~~ (Removed in v0.5.0)
 
 ---
 
 ### v0.4.0
 
 - New Features
-    - Process signals are now treated like other loop events and are represented by objects implementing `Icicle\Loop\Events\SignalInterface`. Use the `Icicle\Loop\Loop::signal()` method to create signal event objects. See the [documentation](//github.com/icicleio/Icicle/wiki/Loop#signal) for more information.
+    - Process signals are now treated like other loop events and are represented by objects implementing `Icicle\Loop\Events\SignalInterface`. Use the `Icicle\Loop\Loop::signal()` method to create signal event objects. See the [documentation](https://github.com/icicleio/Icicle/wiki/Loop#signal) for more information.
     - Added method `isEmpty()` to `Icicle\Loop\Loop` that determines if there are any events pending in the loop.
     - Support for unix sockets added to `Icicle\Socket\Client\Connector` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
     - Support for unix sockets also added to `Icicle\Socket\Server\ServerFactory` by passing the file path as the first parameter and `null` for the port and adding `'protocol' => 'unix'` to the array of options.
@@ -82,7 +86,7 @@
 ### v0.2.0
 
 - Increased minimum PHP version to 5.5 so external components can be fully compatible with Icicle and make use of Coroutines. This will avoid compatibility confusion and allow for faster development of additional components.
-- Refactored loop implementations to make use of [Managers](../src/Loop/Events/Manager). These interfaces and classes are implementation details of each loop, as these objects are never revealed to the user. However, this change allowed `Icicle\Loop\LoopInterface` to be much simpler (as event objects now interact with the manager object instead of the loop object) and exposes only methods that should be publicly available.
+- Refactored loop implementations to make use of [Managers](https://github.com/icicleio/icicle/tree/master/src/Loop/Events/Manager). These interfaces and classes are implementation details of each loop, as these objects are never revealed to the user. However, this change allowed `Icicle\Loop\LoopInterface` to be much simpler (as event objects now interact with the manager object instead of the loop object) and exposes only methods that should be publicly available.
 - `Icicle\Loop\Events\PollInterface` and `Icicle\Loop\Events\AwaitInterface` have been eliminated in favor of a single object, `Icicle\Loop\Events\SocketEventInterface`. `Icicle\Loop\Loop::poll()` and `Icicle\Loop\Loop::await()` (and the corresponding methods in objects implementing `Icicle\Loop\LoopInterface`) both return an object implementing this interface. The mode (read or write) the returned object uses when listening on the given socket depends on which method created the `Icicle\Loop\Events\SocketEventInterface` object.
 - Reorganized the Socket component into more specific namespaces under `Icicle\Socket`: `Client`, `Datagram`, `Server`, and `Stream`.
 - Removed static constructors from Server, Datagram, and Client classes, replacing them with interfaced factories.

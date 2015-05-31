@@ -2,9 +2,9 @@
 namespace Icicle\Socket\Stream;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\SocketInterface;
@@ -98,7 +98,7 @@ trait WritableStreamTrait
     public function write($data, $timeout = null)
     {
         if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+            return Promise\reject(new UnwritableException('The stream is no longer writable.'));
         }
         
         $data = new Buffer($data);
@@ -106,7 +106,7 @@ trait WritableStreamTrait
         
         if ($this->writeQueue->isEmpty()) {
             if ($data->isEmpty()) {
-                return Promise::resolve($written);
+                return Promise\resolve($written);
             }
             
             // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
@@ -119,11 +119,11 @@ trait WritableStreamTrait
                 }
                 $exception = new FailureException($message);
                 $this->free($exception);
-                return Promise::reject($exception);
+                return Promise\reject($exception);
             }
             
             if ($data->getLength() <= $written) {
-                return Promise::resolve($written);
+                return Promise\resolve($written);
             }
             
             $data->remove($written);
@@ -169,7 +169,7 @@ trait WritableStreamTrait
     protected function await($timeout = null)
     {
         if (!$this->isWritable()) {
-            return Promise::reject(new UnwritableException('The stream is no longer writable.'));
+            return Promise\reject(new UnwritableException('The stream is no longer writable.'));
         }
         
         $deferred = new Deferred();
@@ -197,7 +197,7 @@ trait WritableStreamTrait
      */
     private function createAwait($socket)
     {
-        return Loop::await($socket, function ($resource, $expired) {
+        return Loop\await($socket, function ($resource, $expired) {
             if ($expired) {
                 $this->free(new TimeoutException('Writing to the socket timed out.'));
                 return;

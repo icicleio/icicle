@@ -2,7 +2,7 @@
 namespace Icicle\Tests\Socket\Datagram;
 
 use Exception;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Datagram\Datagram;
 use Icicle\Socket\Datagram\DatagramFactory;
 use Icicle\Socket\Socket;
@@ -30,7 +30,7 @@ class DatagramFactoryTest extends TestCase
     
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
         
         if ($this->datagram instanceof Datagram) {
             $this->datagram->close();

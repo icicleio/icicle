@@ -4,7 +4,7 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Icicle\Coroutine\Coroutine;
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 use Icicle\Socket\Datagram\DatagramInterface;
 use Icicle\Socket\Datagram\DatagramFactory;
 
@@ -29,4 +29,4 @@ $generator = function (DatagramInterface $datagram) {
 
 $coroutine = new Coroutine($generator($datagram));
 
-Loop::run();
+Loop\run();

@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 trait WritableBufferedStreamTestTrait
 {
@@ -29,7 +29,7 @@ trait WritableBufferedStreamTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -61,7 +61,7 @@ trait WritableBufferedStreamTestTrait
         
         while ($promise->isPending()) {
             $readable->read(); // Pull more data out of the buffer.
-            Loop::tick();
+            Loop\tick();
         }
     }
     
@@ -91,7 +91,7 @@ trait WritableBufferedStreamTestTrait
 
         while ($promise->isPending()) {
             $readable->read(StreamTest::CHUNK_SIZE); // Pull more data out of the buffer.
-            Loop::tick();
+            Loop\tick();
         }
         
         $this->assertFalse($writable->isWritable());
@@ -121,7 +121,7 @@ trait WritableBufferedStreamTestTrait
         
         while ($promise->isPending()) {
             $readable->read(); // Pull more data out of the buffer.
-            Loop::tick();
+            Loop\tick();
         }
     }
     
@@ -143,6 +143,6 @@ trait WritableBufferedStreamTestTrait
         
         $promise->done($this->createCallback(0), $this->createCallback(1));
         
-        Loop::run();
+        Loop\run();
     }
 }

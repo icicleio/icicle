@@ -1,5 +1,9 @@
 <?php
-namespace Icicle\Promise;
+namespace Icicle\Promise\Structures;
+
+use Icicle\Promise;
+use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\PromiseTrait;
 
 class LazyPromise implements PromiseInterface
 {
@@ -24,7 +28,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @return  PromiseInterface
+     * @return  \Icicle\Promise\PromiseInterface
      */
     protected function getPromise()
     {
@@ -33,9 +37,9 @@ class LazyPromise implements PromiseInterface
             $this->promisor = null;
             
             try {
-                $this->promise = Promise::resolve($promisor());
+                $this->promise = Promise\resolve($promisor());
             } catch (\Exception $exception) {
-                $this->promise = Promise::reject($exception);
+                $this->promise = Promise\reject($exception);
             }
         }
         
@@ -120,35 +124,5 @@ class LazyPromise implements PromiseInterface
     public function unwrap()
     {
         return $this->getPromise()->unwrap();
-    }
-    
-    /**
-     * @param   callable $promisor
-     * @param   mixed ...$args
-     *
-     * @return  LazyPromise
-     */
-    public static function call(callable $promisor /* , ...$args */)
-    {
-        $args = array_slice(func_get_args(), 1);
-        
-        return static::create($promisor, $args);
-    }
-    
-    /**
-     * @param   callable $promisor
-     * @param   mixed[] $args
-     *
-     * @return  LazyPromise
-     */
-    public static function create(callable $promisor, array $args = null)
-    {
-        return new static(function () use ($promisor, $args) {
-            if (empty($args)) {
-                return $promisor();
-            }
-            
-            return call_user_func_array($promisor, $args);
-        });
     }
 }

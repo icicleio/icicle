@@ -1,19 +1,15 @@
 <?php
 namespace Icicle\Tests\Promise;
 
-use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseAdaptTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testThenCalled()
@@ -31,13 +27,13 @@ class PromiseAdaptTest extends TestCase
                 })
             );
 
-        $promise = Promise::adapt($mock);
+        $promise = Promise\adapt($mock);
 
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
 
         $promise->done($this->createCallback(0), $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -55,7 +51,7 @@ class PromiseAdaptTest extends TestCase
                 $resolve($value);
             }));
 
-        $promise = Promise::adapt($mock);
+        $promise = Promise\adapt($mock);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -63,7 +59,7 @@ class PromiseAdaptTest extends TestCase
 
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
     }
 
     /**
@@ -81,7 +77,7 @@ class PromiseAdaptTest extends TestCase
                 $reject($reason);
             }));
 
-        $promise = Promise::adapt($mock);
+        $promise = Promise\adapt($mock);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -89,14 +85,14 @@ class PromiseAdaptTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testScalarValue()
     {
         $value = 1;
 
-        $promise = Promise::adapt($value);
+        $promise = Promise\adapt($value);
 
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
 
@@ -106,14 +102,14 @@ class PromiseAdaptTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 
     public function testNonThenableObject()
     {
         $object = new \stdClass();
 
-        $promise = Promise::adapt($object);
+        $promise = Promise\adapt($object);
 
         $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
 
@@ -123,6 +119,6 @@ class PromiseAdaptTest extends TestCase
 
         $promise->done($this->createCallback(0), $callback);
 
-        Loop::run();
+        Loop\run();
     }
 }

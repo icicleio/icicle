@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Tests\Stream;
 
-use Icicle\Loop\Loop;
+use Icicle\Loop;
 
 trait WritableStreamTestTrait
 {
@@ -24,7 +24,7 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $promise = $readable->read();
         
@@ -34,7 +34,7 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -56,7 +56,7 @@ trait WritableStreamTestTrait
         
         $promise->done($this->createCallback(0), $callback);
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -74,7 +74,7 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
         
         $promise = $writable->write('0');
         
@@ -92,7 +92,7 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
         
-        Loop::run();
+        Loop\run();
     }
     
     /**
@@ -122,7 +122,7 @@ trait WritableStreamTestTrait
         
         $promise->done($callback, $this->createCallback(0));
 
-        Loop::run();
+        Loop\run();
 
         $this->assertFalse($writable->isWritable());
         $this->assertFalse($writable->isOpen());

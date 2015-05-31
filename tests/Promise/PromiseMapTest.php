@@ -2,25 +2,22 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class PromiseMapTest extends TestCase
 {
     public function tearDown()
     {
-        Loop::clear();
+        Loop\clear();
     }
     
     public function testEmptyArray()
     {
         $values = [];
         
-        $result = Promise::map($values, $this->createCallback(0));
+        $result = Promise\map($this->createCallback(0), $values);
         
         $this->assertSame($result, $values);
     }
@@ -35,9 +32,9 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise::map($values, $callback);
+        $result = Promise\map($callback, $values);
         
-        Loop::run();
+        Loop\run();
         
         $this->assertTrue(is_array($result));
         
@@ -52,7 +49,7 @@ class PromiseMapTest extends TestCase
      */
     public function testFulfilledPromisesArray()
     {
-        $promises = [Promise::resolve(1), Promise::resolve(2), Promise::resolve(3)];
+        $promises = [Promise\resolve(1), Promise\resolve(2), Promise\resolve(3)];
         
         $callback = $this->createCallback(3);
         $callback = function ($value) use ($callback) {
@@ -60,9 +57,9 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise::map($promises, $callback);
+        $result = Promise\map($callback, $promises);
         
-        Loop::run();
+        Loop\run();
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
@@ -76,9 +73,9 @@ class PromiseMapTest extends TestCase
     public function testPendingPromisesArray()
     {
         $promises = [
-            Promise::resolve(1)->delay(0.2),
-            Promise::resolve(2)->delay(0.3),
-            Promise::resolve(3)->delay(0.1)
+            Promise\resolve(1)->delay(0.2),
+            Promise\resolve(2)->delay(0.3),
+            Promise\resolve(3)->delay(0.1)
         ];
         
         $callback = $this->createCallback(3);
@@ -87,14 +84,14 @@ class PromiseMapTest extends TestCase
             return $value + 1;
         };
         
-        $result = Promise::map($promises, $callback);
+        $result = Promise\map($callback, $promises);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
             $this->assertTrue($promise->isPending());
         }
         
-        Loop::run();
+        Loop\run();
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isFulfilled());
@@ -110,12 +107,12 @@ class PromiseMapTest extends TestCase
         $exception = new Exception();
         
         $promises = [
-            Promise::reject($exception),
-            Promise::reject($exception),
-            Promise::reject($exception)
+            Promise\reject($exception),
+            Promise\reject($exception),
+            Promise\reject($exception)
         ];
         
-        $result = Promise::map($promises, $this->createCallback(0));
+        $result = Promise\map($this->createCallback(0), $promises);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
@@ -136,14 +133,14 @@ class PromiseMapTest extends TestCase
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
         
-        $result = Promise::map($values, $callback);
+        $result = Promise\map($callback, $values);
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
             $this->assertTrue($promise->isPending());
         }
         
-        Loop::run();
+        Loop\run();
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isRejected());

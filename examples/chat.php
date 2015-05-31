@@ -3,18 +3,18 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Icicle\Coroutine\Coroutine;
-use Icicle\Loop\Loop;
+use Icicle\Coroutine;
+use Icicle\Loop;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Server\ServerInterface;
 use Icicle\Socket\Server\ServerFactory;
 
 // Connect using `nc localhost 60000`.
 
-$coroutine = Coroutine::call(function (ServerInterface $server) {
+$coroutine = Coroutine\create(function (ServerInterface $server) {
     $clients = new SplObjectStorage();
     
-    $handler = Coroutine::async(function (ClientInterface $client) use (&$clients) {
+    $handler = Coroutine\async(function (ClientInterface $client) use (&$clients) {
         $clients->attach($client);
         $name = $client->getRemoteAddress() . ':' . $client->getRemotePort();
         
@@ -56,5 +56,5 @@ $coroutine = Coroutine::call(function (ServerInterface $server) {
     }
 }, (new ServerFactory())->create('127.0.0.1', 60000));
 
-Loop::run();
+Loop\run();
 

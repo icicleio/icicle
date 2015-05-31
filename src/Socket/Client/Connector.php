@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Socket\Client;
 
-use Icicle\Loop\Loop;
-use Icicle\Promise\Promise;
+use Icicle\Loop;
+use Icicle\Promise;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
@@ -57,7 +57,7 @@ class Connector implements ConnectorInterface
         
         if (null !== $cafile) {
             if (!file_exists($cafile)) {
-                return Promise::reject(new InvalidArgumentException('No file exists at path given for cafile.'));
+                return Promise\reject(new InvalidArgumentException('No file exists at path given for cafile.'));
             }
             $context['ssl']['cafile'] = $cafile;
         }
@@ -76,13 +76,13 @@ class Connector implements ConnectorInterface
         );
         
         if (!$socket || $errno) {
-            return Promise::reject(new FailureException(
+            return Promise\reject(new FailureException(
                 sprintf('Could not connect to %s; Errno: %d; %s', $uri, $errno, $errstr)
             ));
         }
         
-        return new Promise(function ($resolve, $reject) use ($socket, $timeout) {
-            $await = Loop::await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
+        return new Promise\Promise(function ($resolve, $reject) use ($socket, $timeout) {
+            $await = Loop\await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
                 /** @var \Icicle\Loop\Events\SocketEventInterface $await */
                 $await->free();
                 
