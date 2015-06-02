@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.5.1
+
+- Bug Fixes
+    - Fixed bug related to generators that never yield. If a generator was written in such a way that it may never yield, the coroutine was rejected even though the generator had not been run and could have yielded values under different circumstances. Now if a generator is immediately invalid, the coroutine is fulfilled with `null` instead of being rejected.
+
+---
+
 ### v0.5.0
 
 - New Features
@@ -7,8 +14,8 @@
 
 - Changes
     - The Loop facade class has been replaced by a set of functions defined in the `Icicle\Loop` namespace. Generally, calls to the Loop facade such as `Loop::run()` can be replaced with `Loop\run()` (using `Icicle\Loop` instead of `Icicle\Loop\Loop`). See the [Loop documentation](https://github.com/icicleio/Icicle/wiki/Loop) for more information.
-    - Static functions in `Icicle\Promise\Promise` have been replaced with functions defined in the `Icicle\Promise` namespace. Calls such as `Promise::resolve()` can be replace with `Promise\resolve()` (using `Icicle\Promise` instead of `Icicle\Promise\Promise`). See the [Promises documentation](https://github.com/icicleio/Icicle/wiki/Promises) for more information.
-    - Static functions in `Icicle\Coroutine\Coroutine` have been replaced with functions defined in the `Icicle\Coroutine` namespace. Like promises above, calls such as `Coroutine::async()` can be replace with `Coroutine\async()` (using `Icicle\Coroutine` instead of `Icicle\Coroutine\Coroutine`). See the [Coroutine documentation](https://github.com/icicleio/Icicle/wiki/Coroutine) for more information.
+    - Static functions in `Icicle\Promise\Promise` have been replaced with functions defined in the `Icicle\Promise` namespace. Calls such as `Promise::resolve()` can be replaced with `Promise\resolve()` (using `Icicle\Promise` instead of `Icicle\Promise\Promise`). See the [Promises documentation](https://github.com/icicleio/Icicle/wiki/Promises) for more information.
+    - Static functions in `Icicle\Coroutine\Coroutine` have been replaced with functions defined in the `Icicle\Coroutine` namespace. Like promises above, calls such as `Coroutine::async()` can be replaced with `Coroutine\async()` (using `Icicle\Coroutine` instead of `Icicle\Coroutine\Coroutine`). See the [Coroutine documentation](https://github.com/icicleio/Icicle/wiki/Coroutine) for more information.
     - Lazy promises should now be created with the function `Icicle\Promise\lazy()` instead of directly constructing a `LazyPromise` instance. `Icicle\Promise\LazyPromise` has been moved to `Icicle\Promise\Structures\LazyPromise` and should not be created directly, but rather is an implementation detail of `Icicle\Promise\lazy()`.
     - The promise returned from `Icicle\Socket\Server\Server::accept()` will no longer be rejected with an `AcceptException` if accepting the client fails. The timeout option was also removed from this method, as retrying after a failed accept would make the timeout unreliable.
     - Removed tests from distributions after updating other components to no longer depend on test classes from this package. Use the `--prefer-source` option when installing with Composer if you wish to have tests included.
