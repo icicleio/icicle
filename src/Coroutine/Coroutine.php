@@ -3,7 +3,6 @@ namespace Icicle\Coroutine;
 
 use Exception;
 use Generator;
-use Icicle\Coroutine\Exception\InvalidGeneratorException;
 use Icicle\Loop;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
@@ -55,8 +54,8 @@ class Coroutine extends Promise implements CoroutineInterface
         parent::__construct(
             function ($resolve, $reject) {
                 /**
-                 * @param   mixed $value The value to send to the Generator.
-                 * @param   \Exception|null $exception If not null, the Exception object will be thrown into the Generator.
+                 * @param   mixed $value The value to send to the generator.
+                 * @param   \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
@@ -64,21 +63,17 @@ class Coroutine extends Promise implements CoroutineInterface
                         return;
                     }
                     
-                    if ($this->isPaused()) { // If paused, mark coroutine as ready to resume.
+                    if ($this->paused) { // If paused, mark coroutine as ready to resume.
                         $this->ready = true;
                         return;
                     }
                     
                     try {
-                        if (null !== $exception) { // Throw exception at current execution point.
+                        if ($initial) { // Get result of first yield statement.
                             $initial = false;
-                            $this->current = $this->generator->throw($exception);
-                        } elseif ($initial) { // Get result of first yield statement.
-                            $initial = false;
-                            if (!$this->generator->valid()) { // Reject if initially given an invalid generator.
-                                throw new InvalidGeneratorException($this->generator);
-                            }
                             $this->current = $this->generator->current();
+                        } elseif (null !== $exception) { // Throw exception at current execution point.
+                            $this->current = $this->generator->throw($exception);
                         } else { // Send the new value and execute to next yield statement.
                             $this->current = $this->generator->send($value);
                         }
@@ -117,12 +112,12 @@ class Coroutine extends Promise implements CoroutineInterface
             },
             function (Exception $exception) {
                 try {
+                    $current = $this->generator->current(); // Get last yielded value.
                     while ($this->generator->valid()) {
-                        if ($this->current instanceof PromiseInterface) {
-                            $this->current->cancel($exception);
+                        if ($current instanceof PromiseInterface) {
+                            $current->cancel($exception);
                         }
-                        
-                        $this->current = $this->generator->throw($exception);
+                        $current = $this->generator->throw($exception);
                     }
                 } finally {
                     $this->close();

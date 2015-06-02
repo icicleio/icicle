@@ -644,26 +644,19 @@ class CoroutineTest extends TestCase
     public function testInvalidGenerator()
     {
         $generator = function () {
-            yield 1;
-            yield 2;
-            yield 3;
+            if (false) {
+                yield 1;
+            }
         };
         
-        $generator = $generator();
+        $coroutine = new Coroutine($generator());
         
-        while ($generator->valid()) { // Invalidate generator.
-            $generator->next();
-        }
-        
-        $coroutine = new Coroutine($generator);
-        
-        $coroutine->done($this->createCallback(0), $this->createCallback(1));
+        $coroutine->done($this->createCallback(1), $this->createCallback(0));
         
         Loop\run();
         
-        $this->assertTrue($coroutine->isRejected());
-        $this->assertInstanceOf('Icicle\Coroutine\Exception\InvalidGeneratorException', $coroutine->getResult());
-        $this->assertSame($generator, $coroutine->getResult()->getGenerator());
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertSame(null, $coroutine->getResult());
     }
     
     /**
