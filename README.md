@@ -7,7 +7,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/badge/semver-v0.5.0-yellow.svg?style=flat-square)](http://semver.org)
+[![Semantic Version](https://img.shields.io/github/release/icicleio/Icicle.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
 
 [![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
@@ -57,6 +57,34 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 - [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling.
 - [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
 - [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
+
+### Example
+
+The example below uses the [HTTP component](https://github.com/icicleio/Http) (under development) to create a simple HTTP server that responds with `Hello, world!` to every request.
+
+```php
+#!/usr/bin/env php
+<?php
+
+require '/vendor/autoload.php';
+
+use Icicle\Http\Message\RequestInterface;
+use Icicle\Http\Message\Response;
+use Icicle\Http\Server\Server;
+use Icicle\Loop;
+
+$server = new Server(function (RequestInterface $request) {
+    $response = new Response(200);
+    yield $response->getBody()->end('Hello, world!');
+    yield $response->withHeader('Content-Type', 'text/plain');
+});
+
+$server->listen(8080);
+
+echo "Server running at http://127.0.0.1:8080\n";
+
+Loop\run();
+```
 
 ## Promises
 
@@ -298,56 +326,3 @@ Loop\run();
 ```
 
 **[Sockets API documentation](https://github.com/icicleio/Icicle/wiki/Sockets)**
-
-## Example
-
-The example below shows how the components outlined above can be combined to quickly create an asynchronous echo server, capable of simultaneously handling many clients.
-
-```php
-use Icicle\Coroutine\Coroutine;
-use Icicle\Loop;
-use Icicle\Socket\Client\ClientInterface;
-use Icicle\Socket\Server\ServerInterface;
-use Icicle\Socket\Server\ServerFactory;
-
-// Connect using `nc localhost 60000`.
-
-$server = (new ServerFactory())->create('127.0.0.1', 60000);
-
-$generator = function (ServerInterface $server) {
-    $generator = function (ClientInterface $client) {
-        try {
-            yield $client->write("Want to play shadow? (Type 'exit' to quit)\n");
-			
-            while ($client->isReadable()) {
-                $data = (yield $client->read());
-                
-                $data = trim($data, "\n");
-                
-                if ("exit" === $data) {
-                    yield $client->end("Goodbye!\n");
-                } else {
-                    yield $client->write("Echo: {$data}\n");
-                }
-            }
-        } catch (Exception $e) {
-            echo "Client error: {$e->getMessage()}\n";
-            $client->close();
-        }
-    };
-    
-    echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
-    
-    while ($server->isOpen()) {
-        try {
-            $coroutine = new Coroutine($generator(yield $server->accept()));
-        } catch (Exception $e) {
-            echo "Error accepting client: {$e->getMessage()}\n";
-        }
-    }
-};
-
-$coroutine = new Coroutine($generator($server));
-
-Loop\run();
-```
