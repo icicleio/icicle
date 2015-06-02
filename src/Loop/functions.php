@@ -10,6 +10,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param   \Icicle\Loop\LoopInterface|null $loop
      * 
      * @return  \Icicle\Loop\LoopInterface
+     *
+     * @throws  \Icicle\Loop\Exception\InitializedException If the loop has already been initialized.
      */
     function loop(LoopInterface $loop = null)
     {

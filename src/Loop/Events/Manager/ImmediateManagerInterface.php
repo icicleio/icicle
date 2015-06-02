@@ -9,7 +9,7 @@ interface ImmediateManagerInterface
      * Creates an immediate object connected to the manager.
      *
      * @param   callable $callback
-     * @param   mixed[] $args
+     * @param   mixed[]|null $args
      *
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */

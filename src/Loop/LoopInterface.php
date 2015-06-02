@@ -69,7 +69,7 @@ interface LoopInterface
      * Callbacks are called in the order defined.
      *
      * @param   callable $callback
-     * @param   mixed[] $args Array of arguments to be passed to the callback function.
+     * @param   mixed[]|null $args Array of arguments to be passed to the callback function.
      */
     public function schedule(callable $callback, array $args = null);
     
@@ -103,7 +103,7 @@ interface LoopInterface
      * @param   int|float $interval
      * @param   bool $periodic
      * @param   callable $callback
-     * @param   array $args
+     * @param   mixed[]|null $args
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
@@ -113,7 +113,7 @@ interface LoopInterface
      * Creates an immediate object connected to the loop.
      *
      * @param   callable $callback
-     * @param   array $args
+     * @param   mixed[]|null $args
      *
      * @return  \Icicle\Loop\Events\ImmediateInterface
      */

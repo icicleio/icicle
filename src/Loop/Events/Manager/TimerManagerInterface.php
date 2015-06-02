@@ -11,7 +11,7 @@ interface TimerManagerInterface
      * @param   int|float $interval
      * @param   bool $periodic
      * @param   callable $callback
-     * @param   mixed[] $args
+     * @param   mixed[]|null $args
      *
      * @return  \Icicle\Loop\Events\TimerInterface
      */
