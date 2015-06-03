@@ -1,18 +1,12 @@
 <?php
 namespace Icicle\Stream;
 
+use Icicle\Coroutine;
 use Icicle\Promise;
 use Icicle\Stream\Exception\UnwritableException;
 
 trait PipeTrait
 {
-    /**
-     * @see     \Icicle\Stream\StreamInterface::isOpen()
-     *
-     * @return  bool
-     */
-    abstract public function isOpen();
-
     /**
      * @see     \Icicle\Stream\ReadableStreamInterface::read()
      *
@@ -69,37 +63,29 @@ trait PipeTrait
 
         $byte = $this->parseByte($byte);
 
-        $promise = Promise\iterate(
-            function ($data) use (&$length, $stream, $byte) {
-                static $bytes = 0;
+        $promise = Coroutine\create(function () use ($stream, $length, $byte) {
+            $bytes = 0;
+
+            do {
+                $data = (yield $this->read($length, $byte));
+
                 $count = strlen($data);
                 $bytes += $count;
 
-                $promise = $stream->write($data);
+                yield $stream->write($data);
+            } while (
+                $this->isReadable()
+                && $stream->isWritable()
+                && (null === $byte || $data[$count - 1] !== $byte)
+                && (null === $length || 0 < $length -= $count)
+            );
 
-                if ((null !== $byte && $data[$count - 1] === $byte)
-                    || (null !== $length && 0 >= $length -= $count)) {
-                    return $promise->then(function () use ($bytes) {
-                        return $bytes;
-                    });
-                }
-
-                return $promise->then(function () use ($stream, $bytes, $length, $byte) {
-                    if (!$this->isReadable() || !$stream->isWritable()) {
-                        return $bytes;
-                    }
-                    return $this->read($length, $byte);
-                });
-            },
-            function ($data) {
-                return is_string($data);
-            },
-            $this->read($length, $byte)
-        );
+            yield $bytes;
+        });
 
         if ($endWhenUnreadable) {
             $promise = $promise->cleanup(function () use ($stream) {
-                if (!$this->isReadable()) {
+                if (!$this->isReadable() && $stream->isWritable()) {
                     $stream->end();
                 }
             });
