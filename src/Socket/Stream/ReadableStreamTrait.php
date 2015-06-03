@@ -36,6 +36,13 @@ trait ReadableStreamTrait
      * @var string|null
      */
     private $byte;
+
+    /**
+     * Determines if the stream is still open.
+     *
+     * @return  bool
+     */
+    abstract public function isOpen();
     
     /**
      * @return  resource Stream socket resource.
