@@ -108,20 +108,14 @@ trait WritableStreamTrait
             if ($data->isEmpty()) {
                 return Promise\resolve($written);
             }
-            
-            // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-            $written = @fwrite($this->getResource(), $data, SocketInterface::CHUNK_SIZE);
-            
-            if (false === $written) {
-                $message = 'Failed to write to stream.';
-                if (null !== ($error = error_get_last())) {
-                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                }
-                $exception = new FailureException($message);
+
+            try {
+                $written = $this->send($this->getResource(), $data);
+            } catch (Exception $exception) {
                 $this->free($exception);
                 return Promise\reject($exception);
             }
-            
+
             if ($data->getLength() <= $written) {
                 return Promise\resolve($written);
             }
@@ -203,6 +197,11 @@ trait WritableStreamTrait
                 return;
             }
 
+            if (feof($resource)) {
+                $this->close();
+                return;
+            }
+
             /**
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred
@@ -212,20 +211,14 @@ trait WritableStreamTrait
             if ($data->isEmpty()) {
                 $deferred->resolve($previous);
             } else {
-                // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
-                $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
-                
-                if (false === $written || 0 === $written) {
-                    $message = 'Failed to write to stream.';
-                    if (null !== ($error = error_get_last())) {
-                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                    }
-                    $exception = new FailureException($message);
+                try {
+                    $written = $this->send($resource, $data);
+                } catch (Exception $exception) {
                     $deferred->reject($exception);
                     $this->free($exception);
                     return;
                 }
-                
+
                 if ($data->getLength() <= $written) {
                     $deferred->resolve($written + $previous);
                 } else {
@@ -240,5 +233,29 @@ trait WritableStreamTrait
                 $this->await->listen($timeout);
             }
         });
+    }
+
+    /**
+     * @param resource $resource
+     * @param Buffer $data
+     *
+     * @return int Number of bytes written.
+     *
+     * @throws FailureException If writing fails.
+     */
+    private function send($resource, Buffer $data)
+    {
+        // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
+        $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
+
+        if (false === $written) {
+            $message = 'Failed to write to stream.';
+            if (null !== ($error = error_get_last())) {
+                $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
+            }
+            throw new FailureException($message);
+        }
+
+        return $written;
     }
 }

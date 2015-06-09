@@ -187,20 +187,14 @@ class Datagram extends Socket implements DatagramInterface
             if ($data->isEmpty()) {
                 return Promise\resolve($written);
             }
-            
-            $written = stream_socket_sendto($this->getResource(), $data->peek(self::CHUNK_SIZE), 0, $peer);
-            
-            // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-            if (false === $written || -1 === $written) {
-                $message = 'Failed to write to datagram.';
-                if (null !== ($error = error_get_last())) {
-                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                }
-                $exception = new FailureException($message);
+
+            try {
+                $written = $this->sendTo($this->getResource(), $data, $peer);
+            } catch (Exception $exception) {
                 $this->free($exception);
                 return Promise\reject($exception);
             }
-            
+
             if ($data->getLength() <= $written) {
                 return Promise\resolve($written);
             }
@@ -267,6 +261,11 @@ class Datagram extends Socket implements DatagramInterface
     private function createAwait($socket)
     {
         return Loop\await($socket, function ($resource) use (&$onWrite) {
+            if (feof($resource)) {
+                $this->close();
+                return;
+            }
+
             /**
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred
@@ -276,20 +275,14 @@ class Datagram extends Socket implements DatagramInterface
             if ($data->isEmpty()) {
                 $deferred->resolve($previous);
             } else {
-                $written = stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
-                
-                // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-                if (false === $written || 0 >= $written) {
-                    $message = 'Failed to write to datagram.';
-                    if (null !== ($error = error_get_last())) {
-                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                    }
-                    $exception = new FailureException($message);
+                try {
+                    $written = $this->sendTo($resource, $data, $peer);
+                } catch (Exception $exception) {
                     $deferred->reject($exception);
                     $this->free($exception);
                     return;
                 }
-                
+
                 if ($data->getLength() <= $written) {
                     $deferred->resolve($written + $previous);
                 } else {
@@ -303,5 +296,30 @@ class Datagram extends Socket implements DatagramInterface
                 $this->await->listen();
             }
         });
+    }
+
+    /**
+     * @param resource $resource
+     * @param Buffer $data
+     * @param string $peer
+     *
+     * @return int Number of bytes written.
+     *
+     * @throws FailureException If sending the data fails.
+     */
+    private function sendTo($resource, Buffer $data, $peer)
+    {
+        $written = stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
+
+        // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+        if (false === $written || -1 === $written) {
+            $message = 'Failed to write to datagram.';
+            if (null !== ($error = error_get_last())) {
+                $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
+            }
+            throw new FailureException($message);
+        }
+
+        return $written;
     }
 }
