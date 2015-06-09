@@ -6,14 +6,14 @@ namespace Icicle\Stream\Structures;
 class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
-     * @var     string
+     * @var string
      */
     private $data;
     
     /**
      * Intialize buffer with the given string.
      *
-     * @param   string $data
+     * @param string $data
      */
     public function __construct($data = null)
     {
@@ -23,7 +23,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Current length of the buffer.
      *
-     * @return  int
+     * @return int
      */
     public function getLength()
     {
@@ -31,7 +31,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * @return  int
+     * @return int
      */
     public function count()
     {
@@ -41,7 +41,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Determines if the buffer is empty.
      *
-     * @return  bool
+     * @return bool
      */
     public function isEmpty()
     {
@@ -51,7 +51,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Pushes the given string onto the end of the buffer.
      *
-     * @param   string $data
+     * @param string $data
      */
     public function push($data)
     {
@@ -61,7 +61,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Puts the given string at the beginning of the buffer.
      *
-     * @param   string $data
+     * @param string $data
      */
     public function unshift($data)
     {
@@ -69,9 +69,9 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * @param   int $length
+     * @param int $length
      *
-     * @return  string|null
+     * @return string|null
      */
     public function shift($length)
     {
@@ -81,10 +81,10 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Returns the given number of characters (at most) from the buffer without removing them from the buffer.
      *
-     * @param   int $length
-     * @param   int $offset
+     * @param int $length
+     * @param int $offset
      *
-     * @return  string
+     * @return string
      */
     public function peek($length, $offset = 0)
     {
@@ -108,9 +108,9 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * @param   int $length
+     * @param int $length
      *
-     * @return  string
+     * @return string
      */
     public function pop($length)
     {
@@ -129,10 +129,10 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Removes and returns the given number of characters (at most) from the buffer.
      *
-     * @param   int $length
-     * @param   int $offset
+     * @param int $length
+     * @param int $offset
      *
-     * @return  string
+     * @return string
      */
     public function remove($length, $offset = 0)
     {
@@ -160,7 +160,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Removes and returns all data in the buffer.
      *
-     * @return  string
+     * @return string
      */
     public function drain()
     {
@@ -172,8 +172,8 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Inserts the string at the given position in the buffer.
      *
-     * @param   string $string
-     * @param   int $position
+     * @param string $string
+     * @param int $position
      */
     public function insert($string, $position)
     {
@@ -183,10 +183,10 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Replaces all occurences of $search with $replace. See str_replace() function.
      *
-     * @param   mixed $search
-     * @param   mixed $replace
+     * @param mixed $search
+     * @param mixed $replace
      *
-     * @return  int Number of replacements performed.
+     * @return int Number of replacements performed.
      */
     public function replace($search, $replace)
     {
@@ -198,12 +198,12 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Returns the position of the given pattern in the buffer if it exists, or false if it does not.
      *
-     * @param   string $string String to search for.
-     * @param   bool $reverse Start search from end of buffer.
+     * @param string $string String to search for.
+     * @param bool $reverse Start search from end of buffer.
      *
-     * @return  int|bool
+     * @return int|bool
      *
-     * @see     strpos()
+     * @see strpos()
      */
     public function search($string, $reverse = false)
     {
@@ -217,9 +217,9 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Determines if the buffer contains the given position.
      *
-     * @param   int $index
+     * @param int $index
      *
-     * @return  bool
+     * @return bool
      */
     public function offsetExists($index)
     {
@@ -229,9 +229,9 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Returns the character in the buffer at the given position.
      *
-     * @param   int $index
+     * @param int $index
      *
-     * @return  string
+     * @return string
      */
     public function offsetGet($index)
     {
@@ -241,8 +241,8 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Replaces the character in the buffer at the given position with the given string.
      *
-     * @param   int $index
-     * @param   string $data
+     * @param int $index
+     * @param string $data
      */
     public function offsetSet($index, $data)
     {
@@ -252,7 +252,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Removes the character at the given index from the buffer.
      *
-     * @param   int $index
+     * @param int $index
      */
     public function offsetUnset($index)
     {
@@ -262,7 +262,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * @return  BufferIterator
+     * @return BufferIterator
      */
     public function getIterator()
     {
@@ -270,7 +270,7 @@ class Buffer implements \ArrayAccess, \Countable, \IteratorAggregate
     }
     
     /**
-     * @return  string
+     * @return string
      */
     public function __toString()
     {

@@ -8,47 +8,47 @@ use Icicle\Stream\Exception\UnwritableException;
 trait PipeTrait
 {
     /**
-     * @see     \Icicle\Stream\ReadableStreamInterface::read()
+     * @see \Icicle\Stream\ReadableStreamInterface::read()
      *
-     * @param   int|null $length
-     * @param   string|int|null $byte
+     * @param int|null $length
+     * @param string|int|null $byte
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     abstract public function read($length = null, $byte = null);
 
     /**
-     * @see     \Icicle\Stream\ReadableStreamInterface::isReadable()
+     * @see \Icicle\Stream\ReadableStreamInterface::isReadable()
      *
-     * @return  bool
+     * @return bool
      */
     abstract public function isReadable();
 
     /**
-     * @see     \Icicle\Stream\ParserTrait::parseByte()
+     * @see \Icicle\Stream\ParserTrait::parseByte()
      *
-     * @param   int|null $length
+     * @param int|null $length
      */
     abstract protected function parseLength($length);
 
     /**
-     * @see     \Icicle\Stream\ParserTrait::parseByte()
+     * @see \Icicle\Stream\ParserTrait::parseByte()
      *
-     * @param   string|int|null $byte
+     * @param string|int|null $byte
      *
-     * @return  string|null
+     * @return string|null
      */
     abstract protected function parseByte($byte);
 
     /**
-     * @see     \Icicle\Stream\ReadableStreamInterface::pipe()
+     * @see \Icicle\Stream\ReadableStreamInterface::pipe()
      *
-     * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endWhenUnreadable
-     * @param   int|null $length
-     * @param   string|int|null $byte
+     * @param \Icicle\Stream\WritableStreamInterface $stream
+     * @param bool $endWhenUnreadable
+     * @param int|null $length
+     * @param string|int|null $byte
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = null, $byte = null)
     {

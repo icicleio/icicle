@@ -19,7 +19,7 @@ class SelectLoop extends AbstractLoop
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
      *
-     * @return  bool
+     * @return bool
      */
     public static function enabled()
     {
@@ -51,9 +51,9 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
-     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
-     * @param   int|float|null $timeout
+     * @param \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
+     * @param \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
+     * @param int|float|null $timeout
      */
     protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
     {

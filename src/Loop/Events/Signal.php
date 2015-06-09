@@ -21,9 +21,9 @@ class Signal implements SignalInterface
     private $signo;
 
     /**
-     * @param   \Icicle\Loop\Events\Manager\SignalManagerInterface $manager
-     * @param   int $signo
-     * @param   callable $callback
+     * @param \Icicle\Loop\Events\Manager\SignalManagerInterface $manager
+     * @param int $signo
+     * @param callable $callback
      */
     public function __construct(SignalManagerInterface $manager, $signo, callable $callback)
     {

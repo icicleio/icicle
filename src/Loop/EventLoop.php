@@ -23,7 +23,7 @@ class EventLoop extends AbstractLoop
     /**
      * Determines if the event extension is loaded, which is required for this class.
      *
-     * @return  bool
+     * @return bool
      */
     public static function enabled()
     {
@@ -31,10 +31,10 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @param   \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
-     * @param   \EventBase|null $base Use null for an EventBase object to be automatically created.
+     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
+     * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
-     * @throws  \Icicle\Loop\Exception\UnsupportedException If the event extension is not loaded.
+     * @throws \Icicle\Loop\Exception\UnsupportedException If the event extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, EventBase $base = null)
     {
@@ -49,7 +49,7 @@ class EventLoop extends AbstractLoop
     }
 
     /**
-     * @return  \EventBase
+     * @return \EventBase
      *
      * @codeCoverageIgnore
      */

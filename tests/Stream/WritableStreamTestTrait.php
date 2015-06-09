@@ -6,7 +6,7 @@ use Icicle\Loop;
 trait WritableStreamTestTrait
 {
     /**
-     * @return  \Icicle\Stream\Stream[]
+     * @return \Icicle\Stream\Stream[]
      */
     abstract public function createStreams();
 

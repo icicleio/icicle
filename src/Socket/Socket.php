@@ -11,14 +11,14 @@ abstract class Socket implements SocketInterface
     /**
      * Stream socket resource.
      *
-     * @var     resource
+     * @var resource
      */
     private $socket;
     
     /**
-     * @param   resource $socket PHP stream socket resource.
+     * @param resource $socket PHP stream socket resource.
      *
-     * @throws  \Icicle\Socket\Exception\InvalidArgumentException If a non-resource is given.
+     * @throws \Icicle\Socket\Exception\InvalidArgumentException If a non-resource is given.
      */
     public function __construct($socket)
     {
@@ -44,7 +44,7 @@ abstract class Socket implements SocketInterface
     /**
      * Determines if the socket is still open.
      *
-     * @return  bool
+     * @return bool
      */
     public function isOpen()
     {
@@ -66,7 +66,7 @@ abstract class Socket implements SocketInterface
     /**
      * Returns the stream socket resource or null if the socket has been closed.
      *
-     * @return  resource|null
+     * @return resource|null
      */
     public function getResource()
     {
@@ -77,11 +77,11 @@ abstract class Socket implements SocketInterface
      * Parses the IP address and port of a network socket. Calls stream_socket_get_name() and then parses the returned
      * string.
      *
-     * @param   bool $peer True for remote IP and port, false for local IP and port.
+     * @param bool $peer True for remote IP and port, false for local IP and port.
      *
-     * @return  array IP address and port pair.
+     * @return array IP address and port pair.
      *
-     * @throws  \Icicle\Socket\Exception\FailureException If getting the socket name fails.
+     * @throws \Icicle\Socket\Exception\FailureException If getting the socket name fails.
      */
     protected function getName($peer = true)
     {

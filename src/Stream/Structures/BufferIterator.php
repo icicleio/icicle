@@ -8,17 +8,17 @@ use Icicle\Stream\Exception\LogicException;
 class BufferIterator implements \SeekableIterator
 {
     /**
-     * @var     Buffer
+     * @var Buffer
      */
     private $buffer;
     
     /**
-     * @var     int
+     * @var int
      */
     private $current = 0;
 
     /**
-     * @param   \Icicle\Stream\Structures\Buffer $buffer
+     * @param \Icicle\Stream\Structures\Buffer $buffer
      */
     public function __construct(Buffer $buffer)
     {
@@ -36,7 +36,7 @@ class BufferIterator implements \SeekableIterator
     /**
      * Determines if the iterator is valid.
      *
-     * @return  bool
+     * @return bool
      */
     public function valid()
     {
@@ -46,7 +46,7 @@ class BufferIterator implements \SeekableIterator
     /**
      * Returns the current position (key) of the iterator.
      *
-     * @return  int
+     * @return int
      */
     public function key()
     {
@@ -56,7 +56,7 @@ class BufferIterator implements \SeekableIterator
     /**
      * Returns the current character in the buffer at the iterator position.
      *
-     * @return  string
+     * @return string
      */
     public function current()
     {
@@ -82,7 +82,7 @@ class BufferIterator implements \SeekableIterator
     /**
      * Moves to the given position in the buffer.
      *
-     * @param   int $position
+     * @param int $position
      */
     public function seek($position)
     {
@@ -97,9 +97,9 @@ class BufferIterator implements \SeekableIterator
     /**
      * Inserts the given string into the buffer at the current iterator position.
      *
-     * @param   string $data
+     * @param string $data
      *
-     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function insert($data)
     {
@@ -113,11 +113,11 @@ class BufferIterator implements \SeekableIterator
     /**
      * Replaces the byte at the current iterator position with the given string.
      *
-     * @param   string $data
+     * @param string $data
      *
-     * @return  string
+     * @return string
      *
-     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function replace($data)
     {
@@ -135,9 +135,9 @@ class BufferIterator implements \SeekableIterator
     /**
      * Removes the byte at the current iterator position and moves the iterator to the previous character.
      *
-     * @return  string
+     * @return string
      *
-     * @throws  \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
      */
     public function remove()
     {

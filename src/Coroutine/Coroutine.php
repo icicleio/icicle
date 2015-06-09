@@ -45,7 +45,7 @@ class Coroutine extends Promise implements CoroutineInterface
     private $paused = false;
     
     /**
-     * @param   \Generator $generator
+     * @param \Generator $generator
      */
     public function __construct(Generator $generator)
     {
@@ -54,8 +54,8 @@ class Coroutine extends Promise implements CoroutineInterface
         parent::__construct(
             function ($resolve, $reject) {
                 /**
-                 * @param   mixed $value The value to send to the generator.
-                 * @param   \Exception|null $exception Exception object to be thrown into the generator if not null.
+                 * @param mixed $value The value to send to the generator.
+                 * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     static $initial = true;
@@ -100,7 +100,7 @@ class Coroutine extends Promise implements CoroutineInterface
                 };
                 
                 /**
-                 * @param   \Exception $exception Exception to be thrown into the generator.
+                 * @param \Exception $exception Exception to be thrown into the generator.
                  */
                 $this->capture = function (Exception $exception) {
                     if (null !== ($worker = $this->worker)) { // Coroutine may have been closed.

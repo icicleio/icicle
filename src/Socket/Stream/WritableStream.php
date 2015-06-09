@@ -9,7 +9,7 @@ class WritableStream extends Socket implements WritableSocketInterface
     use WritableStreamTrait;
     
     /**
-     * @param   resource $socket
+     * @param resource $socket
      */
     public function __construct($socket)
     {
@@ -20,7 +20,7 @@ class WritableStream extends Socket implements WritableSocketInterface
     /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception Reason for the stream closing.
+     * @param \Exception|null $exception Reason for the stream closing.
      */
     protected function free(Exception $exception = null)
     {

@@ -40,19 +40,19 @@ trait ReadableStreamTrait
     /**
      * Determines if the stream is still open.
      *
-     * @return  bool
+     * @return bool
      */
     abstract public function isOpen();
     
     /**
-     * @return  resource Stream socket resource.
+     * @return resource Stream socket resource.
      */
     abstract protected function getResource();
 
     /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception
+     * @param \Exception|null $exception
      */
     abstract protected function free(Exception $exception = null);
 
@@ -65,7 +65,7 @@ trait ReadableStreamTrait
     }
 
     /**
-     * @param  resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      */
     private function init($socket)
     {
@@ -78,7 +78,7 @@ trait ReadableStreamTrait
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   \Exception|null $exception
+     * @param \Exception|null $exception
      */
     private function detach(Exception $exception = null)
     {
@@ -147,17 +147,17 @@ trait ReadableStreamTrait
     /**
      * Returns a promise that is fulfilled when there is data available to read, without actually consuming any data.
      *
-     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
-     *          if no data is received. Use null for no timeout.
+     * @param float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *     if no data is received. Use null for no timeout.
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      *
      * @resolve string Empty string.
      *
-     * @reject  \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
-     * @reject  \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
-     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
-     * @reject  \Icicle\Stream\Exception\TimeoutException If the operation times out.
+     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
     protected function poll($timeout = null)
     {
@@ -190,9 +190,9 @@ trait ReadableStreamTrait
     }
 
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     private function createPoll($socket)
     {
@@ -223,9 +223,9 @@ trait ReadableStreamTrait
     /**
      * Reads data from the stream socket resource based on set length and read-to byte.
      *
-     * @param   resource $resource
+     * @param resource $resource
      *
-     * @return  string
+     * @return string
      */
     private function fetch($resource)
     {

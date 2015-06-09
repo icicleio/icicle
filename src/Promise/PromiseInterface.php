@@ -6,10 +6,10 @@ interface PromiseInterface
     /**
      * Assigns a set of callback functions to the promise, and returns a new promise.
      *
-     * @param   callable|null $onFulfilled (mixed $value) : mixed
-     * @param   callable|null $onRejected (Exception $exception) : mixed
+     * @param callable|null $onFulfilled (mixed $value) : mixed
+     * @param callable|null $onRejected (Exception $exception) : mixed
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -17,8 +17,8 @@ interface PromiseInterface
      * Assigns a set of callback functions to the promise. Returned values are ignored and thrown exceptions
      * are rethrown in an uncatchable way.
      *
-     * @param   callable|null $onFulfilled (mixed $value) : mixed
-     * @param   callable|null $onRejected (Exception $exception) : mixed
+     * @param callable|null $onFulfilled (mixed $value) : mixed
+     * @param callable|null $onRejected (Exception $exception) : mixed
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -27,7 +27,7 @@ interface PromiseInterface
      * cancellation handler, then reject the promise with the given exception or a CancelledException if none is
      * given.
      *
-     * @param   mixed $reason
+     * @param mixed $reason
      */
     public function cancel($reason = null);
     
@@ -35,10 +35,10 @@ interface PromiseInterface
      * Cancels the promise with $reason if it is not resolved within $timeout seconds. When the promise resolves, the
      * returned promise is fulfilled or rejected with the same value.
      *
-     * @param   float $timeout
-     * @param   mixed $reason
+     * @param float $timeout
+     * @param mixed $reason
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function timeout($timeout, $reason = null);
     
@@ -46,9 +46,9 @@ interface PromiseInterface
      * Returns a promise that is fulfilled $time seconds after this promise is fulfilled. If the promise is rejected,
      * the returned promise is immediately rejected.
      *
-     * @param   float $time
+     * @param float $time
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function delay($time);
 
@@ -57,9 +57,9 @@ interface PromiseInterface
      * (ex: function (RuntimeException $exception) {}), then the function will only be called if the exception is an
      * instance of the typehinted exception.
      *
-     * @param   callable $onRejected
+     * @param callable $onRejected
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function capture(callable $onRejected);
 
@@ -69,9 +69,9 @@ interface PromiseInterface
      * If $onFulfilled throws, the returned promise is rejected with the thrown exception. The return value of
      * $onFulfilled is not used.
      *
-     * @param   callable $onFulfilled
+     * @param callable $onFulfilled
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function tap(callable $onFulfilled);
     
@@ -81,9 +81,9 @@ interface PromiseInterface
      * the original promise. That is, it is fulfilled or rejected with the same value or exception. If the callback
      * throws an exception, the returned promise is rejected with that exception.
      *
-     * @param   callable $onResolved
+     * @param callable $onResolved
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function cleanup(callable $onResolved);
 
@@ -93,16 +93,16 @@ interface PromiseInterface
      * function arguments. If the promise does not return an array, the returned promise will be rejected with an
      * \Icicle\Promise\Exception\TypeException.
      *
-     * @param   callable $onFulfilled
+     * @param callable $onFulfilled
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function splat(callable $onFulfilled);
     
     /**
      * Returns true if the promise has not been resolved.
      *
-     * @return  bool
+     * @return bool
      */
     public function isPending();
     
@@ -123,16 +123,16 @@ interface PromiseInterface
     /**
      * Returns the value of the fulfilled or rejected promise if it has been resolved.
      *
-     * @return  mixed
+     * @return mixed
      *
-     * @throws  \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
+     * @throws \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
      */
     public function getResult();
     
     /**
      * Iteratively finds the last promise in the pending chain and returns it. 
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      *
      * @internal Used to keep promise methods from exceeding the call stack depth limit.
      */

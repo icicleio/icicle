@@ -35,7 +35,7 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @param   mixed $value
+     * @param mixed $value
      */
     protected function resolve($value = null)
     {
@@ -44,7 +44,7 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @param   mixed $reason
+     * @param mixed $reason
      */
     protected function reject($reason = null)
     {
@@ -1993,7 +1993,7 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @return  array
+     * @return array
      */
     public function getInvalidSplatValues()
     {
@@ -2010,7 +2010,7 @@ class PromiseTest extends TestCase
      * @dataProvider getInvalidSplatValues
      * @depends testSplat
      *
-     * @param   mixed $value
+     * @param mixed $value
      */
     public function testSplatWithNonArray($value)
     {

@@ -4,22 +4,22 @@ namespace Icicle\Promise;
 class Deferred implements PromisorInterface
 {
     /**
-     * @var     Promise
+     * @var Promise
      */
     private $promise;
     
     /**
-     * @var     callable
+     * @var callable
      */
     private $resolve;
     
     /**
-     * @var     callable
+     * @var callable
      */
     private $reject;
     
     /**
-     * @param   callable|null $onCancelled
+     * @param callable|null $onCancelled
      */
     public function __construct(callable $onCancelled = null)
     {
@@ -40,7 +40,7 @@ class Deferred implements PromisorInterface
     /**
      * Fulfill the promise with the given value.
      *
-     * @param   mixed $value
+     * @param mixed $value
      */
     public function resolve($value = null)
     {
@@ -51,7 +51,7 @@ class Deferred implements PromisorInterface
     /**
      * Reject the promise the the given reason.
      *
-     * @param   mixed $reason
+     * @param mixed $reason
      */
     public function reject($reason = null)
     {

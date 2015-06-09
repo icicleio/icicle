@@ -13,7 +13,7 @@ class SinkTest extends TestCase
     }
     
     /**
-     * @return  \Icicle\Stream\Sink
+     * @return \Icicle\Stream\Sink
      */
     public function createSink()
     {
@@ -62,7 +62,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testWriteThenSeekThenRead($sink)
     {
@@ -89,7 +89,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testReadWithLength($sink)
     {
@@ -118,7 +118,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testReadWithLengthLongerThanSinkLength($sink)
     {
@@ -147,7 +147,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testReadWithZeroLength($sink)
     {
@@ -174,7 +174,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testReadWithInvalidLength($sink)
     {
@@ -201,7 +201,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testReadTo($sink)
     {
@@ -231,7 +231,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEmptySinkIsWritable
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testSeekThenWrite($sink)
     {
@@ -519,7 +519,7 @@ class SinkTest extends TestCase
     /**
      * @depends testSeekWithInvalidOffset
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testSeekWithInvalidWhence($sink)
     {
@@ -537,7 +537,7 @@ class SinkTest extends TestCase
     /**
      * @depends testSeekWithInvalidOffset
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testSeekOnClosedSink($sink)
     {
@@ -595,7 +595,7 @@ class SinkTest extends TestCase
     /**
      * @depends testEnd
      *
-     * @param   \Icicle\Stream\Sink $sink
+     * @param \Icicle\Stream\Sink $sink
      */
     public function testWriteToEnded($sink)
     {

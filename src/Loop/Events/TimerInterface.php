@@ -4,7 +4,7 @@ namespace Icicle\Loop\Events;
 interface TimerInterface
 {
     /**
-     * @return  bool
+     * @return bool
      */
     public function isPending();
 
@@ -21,14 +21,14 @@ interface TimerInterface
     /**
      * Gets the interval for this timer in seconds.
      *
-     * @return  float
+     * @return float
      */
     public function getInterval();
 
     /**
      * Determines if the timer will be repeated.
      *
-     * @return  bool
+     * @return bool
      */
     public function isPeriodic();
     

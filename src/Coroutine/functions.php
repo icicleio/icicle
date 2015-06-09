@@ -6,19 +6,19 @@ use Icicle\Promise;
 
 if (!function_exists(__NAMESPACE__ . '\async')) {
     /**
-     * @param   callable $worker
+     * @param callable $worker
      *
-     * @return  callable
+     * @return callable
      */
     function async(callable $worker)
     {
         /**
-         * @param   mixed ...$args
+         * @param mixed ...$args
          *
-         * @return  \Icicle\Coroutine\Coroutine
+         * @return \Icicle\Coroutine\Coroutine
          *
-         * @throws  \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does
-         *          not return a Generator.
+         * @throws \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does
+         *     not return a Generator.
          */
         return function (/* ...$args */) use ($worker) {
             $args = func_get_args();
@@ -28,13 +28,13 @@ if (!function_exists(__NAMESPACE__ . '\async')) {
     }
 
     /**
-     * @param   callable $worker
-     * @param   mixed ...$args
+     * @param callable $worker
+     * @param mixed ...$args
      *
-     * @return  \Icicle\Coroutine\Coroutine
+     * @return \Icicle\Coroutine\Coroutine
      *
-     * @throws  \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does not
-     *          return a Generator.
+     * @throws \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does not
+     *     return a Generator.
      */
     function create(callable $worker /* , ...$args */)
     {
@@ -60,9 +60,9 @@ if (!function_exists(__NAMESPACE__ . '\async')) {
     /**
      * @coroutine
      *
-     * @param   float $time Time to sleep in seconds.
+     * @param float $time Time to sleep in seconds.
      *
-     * @return  \Generator
+     * @return \Generator
      *
      * @resolve float Actual time slept in seconds.
      */

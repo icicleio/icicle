@@ -9,7 +9,7 @@ class ReadableStream extends Socket implements ReadableSocketInterface
     use ReadableStreamTrait;
     
     /**
-     * @param   resource $socket
+     * @param resource $socket
      */
     public function __construct($socket)
     {
@@ -20,7 +20,7 @@ class ReadableStream extends Socket implements ReadableSocketInterface
     /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception $exception Reason for the stream closing.
+     * @param \Exception $exception Reason for the stream closing.
      */
     protected function free(Exception $exception = null)
     {

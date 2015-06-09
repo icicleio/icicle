@@ -54,7 +54,7 @@ class Datagram extends Socket implements DatagramInterface
     private $length = 0;
     
     /**
-     * @param   resource $socket
+     * @param resource $socket
      */
     public function __construct($socket)
     {
@@ -88,7 +88,7 @@ class Datagram extends Socket implements DatagramInterface
     /**
      * Frees resources associated with the datagram and closes the datagram.
      *
-     * @param   \Exception|null $exception Reason for closing the datagram.
+     * @param \Exception|null $exception Reason for closing the datagram.
      */
     protected function free(Exception $exception = null)
     {
@@ -219,9 +219,9 @@ class Datagram extends Socket implements DatagramInterface
     }
 
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     private function createPoll($socket)
     {
@@ -260,9 +260,9 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     private function createAwait($socket)
     {

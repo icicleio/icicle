@@ -14,7 +14,7 @@ class RejectedPromise extends ResolvedPromise
     private $exception;
     
     /**
-     * @param   mixed $reason
+     * @param mixed $reason
      */
     public function __construct($reason)
     {

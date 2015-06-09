@@ -8,11 +8,11 @@ interface SignalManagerInterface
     /**
      * Creates a signal event connected to the manager.
      *
-     * @param   int $signo
-     * @param   callable $callback
-     * @param   mixed[]|null $args
+     * @param int $signo
+     * @param callable $callback
+     * @param mixed[]|null $args
      *
-     * @return  \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\SignalInterface
      */
     public function create($signo, callable $callback, array $args = null);
 
@@ -26,16 +26,16 @@ interface SignalManagerInterface
     /**
      * Disables listening for the signal.
      *
-     * @param   \Icicle\Loop\Events\SignalInterface
+     * @param \Icicle\Loop\Events\SignalInterface
      */
     public function disable(SignalInterface $signal);
     
     /**
      * Determines if the signal event is in the loop.
      *
-     * @param   \Icicle\Loop\Events\SignalInterface
+     * @param \Icicle\Loop\Events\SignalInterface
      *
-     * @return  bool
+     * @return bool
      */
     public function isEnabled(SignalInterface $signal);
 

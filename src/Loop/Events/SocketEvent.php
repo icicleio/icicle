@@ -25,9 +25,9 @@ class SocketEvent implements SocketEventInterface
     private $callback;
     
     /**
-     * @param   \Icicle\Loop\Events\Manager\SocketManagerInterface $manager
-     * @param   resource $resource
-     * @param   callable $callback
+     * @param \Icicle\Loop\Events\Manager\SocketManagerInterface $manager
+     * @param resource $resource
+     * @param callable $callback
      */
     public function __construct(SocketManagerInterface $manager, $resource, callable $callback)
     {
@@ -98,7 +98,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @return  resource
+     * @return resource
      */
     public function getResource()
     {

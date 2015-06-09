@@ -9,14 +9,14 @@ use Icicle\Promise\PromiseInterface;
 class FulfilledPromise extends ResolvedPromise
 {
     /**
-     * @var     mixed
+     * @var mixed
      */
     private $value;
     
     /**
-     * @param   mixed $value Anything other than a PromiseInterface object.
+     * @param mixed $value Anything other than a PromiseInterface object.
      *
-     * @throws  \Icicle\Promise\Exception\TypeException If a PromiseInterface is given as the value.
+     * @throws \Icicle\Promise\Exception\TypeException If a PromiseInterface is given as the value.
      */
     public function __construct($value)
     {

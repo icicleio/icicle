@@ -25,7 +25,7 @@ class TimerManager implements TimerManagerInterface
     private $timers;
     
     /**
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(EventFactoryInterface $factory)
     {
@@ -114,7 +114,7 @@ class TimerManager implements TimerManagerInterface
      * Calculates the time remaining until the top timer is ready. Returns null if no timers are in the queue, otherwise
      * a non-negative value is returned.
      *
-     * @return  int|float|null
+     * @return int|float|null
      *
      * @internal
      */
@@ -143,7 +143,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * Executes any pending timers. Returns the number of timers executed.
      *
-     * @return  int
+     * @return int
      *
      * @internal
      */

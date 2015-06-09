@@ -13,9 +13,9 @@ class SignalManager extends AbstractSignalManager
     private $events = [];
 
     /**
-     * @param   \Icicle\Loop\LoopInterface $loop
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param   resource $base
+     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param resource $base
      */
     public function __construct(LoopInterface $loop, EventFactoryInterface $factory, $base)
     {

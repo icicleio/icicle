@@ -6,10 +6,10 @@ use Icicle\Promise\Exception\TypeException;
 trait PromiseTrait
 {
     /**
-     * @param   callable $onFulfilled
-     * @param   callable $onRejected
+     * @param callable $onFulfilled
+     * @param callable $onRejected
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
     

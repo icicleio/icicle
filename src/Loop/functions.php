@@ -7,11 +7,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Returns the active event loop. Can be used to set the active event loop if the event loop has not been accessed.
      *
-     * @param   \Icicle\Loop\LoopInterface|null $loop
+     * @param \Icicle\Loop\LoopInterface|null $loop
      * 
-     * @return  \Icicle\Loop\LoopInterface
+     * @return \Icicle\Loop\LoopInterface
      *
-     * @throws  \Icicle\Loop\Exception\InitializedException If the loop has already been initialized.
+     * @throws \Icicle\Loop\Exception\InitializedException If the loop has already been initialized.
      */
     function loop(LoopInterface $loop = null)
     {
@@ -27,7 +27,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @return  \Icicle\Loop\LoopInterface
+     * @return \Icicle\Loop\LoopInterface
      *
      * @codeCoverageIgnore
      */
@@ -48,8 +48,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * Schedules a function to be executed later. The function may be executed as soon as immediately after
      * the calling scope exits. Functions are guaranteed to be executed in the order queued.
      *
-     * @param   callable $callback
-     * @param   mixed ...$args
+     * @param callable $callback
+     * @param mixed ...$args
      */
     function schedule(callable $callback /* , ...$args */)
     {
@@ -61,9 +61,9 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Sets the maximum number of callbacks set with nextTick() that will be executed per tick.
      *
-     * @param   int|null $depth
+     * @param int|null $depth
      *
-     * @return  int Current max depth if $depth = null or previous max depth otherwise.
+     * @return int Current max depth if $depth = null or previous max depth otherwise.
      */
     function maxScheduleDepth($depth = null)
     {
@@ -73,7 +73,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Executes a single tick of the event loop.
      *
-     * @param   bool $blocking
+     * @param bool $blocking
      */
     function tick($blocking = false)
     {
@@ -83,9 +83,9 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Runs the event loop, dispatching I/O events, timers, etc.
      *
-     * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
+     * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
-     * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
+     * @throws \Icicle\Loop\Exception\RunningException If the loop was already running.
      */
     function run()
     {
@@ -95,7 +95,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Determines if the event loop is running.
      *
-     * @return  bool
+     * @return bool
      */
     function isRunning()
     {
@@ -113,7 +113,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Determines if there are any pending events in the loop. Returns true if there are no pending events.
      *
-     * @return  bool
+     * @return bool
      */
     function isEmpty()
     {
@@ -121,10 +121,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   resource $socket Stream socket resource.
-     * @param   callable $callback Callback to be invoked when data is available on the socket.
+     * @param resource $socket Stream socket resource.
+     * @param callable $callback Callback to be invoked when data is available on the socket.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     function poll($socket, callable $callback)
     {
@@ -132,10 +132,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   resource $socket Stream socket resource.
-     * @param   callable $callback Callback to be invoked when the socket is available to write.
+     * @param resource $socket Stream socket resource.
+     * @param callable $callback Callback to be invoked when the socket is available to write.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     function await($socket, callable $callback)
     {
@@ -143,11 +143,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   float|int $interval Number of seconds before the callback is invoked.
-     * @param   callable $callback Function to invoke when the timer expires.
-     * @param   mixed ...$args Arguments to pass to the callback function.
+     * @param float|int $interval Number of seconds before the callback is invoked.
+     * @param callable $callback Function to invoke when the timer expires.
+     * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return  \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\TimerInterface
      */
     function timer($interval, callable $callback /* , ...$args */)
     {
@@ -157,11 +157,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   float|int $interval Number of seconds between invocations of the callback.
-     * @param   callable $callback Function to invoke when the timer expires.
-     * @param   mixed ...$args Arguments to pass to the callback function.
+     * @param float|int $interval Number of seconds between invocations of the callback.
+     * @param callable $callback Function to invoke when the timer expires.
+     * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return  \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\TimerInterface
      */
     function periodic($interval, callable $callback /* , ...$args */)
     {
@@ -171,10 +171,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   callable $callback Function to invoke when no other active events are available.
-     * @param   mixed ...$args Arguments to pass to the callback function.
+     * @param callable $callback Function to invoke when no other active events are available.
+     * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return  \Icicle\Loop\Events\ImmediateInterface
+     * @return \Icicle\Loop\Events\ImmediateInterface
      */
     function immediate(callable $callback /* , ...$args */)
     {
@@ -184,10 +184,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * @param   int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
-     * @param   callable $callback Function to invoke when the given signal arrives.
+     * @param int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
+     * @param callable $callback Function to invoke when the given signal arrives.
      *
-     * @return  \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\SignalInterface
      */
     function signal($signo, callable $callback)
     {
@@ -197,7 +197,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Determines if signal handling is enabled.
      *
-     * @return  bool
+     * @return bool
      */
     function signalHandlingEnabled()
     {

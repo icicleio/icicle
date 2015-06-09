@@ -11,9 +11,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Creates a callback that must be called $count times or the test will fail.
      *
-     * @param   int $count Number of times the callback should be called.
+     * @param int $count Number of times the callback should be called.
      *
-     * @return  callable Object that is callable and expects to be called the given number of times.
+     * @return callable Object that is callable and expects to be called the given number of times.
      */
     public function createCallback($count)
     {
@@ -28,9 +28,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Asserts that the given callback takes no more than $maxRunTime to run.
      *
-     * @param   callable $callback
-     * @param   float $maxRunTime
-     * @param   mixed[]|null $args Function arguments.
+     * @param callable $callback
+     * @param float $maxRunTime
+     * @param mixed[]|null $args Function arguments.
      */
     public function assertRunTimeLessThan(callable $callback, $maxRunTime, array $args = null)
     {
@@ -40,9 +40,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Asserts that the given callback takes more than $minRunTime to run.
      *
-     * @param   callable $callback
-     * @param   float $minRunTime
-     * @param   mixed[]|null $args Function arguments.
+     * @param callable $callback
+     * @param float $minRunTime
+     * @param mixed[]|null $args Function arguments.
      */
     public function assertRunTimeGreaterThan(callable $callback, $minRunTime, array $args = null)
     {
@@ -53,10 +53,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * Asserts that the given callback takes between $minRunTime and $maxRunTime to execute.
      * Rounds to the nearest 100 ms.
      *
-     * @param   callable $callback
-     * @param   float $minRunTime
-     * @param   float $maxRunTime
-     * @param   mixed[]|null $args Function arguments.
+     * @param callable $callback
+     * @param float $minRunTime
+     * @param float $maxRunTime
+     * @param mixed[]|null $args Function arguments.
      */
     public function assertRunTimeBetween(callable $callback, $minRunTime, $maxRunTime, array $args = null)
     {

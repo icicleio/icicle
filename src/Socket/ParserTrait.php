@@ -6,9 +6,9 @@ trait ParserTrait
     /**
      * Parses a name of the format ip:port, returning an array containing the ip and port.
      *
-     * @param   string $name
+     * @param string $name
      *
-     * @return  array [ip-address, port] or [socket-path, null].
+     * @return array [ip-address, port] or [socket-path, null].
      */
     protected function parseName($name)
     {
@@ -29,9 +29,9 @@ trait ParserTrait
     /**
      * Formats given address into a string. Converts integer to IPv4 address, wraps IPv6 address in brackets.
      *
-     * @param   string|int $address
+     * @param string|int $address
      *
-     * @return  string
+     * @return string
      */
     protected function parseAddress($address)
     {
@@ -49,10 +49,10 @@ trait ParserTrait
     /**
      * Creates string of format $address[:$port].
      *
-     * @param   string|int $address Address or path.
-     * @param   int|null $port Port number or null for unix socket.
+     * @param string|int $address Address or path.
+     * @param int|null $port Port number or null for unix socket.
      *
-     * @return  string
+     * @return string
      */
     protected function makeName($address, $port)
     {
@@ -66,9 +66,9 @@ trait ParserTrait
     /**
      * Creates string of format $protocol://$address[:$port].
      *
-     * @param   string $protocol Protocol.
-     * @param   string|int $address Address or path.
-     * @param   int|null $port Port number or null for unix socket.
+     * @param string $protocol Protocol.
+     * @param string|int $address Address or path.
+     * @param int|null $port Port number or null for unix socket.
      *
      * @return string
      */

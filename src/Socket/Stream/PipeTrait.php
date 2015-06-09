@@ -9,49 +9,49 @@ use Icicle\Stream\WritableStreamInterface;
 trait PipeTrait
 {
     /**
-     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::read()
+     * @see \Icicle\Socket\Stream\ReadableSocketInterface::read()
      *
-     * @param   int|null $length
-     * @param   string|int|null $byte
-     * @param   float|int|null $timeout
+     * @param int|null $length
+     * @param string|int|null $byte
+     * @param float|int|null $timeout
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     abstract public function read($length = null, $byte = null, $timeout = null);
 
     /**
-     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::isReadable()
+     * @see \Icicle\Socket\Stream\ReadableSocketInterface::isReadable()
      *
-     * @return  bool
+     * @return bool
      */
     abstract public function isReadable();
 
     /**
-     * @see     \Icicle\Stream\ParserTrait::parseByte()
+     * @see \Icicle\Stream\ParserTrait::parseByte()
      *
-     * @param   int|null $length
+     * @param int|null $length
      */
     abstract protected function parseLength($length);
 
     /**
-     * @see     \Icicle\Stream\ParserTrait::parseByte()
+     * @see \Icicle\Stream\ParserTrait::parseByte()
      *
-     * @param   string|int|null $byte
+     * @param string|int|null $byte
      *
-     * @return  string|null
+     * @return string|null
      */
     abstract protected function parseByte($byte);
 
     /**
-     * @see     \Icicle\Socket\Stream\ReadableSocketInterface::pipe()
+     * @see \Icicle\Socket\Stream\ReadableSocketInterface::pipe()
      *
-     * @param   \Icicle\Stream\WritableStreamInterface $stream
-     * @param   bool $endWhenUnreadable
-     * @param   int|null $length
-     * @param   string|int|null $byte
-     * @param   float|int|null $timeout
+     * @param \Icicle\Stream\WritableStreamInterface $stream
+     * @param bool $endWhenUnreadable
+     * @param int|null $length
+     * @param string|int|null $byte
+     * @param float|int|null $timeout
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     public function pipe(
         WritableStreamInterface $stream,

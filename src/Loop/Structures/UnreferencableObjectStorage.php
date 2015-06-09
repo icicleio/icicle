@@ -22,7 +22,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   object $object
+     * @param object $object
      */
     public function detach($object)
     {
@@ -31,7 +31,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   object $object
+     * @param object $object
      */
     public function offsetUnset($object)
     {
@@ -40,7 +40,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   object $object
+     * @param object $object
      */
     public function unreference($object)
     {
@@ -50,7 +50,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   object $object
+     * @param object $object
      */
     public function reference($object)
     {
@@ -58,9 +58,9 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   object $object
+     * @param object $object
      *
-     * @return  bool
+     * @return bool
      */
     public function referenced($object)
     {
@@ -68,7 +68,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   \SplObjectStorage $storage
+     * @param \SplObjectStorage $storage
      */
     public function addAll($storage)
     {
@@ -80,7 +80,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   \SplObjectStorage $storage
+     * @param \SplObjectStorage $storage
      */
     public function removeAll($storage)
     {
@@ -89,7 +89,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     }
     
     /**
-     * @param   \SplObjectStorage $storage
+     * @param \SplObjectStorage $storage
      */
     public function removeAllExcept($storage)
     {
@@ -100,7 +100,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     /**
      * Returns the number of referenced objects in the storage.
      *
-     * @return  int
+     * @return int
      */
     public function count()
     {
@@ -110,7 +110,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
     /**
      * Returns the total number of objects in the storage (including unreferenced objects).
      *
-     * @return  int
+     * @return int
      */
     public function total()
     {
@@ -121,7 +121,7 @@ class UnreferencableObjectStorage extends SplObjectStorage
      * Determines if the object storage is empty, including any unreferenced objects.
      * Use count() to determine if there are any referenced objects in the storage.
      *
-     * @return  bool
+     * @return bool
      */
     public function isEmpty()
     {

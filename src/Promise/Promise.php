@@ -14,7 +14,7 @@ use Icicle\Promise\Structures\ThenQueue;
 /**
  * Promise implementation based on the Promises/A+ specification adding support for cancellation.
  *
- * @link    http://promisesaplus.com
+ * @see http://promisesaplus.com
  */
 class Promise implements PromiseInterface
 {
@@ -46,8 +46,8 @@ class Promise implements PromiseInterface
     private $children = 0;
     
     /**
-     * @param   callable $resolver
-     * @param   callable|null $onCancelled
+     * @param callable $resolver
+     * @param callable|null $onCancelled
      */
     public function __construct(callable $resolver, callable $onCancelled = null)
     {
@@ -58,7 +58,7 @@ class Promise implements PromiseInterface
          * Resolves the promise with the given promise or value. If another promise, this promise takes
          * on the state of that promise. If a value, the promise will be fulfilled with that value.
          *
-         * @param   mixed $value A promise can be resolved with anything other than itself.
+         * @param mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
             if (null === $this->result) {
@@ -81,7 +81,7 @@ class Promise implements PromiseInterface
         /**
          * Rejects the promise with the given exception.
          *
-         * @param   mixed $reason
+         * @param mixed $reason
          */
         $reject = function ($reason = null) {
             if (null === $this->result) {

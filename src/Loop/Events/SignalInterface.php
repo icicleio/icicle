@@ -24,14 +24,14 @@ interface SignalInterface
     public function disable();
 
     /**
-     * @return  bool
+     * @return bool
      */
     public function isEnabled();
 
     /**
      * Signal identifier constant value, such as SIGTERM or SIGCHLD.
      *
-     * @return  int
+     * @return int
      */
     public function getSignal();
 }

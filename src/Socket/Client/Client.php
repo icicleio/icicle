@@ -33,7 +33,7 @@ class Client extends DuplexStream implements ClientInterface
     private $localPort;
     
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      */
     public function __construct($socket)
     {
@@ -79,7 +79,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @return  bool
+     * @return bool
      */
     public function isCryptoEnabled()
     {

@@ -14,9 +14,9 @@ class StreamTest extends TestCase
     const HWM = 16384;
     
     /**
-     * @param   int|null $hwm
+     * @param int|null $hwm
      *
-     * @return  \Icicle\Stream\Stream[] Same stream instance for readable and writable.
+     * @return \Icicle\Stream\Stream[] Same stream instance for readable and writable.
      */
     public function createStreams($hwm = null)
     {

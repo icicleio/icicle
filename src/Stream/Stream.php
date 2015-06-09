@@ -61,8 +61,8 @@ class Stream implements DuplexStreamInterface
     private $deferredQueue;
     
     /**
-     * @param   int|null $hwm High water mark. If the internal buffer has more than $hwm bytes, writes to the stream
-     *          will return pending promises until the data is consumed.
+     * @param int|null $hwm High water mark. If the internal buffer has more than $hwm bytes, writes to the stream
+     *     will return pending promises until the data is consumed.
      */
     public function __construct($hwm = null)
     {
@@ -93,7 +93,7 @@ class Stream implements DuplexStreamInterface
     /**
      * Closes the stream and rejects any pending promises.
      *
-     * @param   \Exception|null $exception
+     * @param \Exception|null $exception
      */
     protected function free(Exception $exception = null)
     {
@@ -168,7 +168,7 @@ class Stream implements DuplexStreamInterface
     /**
      * Returns bytes from the buffer based on the current length or current search byte.
      *
-     * @return  string
+     * @return string
      */
     private function remove()
     {
@@ -212,10 +212,10 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @param   string $data
-     * @param   bool $end
+     * @param string $data
+     * @param bool $end
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      *
      * @resolve int Number of bytes written to the stream.
      */

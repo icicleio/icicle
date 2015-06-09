@@ -20,7 +20,7 @@ class LazyPromise implements PromiseInterface
     private $promisor;
     
     /**
-     * @param   callable $promisor
+     * @param callable $promisor
      */
     public function __construct(callable $promisor)
     {
@@ -28,7 +28,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      */
     protected function getPromise()
     {

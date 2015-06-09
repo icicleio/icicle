@@ -34,11 +34,11 @@ class Timer implements TimerInterface
     private $periodic;
     
     /**
-     * @param   \Icicle\Loop\Events\Manager\TimerManagerInterface $manager
-     * @param   int|float $interval Number of seconds until the callback function is called.
-     * @param   bool $periodic True to repeat the timer, false to only run it once.
-     * @param   callable $callback Function called when the interval expires.
-     * @param   mixed[]|null $args Optional array of arguments to pass the callback function.
+     * @param \Icicle\Loop\Events\Manager\TimerManagerInterface $manager
+     * @param int|float $interval Number of seconds until the callback function is called.
+     * @param bool $periodic True to repeat the timer, false to only run it once.
+     * @param callable $callback Function called when the interval expires.
+     * @param mixed[]|null $args Optional array of arguments to pass the callback function.
      */
     public function __construct(
         TimerManagerInterface $manager,

@@ -16,9 +16,9 @@ class Immediate implements ImmediateInterface
     private $callback;
     
     /**
-     * @param   \Icicle\Loop\Events\Manager\ImmediateManagerInterface $manager
-     * @param   callable $callback Function called when the interval expires.
-     * @param   array $args Optional array of arguments to pass the callback function.
+     * @param \Icicle\Loop\Events\Manager\ImmediateManagerInterface $manager
+     * @param callable $callback Function called when the interval expires.
+     * @param array $args Optional array of arguments to pass the callback function.
      */
     public function __construct(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {

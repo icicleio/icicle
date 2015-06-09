@@ -22,7 +22,7 @@ class ImmediateManager implements ImmediateManagerInterface
     private $immediates;
     
     /**
-     * @param   EventFactoryInterface $factory
+     * @param EventFactoryInterface $factory
      */
     public function __construct(EventFactoryInterface $factory)
     {

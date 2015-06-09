@@ -8,8 +8,8 @@ use Icicle\Loop\LoopInterface;
 class SignalManager extends AbstractSignalManager
 {
     /**
-     * @param   \Icicle\Loop\LoopInterface
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\LoopInterface
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {

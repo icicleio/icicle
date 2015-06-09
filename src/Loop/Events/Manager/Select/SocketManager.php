@@ -43,8 +43,8 @@ class SocketManager implements SocketManagerInterface
     private $timerCallback;
     
     /**
-     * @param   \Icicle\Loop\LoopInterface $loop
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {

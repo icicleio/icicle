@@ -6,12 +6,12 @@ use Exception;
 class MultiReasonException extends RuntimeException
 {
     /**
-     * @var     Exception[]
+     * @var Exception[]
      */
     private $reasons;
     
     /**
-     * @param   Exception[] $reasons Array of exceptions rejecting the promise.
+     * @param Exception[] $reasons Array of exceptions rejecting the promise.
      */
     public function __construct(array $reasons)
     {
@@ -21,7 +21,7 @@ class MultiReasonException extends RuntimeException
     }
     
     /**
-     * @return  Exception[]
+     * @return Exception[]
      */
     public function getReasons()
     {

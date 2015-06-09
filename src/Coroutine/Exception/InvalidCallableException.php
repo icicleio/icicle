@@ -11,9 +11,9 @@ class InvalidCallableException extends InvalidArgumentException
     private $callable;
     
     /**
-     * @param   string $message
-     * @param   callable $callable
-     * @param   \Exception|null $previous
+     * @param string $message
+     * @param callable $callable
+     * @param \Exception|null $previous
      */
     public function __construct($message, callable $callable, Exception $previous = null)
     {
@@ -23,7 +23,7 @@ class InvalidCallableException extends InvalidArgumentException
     }
     
     /**
-     * @return  callable
+     * @return callable
      */
     public function getCallable()
     {

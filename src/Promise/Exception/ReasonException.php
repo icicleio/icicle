@@ -9,8 +9,8 @@ class ReasonException extends RuntimeException
     private $reason;
     
     /**
-     * @param   mixed $reason
-     * @param   string $message
+     * @param mixed $reason
+     * @param string $message
      */
     public function __construct($reason, $message)
     {
@@ -42,7 +42,7 @@ class ReasonException extends RuntimeException
     }
     
     /**
-     * @return  mixed Rejection reason.
+     * @return mixed Rejection reason.
      */
     public function getReason()
     {

@@ -24,8 +24,8 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     private $signals = [];
 
     /**
-     * @param   \Icicle\Loop\LoopInterface $loop
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {
@@ -98,7 +98,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
      * Returns an array of signals to be handled. Exploits the fact that PHP will not notice the signal constants are
      * undefined if the pcntl extension is not installed.
      *
-     * @return  int[]
+     * @return int[]
      */
     protected function getSignalList()
     {
@@ -121,7 +121,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * Creates callback function for handling signals.
      *
-     * @return  callable
+     * @return callable
      */
     protected function createSignalCallback()
     {

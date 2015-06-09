@@ -33,8 +33,8 @@ class TimerManager implements TimerManagerInterface
     private $callback;
     
     /**
-     * @param   EventFactoryInterface $factory
-     * @param   EventBase $base
+     * @param EventFactoryInterface $factory
+     * @param EventBase $base
      */
     public function __construct(EventFactoryInterface $factory, EventBase $base)
     {
@@ -141,7 +141,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @return  callable
+     * @return callable
      */
     protected function createCallback()
     {

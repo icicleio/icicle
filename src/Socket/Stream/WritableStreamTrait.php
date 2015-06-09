@@ -33,19 +33,19 @@ trait WritableStreamTrait
     private $await;
     
     /**
-     * @return  resource Stream socket resource.
+     * @return resource Stream socket resource.
      */
     abstract protected function getResource();
 
     /**
      * Frees resources associated with the stream and closes the stream.
      *
-     * @param   \Exception|null $exception
+     * @param \Exception|null $exception
      */
     abstract protected function free(Exception $exception = null);
 
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      */
     private function init($socket)
     {
@@ -68,7 +68,7 @@ trait WritableStreamTrait
     /**
      * Frees all resources used by the writable stream.
      *
-     * @param   \Exception|null $exception
+     * @param \Exception|null $exception
      */
     private function detach(Exception $exception = null)
     {
@@ -156,15 +156,15 @@ trait WritableStreamTrait
     /**
      * Returns a promise that is fulfilled when the stream is ready to receive data (output buffer is not full).
      *
-     * @param   float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
-     *          if the data cannot be written to the stream. Use null for no timeout.
+     * @param float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
+     *     if the data cannot be written to the stream. Use null for no timeout.
      *
-     * @return  \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\PromiseInterface
      *
      * @resolve int Always resolves with 0.
      *
-     * @reject  \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
-     * @reject  \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      */
     protected function await($timeout = null)
     {
@@ -191,9 +191,9 @@ trait WritableStreamTrait
     }
     
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     private function createAwait($socket)
     {

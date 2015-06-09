@@ -11,7 +11,7 @@ abstract class StreamTest extends TestCase
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
     
     /**
-     * @return  [ReadableStreamInterface, WritableStreamInterface]
+     * @return \Icicle\Stream\StreamInterface[]
      */
     abstract public function createStreams();
     

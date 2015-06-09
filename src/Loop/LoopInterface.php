@@ -6,23 +6,23 @@ interface LoopInterface
     /**
      * Determines if the necessary components for the loop class are available.
      *
-     * @return  bool
+     * @return bool
      */
     public static function enabled();
     
     /**
      * Executes a single tick, processing callbacks and handling any available I/O.
      *
-     * @param   bool $blocking Determines if the tick should block and wait for I/O if no other tasks are scheduled.
+     * @param bool $blocking Determines if the tick should block and wait for I/O if no other tasks are scheduled.
      */
     public function tick($blocking = true);
     
     /**
      * Starts the event loop.
      *
-     * @return  bool True if the loop was stopped, false if the loop exited because no events remained.
+     * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
-     * @throws  \Icicle\Loop\Exception\RunningException If the loop was already running.
+     * @throws \Icicle\Loop\Exception\RunningException If the loop was already running.
      */
     public function run();
     
@@ -34,7 +34,7 @@ interface LoopInterface
     /**
      * Determines if the event loop is running.
      *
-     * @return  bool
+     * @return bool
      */
     public function isRunning();
     
@@ -46,7 +46,7 @@ interface LoopInterface
     /**
      * Determines if there are any pending events in the loop. Returns true if there are no pending events.
      *
-     * @return  bool
+     * @return bool
      */
     public function isEmpty();
     
@@ -58,9 +58,9 @@ interface LoopInterface
     /**
      * Sets the maximum number of callbacks set with schedule() that will be executed per tick.
      *
-     * @param   int|null $depth
+     * @param int|null $depth
      *
-     * @return  int Current max depth if $depth = null or previous max depth otherwise.
+     * @return int Current max depth if $depth = null or previous max depth otherwise.
      */
     public function maxScheduleDepth($depth = null);
     
@@ -68,62 +68,62 @@ interface LoopInterface
      * Define a callback function to be run after all I/O has been handled in the current tick.
      * Callbacks are called in the order defined.
      *
-     * @param   callable $callback
-     * @param   mixed[]|null $args Array of arguments to be passed to the callback function.
+     * @param callable $callback
+     * @param mixed[]|null $args Array of arguments to be passed to the callback function.
      */
     public function schedule(callable $callback, array $args = null);
     
     /**
      * Creates an event object that can be used to listen for available data on the stream socket.
      *
-     * @param   resource $resource
-     * @param   callable $callback
+     * @param resource $resource
+     * @param callable $callback
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      *
-     * @throws  \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
+     * @throws \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
      */
     public function poll($resource, callable $callback);
     
     /**
      * Creates an event object that can be used to wait for the socket resource to be available for writing.
      *
-     * @param   resource $resource
-     * @param   callable $callback
+     * @param resource $resource
+     * @param callable $callback
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      *
-     * @throws  \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
+     * @throws \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
      */
     public function await($resource, callable $callback);
     
     /**
      * Creates a timer object connected to the loop.
      *
-     * @param   int|float $interval
-     * @param   bool $periodic
-     * @param   callable $callback
-     * @param   mixed[]|null $args
+     * @param int|float $interval
+     * @param bool $periodic
+     * @param callable $callback
+     * @param mixed[]|null $args
      *
-     * @return  \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\TimerInterface
      */
     public function timer($interval, $periodic, callable $callback, array $args = null);
     
     /**
      * Creates an immediate object connected to the loop.
      *
-     * @param   callable $callback
-     * @param   mixed[]|null $args
+     * @param callable $callback
+     * @param mixed[]|null $args
      *
-     * @return  \Icicle\Loop\Events\ImmediateInterface
+     * @return \Icicle\Loop\Events\ImmediateInterface
      */
     public function immediate(callable $callback, array $args = null);
 
     /**
-     * @param   int $signo
-     * @param   callable $callback
+     * @param int $signo
+     * @param callable $callback
      *
-     * @return  \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\SignalInterface
      */
     public function signal($signo, callable $callback);
 

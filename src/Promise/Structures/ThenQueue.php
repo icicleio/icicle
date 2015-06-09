@@ -18,7 +18,7 @@ class ThenQueue
     /**
      * Calls each callback in the queue, passing the provided value to the function.
      *
-     * @param   mixed $value
+     * @param mixed $value
      */
     public function __invoke($value)
     {
@@ -31,7 +31,7 @@ class ThenQueue
     /**
      * Unrolls instances of self to avoid blowing up the call stack on resolution.
      *
-     * @param   callable $resolver
+     * @param callable $resolver
      */
     public function push(callable $resolver)
     {

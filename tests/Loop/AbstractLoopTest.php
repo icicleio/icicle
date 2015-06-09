@@ -36,9 +36,9 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * Creates the loop implementation to test.
      *
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $eventFactory
+     * @param \Icicle\Loop\Events\EventFactoryInterface $eventFactory
      *
-     * @return  LoopInterface
+     * @return LoopInterface
      */
     abstract public function createLoop(EventFactoryInterface $eventFactory);
 

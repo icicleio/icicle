@@ -8,12 +8,12 @@ namespace Icicle\Loop\Structures;
 class CallableQueue implements \Countable
 {
     /**
-     * @var     \SplQueue
+     * @var \SplQueue
      */
     private $queue;
     
     /**
-     * @var     int
+     * @var int
      */
     private $maxDepth = 0;
     
@@ -30,8 +30,8 @@ class CallableQueue implements \Countable
     }
     
     /**
-     * @param   callable $callback
-     * @param   mixed[]|null $args
+     * @param callable $callback
+     * @param mixed[]|null $args
      */
     public function insert(callable $callback, array $args = null)
     {
@@ -47,7 +47,7 @@ class CallableQueue implements \Countable
     /**
      * Number of callbacks in the queue.
      *
-     * @return  int
+     * @return int
      */
     public function count()
     {
@@ -57,7 +57,7 @@ class CallableQueue implements \Countable
     /**
      * Determines if the queue is empty.
      *
-     * @return  bool
+     * @return bool
      */
     public function isEmpty()
     {
@@ -75,9 +75,9 @@ class CallableQueue implements \Countable
     /**
      * Sets the maximum number of functions that can be called when the queue is called.
      *
-     * @param   int|null $depth
+     * @param int|null $depth
      *
-     * @return  int Current max depth if $depth = null or previous max depth otherwise.
+     * @return int Current max depth if $depth = null or previous max depth otherwise.
      */
     public function maxDepth($depth = null)
     {
@@ -94,7 +94,7 @@ class CallableQueue implements \Countable
     /**
      * Executes each callback that was in the queue when this method is called up to the maximum depth.
      * 
-     * @return  int Number of functions called.
+     * @return int Number of functions called.
      */
     public function call()
     {

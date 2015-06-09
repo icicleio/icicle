@@ -4,7 +4,7 @@ namespace Icicle\Loop\Events;
 interface ImmediateInterface
 {
     /**
-     * @return  bool
+     * @return bool
      */
     public function isPending();
 

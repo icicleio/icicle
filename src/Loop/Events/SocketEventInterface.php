@@ -6,25 +6,25 @@ interface SocketEventInterface
     /**
      * Returns the PHP resource.
      *
-     * @return  resource
+     * @return resource
      */
     public function getResource();
     
     /**
-     * @param   bool $expired
+     * @param bool $expired
      */
     public function call($expired);
     
     /**
-     * @param   bool $expired
+     * @param bool $expired
      */
     public function __invoke($expired);
 
     /**
      * Listens for data or the ability to write.
      *
-     * @param   int|float|null $timeout Number of seconds until the callback is invoked with $expired set to true if
-     *          no data is received or the socket does not become writable. Use null for no timeout.
+     * @param int|float|null $timeout Number of seconds until the callback is invoked with $expired set to true if
+     *     no data is received or the socket does not become writable. Use null for no timeout.
      */
     public function listen($timeout = null);
 
@@ -36,7 +36,7 @@ interface SocketEventInterface
     /**
      * Determines if the socket event is currently listening for data or the ability to write.
      *
-     * @return  bool
+     * @return bool
      */
     public function isPending();
     
@@ -46,7 +46,7 @@ interface SocketEventInterface
     public function free();
     
     /**
-     * @return  bool
+     * @return bool
      */
     public function isFreed();
 }

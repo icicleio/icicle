@@ -38,7 +38,7 @@ class Server extends Socket implements ServerInterface
     private $poll;
     
     /**
-     * @param   resource $socket
+     * @param resource $socket
      */
     public function __construct($socket)
     {
@@ -64,7 +64,7 @@ class Server extends Socket implements ServerInterface
     /**
      * Frees resources associated with the server and closes the server.
      *
-     * @param   Exception $exception Reason for closing the server.
+     * @param Exception $exception Reason for closing the server.
      */
     protected function free(Exception $exception = null)
     {
@@ -125,9 +125,9 @@ class Server extends Socket implements ServerInterface
     }
 
     /**
-     * @param   resource $socket Stream socket resource.
+     * @param resource $socket Stream socket resource.
      *
-     * @return  \Icicle\Socket\Client\ClientInterface
+     * @return \Icicle\Socket\Client\ClientInterface
      */
     protected function createClient($socket)
     {
@@ -135,9 +135,9 @@ class Server extends Socket implements ServerInterface
     }
 
     /**
-     * @param   resource $socket Stream socket server resource.
+     * @param resource $socket Stream socket server resource.
      *
-     * @return  \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEventInterface
      */
     private function createPoll($socket)
     {

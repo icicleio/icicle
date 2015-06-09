@@ -47,17 +47,17 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * Creates an event resource on the given event base for the SocketEventInterface.
      *
-     * @param   resource $base Event base resource.
-     * @param   \Icicle\Loop\Events\SocketEventInterface $event
-     * @param   callable $callback
+     * @param resource $base Event base resource.
+     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param callable $callback
      *
-     * @return  resource Event resource.
+     * @return resource Event resource.
      */
     abstract protected function createEvent($base, SocketEventInterface $event, callable $callback);
     
     /**
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param   resource $base
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param resource $base
      */
     public function __construct(EventFactoryInterface $factory, $base)
     {
@@ -204,7 +204,7 @@ abstract class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @return  callable
+     * @return callable
      */
     protected function createCallback()
     {
