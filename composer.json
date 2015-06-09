@@ -27,8 +27,7 @@
         "php": ">=5.5"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4",
-        "satooshi/php-coveralls": "dev-master"
+        "phpunit/phpunit": "^4.6"
     },
     "suggest": {
         "ext-openssl": "Enables using SSL/TLS on stream sockets.",

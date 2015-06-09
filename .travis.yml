@@ -32,7 +32,8 @@ install:
   - composer install --no-interaction --prefer-source
 
 script:
-  - vendor/bin/phpunit --coverage-text
+  - vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
 
 after_script:
+  - composer require satooshi/php-coveralls dev-master
   - vendor/bin/coveralls -v --exclude-no-stmt
