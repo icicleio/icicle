@@ -34,7 +34,7 @@ class Immediate implements ImmediateInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function call()
     {
@@ -43,7 +43,7 @@ class Immediate implements ImmediateInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __invoke()
     {
@@ -51,7 +51,7 @@ class Immediate implements ImmediateInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending()
     {
@@ -59,7 +59,7 @@ class Immediate implements ImmediateInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute()
     {
@@ -67,7 +67,7 @@ class Immediate implements ImmediateInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel()
     {

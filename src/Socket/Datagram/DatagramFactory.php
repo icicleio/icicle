@@ -9,7 +9,7 @@ class DatagramFactory implements DatagramFactoryInterface
     use ParserTrait;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create($host, $port, array $options = null)
     {

@@ -57,7 +57,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isEmpty()
     {
@@ -65,7 +65,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create($interval, $periodic, callable $callback, array $args = null)
     {
@@ -77,7 +77,7 @@ class TimerManager implements TimerManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function start(TimerInterface $timer)
     {
@@ -94,7 +94,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function stop(TimerInterface $timer)
     {
@@ -105,7 +105,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending(TimerInterface $timer)
     {
@@ -113,7 +113,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function unreference(TimerInterface $timer)
     {
@@ -121,7 +121,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function reference(TimerInterface $timer)
     {
@@ -129,7 +129,7 @@ class TimerManager implements TimerManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clear()
     {

@@ -54,7 +54,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function close()
     {
@@ -86,7 +86,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function accept()
     {
@@ -109,7 +109,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getAddress()
     {
@@ -117,7 +117,7 @@ class Server extends Socket implements ServerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getPort()
     {

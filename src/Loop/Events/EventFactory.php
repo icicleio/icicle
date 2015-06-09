@@ -12,7 +12,7 @@ use Icicle\Loop\Events\Manager\TimerManagerInterface;
 class EventFactory implements EventFactoryInterface
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function socket(SocketManagerInterface $manager, $resource, callable $callback)
     {
@@ -20,7 +20,7 @@ class EventFactory implements EventFactoryInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function timer(
         TimerManagerInterface$manager,
@@ -33,7 +33,7 @@ class EventFactory implements EventFactoryInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
@@ -41,7 +41,7 @@ class EventFactory implements EventFactoryInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function signal(SignalManagerInterface $manager, $signo, callable $callback)
     {

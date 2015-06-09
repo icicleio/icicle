@@ -38,7 +38,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create($signo, callable $callback, array $args = null)
     {
@@ -63,7 +63,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function disable(SignalInterface $signal)
     {
@@ -75,7 +75,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isEnabled(SignalInterface $signal)
     {
@@ -85,7 +85,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clear()
     {

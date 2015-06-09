@@ -78,7 +78,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function close(Exception $exception = null)
     {
@@ -127,7 +127,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getAddress()
     {
@@ -135,7 +135,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getPort()
     {
@@ -143,7 +143,7 @@ class Datagram extends Socket implements DatagramInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function receive($length = null, $timeout = null)
     {
@@ -171,7 +171,7 @@ class Datagram extends Socket implements DatagramInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function send($address, $port, $data)
     {

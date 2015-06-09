@@ -59,7 +59,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function dispatch($blocking)
     {
@@ -81,7 +81,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
@@ -89,7 +89,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
@@ -97,7 +97,7 @@ class EventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createTimerManager(EventFactoryInterface $factory)
     {
@@ -105,7 +105,7 @@ class EventLoop extends AbstractLoop
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {

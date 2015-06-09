@@ -48,7 +48,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function enableCrypto($method, $timeout = null)
     {
@@ -87,7 +87,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getRemoteAddress()
     {
@@ -95,7 +95,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getRemotePort()
     {
@@ -103,7 +103,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLocalAddress()
     {
@@ -111,7 +111,7 @@ class Client extends DuplexStream implements ClientInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLocalPort()
     {

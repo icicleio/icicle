@@ -75,7 +75,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isOpen()
     {
@@ -83,7 +83,7 @@ class Stream implements DuplexStreamInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function close()
     {
@@ -125,7 +125,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function read($length = null, $byte = null)
     {
@@ -188,7 +188,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isReadable()
     {
@@ -196,7 +196,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function write($data)
     {
@@ -204,7 +204,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function end($data = null)
     {
@@ -250,7 +250,7 @@ class Stream implements DuplexStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isWritable()
     {

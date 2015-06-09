@@ -14,7 +14,7 @@ trait PromiseTrait
     abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function capture(callable $onRejected)
     {
@@ -44,7 +44,7 @@ trait PromiseTrait
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function tap(callable $onFulfilled) {
         return $this->then(function ($value) use ($onFulfilled) {
@@ -55,7 +55,7 @@ trait PromiseTrait
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cleanup(callable $onResolved)
     {
@@ -69,7 +69,7 @@ trait PromiseTrait
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function splat(callable $onFulfilled)
     {

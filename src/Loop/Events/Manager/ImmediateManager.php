@@ -32,7 +32,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create(callable $callback, array $args = null)
     {
@@ -44,7 +44,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending(ImmediateInterface $immediate)
     {
@@ -52,7 +52,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute(ImmediateInterface $immediate)
     {
@@ -63,7 +63,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel(ImmediateInterface $immediate)
     {
@@ -80,7 +80,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isEmpty()
     {
@@ -88,7 +88,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clear()
     {
@@ -97,7 +97,7 @@ class ImmediateManager implements ImmediateManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function tick()
     {

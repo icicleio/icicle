@@ -47,7 +47,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -55,7 +55,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -63,7 +63,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel($reason = null)
     {
@@ -71,7 +71,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function timeout($timeout, $reason = null)
     {
@@ -79,7 +79,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function delay($time)
     {
@@ -87,7 +87,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending()
     {
@@ -95,7 +95,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isFulfilled()
     {
@@ -103,7 +103,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRejected()
     {
@@ -111,7 +111,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getResult()
     {
@@ -119,7 +119,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function unwrap()
     {

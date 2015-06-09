@@ -26,7 +26,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -46,7 +46,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
@@ -60,7 +60,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function delay($time)
     {
@@ -68,7 +68,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isFulfilled()
     {
@@ -76,7 +76,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRejected()
     {
@@ -84,7 +84,7 @@ class RejectedPromise extends ResolvedPromise
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getResult()
     {

@@ -41,7 +41,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function call($expired)
     {
@@ -50,7 +50,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __invoke($expired)
     {
@@ -58,7 +58,7 @@ class SocketEvent implements SocketEventInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function listen($timeout = null)
     {
@@ -66,7 +66,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending()
     {
@@ -74,7 +74,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isFreed()
     {
@@ -82,7 +82,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel()
     {
@@ -90,7 +90,7 @@ class SocketEvent implements SocketEventInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function free()
     {

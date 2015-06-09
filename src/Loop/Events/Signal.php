@@ -33,7 +33,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function call()
     {
@@ -42,7 +42,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __invoke()
     {
@@ -50,7 +50,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function enable()
     {
@@ -58,7 +58,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function disable()
     {
@@ -66,7 +66,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isEnabled()
     {
@@ -74,7 +74,7 @@ class Signal implements SignalInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getSignal()
     {

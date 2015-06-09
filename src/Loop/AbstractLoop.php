@@ -191,7 +191,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function tick($blocking = true)
     {
@@ -206,7 +206,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function run()
     {
@@ -233,7 +233,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isRunning()
     {
@@ -241,7 +241,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function stop()
     {
@@ -249,7 +249,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function schedule(callable $callback, array $args = null)
     {
@@ -257,7 +257,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function maxScheduleDepth($depth = null)
     {
@@ -265,7 +265,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function poll($resource, callable $callback)
     {
@@ -273,7 +273,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function await($resource, callable $callback)
     {
@@ -281,7 +281,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function timer($interval, $periodic, callable $callback, array $args = null)
     {
@@ -289,7 +289,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function immediate(callable $callback, array $args = null)
     {
@@ -297,7 +297,7 @@ abstract class AbstractLoop implements LoopInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function signal($signo, callable $callback)
     {
@@ -320,7 +320,7 @@ abstract class AbstractLoop implements LoopInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clear()
     {

@@ -30,7 +30,7 @@ class Deferred implements PromisorInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getPromise()
     {

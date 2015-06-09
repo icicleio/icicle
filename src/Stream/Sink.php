@@ -50,7 +50,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isOpen()
     {
@@ -58,7 +58,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function close()
     {
@@ -67,7 +67,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isReadable()
     {
@@ -75,7 +75,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function read($length = null, $byte = null)
     {
@@ -120,7 +120,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isWritable()
     {
@@ -128,7 +128,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function write($data)
     {
@@ -136,7 +136,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function end($data = null)
     {
@@ -173,7 +173,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function seek($offset, $whence = SEEK_SET)
     {
@@ -211,7 +211,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function tell()
     {
@@ -219,7 +219,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getLength()
     {

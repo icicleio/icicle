@@ -64,7 +64,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function reInit()
     {
@@ -72,7 +72,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function dispatch($blocking)
     {
@@ -86,7 +86,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
@@ -94,7 +94,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
@@ -102,7 +102,7 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createTimerManager(EventFactoryInterface $factory)
     {
@@ -110,7 +110,7 @@ class LibeventLoop extends AbstractLoop
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {

@@ -18,7 +18,7 @@ class Connector implements ConnectorInterface
     const DEFAULT_PROTOCOL = 'tcp';
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function connect($host, $port, array $options = null)
     {

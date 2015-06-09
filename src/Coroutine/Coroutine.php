@@ -141,7 +141,7 @@ class Coroutine extends Promise implements CoroutineInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function pause()
     {
@@ -149,7 +149,7 @@ class Coroutine extends Promise implements CoroutineInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resume()
     {
@@ -169,7 +169,7 @@ class Coroutine extends Promise implements CoroutineInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPaused()
     {

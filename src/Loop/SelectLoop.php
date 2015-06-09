@@ -27,12 +27,12 @@ class SelectLoop extends AbstractLoop
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function reInit() { /* Nothing to be done after fork. */ }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function dispatch($blocking)
     {
@@ -87,7 +87,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
@@ -95,7 +95,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
@@ -103,7 +103,7 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createTimerManager(EventFactoryInterface $factory)
     {
@@ -111,7 +111,7 @@ class SelectLoop extends AbstractLoop
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {

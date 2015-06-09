@@ -98,7 +98,7 @@ trait ReadableStreamTrait
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function read($length = null, $byte = null, $timeout = null)
     {
@@ -182,7 +182,7 @@ trait ReadableStreamTrait
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isReadable()
     {

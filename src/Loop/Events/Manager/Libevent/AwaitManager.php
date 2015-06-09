@@ -6,7 +6,7 @@ use Icicle\Loop\Events\SocketEventInterface;
 class AwaitManager extends SocketManager
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function createEvent($base, SocketEventInterface $socket, callable $callback)
     {

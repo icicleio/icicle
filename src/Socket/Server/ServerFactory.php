@@ -18,7 +18,7 @@ class ServerFactory implements ServerFactoryInterface
     const DEFAULT_PROTOCOL = 'tcp';
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create($host, $port, array $options = null)
     {

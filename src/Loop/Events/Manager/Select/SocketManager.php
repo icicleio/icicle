@@ -55,7 +55,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function create($resource, callable $callback)
     {
@@ -69,7 +69,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function listen(SocketEventInterface $socket, $timeout = null)
     {
@@ -93,7 +93,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel(SocketEventInterface $socket)
     {
@@ -109,7 +109,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending(SocketEventInterface $socket)
     {
@@ -119,7 +119,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function free(SocketEventInterface $socket)
     {
@@ -137,7 +137,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isFreed(SocketEventInterface $socket)
     {
@@ -177,7 +177,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isEmpty()
     {
@@ -185,7 +185,7 @@ class SocketManager implements SocketManagerInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function clear()
     {

@@ -9,12 +9,12 @@ abstract class ResolvedPromise implements PromiseInterface
     use PromiseTrait;
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function cancel($reason = null) {}
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function isPending()
     {
@@ -22,7 +22,7 @@ abstract class ResolvedPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function timeout($timeout, $reason = null)
     {
@@ -30,7 +30,7 @@ abstract class ResolvedPromise implements PromiseInterface
     }
     
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function unwrap()
     {
