@@ -24,7 +24,7 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 - [HTTP](https://github.com/icicleio/Http): Asynchronous HTTP server and client (under development).
 - [DNS](https://github.com/icicleio/Dns): Asynchronous DNS resolver and connector.
-- [React Adaptor](https://github.com/icicleio/ReactAdaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
+- [React Adapter](https://github.com/icicleio/ReactAdapter): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
 ##### Requirements
 
@@ -46,7 +46,7 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 // composer.json
 {
     "require": {
-        "icicleio/icicle": "0.5.*"
+        "icicleio/icicle": "^0.5"
     }
 }
 ```
@@ -87,6 +87,8 @@ Loop\run();
 ```
 
 ## Promises
+
+**[Promise API documentation](https://github.com/icicleio/Icicle/wiki/Promises)**
 
 Icicle implements promises based on the [Promises/A+](http://promisesaplus.com) specification, adding support for cancellation.
 
@@ -149,9 +151,9 @@ The example above uses the [DNS component](https://github.com/icicleio/Dns) to r
 - Support for promise cancellation.
 - Methods to convert synchronous functions or callback-based functions into functions accepting and returning promises.
 
-**[Promise API documentation](https://github.com/icicleio/Icicle/wiki/Promises)**
-
 ## Coroutines
+
+**[Coroutine API documentation](https://github.com/icicleio/Icicle/wiki/Coroutines)**
 
 Coroutines are interruptible functions implemented using [Generators](http://www.php.net/manual/en/language.generators.overview.php). A `Generator` usually uses the `yield` keyword to yield a value from a set to implement an iterator. Coroutines use the `yield` keyword to define interruption points. When a coroutine yields a value, execution of the coroutine is temporarily interrupted, allowing other tasks to be run, such as I/O, timers, or other coroutines.
 
@@ -195,9 +197,9 @@ The example above does the same thing as the example in the section on [promises
 
 An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implementing `Icicle\Promise\PromiseInterface`. The promise is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded promise) or rejected if an exception is thrown from the generator. **A coroutine may then yield other coroutines, suspending execution of the calling coroutine until the yielded coroutine has completed execution.** If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded coroutine.
 
-**[Coroutine API documentation](https://github.com/icicleio/Icicle/wiki/Coroutines)**
-
 ## Loop
+
+**[Loop API documentation](https://github.com/icicleio/Icicle/wiki/Loop)**
 
 The event loop schedules functions, runs timers, handles signals, and polls sockets for pending reads and available writes. There are several event loop implementations available depending on what PHP extensions are available. The `Icicle\Loop\SelectLoop` class uses only core PHP functions, so it will work on any PHP installation, but is not as performant as some of the other available implementations. All event loops implement `Icicle\Loop\LoopInterface` and provide the same features.
 
@@ -237,9 +239,9 @@ Fourth.
 Second.
 ```
 
-**[Loop API documentation](https://github.com/icicleio/Icicle/wiki/Loop)**
-
 ## Streams
+
+**[Streams API documentation](https://github.com/icicleio/Icicle/wiki/Streams)**
 
 Streams represent a common promise-based API that may be implemented by classes that read or write sequences of binary data to facilitate interoperability. The stream component defines three interfaces, one of which should be used by all streams.
 
@@ -247,13 +249,13 @@ Streams represent a common promise-based API that may be implemented by classes 
 - `Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
 - `Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
 
-**[Streams API documentation](https://github.com/icicleio/Icicle/wiki/Streams)**
-
 ## Sockets
+
+**[Sockets API documentation](https://github.com/icicleio/Icicle/wiki/Sockets)**
 
 The socket component implements network sockets as promise-based streams, server, and datagram. Creating a server and accepting connections is very simple, requiring only a few lines of code.
 
-The example below implements HTTP server that responds to any request with `Hello world!` implemented using the promise-based server and client provided by the Socket component.
+The example below implements HTTP server that responds to any request with `Hello, world!` implemented using the promise-based server and client provided by the Socket component.
 
 ```php
 use Icicle\Loop;
@@ -324,5 +326,3 @@ $coroutine = new Coroutine($generator($server));
 
 Loop\run();
 ```
-
-**[Sockets API documentation](https://github.com/icicleio/Icicle/wiki/Sockets)**
