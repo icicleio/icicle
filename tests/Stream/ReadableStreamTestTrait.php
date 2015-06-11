@@ -725,32 +725,25 @@ trait ReadableStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         $writable->write(StreamTest::WRITE_STRING);
-        
-        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
-        
-        $mock->method('isWritable')
-             ->will($this->returnValue(true));
-        
-        $mock->expects($this->once())
-             ->method('write')
-             ->will($this->returnCallback(function ($data) {
-                 $this->assertSame(StreamTest::WRITE_STRING, $data);
-                 return Promise\resolve(strlen($data));
-             }));
-        
-        $mock->expects($this->once())
-             ->method('end');
-        
-        $promise = $readable->pipe($mock, true);
-        
+
+        $stream = $this->prophesize('Icicle\Stream\WritableStreamInterface');
+
+        $stream->isWritable()->willReturn(true);
+
+        $stream->write(StreamTest::WRITE_STRING)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
+
+        $stream->end()->shouldBeCalled();
+
+        $promise = $readable->pipe($stream->reveal(), true);
+
         $promise->done($this->createCallback(0), $this->createCallback(1));
-        
+
         Loop\tick();
-        
+
         $this->assertTrue($promise->isPending());
-        
+
         $readable->close();
-        
+
         Loop\run();
     }
 
@@ -797,19 +790,19 @@ trait ReadableStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         $writable->write(StreamTest::WRITE_STRING);
-        
+
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
-        
+
         $mock->method('isWritable')
              ->will($this->returnValue(true));
-        
+
         $mock->expects($this->once())
              ->method('write')
              ->will($this->returnCallback(function ($data) {
                  $this->assertSame(StreamTest::WRITE_STRING, $data);
                  return Promise\resolve(strlen($data));
              }));
-        
+
         $mock->expects($this->never())
              ->method('end');
         
@@ -1142,23 +1135,16 @@ trait ReadableStreamTestTrait
         list($readable, $writable) = $this->createStreams();
         
         $writable->write(StreamTest::WRITE_STRING);
-        
-        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
-        
-        $mock->method('isWritable')
-             ->will($this->returnValue(true));
-        
-        $mock->expects($this->once())
-             ->method('write')
-             ->will($this->returnCallback(function ($data) {
-                 $this->assertSame(StreamTest::WRITE_STRING, $data);
-                 return Promise\resolve(strlen($data));
-             }));
-        
-        $mock->expects($this->once())
-             ->method('end');
-        
-        $promise = $readable->pipe($mock, true, null, '!');
+
+        $stream = $this->prophesize('Icicle\Stream\WritableStreamInterface');
+
+        $stream->isWritable()->willReturn(true);
+
+        $stream->write(StreamTest::WRITE_STRING)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
+
+        $stream->end()->shouldBeCalled();
+
+        $promise = $readable->pipe($stream->reveal(), true, null, '!');
         
         $promise->done($this->createCallback(0), $this->createCallback(1));
         

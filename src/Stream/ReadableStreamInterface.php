@@ -38,7 +38,7 @@ interface ReadableStreamInterface extends StreamInterface
      * @param string|int $byte Piping will stop once the given byte occurs in the stream. The search character will
      *     be piped to the writable stream string. Use null to effectively ignore this parameter and pipe all bytes.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Coroutine\CoroutineInterface
      *
      * @resolve int Resolves when the writable stream closes or once $length bytes (if $length was not null) have been
      *     piped to the stream.

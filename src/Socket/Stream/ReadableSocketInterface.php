@@ -39,7 +39,7 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * @param float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
      *     if no data is received. Use null for no timeout.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Coroutine\CoroutineInterface
      *
      * @resolve int Resolves when the writable stream closes or once $length bytes (if $length was not null) have been
      *     piped to the stream.

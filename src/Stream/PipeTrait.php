@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Stream;
 
-use Icicle\Coroutine;
-use Icicle\Promise;
+use Icicle\Coroutine\Coroutine;
 use Icicle\Stream\Exception\UnwritableException;
 
 trait PipeTrait
@@ -48,49 +47,61 @@ trait PipeTrait
      * @param int|null $length
      * @param string|int|null $byte
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Coroutine\CoroutineInterface
      */
     public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = null, $byte = null)
     {
+        return new Coroutine($this->doPipe($stream, $endWhenUnreadable, $length, $byte));
+    }
+
+    /**
+     * @coroutine
+     *
+     * @param \Icicle\Stream\WritableStreamInterface $stream
+     * @param bool $endWhenUnreadable
+     * @param int|null $length
+     * @param string|int|null $byte
+     *
+     * @return \Generator
+     *
+     * @resolve int
+     *
+     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     */
+    private function doPipe(WritableStreamInterface $stream, $endWhenUnreadable, $length, $byte)
+    {
         if (!$stream->isWritable()) {
-            return Promise\reject(new UnwritableException('The stream is not writable.'));
+            throw new UnwritableException('The stream is not writable.');
         }
 
         $length = $this->parseLength($length);
-        if (0 === $length) {
-            return Promise\resolve(0);
-        }
-
         $byte = $this->parseByte($byte);
 
-        $promise = Coroutine\create(function () use ($stream, $length, $byte) {
-            $bytes = 0;
+        $bytes = 0;
 
-            do {
-                $data = (yield $this->read($length, $byte));
+        if (0 !== $length) {
+            try {
+                do {
+                    $data = (yield $this->read($length, $byte));
 
-                $count = strlen($data);
-                $bytes += $count;
+                    $count = strlen($data);
+                    $bytes += $count;
 
-                yield $stream->write($data);
-            } while (
-                $this->isReadable()
-                && $stream->isWritable()
-                && (null === $byte || $data[$count - 1] !== $byte)
-                && (null === $length || 0 < $length -= $count)
-            );
-
-            yield $bytes;
-        });
-
-        if ($endWhenUnreadable) {
-            $promise = $promise->cleanup(function () use ($stream) {
-                if (!$this->isReadable() && $stream->isWritable()) {
+                    yield $stream->write($data);
+                } while ($this->isReadable()
+                    && $stream->isWritable()
+                    && (null === $byte || $data[$count - 1] !== $byte)
+                    && (null === $length || 0 < $length -= $count)
+                );
+            } finally {
+                if ($endWhenUnreadable && !$this->isReadable() && $stream->isWritable()) {
                     $stream->end();
                 }
-            });
+            }
         }
 
-        return $promise;
+        yield $bytes;
     }
 }
