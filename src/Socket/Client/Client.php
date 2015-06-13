@@ -2,6 +2,7 @@
 namespace Icicle\Socket\Client;
 
 use Exception;
+use Icicle\Coroutine\Coroutine;
 use Icicle\Socket\Stream\DuplexStream;
 use Icicle\Socket\Exception\FailureException;
 
@@ -52,30 +53,53 @@ class Client extends DuplexStream implements ClientInterface
      */
     public function enableCrypto($method, $timeout = null)
     {
+        return new Coroutine($this->doEnableCrypto($method, $timeout));
+    }
+
+    /**
+     * @coroutine
+     *
+     * @param int $method
+     * @param float|null $timeout
+     *
+     * @return \Generator
+     *
+     * @resolve $this
+     *
+     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
+     * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.
+     * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
+     */
+    private function doEnableCrypto($method, $timeout)
+    {
         $method = (int) $method;
-        
-        $enable = function () use (&$enable, $method, $timeout) {
-            // Error report suppressed since stream_socket_enable_crypto() emits an E_WARNING on failure (checked below).
-            $result = @stream_socket_enable_crypto($this->getResource(), true, $method);
-            
+
+        yield $this->await($timeout);
+
+        $resource = $this->getResource();
+
+        do {
+            // Error reporting suppressed since stream_socket_enable_crypto() emits E_WARNING on failure.
+            $result = @stream_socket_enable_crypto($resource, (bool) $method, $method);
+
             if (false === $result) {
-                $message = 'Failed to enable crypto.';
-                if ($error = error_get_last()) {
-                    $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                }
-                throw new FailureException($message);
+                break;
             }
-            
-            if (0 === $result) {
-                return $this->poll($timeout)->then($enable);
+
+            if ($result) {
+                $this->crypto = $method;
+                yield $this;
+                return;
             }
-            
-            $this->crypto = $method;
-            
-            return $this;
-        };
-        
-        return $this->await($timeout)->then($enable);
+        } while (!(yield $this->poll($timeout)));
+
+        $message = 'Failed to enable crypto.';
+        if ($error = error_get_last()) {
+            $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
+        }
+        throw new FailureException($message);
     }
     
     /**
