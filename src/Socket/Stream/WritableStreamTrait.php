@@ -246,7 +246,7 @@ trait WritableStreamTrait
 
         if (false === $written || (0 === $written && $strict)) {
             $message = 'Failed to write to stream.';
-            if (null !== ($error = error_get_last())) {
+            if ($error = error_get_last()) {
                 $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
             }
             throw new FailureException($message);

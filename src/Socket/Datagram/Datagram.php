@@ -233,7 +233,7 @@ class Datagram extends Socket implements DatagramInterface
                     // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
                     if (false === $data) { // Reading failed, so close datagram.
                         $message = 'Failed to read from datagram.';
-                        if (null !== ($error = error_get_last())) {
+                        if ($error = error_get_last()) {
                             $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                         }
                         throw new FailureException($message);
@@ -314,7 +314,7 @@ class Datagram extends Socket implements DatagramInterface
         // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
         if (false === $written || -1 === $written) {
             $message = 'Failed to write to datagram.';
-            if (null !== ($error = error_get_last())) {
+            if ($error = error_get_last()) {
                 $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
             }
             throw new FailureException($message);

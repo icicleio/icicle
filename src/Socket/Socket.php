@@ -90,7 +90,7 @@ abstract class Socket implements SocketInterface
 
         if (false === $name) {
             $message = 'Could not get socket name.';
-            if (null !== ($error = error_get_last())) {
+            if ($error = error_get_last()) {
                 $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
             }
             throw new FailureException($message);

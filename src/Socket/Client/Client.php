@@ -60,7 +60,7 @@ class Client extends DuplexStream implements ClientInterface
             
             if (false === $result) {
                 $message = 'Failed to enable crypto.';
-                if (null !== ($error = error_get_last())) {
+                if ($error = error_get_last()) {
                     $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                 }
                 throw new FailureException($message);
