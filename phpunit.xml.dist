@@ -30,11 +30,9 @@
         </testsuite>
     </testsuites>
     <filter>
-        <!-- Using a blacklist since oddly a whitelist causes tests and vendor to be included in coverage -->
-        <blacklist>
-            <directory suffix=".php">tests</directory>
-            <directory suffix=".php">vendor</directory>
-        </blacklist>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+        </whitelist>
     </filter>
     <logging>
         <log type="coverage-html" target="build/coverage" title="Icicle" highlight="true"/>
