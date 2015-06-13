@@ -110,7 +110,7 @@ trait WritableStreamTrait
             }
 
             try {
-                $written = $this->send($this->getResource(), $data);
+                $written = $this->send($this->getResource(), $data, false);
             } catch (Exception $exception) {
                 $this->free($exception);
                 return Promise\reject($exception);
@@ -197,11 +197,6 @@ trait WritableStreamTrait
                 return;
             }
 
-            if (feof($resource)) {
-                $this->close();
-                return;
-            }
-
             /**
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred
@@ -212,7 +207,7 @@ trait WritableStreamTrait
                 $deferred->resolve($previous);
             } else {
                 try {
-                    $written = $this->send($resource, $data);
+                    $written = $this->send($resource, $data, true);
                 } catch (Exception $exception) {
                     $deferred->reject($exception);
                     $this->free($exception);
@@ -238,17 +233,18 @@ trait WritableStreamTrait
     /**
      * @param resource $resource
      * @param Buffer $data
+     * @param bool $strict If true, fail if no bytes are written.
      *
      * @return int Number of bytes written.
      *
      * @throws FailureException If writing fails.
      */
-    private function send($resource, Buffer $data)
+    private function send($resource, Buffer $data, $strict = false)
     {
-        // Error reporting suppressed since fwrite() emits E_WARNING if the stream buffer is full.
+        // Error reporting suppressed since fwrite() emits E_WARNING if the pipe is broken or the buffer is full.
         $written = @fwrite($resource, $data, SocketInterface::CHUNK_SIZE);
 
-        if (false === $written) {
+        if (false === $written || (0 === $written && $strict)) {
             $message = 'Failed to write to stream.';
             if (null !== ($error = error_get_last())) {
                 $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
