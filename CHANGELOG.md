@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.5.2
+
+- Changes
+    - `ReadableStreamInterface::pipe()` implementations now use coroutines instead of `Promise\iterate()`, significantly improving performance. The `Coroutine` instance is returned from `pipe()`, so piping may be paused if desired.
+
+---
+
 ### v0.5.1
 
 - Bug Fixes
