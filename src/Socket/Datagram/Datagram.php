@@ -145,7 +145,7 @@ class Datagram extends Socket implements DatagramInterface
     /**
      * {@inheritdoc}
      */
-    public function receive($length = null, $timeout = null)
+    public function receive($length = 0, $timeout = 0)
     {
         if (null !== $this->deferred) {
             return Promise\reject(new BusyException('Already waiting on datagram.'));
@@ -156,7 +156,7 @@ class Datagram extends Socket implements DatagramInterface
         }
 
         $this->length = $this->parseLength($length);
-        if (null === $this->length) {
+        if (0 === $this->length) {
             $this->length = self::CHUNK_SIZE;
         }
 
@@ -225,24 +225,20 @@ class Datagram extends Socket implements DatagramInterface
                     throw new TimeoutException('The datagram timed out.');
                 }
 
-                if (0 === $this->length) {
-                    $result = [null, null, ''];
-                } else {
-                    $data = stream_socket_recvfrom($resource, $this->length, 0, $peer);
+                $data = stream_socket_recvfrom($resource, $this->length, 0, $peer);
 
-                    // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-                    if (false === $data) { // Reading failed, so close datagram.
-                        $message = 'Failed to read from datagram.';
-                        if ($error = error_get_last()) {
-                            $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
-                        }
-                        throw new FailureException($message);
+                // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
+                if (false === $data) { // Reading failed, so close datagram.
+                    $message = 'Failed to read from datagram.';
+                    if ($error = error_get_last()) {
+                        $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
                     }
-
-                    list($address, $port) = $this->parseName($peer);
-
-                    $result = [$address, $port, $data];
+                    throw new FailureException($message);
                 }
+
+                list($address, $port) = $this->parseName($peer);
+
+                $result = [$address, $port, $data];
 
                 $this->deferred->resolve($result);
             } catch (Exception $exception) {

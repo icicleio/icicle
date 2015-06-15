@@ -23,10 +23,10 @@ interface SocketEventInterface
     /**
      * Listens for data or the ability to write.
      *
-     * @param int|float|null $timeout Number of seconds until the callback is invoked with $expired set to true if
+     * @param int|float $timeout Number of seconds until the callback is invoked with $expired set to true if
      *     no data is received or the socket does not become writable. Use null for no timeout.
      */
-    public function listen($timeout = null);
+    public function listen($timeout = 0);
 
     /**
      * Stops listening for data or the ability to write on the socket.

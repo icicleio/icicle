@@ -100,7 +100,7 @@ trait ReadableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function read($length = null, $byte = null, $timeout = null)
+    public function read($length = 0, $byte = null, $timeout = 0)
     {
         if (null !== $this->deferred) {
             return Promise\reject(new BusyException('Already waiting on stream.'));
@@ -112,12 +112,8 @@ trait ReadableStreamTrait
 
         $this->length = $this->parseLength($length);
 
-        if (null === $this->length) {
-            $this->length = SocketInterface::CHUNK_SIZE;
-        }
-
         if (0 === $this->length) {
-            return Promise\resolve('');
+            $this->length = SocketInterface::CHUNK_SIZE;
         }
 
         $this->byte = $this->parseByte($byte);
@@ -159,7 +155,7 @@ trait ReadableStreamTrait
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
-    protected function poll($timeout = null)
+    protected function poll($timeout = 0)
     {
         if (null !== $this->deferred) {
             return Promise\reject(new BusyException('Already waiting on stream.'));

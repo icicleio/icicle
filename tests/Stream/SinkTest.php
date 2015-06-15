@@ -161,14 +161,14 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo(''));
+            ->with($this->identicalTo(StreamTest::WRITE_STRING));
 
         $promise->done($callback, $this->createCallback(0));
 
         Loop\run();
 
-        $this->assertTrue($sink->isReadable());
-        $this->assertSame(0, $sink->tell());
+        $this->assertFalse($sink->isReadable());
+        $this->assertSame(strlen(StreamTest::WRITE_STRING), $sink->tell());
     }
 
     /**
@@ -188,14 +188,14 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo(''));
+            ->with($this->identicalTo(StreamTest::WRITE_STRING));
 
         $promise->done($callback, $this->createCallback(0));
 
         Loop\run();
 
-        $this->assertTrue($sink->isReadable());
-        $this->assertSame(0, $sink->tell());
+        $this->assertFalse($sink->isReadable());
+        $this->assertSame(strlen(StreamTest::WRITE_STRING), $sink->tell());
     }
 
     /**

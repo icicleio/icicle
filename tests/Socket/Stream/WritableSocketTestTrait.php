@@ -6,6 +6,11 @@ use Icicle\Loop;
 trait WritableSocketTestTrait
 {
     /**
+     * @return \Icicle\Stream\ReadableStreamInterface[]|\Icicle\Stream\WritableStreamInterface[]
+     */
+    abstract public function createStreams();
+
+    /**
      * @depends testWrite
      */
     public function testWriteFailure()

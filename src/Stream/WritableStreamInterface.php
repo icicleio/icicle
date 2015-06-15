@@ -21,7 +21,7 @@ interface WritableStreamInterface extends StreamInterface
     /**
      * Queues the data to be sent on the stream and closes the stream once the data has been written.
      *
-     * @param string|null $data
+     * @param string $data
      *
      * @return \Icicle\Promise\PromiseInterface
      *
@@ -30,7 +30,7 @@ interface WritableStreamInterface extends StreamInterface
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      */
-    public function end($data = null);
+    public function end($data = '');
     
     /**
      * Determines if the stream is still writable.

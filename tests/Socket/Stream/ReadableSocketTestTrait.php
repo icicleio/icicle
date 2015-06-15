@@ -1,11 +1,17 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Promise;
 
 trait ReadableSocketTestTrait
 {
+    /**
+     * @return \Icicle\Stream\ReadableStreamInterface[]|\Icicle\Stream\WritableStreamInterface[]
+     */
+    abstract public function createStreams();
+
     /**
      * @depends testRead
      */
@@ -180,7 +186,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, null, null, StreamTest::TIMEOUT);
+        $promise = new Coroutine($readable->pipe($mock, false, 0, null, StreamTest::TIMEOUT));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -218,7 +224,9 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, null, StreamTest::TIMEOUT);
+        $promise = new Coroutine(
+            $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, null, StreamTest::TIMEOUT)
+        );
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -255,7 +263,7 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, null, '!', StreamTest::TIMEOUT);
+        $promise = new Coroutine($readable->pipe($mock, false, 0, '!', StreamTest::TIMEOUT));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -293,7 +301,9 @@ trait ReadableSocketTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, '!', StreamTest::TIMEOUT);
+        $promise = new Coroutine(
+            $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, '!', StreamTest::TIMEOUT)
+        );
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

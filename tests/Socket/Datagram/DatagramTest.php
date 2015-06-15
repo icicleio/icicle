@@ -292,9 +292,10 @@ class DatagramTest extends TestCase
         $callback->method('__invoke')
                  ->will($this->returnCallback(function ($data) {
                      list($address, $port, $message) = $data;
-                     $this->assertNull($address);
-                     $this->assertNull($port);
-                     $this->assertEmpty($message);
+                     $this->assertSame(self::HOST_IPv4, $address);
+                     $this->assertInternalType('integer', $port);
+                     $this->assertGreaterThan(0, $port);
+                     $this->assertSame(self::WRITE_STRING, $message);
                  }));
         
         $promise->done($callback, $this->createCallback(0));

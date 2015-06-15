@@ -18,7 +18,7 @@ class StreamTest extends TestCase
      *
      * @return \Icicle\Stream\Stream[] Same stream instance for readable and writable.
      */
-    public function createStreams($hwm = null)
+    public function createStreams($hwm = 0)
     {
         $stream = new Stream($hwm);
         

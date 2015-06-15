@@ -31,10 +31,10 @@ interface SeekableStreamInterface extends StreamInterface
     public function tell();
 
     /**
-     * Returns the total length of the stream if known, otherwise null. Value returned may not reflect a pending write
+     * Returns the total length of the stream if known, otherwise -1. Value returned may not reflect a pending write
      * operation.
      *
-     * @return int|null
+     * @return int
      */
     public function getLength();
 }

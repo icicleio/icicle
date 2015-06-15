@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Tests\Socket\Client;
 
+use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Socket\Client\Client;
 use Icicle\Socket\Client\Connector;
@@ -158,7 +159,7 @@ class ConnectorTest extends TestCase
     {
         $server = $this->createServer();
         
-        $promise = $this->connector->connect(self::HOST_IPv4, self::PORT);
+        $promise = new Coroutine($this->connector->connect(self::HOST_IPv4, self::PORT));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -186,7 +187,7 @@ class ConnectorTest extends TestCase
     {
         $server = $this->createServerIPv6();
         
-        $promise = $this->connector->connect(self::HOST_IPv6, self::PORT);
+        $promise = new Coroutine($this->connector->connect(self::HOST_IPv6, self::PORT));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -214,7 +215,7 @@ class ConnectorTest extends TestCase
     {
         $server = $this->createServerUnix(self::HOST_UNIX);
 
-        $promise = $this->connector->connect(self::HOST_UNIX, null, ['protocol' => 'unix']);
+        $promise = new Coroutine($this->connector->connect(self::HOST_UNIX, null, ['protocol' => 'unix']));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -240,7 +241,7 @@ class ConnectorTest extends TestCase
      */
     public function testConnectFailure()
     {
-        $promise = $this->connector->connect('invalid.host', self::PORT, ['timeout' => 1]);
+        $promise = new Coroutine($this->connector->connect('invalid.host', self::PORT, ['timeout' => 1]));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -257,7 +258,7 @@ class ConnectorTest extends TestCase
      */
     public function testConnectTimeout()
     {
-        $promise = $this->connector->connect('8.8.8.8', 8080, ['timeout' => 1]);
+        $promise = new Coroutine($this->connector->connect('8.8.8.8', 8080, ['timeout' => 1]));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -278,7 +279,7 @@ class ConnectorTest extends TestCase
 
         $server = $this->createServer();
 
-        $promise = $this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]);
+        $promise = new Coroutine($this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -299,7 +300,7 @@ class ConnectorTest extends TestCase
 
         $server = $this->createServer();
 
-        $promise = $this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]);
+        $promise = new Coroutine($this->connector->connect(self::HOST_IPv4, self::PORT, ['cafile' => $path]));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -323,11 +324,11 @@ class ConnectorTest extends TestCase
 
         $server = $this->createSecureServer($path);
 
-        $promise = $this->connector->connect(
+        $promise = new Coroutine($this->connector->connect(
             self::HOST_IPv4,
             self::PORT,
             ['name' => 'localhost', 'cn' => 'localhost', 'allow_self_signed' => true]
-        );
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -339,10 +340,11 @@ class ConnectorTest extends TestCase
             ->tap(function () use ($server) {
                 $socket = stream_socket_accept($server);
                 $socket = new Client($socket);
-                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT);
+                $coroutine = new Coroutine($socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT));
+                $coroutine->done($this->createCallback(1), $this->createCallback(0));
             })
             ->then(function (Client $client) {
-                return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
+                return new Coroutine($client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT));
             })
             ->tap(function (Client $client) {
                 $this->assertTrue($client->isCryptoEnabled());
@@ -370,11 +372,11 @@ class ConnectorTest extends TestCase
 
         $server = $this->createSecureServer($path);
 
-        $promise = $this->connector->connect(
+        $promise = new Coroutine($this->connector->connect(
             self::HOST_IPv4,
             self::PORT,
             ['name' => 'icicle.io', 'cn' => 'icicle.io', 'allow_self_signed' => true]
-        );
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -386,10 +388,11 @@ class ConnectorTest extends TestCase
             ->tap(function () use ($server) {
                 $socket = stream_socket_accept($server);
                 $socket = new Client($socket);
-                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT);
+                $coroutine = new Coroutine($socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT));
+                $coroutine->done($this->createCallback(1), $this->createCallback(0));
             })
             ->then(function (Client $client) {
-                return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
+                return new Coroutine($client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT));
             })
             ->tap(function (Client $client) {
                 $this->assertTrue($client->isCryptoEnabled());
@@ -417,11 +420,11 @@ class ConnectorTest extends TestCase
 
         $server = $this->createSecureServer($path);
 
-        $promise = $this->connector->connect(
+        $promise = new Coroutine($this->connector->connect(
             self::HOST_IPv4,
             self::PORT,
             ['name' => 'localhost', 'cn' => 'localhost', 'allow_self_signed' => false]
-        );
+        ));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -433,10 +436,11 @@ class ConnectorTest extends TestCase
             ->tap(function () use ($server) {
                 $socket = stream_socket_accept($server);
                 $socket = new Client($socket);
-                $socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT);
+                $coroutine = new Coroutine($socket->enableCrypto(STREAM_CRYPTO_METHOD_TLS_SERVER, self::TIMEOUT));
+                $coroutine->done($this->createCallback(0), $this->createCallback(1));
             })
             ->then(function (Client $client) {
-                return $client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT);
+                return new Coroutine($client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT));
             })
             ->tap(function (Client $client) {
                 $this->assertTrue($client->isCryptoEnabled());

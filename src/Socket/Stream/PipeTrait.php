@@ -44,32 +44,13 @@ trait PipeTrait
     /**
      * @see \Icicle\Socket\Stream\ReadableSocketInterface::pipe()
      *
-     * @param \Icicle\Stream\WritableStreamInterface $stream
-     * @param bool $endWhenUnreadable
-     * @param int|null $length
-     * @param string|int|null $byte
-     * @param float|int|null $timeout
-     *
-     * @return \Icicle\Coroutine\CoroutineInterface
-     */
-    public function pipe(
-        WritableStreamInterface $stream,
-        $endWhenUnreadable = true,
-        $length = null,
-        $byte = null,
-        $timeout = null
-    ) {
-        return new Coroutine($this->doPipe($stream, $endWhenUnreadable, $length, $byte, $timeout));
-    }
-
-    /**
      * @coroutine
      *
      * @param \Icicle\Stream\WritableStreamInterface $stream
      * @param bool $endWhenUnreadable
-     * @param int|null $length
+     * @param int $length
      * @param string|int|null $byte
-     * @param float|null $timeout
+     * @param float|int $timeout
      *
      * @return \Generator
      *
@@ -77,11 +58,17 @@ trait PipeTrait
      *
      * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
-    private function doPipe(WritableStreamInterface $stream, $endWhenUnreadable, $length, $byte, $timeout)
-    {
+    public function pipe(
+        WritableStreamInterface $stream,
+        $endWhenUnreadable = true,
+        $length = 0,
+        $byte = null,
+        $timeout = 0
+    ) {
         if (!$stream->isWritable()) {
             throw new UnwritableException('The stream is not writable.');
         }
@@ -91,24 +78,22 @@ trait PipeTrait
 
         $bytes = 0;
 
-        if (0 !== $length) {
-            try {
-                do {
-                    $data = (yield $this->read($length, $byte, $timeout));
+        try {
+            do {
+                $data = (yield $this->read($length, $byte, $timeout));
 
-                    $count = strlen($data);
-                    $bytes += $count;
+                $count = strlen($data);
+                $bytes += $count;
 
-                    yield $stream->write($data);
-                } while ($this->isReadable()
-                    && $stream->isWritable()
-                    && (null === $byte || $data[$count - 1] !== $byte)
-                    && (null === $length || 0 < $length -= $count)
-                );
-            } finally {
-                if ($endWhenUnreadable && !$this->isReadable() && $stream->isWritable()) {
-                    $stream->end();
-                }
+                yield $stream->write($data);
+            } while ($this->isReadable()
+                && $stream->isWritable()
+                && (null === $byte || $data[$count - 1] !== $byte)
+                && (0 === $length || 0 < $length -= $count)
+            );
+        } finally {
+            if ($endWhenUnreadable && !$this->isReadable() && $stream->isWritable()) {
+                $stream->end();
             }
         }
 

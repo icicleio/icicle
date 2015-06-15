@@ -77,7 +77,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function read($length = null, $byte = null)
+    public function read($length = 0, $byte = null)
     {
         if (!$this->isReadable()) {
             return Promise\reject(new UnreadableException('The stream is no longer readable.'));
@@ -86,10 +86,6 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
         $length = $this->parseLength($length);
         $byte = $this->parseByte($byte);
 
-        if (0 === $length) {
-            return Promise\resolve('');
-        }
-
         if (null !== $byte) {
             $data = '';
             $i = 0;
@@ -97,12 +93,12 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
                 $char = $this->iterator->current();
                 $this->iterator->next();
                 $data .= $char;
-            } while ($char !== $byte && (null === $length || ++$i < $length) && $this->iterator->valid());
+            } while ($char !== $byte && (0 === $length || ++$i < $length) && $this->iterator->valid());
 
             return Promise\resolve($data);
         }
 
-        if (null === $length) {
+        if (0 === $length) {
             $length = $this->buffer->getLength();
         }
 
@@ -138,7 +134,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function end($data = null)
+    public function end($data = '')
     {
         return $this->send($data, true);
     }

@@ -93,7 +93,7 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyException('A poll has already been created for that resource.');
+            throw new ResourceBusyException('A socket event has already been created for that resource.');
         }
         
         return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
@@ -102,7 +102,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = null)
+    public function listen(SocketEventInterface $socket, $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -114,7 +114,7 @@ abstract class SocketManager implements SocketManagerInterface
             $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
         }
 
-        if (null === $timeout) {
+        if (0 === $timeout) {
             $this->events[$id]->add();
             return;
         }
@@ -146,7 +146,9 @@ abstract class SocketManager implements SocketManagerInterface
     {
         $id = (int) $socket->getResource();
         
-        return isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id] && $this->events[$id]->pending;
+        return isset($this->sockets[$id], $this->events[$id])
+            && $socket === $this->sockets[$id]
+            && $this->events[$id]->pending;
     }
     
     /**

@@ -14,7 +14,6 @@ trait ParserTrait
             $byte = is_int($byte) ? pack('C', $byte) : (string) $byte;
             $byte = strlen($byte) ? $byte[0] : null;
         }
-
         return $byte;
     }
 
@@ -25,13 +24,10 @@ trait ParserTrait
      */
     protected function parseLength($length)
     {
-        if (null !== $length) {
-            $length = (int) $length;
-            if (0 > $length) {
-                $length = 0;
-            }
+        $length = (int) $length;
+        if (0 <= $length) {
+            return $length;
         }
-
-        return $length;
+        return 0;
     }
 }

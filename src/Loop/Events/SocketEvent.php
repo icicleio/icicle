@@ -60,7 +60,7 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
-    public function listen($timeout = null)
+    public function listen($timeout = 0)
     {
         $this->manager->listen($this, $timeout);
     }

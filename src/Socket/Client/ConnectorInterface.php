@@ -4,6 +4,8 @@ namespace Icicle\Socket\Client;
 interface ConnectorInterface
 {
     /**
+     * @coroutine
+     *
      * @param string|int $host IP address or unix socket path. (Using a domain name will cause a blocking DNS
      *     resolution. Use the DNS component to perform non-blocking DNS resolution.)
      * @param int|null $port Port number or null for unix socket.
@@ -17,7 +19,7 @@ interface ConnectorInterface
      *     @var string cafile Path to bundle of root certificates to verify against.
      * }
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Generator
      *
      * @resolve \Icicle\Socket\Client\ClientInterface Fulfilled once the connection is established.
      *

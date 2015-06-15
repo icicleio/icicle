@@ -7,11 +7,13 @@ use Icicle\Stream\DuplexStreamInterface;
 interface ClientInterface extends SocketInterface, DuplexStreamInterface
 {
     /**
+     * @coroutine
+     *
      * @param int $method One of the server crypto flags, e.g. STREAM_CRYPTO_METHOD_TLS_SERVER for incoming (remote)
      *     clients, STREAM_CRYPTO_METHOD_TLS_CLIENT for outgoing (local) clients.
-     * @param int|float|null $timeout Seconds to wait between reads/writes to enable crypto before failing.
+     * @param int|float $timeout Seconds to wait between reads/writes to enable crypto before failing.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Generator
      *
      * @resolve $this
      *
@@ -19,7 +21,7 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
      * @reject \Icicle\Socket\Exception\ClosedException If the client has been closed.
      * @reject \Icicle\Socket\Exception\BusyException If the client was already busy waiting to read.
      */
-    public function enableCrypto($method, $timeout = null);
+    public function enableCrypto($method, $timeout = 0);
     
     /**
      * Determines if cyrpto has been enabled.

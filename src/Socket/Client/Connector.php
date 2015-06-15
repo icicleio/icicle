@@ -2,7 +2,7 @@
 namespace Icicle\Socket\Client;
 
 use Icicle\Loop;
-use Icicle\Promise;
+use Icicle\Promise\Promise;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\TimeoutException;
@@ -34,30 +34,28 @@ class Connector implements ConnectorInterface
         
         $context = [];
         
-        $context['socket'] = [];
-        $context['socket']['connect'] = $this->makeName($host, $port);
-        
-        $context['ssl'] = [];
-        $context['ssl']['capture_peer_cert'] = true;
-        $context['ssl']['capture_peer_chain'] = true;
-        $context['ssl']['capture_peer_cert_chain'] = true;
-        
-        $context['ssl']['verify_peer'] = true;
-        $context['ssl']['verify_peer_name'] = true;
-        $context['ssl']['allow_self_signed'] = $allowSelfSigned;
-        $context['ssl']['verify_depth'] = $verifyDepth;
+        $context['socket'] = [
+            'connect' => $this->makeName($host, $port),
+        ];
 
-        $context['ssl']['CN_match'] = $cn;
-
-        $context['ssl']['SNI_enabled'] = true;
-        $context['ssl']['SNI_server_name'] = $name;
-        $context['ssl']['peer_name'] = $name;
-
-        $context['ssl']['disable_compression'] = true;
+        $context['ssl'] = [
+            'capture_peer_cert' => true,
+            'capture_peer_chain' => true,
+            'capture_peer_cert_chain' => true,
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+            'allow_self_signed' => $allowSelfSigned,
+            'verify_depth' => $verifyDepth,
+            'CN_match' => $cn,
+            'SNI_enabled' => true,
+            'SNI_server_name' => $name,
+            'peer_name' => $name,
+            'disable_compression' => true,
+        ];
         
         if (null !== $cafile) {
             if (!file_exists($cafile)) {
-                return Promise\reject(new InvalidArgumentException('No file exists at path given for cafile.'));
+                throw new InvalidArgumentException('No file exists at path given for cafile.');
             }
             $context['ssl']['cafile'] = $cafile;
         }
@@ -76,12 +74,12 @@ class Connector implements ConnectorInterface
         );
         
         if (!$socket || $errno) {
-            return Promise\reject(new FailureException(
+            throw new FailureException(
                 sprintf('Could not connect to %s; Errno: %d; %s', $uri, $errno, $errstr)
-            ));
+            );
         }
         
-        return new Promise\Promise(function ($resolve, $reject) use ($socket, $timeout) {
+        yield new Promise(function ($resolve, $reject) use ($socket, $timeout) {
             $await = Loop\await($socket, function ($resource, $expired) use (&$await, $resolve, $reject) {
                 /** @var \Icicle\Loop\Events\SocketEventInterface $await */
                 $await->free();

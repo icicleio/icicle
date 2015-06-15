@@ -51,28 +51,7 @@ class Client extends DuplexStream implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function enableCrypto($method, $timeout = null)
-    {
-        return new Coroutine($this->doEnableCrypto($method, $timeout));
-    }
-
-    /**
-     * @coroutine
-     *
-     * @param int $method
-     * @param float|null $timeout
-     *
-     * @return \Generator
-     *
-     * @resolve $this
-     *
-     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
-     * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
-     * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
-     * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.
-     * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
-     */
-    private function doEnableCrypto($method, $timeout)
+    public function enableCrypto($method, $timeout = 0)
     {
         $method = (int) $method;
 

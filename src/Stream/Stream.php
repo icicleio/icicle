@@ -41,7 +41,7 @@ class Stream implements DuplexStreamInterface
     private $deferred;
     
     /**
-     * @var int|null
+     * @var int
      */
     private $length;
     
@@ -51,7 +51,7 @@ class Stream implements DuplexStreamInterface
     private $byte;
 
     /**
-     * @var int|null
+     * @var int
      */
     private $hwm;
 
@@ -61,15 +61,15 @@ class Stream implements DuplexStreamInterface
     private $deferredQueue;
     
     /**
-     * @param int|null $hwm High water mark. If the internal buffer has more than $hwm bytes, writes to the stream
-     *     will return pending promises until the data is consumed.
+     * @param int $hwm High water mark. If the internal buffer has more than $hwm bytes, writes to the stream will
+     *     return pending promises until the data is consumed.
      */
-    public function __construct($hwm = null)
+    public function __construct($hwm = 0)
     {
         $this->buffer = new Buffer();
         $this->hwm = $this->parseLength($hwm);
 
-        if (null !== $this->hwm) {
+        if (0 !== $this->hwm) {
             $this->deferredQueue = new \SplQueue();
         }
     }
@@ -109,7 +109,7 @@ class Stream implements DuplexStreamInterface
             $this->deferred = null;
         }
 
-        if (null !== $this->hwm) {
+        if (0 !== $this->hwm) {
             if (!$this->deferredQueue->isEmpty()) {
                 if (null === $exception) {
                     $exception = new ClosedException('The stream was unexpectedly closed.');
@@ -127,7 +127,7 @@ class Stream implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function read($length = null, $byte = null)
+    public function read($length = 0, $byte = null)
     {
         if (null !== $this->deferred) {
             return Promise\reject(new BusyException('Already waiting on stream.'));
@@ -143,7 +143,7 @@ class Stream implements DuplexStreamInterface
         if (!$this->buffer->isEmpty()) {
             $data = $this->remove();
 
-            if (null !== $this->hwm && $this->buffer->getLength() <= $this->hwm) {
+            if (0 !== $this->hwm && $this->buffer->getLength() <= $this->hwm) {
                 while (!$this->deferredQueue->isEmpty()) {
                     /** @var \Icicle\Promise\Deferred $deferred */
                     list($length, $deferred) = $this->deferredQueue->shift();
@@ -173,14 +173,14 @@ class Stream implements DuplexStreamInterface
     private function remove()
     {
         if (null !== $this->byte && false !== ($position = $this->buffer->search($this->byte))) {
-            if (null === $this->length || $position < $this->length) {
+            if (0 === $this->length || $position < $this->length) {
                 return $this->buffer->remove($position + 1);
             }
 
             return $this->buffer->remove($this->length);
         }
 
-        if (null === $this->length) {
+        if (0 === $this->length) {
             return $this->buffer->drain();
         }
 
@@ -206,7 +206,7 @@ class Stream implements DuplexStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function end($data = null)
+    public function end($data = '')
     {
         return $this->send($data, true);
     }
@@ -240,7 +240,7 @@ class Stream implements DuplexStreamInterface
             }
         }
 
-        if (null !== $this->hwm && $this->buffer->getLength() > $this->hwm) {
+        if (0 !== $this->hwm && $this->buffer->getLength() > $this->hwm) {
             $deferred = new Deferred();
             $this->deferredQueue->push([strlen($data), $deferred]);
             return $deferred->getPromise();

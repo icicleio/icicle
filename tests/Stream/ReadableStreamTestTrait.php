@@ -2,13 +2,14 @@
 namespace Icicle\Tests\Stream;
 
 use Exception;
+use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Promise;
 
 trait ReadableStreamTestTrait
 {
     /**
-     * @return \Icicle\Stream\Stream[]
+     * @return \Icicle\Stream\ReadableStreamInterface[]|\Icicle\Stream\WritableStreamInterface[]
      */
     abstract public function createStreams();
     
@@ -144,9 +145,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) {
-                     return empty($param);
-                 }));
+                 ->with($this->identicalTo(StreamTest::WRITE_STRING));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -486,9 +485,7 @@ trait ReadableStreamTestTrait
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->callback(function ($param) {
-                     return empty($param);
-                 }));
+                 ->with($this->identicalTo(substr(StreamTest::WRITE_STRING, 0, $offset + 1)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -674,7 +671,7 @@ trait ReadableStreamTestTrait
                  return Promise\resolve(strlen($data));
              }));
         
-        $promise = $readable->pipe($mock);
+        $promise = new Coroutine($readable->pipe($mock));
         $writable->write(StreamTest::WRITE_STRING);
         
         Loop\tick();
@@ -706,7 +703,7 @@ trait ReadableStreamTestTrait
         $mock->method('isWritable')
              ->will($this->returnValue(false));
         
-        $promise = $readable->pipe($mock);
+        $promise = new Coroutine($readable->pipe($mock));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -734,7 +731,7 @@ trait ReadableStreamTestTrait
 
         $stream->end()->shouldBeCalled();
 
-        $promise = $readable->pipe($stream->reveal(), true);
+        $promise = new Coroutine($readable->pipe($stream->reveal(), true));
 
         $promise->done($this->createCallback(0), $this->createCallback(1));
 
@@ -771,7 +768,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
             ->method('end');
 
-        $promise = $readable->pipe($mock, true);
+        $promise = new Coroutine($readable->pipe($mock, true));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -806,7 +803,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false);
+        $promise = new Coroutine($readable->pipe($mock, false));
         
         $promise->done($this->createCallback(0), $this->createCallback(1));
         
@@ -843,7 +840,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
             ->method('end');
 
-        $promise = $readable->pipe($mock, false);
+        $promise = new Coroutine($readable->pipe($mock, false));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -878,7 +875,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock);
+        $promise = new Coroutine($readable->pipe($mock));
         
         $exception = new Exception();
         
@@ -923,7 +920,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, $length);
+        $promise = new Coroutine($readable->pipe($mock, false, $length));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -947,7 +944,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING));
+        $promise = new Coroutine($readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING)));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -976,21 +973,24 @@ trait ReadableStreamTestTrait
         $writable->write(StreamTest::WRITE_STRING);
         
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
-        
+
         $mock->method('isWritable')
-             ->will($this->returnValue(true));
+            ->will($this->returnCallback(function () {
+                static $i = 0;
+                return !$i++;
+            }));
         
-        $mock->expects($this->never())
+        $mock->expects($this->once())
              ->method('write');
         
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, -1);
+        $promise = new Coroutine($readable->pipe($mock, false, -1));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(0));
+                 ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -1021,7 +1021,7 @@ trait ReadableStreamTestTrait
                  return Promise\resolve(strlen($data));
              }));
         
-        $promise = $readable->pipe($mock, true, null, $char);
+        $promise = new Coroutine($readable->pipe($mock, true, 0, $char));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1057,7 +1057,7 @@ trait ReadableStreamTestTrait
                  return Promise\resolve(strlen($data));
              }));
         
-        $promise = $readable->pipe($mock, true, null, $byte);
+        $promise = new Coroutine($readable->pipe($mock, true, 0, $byte));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1080,7 +1080,7 @@ trait ReadableStreamTestTrait
         $mock->method('isWritable')
              ->will($this->returnValue(false));
 
-        $promise = $readable->pipe($mock, true, null, '!');
+        $promise = new Coroutine($readable->pipe($mock, true, 0, '!'));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1116,7 +1116,7 @@ trait ReadableStreamTestTrait
                  return Promise\resolve(strlen($data));
              }));
 
-        $promise = $readable->pipe($mock, true, null, $string);
+        $promise = new Coroutine($readable->pipe($mock, true, 0, $string));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1144,7 +1144,7 @@ trait ReadableStreamTestTrait
 
         $stream->end()->shouldBeCalled();
 
-        $promise = $readable->pipe($stream->reveal(), true, null, '!');
+        $promise = new Coroutine($readable->pipe($stream->reveal(), true, 0, '!'));
         
         $promise->done($this->createCallback(0), $this->createCallback(1));
         
@@ -1181,7 +1181,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->once())
             ->method('end');
 
-        $promise = $readable->pipe($mock, true, null, '!');
+        $promise = new Coroutine($readable->pipe($mock, true, 0, '!'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1216,7 +1216,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, null, '!');
+        $promise = new Coroutine($readable->pipe($mock, false, 0, '!'));
         
         $promise->done($this->createCallback(0), $this->createCallback(1));
         
@@ -1253,7 +1253,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
             ->method('end');
 
-        $promise = $readable->pipe($mock, false, null, '!');
+        $promise = new Coroutine($readable->pipe($mock, false, 0, '!'));
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1292,7 +1292,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, $length, $char);
+        $promise = new Coroutine($readable->pipe($mock, false, $length, $char));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1317,7 +1317,7 @@ trait ReadableStreamTestTrait
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING), $char);
+        $promise = new Coroutine($readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING), $char));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1342,19 +1342,22 @@ trait ReadableStreamTestTrait
         $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
         
         $mock->method('isWritable')
-             ->will($this->returnValue(true));
+            ->will($this->returnCallback(function () {
+                static $i = 0;
+                return !$i++;
+            }));
         
-        $mock->expects($this->never())
+        $mock->expects($this->once())
              ->method('write');
         
         $mock->expects($this->never())
              ->method('end');
         
-        $promise = $readable->pipe($mock, false, -1, '!');
+        $promise = new Coroutine($readable->pipe($mock, false, -1, '!'));
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->identicalTo(0));
+                 ->with($this->identicalTo(strlen(StreamTest::WRITE_STRING)));
         
         $promise->done($callback, $this->createCallback(0));
         

@@ -28,8 +28,8 @@ class WritableStreamTest extends StreamTest
                  ->will($this->returnValue(true));
         
         $readable->method('read')
-            ->will($this->returnCallback(function ($length = null) use ($read) {
-                if (null === $length) {
+            ->will($this->returnCallback(function ($length = 0) use ($read) {
+                if (0 === $length) {
                     $length = 8192;
                 }
                 return Promise\resolve(fread($read, $length));

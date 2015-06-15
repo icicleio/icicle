@@ -17,9 +17,9 @@ interface SocketManagerInterface
     
     /**
      * @param \Icicle\Loop\Events\SocketEventInterface $event
-     * @param float|null $timeout
+     * @param float|int $timeout
      */
-    public function listen(SocketEventInterface $event, $timeout = null);
+    public function listen(SocketEventInterface $event, $timeout = 0);
     
     /**
      * Cancels the given socket operation.

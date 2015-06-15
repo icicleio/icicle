@@ -8,7 +8,7 @@ use Icicle\Stream\WritableStreamInterface;
 interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterface
 {
     /**
-     * @param int|null $length Max number of bytes to read. Fewer bytes may be returned. Use null to read as much data
+     * @param int $length Max number of bytes to read. Fewer bytes may be returned. Use null to read as much data
      *     as possible.
      * @param string|int|null $byte Reading will stop once the given byte occurs in the stream. Note that reading may
      *     stop before the byte is found in the stream. The search byte will be included in the resolving string.
@@ -25,7 +25,7 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
-    public function read($length = null, $byte = null, $timeout = null);
+    public function read($length = 0, $byte = null, $timeout = 0);
 
     /**
      * Pipes data read on this stream into the given writable stream destination.
@@ -33,11 +33,11 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      * @param \Icicle\Stream\WritableStreamInterface $stream
      * @param bool $endWhenUnreadable Set to true to automatically end the writable stream when the readable stream
      *     is no longer readable.
-     * @param int|null $length If not null, only $length bytes will be piped.
-     * @param string|int $byte Piping will stop once the given byte occurs in the stream. The search character will
-     *     be piped to the writable stream string. Use null to effectively ignore this parameter and pipe all bytes.
-     * @param float|int|null $timeout Number of seconds until the returned promise is rejected with a TimeoutException
-     *     if no data is received. Use null for no timeout.
+     * @param int $length If not null, only $length bytes will be piped.
+     * @param string|int|null $byte Piping will stop once the given byte occurs in the stream. The search character will
+     *     be piped to the writable stream string. Use null to ignore this parameter and pipe all bytes.
+     * @param float|int $timeout Number of seconds until the returned promise is rejected with a TimeoutException if no
+     *     data is received. Use 0 for no timeout.
      *
      * @return \Icicle\Coroutine\CoroutineInterface
      *
@@ -46,14 +46,15 @@ interface ReadableSocketInterface extends SocketInterface, ReadableStreamInterfa
      *
      * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
+     * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
      */
     public function pipe(
         WritableStreamInterface $stream,
         $endWhenUnreadable = true,
-        $length = null,
+        $length = 0,
         $byte = null,
-        $timeout = null
+        $timeout = 0
     );
 }

@@ -95,7 +95,7 @@ trait WritableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function write($data, $timeout = null)
+    public function write($data, $timeout = 0)
     {
         if (!$this->isWritable()) {
             return Promise\reject(new UnwritableException('The stream is no longer writable.'));
@@ -136,7 +136,7 @@ trait WritableStreamTrait
     /**
      * {@inheritdoc}
      */
-    public function end($data = null, $timeout = null)
+    public function end($data = '', $timeout = 0)
     {
         $promise = $this->write($data, $timeout);
         
@@ -160,7 +160,7 @@ trait WritableStreamTrait
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      */
-    protected function await($timeout = null)
+    protected function await($timeout = 0)
     {
         if (!$this->isWritable()) {
             return Promise\reject(new UnwritableException('The stream is no longer writable.'));
