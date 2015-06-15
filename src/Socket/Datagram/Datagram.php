@@ -156,7 +156,7 @@ class Datagram extends Socket implements DatagramInterface
         }
 
         $this->length = $this->parseLength($length);
-        if (null === $length) {
+        if (null === $this->length) {
             $this->length = self::CHUNK_SIZE;
         }
 
@@ -189,7 +189,7 @@ class Datagram extends Socket implements DatagramInterface
             }
 
             try {
-                $written = $this->sendTo($this->getResource(), $data, $peer);
+                $written = $this->sendTo($this->getResource(), $data, $peer, false);
             } catch (Exception $exception) {
                 $this->free($exception);
                 return Promise\reject($exception);
@@ -276,7 +276,7 @@ class Datagram extends Socket implements DatagramInterface
                 $deferred->resolve($previous);
             } else {
                 try {
-                    $written = $this->sendTo($resource, $data, $peer);
+                    $written = $this->sendTo($resource, $data, $peer, true);
                 } catch (Exception $exception) {
                     $deferred->reject($exception);
                     $this->free($exception);
@@ -302,17 +302,18 @@ class Datagram extends Socket implements DatagramInterface
      * @param resource $resource
      * @param Buffer $data
      * @param string $peer
+     * @param bool $strict If true, fail if no bytes are written.
      *
      * @return int Number of bytes written.
      *
      * @throws FailureException If sending the data fails.
      */
-    private function sendTo($resource, Buffer $data, $peer)
+    private function sendTo($resource, Buffer $data, $peer, $strict = false)
     {
         $written = stream_socket_sendto($resource, $data->peek(self::CHUNK_SIZE), 0, $peer);
 
         // Having difficulty finding a test to cover this scenario, but the check seems appropriate.
-        if (false === $written || -1 === $written) {
+        if (false === $written || -1 === $written || (0 === $written && $strict)) {
             $message = 'Failed to write to datagram.';
             if ($error = error_get_last()) {
                 $message .= sprintf(' Errno: %d; %s', $error['type'], $error['message']);
