@@ -261,11 +261,6 @@ class Datagram extends Socket implements DatagramInterface
     private function createAwait($socket)
     {
         return Loop\await($socket, function ($resource) use (&$onWrite) {
-            if (feof($resource)) {
-                $this->close();
-                return;
-            }
-
             /**
              * @var \Icicle\Stream\Structures\Buffer $data
              * @var \Icicle\Promise\Deferred $deferred
