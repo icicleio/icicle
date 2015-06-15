@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.5.3
+
+- Bug Fixes
+    - Added check in `Datagram::send()` on `stream_socket_sendto()` sending 0 bytes if the data was not immediately sent to prevent an infinite loop if the datagram is unexpectedly closed while waiting to send data. 
+
+---
+
 ### v0.5.2
 
 - Changes
