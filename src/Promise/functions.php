@@ -2,9 +2,11 @@
 namespace Icicle\Promise;
 
 use Exception;
+use Icicle\Loop;
 use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise\Exception\MultiReasonException;
 use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\Exception\UnresolvedException;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\LazyPromise;
 use Icicle\Promise\Structures\RejectedPromise;
@@ -134,6 +136,39 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
         return new LazyPromise(function () use ($promisor, $args) {
             return call_user_func_array($promisor, $args);
         });
+    }
+
+    /**
+     * This function may be used to synchronously wait for a promise to be resolved. This function should generally
+     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or anothe
+     * function to group them) and synchronously wait for the task to complete. Using this function in a running event
+     * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
+     * program flow.
+     *
+     * @param PromiseInterface $promise
+     *
+     * @return mixed Promise fulfillment value.
+     *
+     * @throws \Icicle\Promise\Exception\UnresolvedException If the event loop empties without fulfilling the promise.
+     * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
+     */
+    function wait(PromiseInterface $promise)
+    {
+        while ($promise->isPending()) {
+            if (Loop\isEmpty()) {
+                throw new UnresolvedException('Loop emptied without resolving promise.');
+            }
+
+            Loop\tick(true);
+        }
+
+        $result = $promise->getResult();
+
+        if ($promise->isRejected()) {
+            throw $result;
+        }
+
+        return $result;
     }
 
     /**
