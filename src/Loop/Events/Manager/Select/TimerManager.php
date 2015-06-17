@@ -72,9 +72,7 @@ class TimerManager implements TimerManagerInterface
      */
     public function stop(TimerInterface $timer)
     {
-        if ($this->timers->contains($timer)) {
-            $this->timers->detach($timer);
-        }
+        $this->timers->detach($timer);
     }
     
     /**
@@ -150,6 +148,7 @@ class TimerManager implements TimerManagerInterface
     public function tick()
     {
         $count = 0;
+        $time = microtime(true);
         
         while (!$this->queue->isEmpty()) {
             list($timer, $timeout) = $this->queue->top();
@@ -159,7 +158,7 @@ class TimerManager implements TimerManagerInterface
                 continue;
             }
 
-            if ($this->timers[$timer] > microtime(true)) { // Timer at top of queue has not expired.
+            if ($this->timers[$timer] > $time) { // Timer at top of queue has not expired.
                 return $count;
             }
 
@@ -167,7 +166,7 @@ class TimerManager implements TimerManagerInterface
             $this->queue->extract();
 
             if ($timer->isPeriodic()) {
-                $timeout = microtime(true) + $timer->getInterval();
+                $timeout = $time + $timer->getInterval();
                 $this->queue->insert([$timer, $timeout], -$timeout);
                 $this->timers[$timer] = $timeout;
             } else {
