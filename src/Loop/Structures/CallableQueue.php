@@ -35,13 +35,7 @@ class CallableQueue implements \Countable
      */
     public function insert(callable $callback, array $args = null)
     {
-        if (!empty($args)) {
-            $callback = function () use ($callback, $args) {
-                call_user_func_array($callback, $args);
-            };
-        }
-        
-        $this->queue->push($callback);
+        $this->queue->push([$callback, $args]);
     }
     
     /**
@@ -101,9 +95,13 @@ class CallableQueue implements \Countable
         $count = 0;
         
         while (!$this->queue->isEmpty() && (++$count <= $this->maxDepth || 0 === $this->maxDepth)) {
-            /** @var callable $callback */
-            $callback = $this->queue->shift();
-            $callback();
+            list($callback, $args) = $this->queue->shift();
+
+            if (empty($args)) {
+                $callback();
+            } else {
+                call_user_func_array($callback, $args);
+            }
         }
         
         return $count;

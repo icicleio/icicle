@@ -14,7 +14,12 @@ class Immediate implements ImmediateInterface
      * @var callable
      */
     private $callback;
-    
+
+    /**
+     * @var mixed[]|null
+     */
+    private $args;
+
     /**
      * @param \Icicle\Loop\Events\Manager\ImmediateManagerInterface $manager
      * @param callable $callback Function called when the interval expires.
@@ -23,14 +28,8 @@ class Immediate implements ImmediateInterface
     public function __construct(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
         $this->manager = $manager;
-        
-        if (empty($args)) {
-            $this->callback = $callback;
-        } else {
-            $this->callback = function () use ($callback, $args) {
-                call_user_func_array($callback, $args);
-            };
-        }
+        $this->callback = $callback;
+        $this->args = $args;
     }
     
     /**
@@ -38,8 +37,12 @@ class Immediate implements ImmediateInterface
      */
     public function call()
     {
-        $callback = $this->callback;
-        $callback();
+        if (empty($this->args)) {
+            $callback = $this->callback;
+            $callback();
+        } else {
+            call_user_func_array($this->callback, $this->args);
+        }
     }
     
     /**

@@ -127,7 +127,7 @@ class Coroutine extends Promise implements CoroutineInterface
     }
     
     /**
-     * The garbage collector does not automatically detect the deep circular references that can be
+     * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
      * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
      */
     private function close()
@@ -153,7 +153,7 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     public function resume()
     {
-        if ($this->isPending() && $this->isPaused()) {
+        if ($this->isPending() && $this->paused) {
             $this->paused = false;
             
             if ($this->ready) {

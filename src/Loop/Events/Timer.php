@@ -18,6 +18,11 @@ class Timer implements TimerInterface
      * @var callable
      */
     private $callback;
+
+    /**
+     * @var mixed[]|null
+     */
+    private $args;
     
     /**
      * Number of seconds until the timer is called.
@@ -50,14 +55,8 @@ class Timer implements TimerInterface
         $this->manager = $manager;
         $this->interval = (float) $interval;
         $this->periodic = (bool) $periodic;
-
-        if (empty($args)) {
-            $this->callback = $callback;
-        } else {
-            $this->callback = function () use ($callback, $args) {
-                call_user_func_array($callback, $args);
-            };
-        }
+        $this->callback = $callback;
+        $this->args = $args;
 
         if (self::MIN_INTERVAL > $this->interval) {
             $this->interval = self::MIN_INTERVAL;
@@ -69,8 +68,12 @@ class Timer implements TimerInterface
      */
     public function call()
     {
-        $callback = $this->callback;
-        $callback();
+        if (empty($this->args)) {
+            $callback = $this->callback;
+            $callback();
+        } else {
+            call_user_func_array($this->callback, $this->args);
+        }
     }
     
     /**
