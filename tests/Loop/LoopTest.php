@@ -38,35 +38,35 @@ class LoopTest extends TestCase
     /**
      * @depends testLoop
      */
-    public function testSchedule()
+    public function testQueue()
     {
-        Loop\schedule($this->createCallback(1));
+        Loop\queue($this->createCallback(1));
         
         Loop\tick(true);
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testScheduleWithArguments()
+    public function testQueueWithArguments()
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with(1, 2, 3.14, 'test');
         
-        Loop\schedule($callback, 1, 2, 3.14, 'test');
+        Loop\queue($callback, 1, 2, 3.14, 'test');
         
         Loop\tick(true);
     }
 
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testIsEmpty()
     {
         $this->assertTrue(Loop\isEmpty());
 
-        Loop\schedule(function () {});
+        Loop\queue(function () {});
 
         $this->assertFalse(Loop\isEmpty());
 
@@ -197,36 +197,36 @@ class LoopTest extends TestCase
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testScheduleWithinScheduledCallback()
+    public function testQueueWithinQueuedCallback()
     {
         $callback = function () {
-            Loop\schedule($this->createCallback(1));
+            Loop\queue($this->createCallback(1));
         };
         
-        Loop\schedule($callback);
+        Loop\queue($callback);
         
         Loop\tick(true);
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testMaxScheduleDepth()
+    public function testMaxQueueDepth()
     {
-        $previous = Loop\maxScheduleDepth(1);
+        $previous = Loop\maxQueueDepth(1);
         
-        $this->assertSame(1, Loop\maxScheduleDepth());
+        $this->assertSame(1, Loop\maxQueueDepth());
         
-        Loop\schedule($this->createCallback(1));
-        Loop\schedule($this->createCallback(0));
+        Loop\queue($this->createCallback(1));
+        Loop\queue($this->createCallback(0));
         
         Loop\tick(true);
         
-        Loop\maxScheduleDepth($previous);
+        Loop\maxQueueDepth($previous);
         
-        $this->assertSame($previous, Loop\maxScheduleDepth());
+        $this->assertSame($previous, Loop\maxQueueDepth());
     }
     
     /**
@@ -238,7 +238,7 @@ class LoopTest extends TestCase
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testIsRunning()
     {
@@ -246,7 +246,7 @@ class LoopTest extends TestCase
             $this->assertTrue(Loop\isRunning());
         };
         
-        Loop\schedule($callback);
+        Loop\queue($callback);
         
         Loop\run();
         
@@ -254,7 +254,7 @@ class LoopTest extends TestCase
             $this->assertFalse(Loop\isRunning());
         };
         
-        Loop\schedule($callback);
+        Loop\queue($callback);
         
         Loop\tick(true);
     }
@@ -269,7 +269,7 @@ class LoopTest extends TestCase
             $this->assertFalse(Loop\isRunning());
         };
         
-        Loop\schedule($callback);
+        Loop\queue($callback);
         
         $this->assertTrue(Loop\run());
     }
@@ -312,7 +312,7 @@ class LoopTest extends TestCase
      */
     public function testClear()
     {
-        Loop\schedule($this->createCallback(0));
+        Loop\queue($this->createCallback(0));
         
         Loop\clear();
         
@@ -324,7 +324,7 @@ class LoopTest extends TestCase
      */
     public function testReInit()
     {
-        Loop\schedule($this->createCallback(1));
+        Loop\queue($this->createCallback(1));
         
         Loop\reInit();
         

@@ -37,7 +37,7 @@ class FulfilledPromise extends ResolvedPromise
         }
         
         return new Promise(function ($resolve, $reject) use ($onFulfilled) {
-            Loop\schedule(function () use ($resolve, $reject, $onFulfilled) {
+            Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
                 } catch (\Exception $exception) {
@@ -53,7 +53,7 @@ class FulfilledPromise extends ResolvedPromise
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onFulfilled) {
-            Loop\schedule($onFulfilled, $this->value);
+            Loop\queue($onFulfilled, $this->value);
         }
     }
     

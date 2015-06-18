@@ -91,7 +91,7 @@ class Coroutine extends Promise implements CoroutineInterface
                         if ($this->current instanceof PromiseInterface) {
                             $this->current->done($this->worker, $this->capture);
                         } else {
-                            Loop\schedule($this->worker, $this->current);
+                            Loop\queue($this->worker, $this->current);
                         }
                     } catch (Exception $exception) {
                         $reject($exception);
@@ -108,7 +108,7 @@ class Coroutine extends Promise implements CoroutineInterface
                     }
                 };
                 
-                Loop\schedule($this->worker);
+                Loop\queue($this->worker);
             },
             function (Exception $exception) {
                 try {
@@ -160,7 +160,7 @@ class Coroutine extends Promise implements CoroutineInterface
                 if ($this->current instanceof PromiseInterface) {
                     $this->current->done($this->worker, $this->capture);
                 } else {
-                    Loop\schedule($this->worker, $this->current);
+                    Loop\queue($this->worker, $this->current);
                 }
                 
                 $this->ready = false;

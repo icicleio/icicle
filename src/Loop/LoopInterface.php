@@ -56,22 +56,22 @@ interface LoopInterface
     public function reInit();
     
     /**
-     * Sets the maximum number of callbacks set with schedule() that will be executed per tick.
+     * Sets the maximum number of callbacks set with LoopInterface::queue() that will be executed per tick.
      *
      * @param int|null $depth
      *
      * @return int Current max depth if $depth = null or previous max depth otherwise.
      */
-    public function maxScheduleDepth($depth = null);
+    public function maxQueueDepth($depth = null);
     
     /**
-     * Define a callback function to be run after all I/O has been handled in the current tick.
-     * Callbacks are called in the order defined.
+     * Queue a callback function to be run after all I/O has been handled in the current tick.
+     * Callbacks are called in the order queued.
      *
      * @param callable $callback
      * @param mixed[]|null $args Array of arguments to be passed to the callback function.
      */
-    public function schedule(callable $callback, array $args = null);
+    public function queue(callable $callback, array $args = null);
     
     /**
      * Creates an event object that can be used to listen for available data on the stream socket.

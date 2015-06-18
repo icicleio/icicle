@@ -166,7 +166,7 @@ class Promise implements PromiseInterface
                 }
             },
             function (Exception $exception) {
-                Loop\schedule(function () use ($exception) {
+                Loop\queue(function () use ($exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }
@@ -247,7 +247,7 @@ class Promise implements PromiseInterface
             function (Exception $exception) use (&$timer) {
                 $timer->stop();
 
-                Loop\schedule(function () use ($exception) {
+                Loop\queue(function () use ($exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }
@@ -284,7 +284,7 @@ class Promise implements PromiseInterface
                     $timer->stop();
                 }
 
-                Loop\schedule(function () use ($exception) {
+                Loop\queue(function () use ($exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }

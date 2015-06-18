@@ -45,29 +45,29 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
     
     /**
-     * Schedules a function to be executed later. The function may be executed as soon as immediately after
+     * Queues a function to be executed later. The function may be executed as soon as immediately after
      * the calling scope exits. Functions are guaranteed to be executed in the order queued.
      *
      * @param callable $callback
      * @param mixed ...$args
      */
-    function schedule(callable $callback /* , ...$args */)
+    function queue(callable $callback /* , ...$args */)
     {
         $args = array_slice(func_get_args(), 1);
 
-        loop()->schedule($callback, $args);
+        loop()->queue($callback, $args);
     }
 
     /**
-     * Sets the maximum number of callbacks set with nextTick() that will be executed per tick.
+     * Sets the maximum number of callbacks set with queue() that will be executed per tick.
      *
      * @param int|null $depth
      *
      * @return int Current max depth if $depth = null or previous max depth otherwise.
      */
-    function maxScheduleDepth($depth = null)
+    function maxQueueDepth($depth = null)
     {
-        return loop()->maxScheduleDepth($depth);
+        return loop()->maxQueueDepth($depth);
     }
 
     /**

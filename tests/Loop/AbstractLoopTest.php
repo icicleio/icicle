@@ -707,24 +707,24 @@ abstract class AbstractLoopTest extends TestCase
         $this->fail('Loop should not catch exceptions thrown from await callbacks.');
     }
     
-    public function testSchedule()
+    public function testQueue()
     {
         $callback = $this->createCallback(3);
         
-        $this->loop->schedule($callback);
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
+        $this->loop->queue($callback);
         
         $this->loop->run();
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         $this->loop->run();
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testScheduleWithArguments()
+    public function testQueueWithArguments()
     {
         $args = ['test1', 'test2', 'test3'];
         
@@ -732,57 +732,57 @@ abstract class AbstractLoopTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($args[0]), $this->identicalTo($args[1]), $this->identicalTo($args[2]));
         
-        $this->loop->schedule($callback, $args);
+        $this->loop->queue($callback, $args);
         
         $this->loop->run();
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testScheduleWithinScheduledCallback()
+    public function testQueueWithinQueuedCallback()
     {
         $callback = function () {
-            $this->loop->schedule($this->createCallback(1));
+            $this->loop->queue($this->createCallback(1));
         };
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         $this->loop->run();
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
-    public function testMaxScheduleDepth()
+    public function testMaxQueueDepth()
     {
         $depth = 10;
         $ticks = 2;
         
-        $previous = $this->loop->maxScheduleDepth($depth);
+        $previous = $this->loop->maxQueueDepth($depth);
         
-        $this->assertSame($depth, $this->loop->maxScheduleDepth());
+        $this->assertSame($depth, $this->loop->maxQueueDepth());
         
         $callback = $this->createCallback($depth * $ticks);
         
         for ($i = 0; $depth * ($ticks + $ticks) > $i; ++$i) {
-            $this->loop->schedule($callback);
+            $this->loop->queue($callback);
         }
         
         for ($i = 0; $ticks > $i; ++$i) {
             $this->loop->tick(false);
         }
         
-        $this->loop->maxScheduleDepth($previous);
+        $this->loop->maxQueueDepth($previous);
         
-        $this->assertSame($previous, $this->loop->maxScheduleDepth());
+        $this->assertSame($previous, $this->loop->maxQueueDepth());
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      * @expectedException \Icicle\Loop\Exception\LogicException
      */
-    public function testRunThrowsAfterThrownExceptionFromScheduleCallback()
+    public function testRunThrowsAfterThrownExceptionFromQueueCallback()
     {
         $exception = new LogicException();
         
@@ -790,7 +790,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
@@ -800,11 +800,11 @@ abstract class AbstractLoopTest extends TestCase
             throw $e;
         }
         
-        $this->fail('Loop should not catch exceptions thrown from scheduled callbacks.');
+        $this->fail('Loop should not catch exceptions thrown from queued callbacks.');
     }
     
     /**
-     * @depends testRunThrowsAfterThrownExceptionFromScheduleCallback
+     * @depends testRunThrowsAfterThrownExceptionFromQueueCallback
      * @expectedException \Icicle\Loop\Exception\RunningException
      */
     public function testRunThrowsExceptionWhenAlreadyRunning()
@@ -813,17 +813,17 @@ abstract class AbstractLoopTest extends TestCase
             $this->loop->run();
         };
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         $this->loop->run();
     }
     
     /**
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testStop()
     {
-        $this->loop->schedule([$this->loop, 'stop']);
+        $this->loop->queue([$this->loop, 'stop']);
         
         $this->assertSame(true, $this->loop->run());
     }
@@ -1165,7 +1165,7 @@ abstract class AbstractLoopTest extends TestCase
             $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
         };
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         $this->assertSame(true, $this->loop->run());
     }
@@ -1189,7 +1189,7 @@ abstract class AbstractLoopTest extends TestCase
             $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
         };
         
-        $this->loop->schedule($callback);
+        $this->loop->queue($callback);
         
         $this->assertSame(true, $this->loop->run());
     }
@@ -1306,7 +1306,7 @@ abstract class AbstractLoopTest extends TestCase
      * @depends testCreateAwait
      * @depends testCreateImmediate
      * @depends testCreateTimer
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testIsEmpty()
     {
@@ -1317,7 +1317,7 @@ abstract class AbstractLoopTest extends TestCase
         $immediate = $this->loop->immediate($this->createCallback(1));
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
         
-        $this->loop->schedule($this->createCallback(1));
+        $this->loop->queue($this->createCallback(1));
         
         $poll->listen();
         $await->listen();
@@ -1334,7 +1334,7 @@ abstract class AbstractLoopTest extends TestCase
      * @depends testCreateAwait
      * @depends testCreateImmediate
      * @depends testCreatePeriodicTimer
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testClear()
     {
@@ -1345,7 +1345,7 @@ abstract class AbstractLoopTest extends TestCase
         $immediate = $this->loop->immediate($this->createCallback(0));
         $timer = $this->loop->timer(self::TIMEOUT, true, $this->createCallback(0));
         
-        $this->loop->schedule($this->createCallback(0));
+        $this->loop->queue($this->createCallback(0));
         $poll->listen(self::TIMEOUT);
         $await->listen(self::TIMEOUT);
         
@@ -1369,7 +1369,7 @@ abstract class AbstractLoopTest extends TestCase
      * @depends testCreateAwait
      * @depends testCreateImmediate
      * @depends testCreatePeriodicTimer
-     * @depends testSchedule
+     * @depends testQueue
      */
     public function testReInit()
     {
@@ -1380,7 +1380,7 @@ abstract class AbstractLoopTest extends TestCase
         $immediate = $this->loop->immediate($this->createCallback(1));
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
         
-        $this->loop->schedule($this->createCallback(1));
+        $this->loop->queue($this->createCallback(1));
         $poll->listen();
         $await->listen();
         

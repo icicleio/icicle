@@ -251,7 +251,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function schedule(callable $callback, array $args = null)
+    public function queue(callable $callback, array $args = null)
     {
         $this->callableQueue->insert($callback, $args);
     }
@@ -259,7 +259,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function maxScheduleDepth($depth = null)
+    public function maxQueueDepth($depth = null)
     {
         return $this->callableQueue->maxDepth($depth);
     }

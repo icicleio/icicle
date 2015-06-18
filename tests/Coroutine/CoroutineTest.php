@@ -877,7 +877,7 @@ class CoroutineTest extends TestCase
             
             $coroutine->pause();
             
-            Loop\schedule([$coroutine, 'resume']);
+            Loop\queue([$coroutine, 'resume']);
             
             yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
