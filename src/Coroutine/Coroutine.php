@@ -43,6 +43,11 @@ class Coroutine extends Promise implements CoroutineInterface
      * @var bool
      */
     private $paused = false;
+
+    /**
+     * @var bool
+     */
+    private $initial = true;
     
     /**
      * @param \Generator $generator
@@ -58,7 +63,6 @@ class Coroutine extends Promise implements CoroutineInterface
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
-                    static $initial = true;
                     if (!$this->isPending()) { // Coroutine may have been cancelled.
                         return;
                     }
@@ -69,8 +73,8 @@ class Coroutine extends Promise implements CoroutineInterface
                     }
                     
                     try {
-                        if ($initial) { // Get result of first yield statement.
-                            $initial = false;
+                        if ($this->initial) { // Get result of first yield statement.
+                            $this->initial = false;
                             $this->current = $this->generator->current();
                         } elseif (null !== $exception) { // Throw exception at current execution point.
                             $this->current = $this->generator->throw($exception);
