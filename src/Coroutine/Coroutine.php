@@ -63,10 +63,6 @@ class Coroutine extends Promise implements CoroutineInterface
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
-                    if (!$this->isPending()) { // Coroutine may have been cancelled.
-                        return;
-                    }
-                    
                     if ($this->paused) { // If paused, mark coroutine as ready to resume.
                         $this->ready = true;
                         return;
