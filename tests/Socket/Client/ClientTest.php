@@ -181,7 +181,7 @@ class ClientTest extends TestCase
             ->then(function (Client $client) {
                 $promise1 = new Coroutine($client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT));
                 $promise2 = new Coroutine($client->enableCrypto(STREAM_CRYPTO_METHOD_TLS_CLIENT, self::TIMEOUT));
-                return Promise\join([$promise1, $promise2]);
+                return Promise\all([$promise1, $promise2]);
             });
 
         $callback = $this->createCallback(1);

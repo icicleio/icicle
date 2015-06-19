@@ -19,7 +19,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([]));
         
-        Promise\join([])->done($callback, $this->createCallback(0));
+        Promise\all([])->done($callback, $this->createCallback(0));
         
         Loop\run();
     }
@@ -32,7 +32,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\join($values)->done($callback, $this->createCallback(0));
+        Promise\all($values)->done($callback, $this->createCallback(0));
         
         Loop\run();
     }
@@ -46,7 +46,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\join($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback, $this->createCallback(0));
         
         Loop\run();
     }
@@ -64,7 +64,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\join($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback, $this->createCallback(0));
         
         Loop\run();
     }
@@ -86,7 +86,7 @@ class PromiseJoinTest extends TestCase
             return array_keys($result) === array_keys($promises);
         }));
         
-        Promise\join($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback, $this->createCallback(0));
         
         Loop\run();
     }
@@ -100,7 +100,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($exception));
         
-        Promise\join($promises)->done($this->createCallback(0), $callback);
+        Promise\all($promises)->done($this->createCallback(0), $callback);
         
         Loop\run();
     }

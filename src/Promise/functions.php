@@ -60,7 +60,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
          * @return \Icicle\Promise\PromiseInterface
          */
         return function (/* ...$args */) use ($worker) {
-            return join(func_get_args())->splat($worker);
+            return all(func_get_args())->splat($worker);
         };
     }
     
@@ -176,7 +176,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function join(array $promises)
+    function all(array $promises)
     {
         if (empty($promises)) {
             return resolve([]);
@@ -301,8 +301,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * Maps the callback to each promise as it is fulfilled. Returns an array of promises resolved by the return
      * callback value of the callback function. The callback may return promises or throw exceptions to reject promises
      * in the array. If a promise in the passed array rejects, the callback will not be called and the promise in the
-     * array is rejected for the same reason. Tip: Use join() or settle() method to determine when all promises in the
-     * array have been resolved.
+     * array is rejected for the same reason. Tip: Use all() or settle()  to determine when all promises in the array
+     * have been resolved.
      *
      * @param callable<mixed (mixed $value)> $callback
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
