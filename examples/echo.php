@@ -36,14 +36,12 @@ $generator = function (Server $server) {
     echo "Echo server running on {$server->getAddress()}:{$server->getPort()}\n";
     
     while ($server->isOpen()) {
-        try {
-            $coroutine = new Coroutine($generator(yield $server->accept()));
-        } catch (Exception $e) {
-            echo "Error accepting client: {$e->getMessage()}\n";
-        }
+        $coroutine = new Coroutine($generator(yield $server->accept()));
     }
 };
 
-$coroutine = new Coroutine($generator((new ServerFactory())->create('127.0.0.1', 60000)));
+$coroutine = new Coroutine($generator(
+    (new ServerFactory())->create('127.0.0.1', 60000)
+));
 
 Loop\run();
