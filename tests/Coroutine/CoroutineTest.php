@@ -662,16 +662,16 @@ class CoroutineTest extends TestCase
     /**
      * @depends testYieldScalar
      */
-    public function testAsync()
+    public function testWrap()
     {
-        $async = \Icicle\Coroutine\async(function ($left, $right) {
+        $wrap = \Icicle\Coroutine\wrap(function ($left, $right) {
             yield $left - $right;
         });
         
-        $this->assertTrue(is_callable($async));
+        $this->assertTrue(is_callable($wrap));
         
-        $coroutine1 = $async(1, 2);
-        $coroutine2 = $async(5, -5);
+        $coroutine1 = $wrap(1, 2);
+        $coroutine2 = $wrap(5, -5);
         
         $this->assertInstanceOf('Icicle\Coroutine\Coroutine', $coroutine1);
         $this->assertInstanceOf('Icicle\Coroutine\Coroutine', $coroutine2);
@@ -701,15 +701,15 @@ class CoroutineTest extends TestCase
     /**
      * @depends testYieldScalar
      */
-    public function testAsyncWithNonGeneratorCallable()
+    public function testWrapWithNonGeneratorCallable()
     {
         $callback = function () {
         };
         
-        $async = \Icicle\Coroutine\async($callback);
+        $wrap = \Icicle\Coroutine\wrap($callback);
         
         try {
-            $coroutine = $async();
+            $coroutine = $wrap();
             $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -719,16 +719,16 @@ class CoroutineTest extends TestCase
     /**
      * @depends testYieldScalar
      */
-    public function testAsyncWithCallableThrowingException()
+    public function testWrapWithCallableThrowingException()
     {
         $callback = function () {
             throw new Exception();
         };
         
-        $async = \Icicle\Coroutine\async($callback);
+        $wrap = \Icicle\Coroutine\wrap($callback);
         
         try {
-            $coroutine = $async();
+            $coroutine = $wrap();
             $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());

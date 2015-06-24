@@ -4,13 +4,16 @@ namespace Icicle\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableException;
 use Icicle\Promise;
 
-if (!function_exists(__NAMESPACE__ . '\async')) {
+if (!function_exists(__NAMESPACE__ . '\wrap')) {
     /**
+     * Wraps the function returning a \Generator in a callable function that returns a new coroutine each time the
+     * function is called.
+     *
      * @param callable $worker
      *
      * @return callable
      */
-    function async(callable $worker)
+    function wrap(callable $worker)
     {
         /**
          * @param mixed ...$args
@@ -28,6 +31,9 @@ if (!function_exists(__NAMESPACE__ . '\async')) {
     }
 
     /**
+     * Calls the callable with the given arguments which must return a \Generator, which is then made into a coroutine
+     * and returned.
+     *
      * @param callable $worker
      * @param mixed ...$args
      *
