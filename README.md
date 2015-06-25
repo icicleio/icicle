@@ -5,12 +5,10 @@
 Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
-[![Build Status](https://img.shields.io/travis/icicleio/Icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/Icicle)
-[![Coverage Status](https://img.shields.io/coveralls/icicleio/Icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/Icicle)
-[![Semantic Version](https://img.shields.io/github/release/icicleio/Icicle.svg?style=flat-square)](http://semver.org)
-[![Apache 2 License](https://img.shields.io/packagist/l/icicleio/Icicle.svg?style=flat-square)](LICENSE)
-
-[![Join the chat at https://gitter.im/icicleio/Icicle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/icicleio/Icicle)
+[![Build Status](https://img.shields.io/travis/icicleio/icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/icicle)
+[![Coverage Status](https://img.shields.io/coveralls/icicleio/icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/icicle)
+[![Semantic Version](https://img.shields.io/github/release/icicleio/icicle.svg?style=flat-square)](http://semver.org)
+[![Apache 2 License](https://img.shields.io/packagist/l/icicleio/icicle.svg?style=flat-square)](LICENSE)
 
 #### Library Components
 
@@ -22,9 +20,9 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 #### Available Components
 
-- [HTTP](https://github.com/icicleio/Http): Asynchronous HTTP server and client (under development).
-- [DNS](https://github.com/icicleio/Dns): Asynchronous DNS resolver and connector.
-- [React Adapter](https://github.com/icicleio/ReactAdapter): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
+- [HTTP](https://github.com/icicleio/http): Asynchronous HTTP server and client (under development).
+- [DNS](https://github.com/icicleio/dns): Asynchronous DNS resolver and connector.
+- [React Adapter](https://github.com/icicleio/react-adaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
 ##### Requirements
 
@@ -58,9 +56,9 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 - [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
 - [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
 
-### Example
+#### Example
 
-The example below uses the [HTTP component](https://github.com/icicleio/Http) (under development) to create a simple HTTP server that responds with `Hello, world!` to every request.
+The example below uses the [HTTP component](https://github.com/icicleio/http) (under development) to create a simple HTTP server that responds with `Hello, world!` to every request.
 
 ```php
 #!/usr/bin/env php
@@ -86,9 +84,15 @@ echo "Server running at http://127.0.0.1:8080\n";
 Loop\run();
 ```
 
+#### Documentation and Support
+
+- [Full API Documentation](https://github.com/icicleio/icicle/wiki)
+- [Official Twitter](https://twitter.com/icicleio)
+- [Gitter Chat](https://gitter.im/icicleio/icicle)
+
 ## Promises
 
-**[Promise API documentation](https://github.com/icicleio/Icicle/wiki/Promises)**
+**[Promise API documentation](https://github.com/icicleio/icicle/wiki/Promises)**
 
 Icicle implements promises based on the [Promises/A+](http://promisesaplus.com) specification, adding support for cancellation.
 
@@ -102,7 +106,7 @@ The `Icicle\Promise\PromiseInterface::then(callable $onFulfilled = null, callabl
 
 The `Icicle\Promise\PromiseInterface::done(callable $onFulfilled = null, callable $onRejected = null)` method registers callbacks that should either consume promised values or handle errors. No value is returned from `done()`. Values returned by callbacks registered using `done()` are ignored and exceptions thrown from callbacks are re-thrown in an uncatchable way.
 
-*[More on using callbacks to interact with promises...](https://github.com/icicleio/Icicle/wiki/Promises#interacting-with-promises)*
+*[More on using callbacks to interact with promises...](https://github.com/icicleio/icicle/wiki/Promises#interacting-with-promises)*
 
 ```php
 use Icicle\Dns\Executor\Executor;
@@ -140,7 +144,7 @@ The example above uses the [DNS component](https://github.com/icicleio/Dns) to r
 - If `$promise1` is fulfilled, the callback function registered in the call to `$promise1->then()` is executed, using the fulfillment value of `$promise1` as the argument to the function. The callback function then returns the promise from `connect()`. The resolution of `$promise2` will then be determined by the resolution of this returned promise (`$promise2` will adopt the state of the promise returned by `connect()`).
 - If `$promise1` is rejected, `$promise2` is rejected since no `$onRejected` callback was registered in the call to `$promise1->then()`
 
-*[More on promise resolution and propagation...](https://github.com/icicleio/Icicle/wiki/Promises#resolution-and-propagation)*
+*[More on promise resolution and propagation...](https://github.com/icicleio/icicle/wiki/Promises#resolution-and-propagation)*
 
 ##### Brief overview of promise API features
 
@@ -153,7 +157,7 @@ The example above uses the [DNS component](https://github.com/icicleio/Dns) to r
 
 ## Coroutines
 
-**[Coroutine API documentation](https://github.com/icicleio/Icicle/wiki/Coroutines)**
+**[Coroutine API documentation](https://github.com/icicleio/icicle/wiki/Coroutines)**
 
 Coroutines are interruptible functions implemented using [Generators](http://www.php.net/manual/en/language.generators.overview.php). A `Generator` usually uses the `yield` keyword to yield a value from a set to implement an iterator. Coroutines use the `yield` keyword to define interruption points. When a coroutine yields a value, execution of the coroutine is temporarily interrupted, allowing other tasks to be run, such as I/O, timers, or other coroutines.
 
@@ -161,7 +165,7 @@ When a coroutine yields a [promise](#promises), execution of the coroutine is in
 
 Note that **no callbacks need to be registered** with the promises yielded in a coroutine and **errors are reported using thrown exceptions**, which will bubble up to the calling context if uncaught in the same way exceptions bubble up in synchronous code.
 
-The example below creates an `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`. (`Icicle\Dns\Connector\Connector` in the [DNS component](//github.com/icicleio/Dns) uses a coroutine structured similarly to the one below, except it attempts to connect to other IPs returned from the resolver if the first one fails.)
+The example below creates an `Icicle\Coroutine\Coroutine` instance from a function returning a `Generator`. (`Icicle\Dns\Connector\Connector` in the [DNS component](//github.com/icicleio/dns) uses a coroutine structured similarly to the one below, except it attempts to connect to other IPs returned from the resolver if the first one fails.)
 
 ```php
 use Icicle\Coroutine\Coroutine;
@@ -199,7 +203,7 @@ An `Icicle\Coroutine\Coroutine` object is also a [promise](#promises), implement
 
 ## Loop
 
-**[Loop API documentation](https://github.com/icicleio/Icicle/wiki/Loop)**
+**[Loop API documentation](https://github.com/icicleio/icicle/wiki/Loop)**
 
 The event loop schedules functions, runs timers, handles signals, and polls sockets for pending reads and available writes. There are several event loop implementations available depending on what PHP extensions are available. The `Icicle\Loop\SelectLoop` class uses only core PHP functions, so it will work on any PHP installation, but is not as performant as some of the other available implementations. All event loops implement `Icicle\Loop\LoopInterface` and provide the same features.
 
@@ -241,7 +245,7 @@ Second.
 
 ## Streams
 
-**[Streams API documentation](https://github.com/icicleio/Icicle/wiki/Streams)**
+**[Streams API documentation](https://github.com/icicleio/icicle/wiki/Streams)**
 
 Streams represent a common promise-based API that may be implemented by classes that read or write sequences of binary data to facilitate interoperability. The stream component defines three interfaces, one of which should be used by all streams.
 
@@ -251,7 +255,7 @@ Streams represent a common promise-based API that may be implemented by classes 
 
 ## Sockets
 
-**[Sockets API documentation](https://github.com/icicleio/Icicle/wiki/Sockets)**
+**[Sockets API documentation](https://github.com/icicleio/icicle/wiki/Sockets)**
 
 The socket component implements network sockets as promise-based streams, server, and datagram. Creating a server and accepting connections is very simple, requiring only a few lines of code.
 
