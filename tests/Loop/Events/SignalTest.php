@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Manager\SignalManagerInterface;
 use Icicle\Loop\Events\Signal;
+use Icicle\Loop\Manager\SignalManagerInterface;
 use Icicle\Tests\TestCase;
 
 class SignalTest extends TestCase

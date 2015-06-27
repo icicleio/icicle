@@ -2,11 +2,11 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\Libevent\AwaitManager;
-use Icicle\Loop\Events\Manager\Libevent\PollManager;
-use Icicle\Loop\Events\Manager\Libevent\SignalManager;
-use Icicle\Loop\Events\Manager\Libevent\TimerManager;
 use Icicle\Loop\Exception\UnsupportedException;
+use Icicle\Loop\Manager\Libevent\AwaitManager;
+use Icicle\Loop\Manager\Libevent\PollManager;
+use Icicle\Loop\Manager\Libevent\SignalManager;
+use Icicle\Loop\Manager\Libevent\TimerManager;
 
 /**
  * Uses the libevent extension to poll sockets for I/O and create timers.

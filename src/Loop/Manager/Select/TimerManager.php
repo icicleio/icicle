@@ -1,9 +1,9 @@
 <?php
-namespace Icicle\Loop\Events\Manager\Select;
+namespace Icicle\Loop\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\UnreferencableObjectStorage;
 use SplPriorityQueue;
 

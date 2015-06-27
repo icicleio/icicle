@@ -1,12 +1,12 @@
 <?php
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Events\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SignalManagerInterface;
 
 class Signal implements SignalInterface
 {
     /**
-     * @var \Icicle\Loop\Events\Manager\SignalManagerInterface
+     * @var \Icicle\Loop\Manager\SignalManagerInterface
      */
     private $manager;
 
@@ -21,7 +21,7 @@ class Signal implements SignalInterface
     private $signo;
 
     /**
-     * @param \Icicle\Loop\Events\Manager\SignalManagerInterface $manager
+     * @param \Icicle\Loop\Manager\SignalManagerInterface $manager
      * @param int $signo
      * @param callable $callback
      */

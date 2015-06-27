@@ -1,5 +1,5 @@
 <?php
-namespace Icicle\Loop\Events\Manager;
+namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\ImmediateInterface;

@@ -1,29 +1,29 @@
 <?php
-namespace Icicle\Loop\Events\Manager\Event;
+namespace Icicle\Loop\Manager\Libevent;
 
-use Event;
-use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 class TimerManager implements TimerManagerInterface
 {
+    const MICROSEC_PER_SEC = 1e6;
+    
     /**
-     * @var EventBase
+     * @var resource
      */
     private $base;
     
     /**
-     * @var EventFactoryInterface
+     * @var \Icicle\Loop\Events\EventFactoryInterface
      */
     private $factory;
     
     /**
      * UnreferencableObjectStorage mapping Timer objects to Event objects.
      *
-     * @var UnreferencableObjectStorage
+     * @var \Icicle\Loop\Structures\UnreferencableObjectStorage
      */
     private $timers;
     
@@ -33,10 +33,10 @@ class TimerManager implements TimerManagerInterface
     private $callback;
     
     /**
-     * @param EventFactoryInterface $factory
-     * @param EventBase $base
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param resource $base
      */
-    public function __construct(EventFactoryInterface $factory, EventBase $base)
+    public function __construct(EventFactoryInterface $factory, $base)
     {
         $this->factory = $factory;
         $this->base = $base;
@@ -52,8 +52,11 @@ class TimerManager implements TimerManagerInterface
     public function __destruct()
     {
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
-            $this->timers->getInfo()->free();
+            event_free($this->timers->getInfo());
         }
+        
+        // Need to completely destroy timer events before freeing base or an error is generated.
+        $this->timers = null;
     }
     
     /**
@@ -81,16 +84,15 @@ class TimerManager implements TimerManagerInterface
      */
     public function start(TimerInterface $timer)
     {
-        $flags = Event::TIMEOUT;
-        if ($timer->isPeriodic()) {
-            $flags |= Event::PERSIST;
+        if (!isset($this->timers[$timer])) {
+            $event = event_new();
+            event_timer_set($event, $this->callback, $timer);
+            event_base_set($event, $this->base);
+
+            $this->timers[$timer] = $event;
+
+            event_add($event, $timer->getInterval() * self::MICROSEC_PER_SEC);
         }
-
-        $event = new Event($this->base, -1, $flags, $this->callback, $timer);
-
-        $this->timers[$timer] = $event;
-
-        $event->add($timer->getInterval());
     }
     
     /**
@@ -99,7 +101,7 @@ class TimerManager implements TimerManagerInterface
     public function stop(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
-            $this->timers[$timer]->free();
+            event_free($this->timers[$timer]);
             unset($this->timers[$timer]);
         }
     }
@@ -109,7 +111,7 @@ class TimerManager implements TimerManagerInterface
      */
     public function isPending(TimerInterface $timer)
     {
-        return isset($this->timers[$timer]) && $this->timers[$timer]->pending;
+        return isset($this->timers[$timer]);
     }
     
     /**
@@ -134,7 +136,7 @@ class TimerManager implements TimerManagerInterface
     public function clear()
     {
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
-            $this->timers->getInfo()->free();
+            event_free($this->timers->getInfo());
         }
         
         $this->timers = new UnreferencableObjectStorage();
@@ -146,8 +148,10 @@ class TimerManager implements TimerManagerInterface
     protected function createCallback()
     {
         return function ($resource, $what, TimerInterface $timer) {
-            if (!$this->timers[$timer]->pending) {
-                $this->timers[$timer]->free();
+            if ($timer->isPeriodic()) {
+                event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
+            } else {
+                event_free($this->timers[$timer]);
                 unset($this->timers[$timer]);
             }
             

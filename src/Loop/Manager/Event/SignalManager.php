@@ -1,11 +1,11 @@
 <?php
-namespace Icicle\Loop\Events\Manager\Event;
+namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\AbstractSignalManager;
 use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\AbstractSignalManager;
 
 class SignalManager extends AbstractSignalManager
 {

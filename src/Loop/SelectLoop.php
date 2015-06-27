@@ -2,10 +2,10 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\Select\SignalManager;
-use Icicle\Loop\Events\Manager\Select\SocketManager;
-use Icicle\Loop\Events\Manager\Select\TimerManager;
-use Icicle\Loop\Events\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\Select\SignalManager;
+use Icicle\Loop\Manager\Select\SocketManager;
+use Icicle\Loop\Manager\Select\TimerManager;
+use Icicle\Loop\Manager\SocketManagerInterface;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -51,8 +51,8 @@ class SelectLoop extends AbstractLoop
     }
     
     /**
-     * @param \Icicle\Loop\Events\Manager\SocketManagerInterface $pollManager
-     * @param \Icicle\Loop\Events\Manager\SocketManagerInterface $awaitManager
+     * @param \Icicle\Loop\Manager\SocketManagerInterface $pollManager
+     * @param \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
      * @param int|float|null $timeout
      */
     protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)

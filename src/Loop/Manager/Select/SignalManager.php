@@ -1,9 +1,9 @@
 <?php
-namespace Icicle\Loop\Events\Manager\Select;
+namespace Icicle\Loop\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\Manager\AbstractSignalManager;
 use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Manager\AbstractSignalManager;
 
 class SignalManager extends AbstractSignalManager
 {

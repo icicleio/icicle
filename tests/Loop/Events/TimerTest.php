@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Tests\TestCase;
 
 class TimerTest extends TestCase

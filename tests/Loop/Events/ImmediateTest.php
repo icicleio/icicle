@@ -2,7 +2,7 @@
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\Immediate;
-use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Manager\ImmediateManagerInterface;
 use Icicle\Tests\TestCase;
 
 class ImmediateTest extends TestCase

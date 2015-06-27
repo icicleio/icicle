@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Manager\SocketManagerInterface;
 use Icicle\Loop\Events\SocketEvent;
+use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Tests\TestCase;
 
 class SocketEventTest extends TestCase

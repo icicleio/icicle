@@ -3,13 +3,13 @@ namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Events\Manager\SignalManagerInterface;
-use Icicle\Loop\Events\Manager\SocketManagerInterface;
-use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\SignalInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Tests\TestCase;
 
 class EventFactoryTest extends TestCase
