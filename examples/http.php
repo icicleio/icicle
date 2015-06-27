@@ -28,18 +28,13 @@ $generator = function (ServerInterface $server) {
             $data .= $message;
             
             yield $client->write($data);
-            
         } finally {
             $client->close();
         }
     };
     
     while ($server->isOpen()) {
-        try {
-            $coroutine = new Coroutine($generator(yield $server->accept()));
-        } catch (Exception $exception) {
-            echo "Error: Could not accept client: {$exception->getMessage()}";
-        }
+        $coroutine = new Coroutine($generator(yield $server->accept()));
     }
 };
 

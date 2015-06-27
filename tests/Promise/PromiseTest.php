@@ -1282,221 +1282,7 @@ class PromiseTest extends TestCase
         $this->assertTrue($promise->isRejected());
         $this->assertSame($exception, $promise->getResult());
     }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     */
-    public function testDelayThenFulfill()
-    {
-        $value = 'test';
-        $time = 0.1;
-        
-        $delayed = $this->promise->delay($time);
-        
-        $this->resolve($value);
-        
-        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
-        
-        $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
-    }
-    
-    /**
-     * @depends testRejectCallable
-     */
-    public function testDelayThenReject()
-    {
-        $exception = new Exception();
-        $time = 0.1;
-        
-        $delayed = $this->promise->delay($time);
-        
-        $this->reject($exception);
-        
-        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertSame($exception, $delayed->getResult());
-    }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     */
-    public function testDelayAfterFulfilled()
-    {
-        $value = 'test';
-        $time = 0.1;
-        
-        $this->resolve($value);
-        
-        $delayed = $this->promise->delay($time);
-        
-        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
-        
-        $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
-    }
-    
-    /**
-     * @depends testRejectCallable
-     */
-    public function testDelayAfterRejected()
-    {
-        $exception = new Exception();
-        $time = 0.1;
-        
-        $this->reject($exception);
-        
-        $delayed = $this->promise->delay($time);
-        
-        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertSame($exception, $delayed->getResult());
-    }
-    
-    /**
-     * @depends testResolveCallableWithPendingPromise
-     */
-    public function testDelayAfterResolvingWithPendingPromise()
-    {
-        $value = 'test';
-        $time = 0.1;
-        
-        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
-            $pendingResolve = $resolve;
-        });
-        
-        $this->resolve($promise);
-        
-        $delayed = $this->promise->delay($time);
-        
-        $pendingResolve($value);
-        
-        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
-        
-        $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
-    }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     * @depends testCancellation
-     */
-    public function testCancelDelayBeforeFulfilled()
-    {
-        $value = 'test';
-        $time = 0.1;
-        
-        $delayed = $this->promise->delay($time);
-        
-        $this->resolve($value);
-        
-        Loop\tick(false);
-        
-        $delayed->cancel();
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isFulfilled());
-    }
-    
-    /**
-     * @depends testResolveCallableWithValue
-     * @depends testCancellation
-     */
-    public function testCancelDelayAfterFulfilled()
-    {
-        $value = 'test';
-        $time = 0.1;
-        
-        $this->resolve($value);
-        
-        $delayed = $this->promise->delay($time);
-        
-        Loop\tick(false);
-        
-        $delayed->cancel();
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isFulfilled());
-    }
 
-    /**
-     * @depends testCancellation
-     */
-    public function testCancelDelay()
-    {
-        $time = 0.1;
-        
-        $delayed = $this->promise->delay($time);
-        
-        $delayed->cancel();
-        
-        Loop\run();
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isRejected());
-    }
-    
-    /**
-     * @depends testCancellation
-     */
-    public function testCancelDelayWithSiblingPromise()
-    {
-        $time = 0.1;
-        
-        $delayed = $this->promise->delay($time);
-        $sibling = $this->promise->then();
-        
-        $delayed->cancel();
-        
-        Loop\run();
-        
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isPending());
-        $this->assertTrue($sibling->isPending());
-    }
-
-    /**
-     * @depends testCancellation
-     */
-    public function testCancelDelayAndCancelSiblingPromise()
-    {
-        $time = 0.1;
-
-        $delayed = $this->promise->delay($time);
-        $sibling = $this->promise->then();
-
-        $delayed->cancel();
-        $sibling->cancel();
-
-        Loop\run();
-
-        $this->assertTrue($delayed->isRejected());
-        $this->assertFalse($this->promise->isPending());
-        $this->assertTrue($sibling->isRejected());
-    }
-
-    /**
-     * @depends testCancellation
-     */
-    public function testCancelDelayThenCreateSiblingPromise()
-    {
-        $time = 0.1;
-
-        $delayed = $this->promise->delay($time);
-
-        $delayed->cancel();
-
-        $sibling = $this->promise->then();
-
-        Loop\run();
-
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isPending());
-        $this->assertTrue($sibling->isPending());
-    }
-    
     /**
      * @depends testCancellation
      */
@@ -1707,6 +1493,221 @@ class PromiseTest extends TestCase
         $this->assertTrue($this->promise->isPending());
         $this->assertTrue($sibling->isPending());
     }
+
+    /**
+     * @depends testResolveCallableWithValue
+     */
+    public function testDelayThenFulfill()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $this->resolve($value);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
+
+        $this->assertTrue($delayed->isFulfilled());
+        $this->assertSame($value, $delayed->getResult());
+    }
+
+    /**
+     * @depends testRejectCallable
+     */
+    public function testDelayThenReject()
+    {
+        $exception = new Exception();
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $this->reject($exception);
+
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertSame($exception, $delayed->getResult());
+    }
+
+    /**
+     * @depends testResolveCallableWithValue
+     */
+    public function testDelayAfterFulfilled()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $this->resolve($value);
+
+        $delayed = $this->promise->delay($time);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
+
+        $this->assertTrue($delayed->isFulfilled());
+        $this->assertSame($value, $delayed->getResult());
+    }
+
+    /**
+     * @depends testRejectCallable
+     */
+    public function testDelayAfterRejected()
+    {
+        $exception = new Exception();
+        $time = 0.1;
+
+        $this->reject($exception);
+
+        $delayed = $this->promise->delay($time);
+
+        $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertSame($exception, $delayed->getResult());
+    }
+
+    /**
+     * @depends testResolveCallableWithPendingPromise
+     */
+    public function testDelayAfterResolvingWithPendingPromise()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
+            $pendingResolve = $resolve;
+        });
+
+        $this->resolve($promise);
+
+        $delayed = $this->promise->delay($time);
+
+        $pendingResolve($value);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
+
+        $this->assertTrue($delayed->isFulfilled());
+        $this->assertSame($value, $delayed->getResult());
+    }
+
+    /**
+     * @depends testResolveCallableWithValue
+     * @depends testCancellation
+     */
+    public function testCancelDelayBeforeFulfilled()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $this->resolve($value);
+
+        Loop\tick(false);
+
+        $delayed->cancel();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isFulfilled());
+    }
+
+    /**
+     * @depends testResolveCallableWithValue
+     * @depends testCancellation
+     */
+    public function testCancelDelayAfterFulfilled()
+    {
+        $value = 'test';
+        $time = 0.1;
+
+        $this->resolve($value);
+
+        $delayed = $this->promise->delay($time);
+
+        Loop\tick(false);
+
+        $delayed->cancel();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isFulfilled());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelay()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $delayed->cancel();
+
+        Loop\run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isRejected());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayWithSiblingPromise()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+        $sibling = $this->promise->then();
+
+        $delayed->cancel();
+
+        Loop\run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayAndCancelSiblingPromise()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+        $sibling = $this->promise->then();
+
+        $delayed->cancel();
+        $sibling->cancel();
+
+        Loop\run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertFalse($this->promise->isPending());
+        $this->assertTrue($sibling->isRejected());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancelDelayThenCreateSiblingPromise()
+    {
+        $time = 0.1;
+
+        $delayed = $this->promise->delay($time);
+
+        $delayed->cancel();
+
+        $sibling = $this->promise->then();
+
+        Loop\run();
+
+        $this->assertTrue($delayed->isRejected());
+        $this->assertTrue($this->promise->isPending());
+        $this->assertTrue($sibling->isPending());
+    }
+
 
     /**
      * @depends testResolveCallableWithValue

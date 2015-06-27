@@ -43,6 +43,11 @@ class Coroutine extends Promise implements CoroutineInterface
      * @var bool
      */
     private $paused = false;
+
+    /**
+     * @var bool
+     */
+    private $initial = true;
     
     /**
      * @param \Generator $generator
@@ -58,19 +63,14 @@ class Coroutine extends Promise implements CoroutineInterface
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
                 $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
-                    static $initial = true;
-                    if (!$this->isPending()) { // Coroutine may have been cancelled.
-                        return;
-                    }
-                    
                     if ($this->paused) { // If paused, mark coroutine as ready to resume.
                         $this->ready = true;
                         return;
                     }
                     
                     try {
-                        if ($initial) { // Get result of first yield statement.
-                            $initial = false;
+                        if ($this->initial) { // Get result of first yield statement.
+                            $this->initial = false;
                             $this->current = $this->generator->current();
                         } elseif (null !== $exception) { // Throw exception at current execution point.
                             $this->current = $this->generator->throw($exception);
@@ -127,7 +127,7 @@ class Coroutine extends Promise implements CoroutineInterface
     }
     
     /**
-     * The garbage collector does not automatically detect the deep circular references that can be
+     * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
      * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
      */
     private function close()
@@ -153,7 +153,7 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     public function resume()
     {
-        if ($this->isPending() && $this->isPaused()) {
+        if ($this->isPending() && $this->paused) {
             $this->paused = false;
             
             if ($this->ready) {

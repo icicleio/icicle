@@ -104,4 +104,47 @@ class CallableQueueTest extends TestCase
         
         $this->queue->call();
     }
+
+    /**
+     * @depends testCall
+     */
+    public function testCallbackThrowingExceptionIsRemovedFromQueue()
+    {
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->will($this->throwException(new \Exception()));
+
+        $this->queue->insert($callback);
+
+        $this->assertSame(1, $this->queue->count());
+
+        try {
+            $this->queue->call();
+            $this->fail('Exception was not thrown from CallableQueue::call().');
+        } catch (\Exception $e) {
+            $this->assertSame(0, $this->queue->count());
+        }
+    }
+
+    /**
+     * @depends testCallbackThrowingExceptionIsRemovedFromQueue
+     */
+    public function testCallbackRemainsInQueueAfterCallbackThrowingException()
+    {
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->will($this->throwException(new \Exception()));
+
+        $this->queue->insert($callback);
+        $this->queue->insert($this->createCallback(0));
+
+        $this->assertSame(2, $this->queue->count());
+
+        try {
+            $this->queue->call();
+            $this->fail('Exception was not thrown from CallableQueue::call().');
+        } catch (\Exception $e) {
+            $this->assertSame(1, $this->queue->count());
+        }
+    }
 }

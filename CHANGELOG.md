@@ -2,8 +2,13 @@
 
 ### v0.5.3
 
+- New Features
+    - Added `Promise\wait()` function that can be used to synchronously wait for a promise to be resolved. The fulfillment value is returned or the rejection reason is thrown from the function. This function can be used to integrate Icicle into a synchronous environment, but generally should not be used in an active event loop.
+- Changes
+    - Various performance improvements when executing scheduled callbacks, executing promise callbacks, and checking for coroutine completion or cancellation.
 - Bug Fixes
     - Added check in `Datagram::send()` on `stream_socket_sendto()` sending 0 bytes if the data was not immediately sent to prevent an infinite loop if the datagram is unexpectedly closed while waiting to send data. 
+    - Changed timer execution in `SelectLoop` to avoid timer drift.
 
 ---
 
