@@ -727,9 +727,9 @@ trait ReadableStreamTestTrait
 
         $stream->isWritable()->willReturn(true);
 
-        $stream->write(StreamTest::WRITE_STRING)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
+        $stream->write(StreamTest::WRITE_STRING, 0)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
 
-        $stream->end()->shouldBeCalled();
+        $stream->end('', 0)->shouldBeCalled();
 
         $promise = new Coroutine($readable->pipe($stream->reveal(), true));
 
@@ -1140,9 +1140,9 @@ trait ReadableStreamTestTrait
 
         $stream->isWritable()->willReturn(true);
 
-        $stream->write(StreamTest::WRITE_STRING)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
+        $stream->write(StreamTest::WRITE_STRING, 0)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
 
-        $stream->end()->shouldBeCalled();
+        $stream->end('', 0)->shouldBeCalled();
 
         $promise = new Coroutine($readable->pipe($stream->reveal(), true, 0, '!'));
         
@@ -1362,5 +1362,195 @@ trait ReadableStreamTestTrait
         $promise->done($callback, $this->createCallback(0));
         
         Loop\tick();
+    }
+
+    /**
+     * @depends testRead
+     */
+    public function testReadWithTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->read(null, null, StreamTest::TIMEOUT);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testReadTo
+     */
+    public function testReadToWithTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $promise = $readable->read(null, "\0", StreamTest::TIMEOUT);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testPipe
+     */
+    public function testPipeTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) {
+                $this->assertSame(StreamTest::WRITE_STRING, $data);
+                return Promise\resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = new Coroutine($readable->pipe($mock, false, 0, null, StreamTest::TIMEOUT));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+
+        $this->assertTrue($readable->isOpen());
+    }
+
+    /**
+     * @depends testPipeTimeout
+     */
+    public function testPipeWithLengthTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $length = 8;
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($length) {
+                return Promise\resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = new Coroutine(
+            $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, null, StreamTest::TIMEOUT)
+        );
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+
+        $this->assertTrue($readable->isOpen());
+    }
+
+    /**
+     * @depends testPipeTo
+     */
+    public function testPipeToTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) {
+                $this->assertSame(StreamTest::WRITE_STRING, $data);
+                return Promise\resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = new Coroutine($readable->pipe($mock, false, 0, '!', StreamTest::TIMEOUT));
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+
+        $this->assertTrue($readable->isOpen());
+    }
+
+    /**
+     * @depends testPipeToTimeout
+     */
+    public function testPipeToWithLengthTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        $writable->write(StreamTest::WRITE_STRING);
+
+        $length = 8;
+
+        $mock = $this->getMockBuilder('Icicle\Stream\WritableStreamInterface')->getMock();
+
+        $mock->method('isWritable')
+            ->will($this->returnValue(true));
+
+        $mock->expects($this->once())
+            ->method('write')
+            ->will($this->returnCallback(function ($data) use ($length) {
+                return Promise\resolve(strlen($data));
+            }));
+
+        $mock->expects($this->never())
+            ->method('end');
+
+        $promise = new Coroutine(
+            $readable->pipe($mock, false, strlen(StreamTest::WRITE_STRING) + 1, '!', StreamTest::TIMEOUT)
+        );
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+
+        $this->assertTrue($readable->isOpen());
     }
 }

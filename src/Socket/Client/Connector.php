@@ -3,9 +3,9 @@ namespace Icicle\Socket\Client;
 
 use Icicle\Loop;
 use Icicle\Promise\Promise;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\ParserTrait;
 
 class Connector implements ConnectorInterface

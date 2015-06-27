@@ -3,8 +3,9 @@ namespace Icicle\Socket\Stream;
 
 use Exception;
 use Icicle\Socket\Socket;
+use Icicle\Stream\DuplexStreamInterface;
 
-class DuplexStream extends Socket implements DuplexSocketInterface
+class DuplexStream extends Socket implements DuplexStreamInterface
 {
     use ReadableStreamTrait, WritableStreamTrait {
         ReadableStreamTrait::init insteadof WritableStreamTrait;

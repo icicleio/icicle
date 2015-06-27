@@ -262,7 +262,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Exception\TimeoutException'));
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
 
         $promise->done($this->createCallback(0), $callback);
 

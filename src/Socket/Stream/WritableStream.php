@@ -3,8 +3,9 @@ namespace Icicle\Socket\Stream;
 
 use Exception;
 use Icicle\Socket\Socket;
+use Icicle\Stream\WritableStreamInterface;
 
-class WritableStream extends Socket implements WritableSocketInterface
+class WritableStream extends Socket implements WritableStreamInterface
 {
     use WritableStreamTrait;
     

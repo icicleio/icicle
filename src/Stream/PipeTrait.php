@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Stream;
 
-use Icicle\Coroutine\Coroutine;
 use Icicle\Stream\Exception\UnwritableException;
 
 trait PipeTrait
@@ -48,6 +47,7 @@ trait PipeTrait
      * @param bool $endWhenUnreadable
      * @param int $length
      * @param string|int|null $byte
+     * @param float|int $timeout
      *
      * @return \Generator
      *
@@ -57,8 +57,9 @@ trait PipeTrait
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject \Icicle\Promise\Exception\TimeoutException If the operation times out.
      */
-    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = 0, $byte = null)
+    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = 0, $byte = null, $timeout = 0)
     {
         if (!$stream->isWritable()) {
             throw new UnwritableException('The stream is not writable.');
@@ -71,12 +72,12 @@ trait PipeTrait
 
         try {
             do {
-                $data = (yield $this->read($length, $byte));
+                $data = (yield $this->read($length, $byte, $timeout));
 
                 $count = strlen($data);
                 $bytes += $count;
 
-                yield $stream->write($data);
+                yield $stream->write($data, $timeout);
             } while ($this->isReadable()
                 && $stream->isWritable()
                 && (null === $byte || $data[$count - 1] !== $byte)
@@ -84,7 +85,7 @@ trait PipeTrait
             );
         } finally {
             if ($endWhenUnreadable && !$this->isReadable() && $stream->isWritable()) {
-                $stream->end();
+                $stream->end('', $timeout);
             }
         }
 

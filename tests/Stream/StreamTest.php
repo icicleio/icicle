@@ -11,6 +11,7 @@ class StreamTest extends TestCase
     
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
     const CHUNK_SIZE = 8192;
+    const TIMEOUT = 0.1;
     const HWM = 16384;
     
     /**
@@ -18,7 +19,7 @@ class StreamTest extends TestCase
      *
      * @return \Icicle\Stream\Stream[] Same stream instance for readable and writable.
      */
-    public function createStreams($hwm = 0)
+    public function createStreams($hwm = self::CHUNK_SIZE)
     {
         $stream = new Stream($hwm);
         

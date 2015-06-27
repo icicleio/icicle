@@ -5,12 +5,13 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Socket\Exception\TimeoutException;
-use Icicle\Stream\Exception\BusyException;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\SocketInterface;
+use Icicle\Stream\Exception\BusyException;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\ParserTrait;
+use Icicle\Stream\PipeTrait;
 
 trait ReadableStreamTrait
 {
@@ -88,11 +89,7 @@ trait ReadableStreamTrait
         }
         
         if (null !== $this->deferred) {
-            if (null === $exception) {
-                $exception = new ClosedException('The stream was unexpectedly closed.');
-            }
-
-            $this->deferred->reject($exception);
+            $this->deferred->reject($exception ?: new ClosedException('The stream was unexpectedly closed.'));
             $this->deferred = null;
         }
     }

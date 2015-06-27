@@ -127,4 +127,24 @@ trait WritableStreamTestTrait
         $this->assertFalse($writable->isWritable());
         $this->assertFalse($writable->isOpen());
     }
+
+    /**
+     * @depends testWrite
+     */
+    public function testWriteTimeout()
+    {
+        list($readable, $writable) = $this->createStreams();
+
+        do { // Write until a pending promise is returned.
+            $promise = $writable->write(StreamTest::WRITE_STRING, StreamTest::TIMEOUT);
+        } while (!$promise->isPending());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
 }

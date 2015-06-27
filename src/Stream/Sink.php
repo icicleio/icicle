@@ -77,7 +77,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function read($length = 0, $byte = null)
+    public function read($length = 0, $byte = null, $timeout = 0)
     {
         if (!$this->isReadable()) {
             return Promise\reject(new UnreadableException('The stream is no longer readable.'));
@@ -126,26 +126,27 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function write($data)
+    public function write($data, $timeout = 0)
     {
-        return $this->send($data, false);
+        return $this->send($data, $timeout, false);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function end($data = '')
+    public function end($data = '', $timeout = 0)
     {
-        return $this->send($data, true);
+        return $this->send($data, $timeout, true);
     }
 
     /**
      * @param string $data
+     * @param float|int $timeout
      * @param bool $end
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    protected function send($data, $end = false)
+    protected function send($data, $timeout = 0, $end = false)
     {
         if (!$this->isWritable()) {
             return Promise\reject(new UnwritableException('The stream is no longer writable.'));
@@ -171,7 +172,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
     /**
      * {@inheritdoc}
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET, $timeout = 0)
     {
         if (!$this->isOpen()) {
             return Promise\reject(new UnseekableException('The stream is no longer seekable.'));

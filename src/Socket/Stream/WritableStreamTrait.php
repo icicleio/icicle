@@ -5,8 +5,8 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\TimeoutException;
 use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnwritableException;
@@ -79,16 +79,10 @@ trait WritableStreamTrait
             $this->await = null;
         }
 
-        if (!$this->writeQueue->isEmpty()) {
-            if (null === $exception) {
-                $exception = new ClosedException('The stream was unexpectedly closed.');
-            }
-
-            do {
-                /** @var \Icicle\Promise\Deferred $deferred */
-                list( , , , $deferred) = $this->writeQueue->shift();
-                $deferred->reject($exception);
-            } while (!$this->writeQueue->isEmpty());
+        while (!$this->writeQueue->isEmpty()) {
+            /** @var \Icicle\Promise\Deferred $deferred */
+            list( , , , $deferred) = $this->writeQueue->shift();
+            $deferred->reject($exception ?: new ClosedException('The stream was unexpectedly closed.'));
         }
     }
 
@@ -122,10 +116,12 @@ trait WritableStreamTrait
             
             $data->remove($written);
         }
-        
-        $deferred = new Deferred();
+
+        $deferred = new Deferred(function (Exception $exception) {
+            $this->free($exception);
+        });
         $this->writeQueue->push([$data, $written, $timeout, $deferred]);
-        
+
         if (!$this->await->isPending()) {
             $this->await->listen($timeout);
         }
@@ -166,7 +162,9 @@ trait WritableStreamTrait
             return Promise\reject(new UnwritableException('The stream is no longer writable.'));
         }
         
-        $deferred = new Deferred();
+        $deferred = new Deferred(function (Exception $exception) {
+            $this->free($exception);
+        });
         $this->writeQueue->push([new Buffer(), 0, $timeout, $deferred]);
         
         if (!$this->await->isPending()) {
