@@ -6,6 +6,9 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableException;
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\Exception\CancelledException;
+use Icicle\Promise\Exception\TimeoutException;
+use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 
 class CoroutineTest extends TestCase
@@ -131,7 +134,7 @@ class CoroutineTest extends TestCase
         
         $child = $coroutine->then($callback, $this->createCallback(0));
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $child);
+        $this->assertInstanceOf(PromiseInterface::class, $child);
         
         Loop\run();
         
@@ -399,7 +402,7 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $coroutine->done($this->createCallback(0), $callback);
         
@@ -512,7 +515,7 @@ class CoroutineTest extends TestCase
         Loop\tick(); // Get to first yield statement.
         
         $this->assertTrue($coroutine->isPending());
-        $this->assertInstanceOf('Icicle\Promise\Promise', $promise);
+        $this->assertInstanceOf(Promise\Promise::class, $promise);
         
         $coroutine->cancel($exception);
         
@@ -557,7 +560,7 @@ class CoroutineTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf('Icicle\Promise\Promise', $promise);
+        $this->assertInstanceOf(Promise\Promise::class, $promise);
         $this->assertTrue($promise->isRejected());
         $this->assertSame($exception, $promise->getResult());
     }
@@ -576,11 +579,11 @@ class CoroutineTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf(TimeoutException::class));
         
         $timeout = $coroutine->timeout(self::TIMEOUT);
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $timeout);
+        $this->assertInstanceOf(PromiseInterface::class, $timeout);
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -607,7 +610,7 @@ class CoroutineTest extends TestCase
         
         $delayed = $coroutine->delay(self::TIMEOUT);
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $delayed);
+        $this->assertInstanceOf(PromiseInterface::class, $delayed);
         
         $delayed->done($callback, $this->createCallback(0));
         
@@ -673,8 +676,8 @@ class CoroutineTest extends TestCase
         $coroutine1 = $wrap(1, 2);
         $coroutine2 = $wrap(5, -5);
         
-        $this->assertInstanceOf('Icicle\Coroutine\Coroutine', $coroutine1);
-        $this->assertInstanceOf('Icicle\Coroutine\Coroutine', $coroutine2);
+        $this->assertInstanceOf(Coroutine::class, $coroutine1);
+        $this->assertInstanceOf(Coroutine::class, $coroutine2);
         $this->assertNotSame($coroutine1, $coroutine2);
         
         $callback = $this->createCallback(1);
@@ -710,7 +713,7 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = $wrap();
-            $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
@@ -729,7 +732,7 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = $wrap();
-            $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
@@ -766,7 +769,7 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = \Icicle\Coroutine\create($callback);
-            $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
@@ -783,7 +786,7 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = \Icicle\Coroutine\create($callback);
-            $this->fail('Expected exception of type Icicle\Coroutine\Exception\InvalidCallableException');
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
         } catch (InvalidCallableException $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }

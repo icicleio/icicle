@@ -1,11 +1,10 @@
 <?php
 namespace Icicle\Tests\Socket\Datagram;
 
-use Exception;
 use Icicle\Loop;
 use Icicle\Socket\Datagram\Datagram;
+use Icicle\Socket\Datagram\DatagramInterface;
 use Icicle\Socket\Datagram\DatagramFactory;
-use Icicle\Socket\Socket;
 use Icicle\Tests\TestCase;
 
 class DatagramFactoryTest extends TestCase
@@ -41,7 +40,7 @@ class DatagramFactoryTest extends TestCase
     {
         $this->datagram = $this->factory->create(self::HOST_IPv4, self::PORT);
         
-        $this->assertInstanceOf('Icicle\Socket\Datagram\DatagramInterface', $this->datagram);
+        $this->assertInstanceOf(DatagramInterface::class, $this->datagram);
         
         $this->assertSame(self::HOST_IPv4, $this->datagram->getAddress());
         $this->assertSame(self::PORT, $this->datagram->getPort());
@@ -51,7 +50,7 @@ class DatagramFactoryTest extends TestCase
     {
         $this->datagram = $this->factory->create(self::HOST_IPv6, self::PORT);
         
-        $this->assertInstanceOf('Icicle\Socket\Datagram\DatagramInterface', $this->datagram);
+        $this->assertInstanceOf(DatagramInterface::class, $this->datagram);
         
         $this->assertSame(self::HOST_IPv6, $this->datagram->getAddress());
         $this->assertSame(self::PORT, $this->datagram->getPort());
@@ -60,7 +59,7 @@ class DatagramFactoryTest extends TestCase
     /**
      * @medium
      * @depends testCreate
-     * @expectedException Icicle\Socket\Exception\FailureException
+     * @expectedException \Icicle\Socket\Exception\FailureException
      */
     public function testCreateInvalidHost()
     {

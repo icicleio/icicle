@@ -3,6 +3,10 @@ namespace Icicle\Tests\Loop;
 
 use Exception;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Events\Manager\SignalManagerInterface;
 use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Exception\LogicException;
@@ -47,7 +51,7 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function createEventFactory()
     {
-        $factory = $this->getMockBuilder('Icicle\Loop\Events\EventFactoryInterface')
+        $factory = $this->getMockBuilder(EventFactoryInterface::class)
                         ->getMock();
         
         $factory->method('socket')
@@ -85,7 +89,7 @@ abstract class AbstractLoopTest extends TestCase
     
     public function createSocketEvent(SocketManagerInterface $manager, $resource, callable $callback)
     {
-        $socket = $this->getMockBuilder('Icicle\Loop\Events\SocketEventInterface')
+        $socket = $this->getMockBuilder(SocketEventInterface::class)
                      ->getMock();
         
         $socket->method('getResource')
@@ -124,7 +128,7 @@ abstract class AbstractLoopTest extends TestCase
     
     public function createImmediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
     {
-        $immediate = $this->getMockBuilder('Icicle\Loop\Events\ImmediateInterface')
+        $immediate = $this->getMockBuilder(ImmediateInterface::class)
                           ->getMock();
         
         if (!empty($args)) {
@@ -161,7 +165,7 @@ abstract class AbstractLoopTest extends TestCase
         callable $callback,
         array $args = null
     ) {
-        $timer = $this->getMockBuilder('Icicle\Loop\Events\TimerInterface')
+        $timer = $this->getMockBuilder(TimerInterface::class)
                       ->getMock();
         
         if (!empty($args)) {
@@ -209,7 +213,7 @@ abstract class AbstractLoopTest extends TestCase
 
     public function createSignal(SignalManagerInterface $manager, $signo, callable $callback)
     {
-        $signal = $this->getMockBuilder('Icicle\Loop\Events\SignalInterface')
+        $signal = $this->getMockBuilder(SignalInterface::class)
                        ->getMock();
 
         $signal->method('getSignal')
@@ -251,7 +255,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll = $this->loop->poll($socket, $this->createCallback(0));
         
-        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
+        $this->assertInstanceOf(SocketEventInterface::class, $poll);
     }
     
     /**
@@ -466,7 +470,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $await = $this->loop->await($socket, $this->createCallback(0));
         
-        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $await);
+        $this->assertInstanceOf(SocketEventInterface::class, $await);
     }
     
     /**
@@ -832,7 +836,7 @@ abstract class AbstractLoopTest extends TestCase
     {
         $immediate = $this->loop->immediate($this->createCallback(1));
         
-        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
+        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
         
         $this->assertTrue($immediate->isPending());
         

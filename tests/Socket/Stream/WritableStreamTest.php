@@ -3,6 +3,7 @@ namespace Icicle\Tests\Socket\Stream;
 
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Socket\Stream\ReadableStream;
 use Icicle\Socket\Stream\WritableStream;
 use Icicle\Tests\Stream\WritableBufferedStreamTestTrait;
 use Icicle\Tests\Stream\WritableStreamTestTrait;
@@ -15,7 +16,7 @@ class WritableStreamTest extends StreamTest
     {
         list($read, $write) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         
-        $readable = $this->getMockBuilder('Icicle\Socket\Stream\ReadableStream')
+        $readable = $this->getMockBuilder(ReadableStream::class)
                          ->disableOriginalConstructor()
                          ->getMock();
         

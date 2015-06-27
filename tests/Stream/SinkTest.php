@@ -2,6 +2,11 @@
 namespace Icicle\Tests\Stream;
 
 use Icicle\Loop;
+use Icicle\Stream\Exception\InvalidArgumentException;
+use Icicle\Stream\Exception\OutOfBoundsException;
+use Icicle\Stream\Exception\UnreadableException;
+use Icicle\Stream\Exception\UnseekableException;
+use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Stream\Sink;
 use Icicle\Tests\TestCase;
 
@@ -31,7 +36,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnreadableException'));
+            ->with($this->isInstanceOf(UnreadableException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -497,7 +502,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\OutOfBoundsException'));
+            ->with($this->isInstanceOf(OutOfBoundsException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -507,7 +512,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\OutOfBoundsException'));
+            ->with($this->isInstanceOf(OutOfBoundsException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -527,7 +532,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\InvalidArgumentException'));
+            ->with($this->isInstanceOf(InvalidArgumentException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -547,7 +552,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnseekableException'));
+            ->with($this->isInstanceOf(UnseekableException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -603,7 +608,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
+            ->with($this->isInstanceOf(UnwritableException::class));
 
         $promise->done($this->createCallback(0), $callback);
 

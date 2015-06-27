@@ -6,6 +6,9 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Socket\Client\Client;
+use Icicle\Socket\Exception\FailureException;
+use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Tests\TestCase;
 
 class ClientTest extends TestCase
@@ -186,7 +189,7 @@ class ClientTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\BusyException'));
+            ->with($this->isInstanceOf(BusyException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -263,7 +266,7 @@ class ClientTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
+            ->with($this->isInstanceOf(UnwritableException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -299,7 +302,7 @@ class ClientTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\UnwritableException'));
+            ->with($this->isInstanceOf(UnwritableException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -334,7 +337,7 @@ class ClientTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
+                 ->with($this->isInstanceOf(FailureException::class));
         
         $promise->done($this->createCallback(0), $callback);
         

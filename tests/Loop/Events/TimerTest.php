@@ -1,6 +1,7 @@
 <?php
 namespace Icicle\Tests\Loop\Events;
 
+use Icicle\Loop\Events\Manager\TimerManagerInterface;
 use Icicle\Loop\Events\Timer;
 use Icicle\Tests\TestCase;
 
@@ -12,7 +13,7 @@ class TimerTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock('Icicle\Loop\Events\Manager\TimerManagerInterface');
+        $this->manager = $this->getMock(TimerManagerInterface::class);
     }
     
     public function createTimer($interval, $periodic, callable $callback, array $args = null)

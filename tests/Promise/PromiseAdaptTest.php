@@ -3,6 +3,9 @@ namespace Icicle\Tests\Promise;
 
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\Exception\RejectedException;
+use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 
 class PromiseAdaptTest extends TestCase
@@ -14,7 +17,7 @@ class PromiseAdaptTest extends TestCase
     
     public function testThenCalled()
     {
-        $mock = $this->getMock('Icicle\Promise\PromiseInterface');
+        $mock = $this->getMock(PromiseInterface::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -29,7 +32,7 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($mock);
 
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+        $this->assertInstanceOf(PromiseInterface::class, $promise);
 
         $promise->done($this->createCallback(0), $this->createCallback(0));
 
@@ -43,7 +46,7 @@ class PromiseAdaptTest extends TestCase
     {
         $value = 1;
 
-        $mock = $this->getMock('Icicle\Promise\PromiseInterface');
+        $mock = $this->getMock(PromiseInterface::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -69,7 +72,7 @@ class PromiseAdaptTest extends TestCase
     {
         $reason = 'Rejected';
 
-        $mock = $this->getMock('Icicle\Promise\PromiseInterface');
+        $mock = $this->getMock(PromiseInterface::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -81,7 +84,7 @@ class PromiseAdaptTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\ExceptionInterface'));
+            ->with($this->isInstanceOf(RejectedException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -94,11 +97,11 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($value);
 
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+        $this->assertInstanceOf(PromiseInterface::class, $promise);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TypeException'));
+            ->with($this->isInstanceOf(TypeException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -111,11 +114,11 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($object);
 
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+        $this->assertInstanceOf(PromiseInterface::class, $promise);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TypeException'));
+            ->with($this->isInstanceOf(TypeException::class));
 
         $promise->done($this->createCallback(0), $callback);
 

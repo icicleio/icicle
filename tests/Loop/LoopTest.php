@@ -2,6 +2,10 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
+use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
 
@@ -85,7 +89,7 @@ class LoopTest extends TestCase
         
         $poll = Loop\poll($readable, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $poll);
+        $this->assertInstanceOf(SocketEventInterface::class, $poll);
         
         $poll->listen();
         
@@ -102,7 +106,7 @@ class LoopTest extends TestCase
         
         $await = Loop\await($writable, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\SocketEventInterface', $await);
+        $this->assertInstanceOf(SocketEventInterface::class, $await);
         
         $await->listen();
         
@@ -113,7 +117,7 @@ class LoopTest extends TestCase
     {
         $timer = Loop\timer(self::TIMEOUT, $this->createCallback(1));
         
-        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        $this->assertInstanceOf(TimerInterface::class, $timer);
         
         Loop\run();
     }
@@ -129,7 +133,7 @@ class LoopTest extends TestCase
         
         $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
-        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        $this->assertInstanceOf(TimerInterface::class, $timer);
         
         Loop\tick(true);
     }
@@ -145,7 +149,7 @@ class LoopTest extends TestCase
         
         $timer = Loop\periodic(self::TIMEOUT, $callback);
         
-        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        $this->assertInstanceOf(TimerInterface::class, $timer);
         
         Loop\run();
     }
@@ -166,7 +170,7 @@ class LoopTest extends TestCase
         
         $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
-        $this->assertInstanceOf('Icicle\Loop\Events\TimerInterface', $timer);
+        $this->assertInstanceOf(TimerInterface::class, $timer);
         
         Loop\run();
     }
@@ -175,7 +179,7 @@ class LoopTest extends TestCase
     {
         $immediate = Loop\immediate($this->createCallback(1));
         
-        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
+        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
         
         Loop\run();
     }
@@ -191,7 +195,7 @@ class LoopTest extends TestCase
         
         $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
         
-        $this->assertInstanceOf('Icicle\Loop\Events\ImmediateInterface', $immediate);
+        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
         
         Loop\run();
     }
@@ -293,13 +297,13 @@ class LoopTest extends TestCase
         $callback3 = $this->createCallback(1);
         
         $signal = Loop\signal(SIGUSR1, $callback1);
-        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+        $this->assertInstanceOf(SignalInterface::class, $signal);
 
         $signal = Loop\signal(SIGUSR2, $callback2);
-        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+        $this->assertInstanceOf(SignalInterface::class, $signal);
 
         $signal = Loop\signal(SIGUSR1, $callback3);
-        $this->assertInstanceOf('Icicle\Loop\Events\SignalInterface', $signal);
+        $this->assertInstanceOf(SignalInterface::class, $signal);
         
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);

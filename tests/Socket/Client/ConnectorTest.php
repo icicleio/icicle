@@ -3,8 +3,12 @@ namespace Icicle\Tests\Socket\Client;
 
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
+use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Client\Client;
+use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\Connector;
+use Icicle\Socket\Exception\FailureException;
+use Icicle\Socket\Exception\InvalidArgumentException;
 use Icicle\Tests\TestCase;
 
 class ConnectorTest extends TestCase
@@ -163,7 +167,7 @@ class ConnectorTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+                 ->with($this->isInstanceOf(ClientInterface::class));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -191,7 +195,7 @@ class ConnectorTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+                 ->with($this->isInstanceOf(ClientInterface::class));
         
         $promise->done($callback, $this->createCallback(0));
         
@@ -219,7 +223,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -245,7 +249,7 @@ class ConnectorTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
+                 ->with($this->isInstanceOf(FailureException::class));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -262,7 +266,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf(TimeoutException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -283,7 +287,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -304,7 +308,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Socket\Exception\InvalidArgumentException'));
+                 ->with($this->isInstanceOf(InvalidArgumentException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -332,7 +336,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -352,7 +356,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -380,7 +384,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -400,7 +404,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
+            ->with($this->isInstanceOf(FailureException::class));
 
         $promise->done($this->createCallback(0), $callback);
 
@@ -428,7 +432,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Client\ClientInterface'));
+            ->with($this->isInstanceOf(ClientInterface::class));
 
         $promise->done($callback, $this->createCallback(0));
 
@@ -448,7 +452,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Socket\Exception\FailureException'));
+            ->with($this->isInstanceOf(FailureException::class));
 
         $promise->done($this->createCallback(0), $callback);
 

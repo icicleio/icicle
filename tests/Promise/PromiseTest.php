@@ -3,8 +3,13 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
-use Icicle\Promise\Exception\LogicException;
 use Icicle\Promise;
+use Icicle\Promise\Exception\CancelledException;
+use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\RejectedException;
+use Icicle\Promise\Exception\TimeoutException;
+use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 use InvalidArgumentException;
 use RuntimeException;
@@ -69,7 +74,7 @@ class PromiseTest extends TestCase
     
     public function testThenReturnsPromise()
     {
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
+        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
     }
     
     public function testResolve()
@@ -79,7 +84,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $fulfilled = Promise\resolve($value);
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $fulfilled);
+        $this->assertInstanceOf(PromiseInterface::class, $fulfilled);
         
         $this->assertFalse($fulfilled->isPending());
         $this->assertTrue($fulfilled->isFulfilled());
@@ -93,7 +98,7 @@ class PromiseTest extends TestCase
         
         $rejected = Promise\reject($exception);
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $rejected);
+        $this->assertInstanceOf(PromiseInterface::class, $rejected);
         
         $this->assertFalse($rejected->isPending());
         $this->assertFalse($rejected->isFulfilled());
@@ -110,7 +115,7 @@ class PromiseTest extends TestCase
         
         $rejected = Promise\reject($reason);
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $rejected);
+        $this->assertInstanceOf(PromiseInterface::class, $rejected);
         
         $this->assertFalse($rejected->isPending());
         $this->assertFalse($rejected->isFulfilled());
@@ -118,7 +123,7 @@ class PromiseTest extends TestCase
         
         $result = $rejected->getResult();
         
-        $this->assertInstanceOf('Icicle\Promise\Exception\RejectedException', $result);
+        $this->assertInstanceOf(RejectedException::class, $result);
         $this->assertSame($reason, $result->getReason());
     }
     
@@ -221,7 +226,7 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
+        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
     }
     
     /**
@@ -364,7 +369,7 @@ class PromiseTest extends TestCase
         $this->resolve($this->promise);
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertInstanceOf('Icicle\Promise\Exception\TypeException', $this->promise->getResult());
+        $this->assertInstanceOf(TypeException::class, $this->promise->getResult());
     }
     
     /**
@@ -389,10 +394,10 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isRejected());
-        $this->assertInstanceOf('Icicle\Promise\Exception\TypeException', $child->getResult());
+        $this->assertInstanceOf(TypeException::class, $child->getResult());
         
         $this->assertTrue($promise->isRejected());
-        $this->assertInstanceOf('Icicle\Promise\Exception\TypeException', $promise->getResult());
+        $this->assertInstanceOf(TypeException::class, $promise->getResult());
     }
     
     public function testRejectCallable()
@@ -423,7 +428,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
+            ->with($this->isInstanceOf(RejectedException::class));
         
         $this->promise->done($this->createCallback(0), $callback);
         
@@ -446,7 +451,7 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $this->promise->then());
+        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
     }
     
     /**
@@ -1060,13 +1065,13 @@ class PromiseTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $promise = new Promise\Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1135,13 +1140,13 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $promise = new Promise\Promise(function () {}, $callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $promise->done($this->createCallback(0), $callback);
         
@@ -1159,7 +1164,7 @@ class PromiseTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\CancelledException'));
+            ->with($this->isInstanceOf(CancelledException::class));
         
         $child = $this->promise->then();
         $child->done(null, $callback);
@@ -1503,14 +1508,14 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf(TimeoutException::class));
         
         $timeout->done($this->createCallback(0), $callback);
         
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertInstanceOf('Icicle\Promise\Exception\TimeoutException', $this->promise->getResult());
+        $this->assertInstanceOf(TimeoutException::class, $this->promise->getResult());
     }
     
     /**
@@ -1544,7 +1549,7 @@ class PromiseTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TimeoutException'));
+            ->with($this->isInstanceOf(TimeoutException::class));
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -2018,7 +2023,7 @@ class PromiseTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Promise\Exception\TypeException'));
+            ->with($this->isInstanceOf(TypeException::class));
 
         $child->done($this->createCallback(0), $callback);
 

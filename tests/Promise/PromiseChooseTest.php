@@ -4,6 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\Exception\LogicException;
 use Icicle\Tests\TestCase;
 
 class PromiseChooseTest extends TestCase
@@ -17,7 +18,7 @@ class PromiseChooseTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\LogicException'));
+                 ->with($this->isInstanceOf(LogicException::class));
         
         Promise\choose([])->done($this->createCallback(0), $callback);
         

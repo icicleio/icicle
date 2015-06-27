@@ -4,6 +4,8 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\MultiReasonException;
 use Icicle\Tests\TestCase;
 
 class PromiseSomeTest extends TestCase
@@ -17,7 +19,7 @@ class PromiseSomeTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\LogicException'));
+                 ->with($this->isInstanceOf(LogicException::class));
         
         Promise\some([], 1)->done($this->createCallback(0), $callback);
         
@@ -85,7 +87,7 @@ class PromiseSomeTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\MultiReasonException'));
+                 ->with($this->isInstanceOf(MultiReasonException::class));
         
         Promise\some($promises, 2)->done($this->createCallback(0), $callback);
         

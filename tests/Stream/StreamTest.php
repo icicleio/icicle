@@ -8,12 +8,12 @@ use Icicle\Tests\TestCase;
 class StreamTest extends TestCase
 {
     use ReadableStreamTestTrait, WritableStreamTestTrait, WritableBufferedStreamTestTrait;
-    
+
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
     const CHUNK_SIZE = 8192;
     const TIMEOUT = 0.1;
     const HWM = 16384;
-    
+
     /**
      * @param int|null $hwm
      *
@@ -22,10 +22,10 @@ class StreamTest extends TestCase
     public function createStreams($hwm = self::CHUNK_SIZE)
     {
         $stream = new Stream($hwm);
-        
+
         return [$stream, $stream];
     }
-    
+
     public function tearDown()
     {
         Loop\clear();

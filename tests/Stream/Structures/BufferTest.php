@@ -2,6 +2,7 @@
 namespace Icicle\Tests\Stream\Structures;
 
 use Icicle\Stream\Structures\Buffer;
+use Icicle\Stream\Structures\BufferIterator;
 use Icicle\Tests\TestCase;
 
 class BufferTest extends TestCase
@@ -308,6 +309,6 @@ class BufferTest extends TestCase
     {
         $iterator = $this->buffer->getIterator();
         
-        $this->assertInstanceOf('Icicle\Stream\Structures\BufferIterator', $iterator);
+        $this->assertInstanceOf(BufferIterator::class, $iterator);
     }
 }

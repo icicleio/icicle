@@ -5,6 +5,7 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
+use Icicle\Promise\Exception\RejectedException;
 use Icicle\Tests\TestCase;
 
 class DeferredTest extends TestCase
@@ -63,7 +64,7 @@ class DeferredTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf('Icicle\Promise\Exception\RejectedException'));
+                 ->with($this->isInstanceOf(RejectedException::class));
         
         $deferred->getPromise()->done($this->createCallback(0), $callback);
         

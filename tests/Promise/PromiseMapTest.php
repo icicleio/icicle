@@ -4,6 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
+use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 
 class PromiseMapTest extends TestCase
@@ -39,7 +40,7 @@ class PromiseMapTest extends TestCase
         $this->assertTrue(is_array($result));
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertSame($values[$key] + 1, $promise->getResult());
         }
     }
@@ -62,7 +63,7 @@ class PromiseMapTest extends TestCase
         Loop\run();
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
         }
     }
@@ -87,7 +88,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $promises);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertTrue($promise->isPending());
         }
         
@@ -115,7 +116,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($this->createCallback(0), $promises);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertTrue($promise->isRejected());
             $this->assertSame($exception, $promise->getResult());
         }
@@ -136,7 +137,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $values);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf('Icicle\Promise\PromiseInterface', $promise);
+            $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertTrue($promise->isPending());
         }
         
