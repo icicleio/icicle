@@ -2,7 +2,6 @@
 namespace Icicle\Socket\Client;
 
 use Exception;
-use Icicle\Coroutine\Coroutine;
 use Icicle\Socket\Stream\DuplexStream;
 use Icicle\Socket\Exception\FailureException;
 
