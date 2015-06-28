@@ -46,7 +46,8 @@ trait PromiseTrait
     /**
      * {@inheritdoc}
      */
-    public function tap(callable $onFulfilled) {
+    public function tap(callable $onFulfilled)
+    {
         return $this->then(function ($value) use ($onFulfilled) {
             return resolve($onFulfilled($value))->then(function () {
                 return $this;
