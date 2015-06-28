@@ -10,12 +10,10 @@ use Icicle\Socket\SocketInterface;
 use Icicle\Stream\Exception\BusyException;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
-use Icicle\Stream\ParserTrait;
 use Icicle\Stream\PipeTrait;
 
 trait ReadableStreamTrait
 {
-    use ParserTrait;
     use PipeTrait;
 
     /**

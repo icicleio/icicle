@@ -735,7 +735,7 @@ trait ReadableStreamTestTrait
 
         $stream->write(StreamTest::WRITE_STRING, 0)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
 
-        $stream->end('', 0)->shouldBeCalled();
+        $stream->end()->shouldBeCalled();
 
         $promise = new Coroutine($readable->pipe($stream->reveal(), true));
 
@@ -866,22 +866,15 @@ trait ReadableStreamTestTrait
 
         $writable->write(StreamTest::WRITE_STRING);
 
-        $mock = $this->getMockBuilder(WritableStreamInterface::class)->getMock();
+        $stream = $this->prophesize(WritableStreamInterface::class);
 
-        $mock->method('isWritable')
-            ->will($this->returnValue(true));
+        $stream->isWritable()->willReturn(true);
 
-        $mock->expects($this->once())
-            ->method('write')
-            ->will($this->returnCallback(function ($data) {
-                $this->assertSame(StreamTest::WRITE_STRING, $data);
-                return Promise\resolve(strlen($data));
-            }));
+        $stream->write(StreamTest::WRITE_STRING, 0)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
 
-        $mock->expects($this->never())
-            ->method('end');
+        $stream->end()->shouldBeCalled();
 
-        $promise = new Coroutine($readable->pipe($mock));
+        $promise = new Coroutine($readable->pipe($stream->reveal()));
 
         $exception = new Exception();
 
@@ -1148,7 +1141,7 @@ trait ReadableStreamTestTrait
 
         $stream->write(StreamTest::WRITE_STRING, 0)->willReturn(Promise\resolve(strlen(StreamTest::WRITE_STRING)));
 
-        $stream->end('', 0)->shouldBeCalled();
+        $stream->end()->shouldBeCalled();
 
         $promise = new Coroutine($readable->pipe($stream->reveal(), true, 0, '!'));
 

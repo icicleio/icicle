@@ -5,15 +5,18 @@ use Icicle\Stream\Exception\UnwritableException;
 
 trait PipeTrait
 {
+    use ParserTrait;
+
     /**
      * @see \Icicle\Stream\ReadableStreamInterface::read()
      *
-     * @param int|null $length
+     * @param int $length
      * @param string|int|null $byte
+     * @param float|int $timeout
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    abstract public function read($length = null, $byte = null);
+    abstract public function read($length = 0, $byte = null, $timeout = 0);
 
     /**
      * @see \Icicle\Stream\ReadableStreamInterface::isReadable()
@@ -23,28 +26,12 @@ trait PipeTrait
     abstract public function isReadable();
 
     /**
-     * @see \Icicle\Stream\ParserTrait::parseByte()
-     *
-     * @param int|null $length
-     */
-    abstract protected function parseLength($length);
-
-    /**
-     * @see \Icicle\Stream\ParserTrait::parseByte()
-     *
-     * @param string|int|null $byte
-     *
-     * @return string|null
-     */
-    abstract protected function parseByte($byte);
-
-    /**
      * @see \Icicle\Stream\ReadableStreamInterface::pipe()
      *
      * @coroutine
      *
      * @param \Icicle\Stream\WritableStreamInterface $stream
-     * @param bool $endWhenUnreadable
+     * @param bool $end
      * @param int $length
      * @param string|int|null $byte
      * @param float|int $timeout
@@ -56,10 +43,10 @@ trait PipeTrait
      * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
-     * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
+     * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.
      * @reject \Icicle\Promise\Exception\TimeoutException If the operation times out.
      */
-    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = 0, $byte = null, $timeout = 0)
+    public function pipe(WritableStreamInterface $stream, $end = true, $length = 0, $byte = null, $timeout = 0)
     {
         if (!$stream->isWritable()) {
             throw new UnwritableException('The stream is not writable.');
@@ -84,8 +71,8 @@ trait PipeTrait
                 && (0 === $length || 0 < $length -= $count)
             );
         } finally {
-            if ($endWhenUnreadable && !$this->isReadable() && $stream->isWritable()) {
-                $stream->end('', $timeout);
+            if ($end && $stream->isWritable()) {
+                $stream->end();
             }
         }
 

@@ -17,7 +17,6 @@ use Icicle\Stream\Structures\Buffer;
  */
 class Stream implements DuplexStreamInterface
 {
-    use ParserTrait;
     use PipeTrait;
 
     /**

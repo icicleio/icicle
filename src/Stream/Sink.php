@@ -17,7 +17,6 @@ use Icicle\Stream\Structures\Buffer;
  */
 class Sink implements DuplexStreamInterface, SeekableStreamInterface
 {
-    use ParserTrait;
     use PipeTrait;
 
     /**

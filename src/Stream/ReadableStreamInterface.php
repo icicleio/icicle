@@ -37,8 +37,8 @@ interface ReadableStreamInterface extends StreamInterface
      * Pipes data read on this stream into the given writable stream destination.
      *
      * @param WritableStreamInterface $stream
-     * @param bool $endWhenUnreadable Set to true to automatically end the writable stream when the readable stream
-     *     is no longer readable.
+     * @param bool $end Set to true to automatically call end() on the writable stream when piping ends, either due
+     *     to the readable stream closing or reaching the given length or byte.
      * @param int $length If not null, only $length bytes will be piped.
      * @param string|int $byte Piping will stop once the given byte occurs in the stream. The search character will
      *     be piped to the writable stream string. Use null to ignore this parameter and pipe all bytes.
@@ -47,8 +47,9 @@ interface ReadableStreamInterface extends StreamInterface
      *
      * @return \Generator
      *
-     * @resolve int Resolves when the writable stream closes or once $length bytes (if $length was not null) have been
-     *     piped to the stream.
+     * @resolve int Resolves when the writable stream closes, after $length bytes (if $length was not 0) have been
+     *     read from the stream, or $byte was read from the stream (if $byte was not null). Resolves with the number of
+     *     bytes read from the stream.
      *
      * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
@@ -56,5 +57,5 @@ interface ReadableStreamInterface extends StreamInterface
      * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.
      * @reject \Icicle\Promise\Exception\TimeoutException If the operation times out.
      */
-    public function pipe(WritableStreamInterface $stream, $endWhenUnreadable = true, $length = 0, $byte = null, $timeout = 0);
+    public function pipe(WritableStreamInterface $stream, $end = true, $length = 0, $byte = null, $timeout = 0);
 }

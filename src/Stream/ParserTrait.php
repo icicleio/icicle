@@ -18,9 +18,9 @@ trait ParserTrait
     }
 
     /**
-     * @param int|null $length
+     * @param int $length
      *
-     * @return int|null
+     * @return int
      */
     protected function parseLength($length)
     {
