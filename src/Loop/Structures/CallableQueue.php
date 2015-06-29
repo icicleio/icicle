@@ -67,19 +67,17 @@ class CallableQueue implements \Countable
     /**
      * Sets the maximum number of functions that can be called when the queue is called.
      *
-     * @param int|null $depth
+     * @param int $depth Maximum number of functions to execute when the queue is called. Use 0 for unlimited.
      *
-     * @return int Current max depth if $depth = null or previous max depth otherwise.
+     * @return int Previous max depth.
      */
-    public function maxDepth($depth = null)
+    public function maxDepth($depth)
     {
         $previous = $this->maxDepth;
         
-        if (null !== $depth) {
-            $depth = (int) $depth;
-            $this->maxDepth = 0 > $depth ? 0 : $depth;
-        }
-        
+        $depth = (int) $depth;
+        $this->maxDepth = 0 > $depth ? 0 : $depth;
+
         return $previous;
     }
     

@@ -221,7 +221,7 @@ class LoopTest extends TestCase
     {
         $previous = Loop\maxQueueDepth(1);
         
-        $this->assertSame(1, Loop\maxQueueDepth());
+        $this->assertSame(1, Loop\maxQueueDepth(1));
         
         Loop\queue($this->createCallback(1));
         Loop\queue($this->createCallback(0));
@@ -229,8 +229,8 @@ class LoopTest extends TestCase
         Loop\tick(true);
         
         Loop\maxQueueDepth($previous);
-        
-        $this->assertSame($previous, Loop\maxQueueDepth());
+
+        $this->assertSame($previous, Loop\maxQueueDepth($previous));
     }
     
     /**

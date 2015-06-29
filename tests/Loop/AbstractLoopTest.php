@@ -765,7 +765,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $previous = $this->loop->maxQueueDepth($depth);
         
-        $this->assertSame($depth, $this->loop->maxQueueDepth());
+        $this->assertSame($depth, $this->loop->maxQueueDepth($depth));
         
         $callback = $this->createCallback($depth * $ticks);
         
@@ -779,7 +779,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->maxQueueDepth($previous);
         
-        $this->assertSame($previous, $this->loop->maxQueueDepth());
+        $this->assertSame($previous, $this->loop->maxQueueDepth($previous));
     }
     
     /**

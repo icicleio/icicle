@@ -61,11 +61,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Sets the maximum number of callbacks set with queue() that will be executed per tick.
      *
-     * @param int|null $depth
+     * @param int $depth Maximum number of functions to execute each tick. Use 0 for unlimited.
      *
-     * @return int Current max depth if $depth = null or previous max depth otherwise.
+     * @return int Previous max depth.
      */
-    function maxQueueDepth($depth = null)
+    function maxQueueDepth($depth)
     {
         return loop()->maxQueueDepth($depth);
     }
