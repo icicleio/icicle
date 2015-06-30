@@ -4,7 +4,7 @@ namespace Icicle\Loop\Manager\Select;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
-use Icicle\Loop\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Structures\ObjectStorage;
 use SplPriorityQueue;
 
 class TimerManager implements TimerManagerInterface
@@ -15,12 +15,12 @@ class TimerManager implements TimerManagerInterface
     private $factory;
     
     /**
-     * @var SplPriorityQueue
+     * @var \SplPriorityQueue
      */
     private $queue;
     
     /**
-     * @var UnreferencableObjectStorage
+     * @var \Icicle\Loop\Structures\ObjectStorage
      */
     private $timers;
     
@@ -32,7 +32,7 @@ class TimerManager implements TimerManagerInterface
         $this->factory = $factory;
         
         $this->queue = new SplPriorityQueue();
-        $this->timers = new UnreferencableObjectStorage();
+        $this->timers = new ObjectStorage();
     }
     
     /**
@@ -105,7 +105,7 @@ class TimerManager implements TimerManagerInterface
     public function clear()
     {
         $this->queue = new SplPriorityQueue();
-        $this->timers = new UnreferencableObjectStorage();
+        $this->timers = new ObjectStorage();
     }
     
     /**

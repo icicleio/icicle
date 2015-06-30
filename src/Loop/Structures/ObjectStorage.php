@@ -7,7 +7,7 @@ use SplObjectStorage;
  * Extends SplObjectStorage to allow some objects in the storage to be unreferenced, that is, not count toward the total
  * number of objects in the storage.
  */
-class UnreferencableObjectStorage extends SplObjectStorage
+class ObjectStorage extends SplObjectStorage
 {
     /**
      * @var \SplObjectStorage

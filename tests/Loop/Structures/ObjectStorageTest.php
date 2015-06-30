@@ -1,16 +1,19 @@
 <?php
 namespace Icicle\Tests\Loop\Structures;
 
-use Icicle\Loop\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Tests\TestCase;
 
-class UnreferencableObjectStorageTest extends TestCase
+class ObjectStorageTest extends TestCase
 {
+    /**
+     * @var \Icicle\Loop\Structures\ObjectStorage
+     */
     private $storage;
     
     public function setUp()
     {
-        $this->storage = new UnreferencableObjectStorage();
+        $this->storage = new ObjectStorage();
     }
     
     public function createObject()
@@ -117,7 +120,7 @@ class UnreferencableObjectStorageTest extends TestCase
         $object2 = $this->createObject();
         $object3 = $this->createObject();
         
-        $storage = new UnreferencableObjectStorage();
+        $storage = new ObjectStorage();
         
         $storage->attach($object1);
         $storage->unreference($object1);
@@ -147,7 +150,7 @@ class UnreferencableObjectStorageTest extends TestCase
         $object2 = $this->createObject();
         $object3 = $this->createObject();
         
-        $storage = new UnreferencableObjectStorage();
+        $storage = new ObjectStorage();
         
         $storage->attach($object1);
         $storage->unreference($object1);
@@ -175,7 +178,7 @@ class UnreferencableObjectStorageTest extends TestCase
         $object2 = $this->createObject();
         $object3 = $this->createObject();
         
-        $storage = new UnreferencableObjectStorage();
+        $storage = new ObjectStorage();
         
         $storage->attach($object2);
         

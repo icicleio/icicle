@@ -3,7 +3,7 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\Structures\UnreferencableObjectStorage;
+use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class TimerManager implements TimerManagerInterface
@@ -21,9 +21,9 @@ class TimerManager implements TimerManagerInterface
     private $factory;
     
     /**
-     * UnreferencableObjectStorage mapping Timer objects to Event objects.
+     * ObjectStorage mapping Timer objects to event resources.
      *
-     * @var \Icicle\Loop\Structures\UnreferencableObjectStorage
+     * @var \Icicle\Loop\Structures\ObjectStorage
      */
     private $timers;
     
@@ -41,7 +41,7 @@ class TimerManager implements TimerManagerInterface
         $this->factory = $factory;
         $this->base = $base;
         
-        $this->timers = new UnreferencableObjectStorage();
+        $this->timers = new ObjectStorage();
         
         $this->callback = $this->createCallback();
     }
@@ -139,7 +139,7 @@ class TimerManager implements TimerManagerInterface
             event_free($this->timers->getInfo());
         }
         
-        $this->timers = new UnreferencableObjectStorage();
+        $this->timers = new ObjectStorage();
     }
     
     /**
