@@ -19,11 +19,13 @@ trait PromiseTrait
     public function capture(callable $onRejected)
     {
         return $this->then(null, function (\Exception $exception) use ($onRejected) {
-            if (is_array($onRejected)) { // Methods passed as an array.
+            if ($onRejected instanceof \Closure) { // Closure.
+                $reflection = new \ReflectionFunction($onRejected);
+            } elseif (is_array($onRejected)) { // Methods passed as an array.
                 $reflection = new \ReflectionMethod($onRejected[0], $onRejected[1]);
-            } elseif (is_object($onRejected) && !$onRejected instanceof \Closure) { // Callable objects.
+            } elseif (is_object($onRejected)) { // Callable objects.
                 $reflection = new \ReflectionMethod($onRejected, '__invoke');
-            } else { // Everything else (note method names delimited by :: do not work with $callable() syntax).
+            } else { // Everything else (method names delimited by :: do not work with $callable() syntax before PHP 7).
                 $reflection = new \ReflectionFunction($onRejected);
             }
             
@@ -35,11 +37,11 @@ trait PromiseTrait
             
             $class = $parameters[0]->getClass();
             
-            if (null === $class || $class->isInstance($exception)) { // No type-hint or matching type-hint.
+            if (null === $class || $class->isInstance($exception)) { // None or matching type declaration.
                 return $onRejected($exception);
             }
             
-            return $this; // Type-hint does not match.
+            return $this; // Type declaration does not match.
         });
     }
 

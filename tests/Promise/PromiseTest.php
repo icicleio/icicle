@@ -15,6 +15,11 @@ use Icicle\Tests\TestCase;
 use InvalidArgumentException;
 use RuntimeException;
 
+function exceptionHandler(RuntimeException $exception)
+{
+    return $exception;
+}
+
 class PromiseTest extends TestCase
 {
     /**
@@ -58,7 +63,15 @@ class PromiseTest extends TestCase
         $reject($reason);
     }
     
-    public function exceptionHandler(RuntimeException $exception) {}
+    public function instanceExceptionHandler(RuntimeException $exception)
+    {
+        return $exception;
+    }
+
+    public static function staticExceptionHandler(RuntimeException $exception)
+    {
+        return $exception;
+    }
     
     public function testResolverThrowingRejectsPromise()
     {
@@ -1031,35 +1044,52 @@ class PromiseTest extends TestCase
         $this->assertTrue($child->isFulfilled());
         $this->assertNull($child->getResult());
     }
+
+    /**
+     * @return array
+     */
+    public function captureFunctions()
+    {
+        return [
+            [function (RuntimeException $exception) { return $exception; }],
+            [[$this, 'instanceExceptionHandler']],
+            [[__CLASS__, 'staticExceptionHandler']],
+            [__NAMESPACE__ . '\exceptionHandler']
+        ];
+    }
     
     /**
      * @depends testCapture
+     * @dataProvider captureFunctions
+     * @param callable $callback
      */
-    public function testCaptureWithTypeHint()
+    public function testCaptureWithMatchingTypeHint(callable $callback)
     {
-        $value = 'test';
-        
-        $child1 = $this->promise->capture(function (InvalidArgumentException $exception) {});
-        $child2 = $this->promise->capture(function (RuntimeException $exception) use ($value) { return $value; });
-        $child3 = $this->promise->capture([$this, 'exceptionHandler']); // Typehinted method.
-        $child4 = $child1->capture(function (RuntimeException $exception) use ($value) { return $value; });
-        
+        $child = $this->promise->capture($callback);
+
         $exception = new RuntimeException();
         $this->reject($exception);
         
         Loop\run();
         
-        $this->assertTrue($child1->isRejected());
-        $this->assertSame($exception, $child1->getResult());
-        
-        $this->assertTrue($child2->isFulfilled());
-        $this->assertSame($value, $child2->getResult());
-        
-        $this->assertTrue($child3->isFulfilled());
-        $this->assertNull($child3->getResult());
-        
-        $this->assertTrue($child4->isFulfilled());
-        $this->assertSame($value, $child4->getResult());
+        $this->assertTrue($child->isFulfilled());
+        $this->assertSame($exception, $child->getResult());
+    }
+
+    /**
+     * @depends testCapture
+     */
+    public function testCaptureWithMismatchedTypeHint()
+    {
+        $child = $this->promise->capture(function (InvalidArgumentException $exception) { return $exception; });
+
+        $exception = new RuntimeException();
+        $this->reject($exception);
+
+        Loop\run();
+
+        $this->assertTrue($child->isRejected());
+        $this->assertSame($exception, $child->getResult());
     }
     
     public function testCancellation()
