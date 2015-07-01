@@ -36,8 +36,10 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.5-dev",
-            "dev-development": "0.6-dev"
+            "dev-master": "2.0.x-dev",
+            "dev-development": "2.1.x-dev",
+            "dev-v1.x": "1.x-dev",
+            "dev-v0.6.x": "0.6.x-dev"
         }
     },
     "autoload": {
