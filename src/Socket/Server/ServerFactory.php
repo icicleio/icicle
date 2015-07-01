@@ -15,14 +15,15 @@ class ServerFactory implements ServerFactoryInterface
     const DEFAULT_VERIFY_PEER = false;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
-    const DEFAULT_PROTOCOL = 'tcp';
-    
+
     /**
      * {@inheritdoc}
      */
     public function create($host, $port, array $options = null)
     {
-        $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
+        $protocol = isset($options['protocol'])
+            ? (string) $options['protocol']
+            : (null === $port ? 'unix' : 'tcp');
         $queue = isset($options['backlog']) ? (int) $options['backlog'] : self::DEFAULT_BACKLOG;
         $pem = isset($options['pem']) ? (string) $options['pem'] : null;
         $passphrase = isset($options['passphrase']) ? (string) $options['passphrase'] : null;

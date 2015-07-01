@@ -15,14 +15,15 @@ class Connector implements ConnectorInterface
     const DEFAULT_CONNECT_TIMEOUT = 10;
     const DEFAULT_ALLOW_SELF_SIGNED = false;
     const DEFAULT_VERIFY_DEPTH = 10;
-    const DEFAULT_PROTOCOL = 'tcp';
-    
+
     /**
      * {@inheritdoc}
      */
     public function connect($host, $port, array $options = null)
     {
-        $protocol = isset($options['protocol']) ? (string) $options['protocol'] : self::DEFAULT_PROTOCOL;
+        $protocol = isset($options['protocol'])
+            ? (string) $options['protocol']
+            : (null === $port ? 'unix' : 'tcp');
         $allowSelfSigned = isset($options['allow_self_signed'])
             ? (bool) $options['allow_self_signed']
             : self::DEFAULT_ALLOW_SELF_SIGNED;

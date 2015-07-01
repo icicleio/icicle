@@ -60,7 +60,7 @@ class ServerFactoryTest extends TestCase
 
     public function testCreateUnix()
     {
-        $this->server = $this->factory->create(self::HOST_UNIX, null, ['protocol' => 'unix']);
+        $this->server = $this->factory->create(self::HOST_UNIX, null);
 
         $this->assertInstanceOf(ServerInterface::class, $this->server);
 
