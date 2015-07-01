@@ -10,6 +10,8 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/icicle.svg?style=flat-square)](LICENSE)
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 
+**Note to php[architect] readers:** Some changes have been made since the article was written. The most significant is that the `Icicle\Loop\Loop` facade class no longer exists and has been replaced by a set of functions in the `Icicle\Loop` namespace. For example, `Icicle\Loop\Loop::run()` has become `Icicle\Loop\run()`. Some methods that returned promises have been changed to be coroutines, returning `Generator` instances that can made into a promise by simply wrapping the method call with `new Icicle\Coroutine\Coroutine(/* ... */)`. This change was made to support `yield from` in PHP 7. See the [changelog](CHANGELOG.md) for more details on the recent changes. The API will be more stable going forward as the first beta of v1.0 has been tagged.
+
 #### Library Components
 
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
