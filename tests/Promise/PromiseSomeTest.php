@@ -4,7 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
 use Icicle\Tests\TestCase;
 
@@ -19,7 +19,7 @@ class PromiseSomeTest extends TestCase
     {
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf(LogicException::class));
+                 ->with($this->isInstanceOf(InvalidArgumentError::class));
         
         Promise\some([], 1)->done($this->createCallback(0), $callback);
         

@@ -4,8 +4,8 @@ namespace Icicle\Loop;
 use Exception;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Exception\RunningException;
-use Icicle\Loop\Exception\SignalHandlingDisabledException;
+use Icicle\Loop\Exception\RunningError;
+use Icicle\Loop\Exception\SignalHandlingDisabledError;
 use Icicle\Loop\Manager\ImmediateManager;
 use Icicle\Loop\Structures\CallableQueue;
 
@@ -211,7 +211,7 @@ abstract class AbstractLoop implements LoopInterface
     public function run()
     {
         if ($this->isRunning()) {
-            throw new RunningException('The loop was already running.');
+            throw new RunningError('The loop was already running.');
         }
         
         $this->running = true;
@@ -303,7 +303,7 @@ abstract class AbstractLoop implements LoopInterface
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalManager) {
-            throw new SignalHandlingDisabledException(
+            throw new SignalHandlingDisabledError(
                 'The pcntl extension must be installed for signal constants to be defined.'
             );
         } // @codeCoverageIgnoreEnd

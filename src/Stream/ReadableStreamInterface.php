@@ -16,7 +16,7 @@ interface ReadableStreamInterface extends StreamInterface
      *
      * @resolve string Data read from the stream.
      *
-     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\BusyError If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.
      * @reject \Icicle\Promise\Exception\TimeoutException If the operation times out.
@@ -51,7 +51,7 @@ interface ReadableStreamInterface extends StreamInterface
      *     read from the stream, or $byte was read from the stream (if $byte was not null). Resolves with the number of
      *     bytes read from the stream.
      *
-     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\BusyError If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.

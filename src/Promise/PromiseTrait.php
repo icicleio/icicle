@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Promise;
 
-use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\Exception\UnexpectedTypeError;
 
 trait PromiseTrait
 {
@@ -78,7 +78,7 @@ trait PromiseTrait
             if ($values instanceof \Traversable) {
                 $values = iterator_to_array($values);
             } elseif (!is_array($values)) {
-                throw new TypeException(sprintf(
+                throw new UnexpectedTypeError(sprintf(
                     'Expected array or Traversable for promise result, got %s',
                     is_object($values) ? get_class($values) : gettype($values)
                 ));

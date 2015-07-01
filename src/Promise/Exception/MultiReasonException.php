@@ -1,12 +1,10 @@
 <?php
 namespace Icicle\Promise\Exception;
 
-use Exception;
-
-class MultiReasonException extends RuntimeException
+class MultiReasonException extends Exception
 {
     /**
-     * @var Exception[]
+     * @var \Exception[]
      */
     private $reasons;
     
@@ -21,7 +19,7 @@ class MultiReasonException extends RuntimeException
     }
     
     /**
-     * @return Exception[]
+     * @return \Exception[]
      */
     public function getReasons()
     {

@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Promise\Exception;
 
-interface ExceptionInterface {}
+class UnresolvedError extends Error {}

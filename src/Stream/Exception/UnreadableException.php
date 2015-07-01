@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Stream\Exception;
 
-class UnreadableException extends RuntimeException {}
+class UnreadableException extends Exception {}

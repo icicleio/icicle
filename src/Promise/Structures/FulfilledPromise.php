@@ -2,7 +2,7 @@
 namespace Icicle\Promise\Structures;
 
 use Icicle\Loop;
-use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Promise;
 use Icicle\Promise\PromiseInterface;
 
@@ -16,12 +16,12 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * @param mixed $value Anything other than a PromiseInterface object.
      *
-     * @throws \Icicle\Promise\Exception\TypeException If a PromiseInterface is given as the value.
+     * @throws \Icicle\Promise\Exception\InvalidArgumentError If a PromiseInterface is given as the value.
      */
     public function __construct($value)
     {
         if ($value instanceof PromiseInterface) {
-            throw new TypeException('Cannot use a PromiseInterface as a fulfilled promise value.');
+            throw new InvalidArgumentError('Cannot use a PromiseInterface as a fulfilled promise value.');
         }
         
         $this->value = $value;

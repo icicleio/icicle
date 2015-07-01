@@ -13,7 +13,7 @@ use Icicle\Tests\TestCase;
 class FulfilledPromiseTest extends TestCase
 {
     /**
-     * @expectedException Icicle\Promise\Exception\TypeException
+     * @expectedException \Icicle\Promise\Exception\InvalidArgumentError
      */
     public function testCannotUsePromseAsValue()
     {

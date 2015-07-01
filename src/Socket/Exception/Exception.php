@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Socket\Exception;
 
-interface ExceptionInterface {}
+class Exception extends \Exception {}

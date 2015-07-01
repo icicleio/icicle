@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Promise\Exception;
 
-class ReasonException extends RuntimeException
+class ReasonException extends Exception
 {
     /**
      * @var mixed Reason for rejection.

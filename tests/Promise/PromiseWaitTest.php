@@ -55,7 +55,7 @@ class PromiseWaitTest extends TestCase
     }
 
     /**
-     * @expectedException \Icicle\Promise\Exception\UnresolvedException
+     * @expectedException \Icicle\Promise\Exception\UnresolvedError
      */
     public function testPromiseWithNoResolutionPathThrowsException()
     {

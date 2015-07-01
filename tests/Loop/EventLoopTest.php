@@ -2,7 +2,6 @@
 namespace Icicle\Tests\Loop;
 
 use EventBase;
-use EventConfig;
 use Icicle\Loop\EventLoop;
 use Icicle\Loop\Events\EventFactoryInterface;
 

@@ -4,7 +4,7 @@ namespace Icicle\Stream;
 use Exception;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
-use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\BusyError;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
@@ -119,7 +119,7 @@ class Stream implements DuplexStreamInterface
     public function read($length = 0, $byte = null, $timeout = 0)
     {
         if (null !== $this->deferred) {
-            return Promise\reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyError('Already waiting on stream.'));
         }
 
         if (!$this->isReadable()) {

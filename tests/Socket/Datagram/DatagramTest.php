@@ -5,7 +5,7 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\Datagram\Datagram;
-use Icicle\Socket\Exception\BusyException;
+use Icicle\Socket\Exception\BusyError;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\UnavailableException;
 use Icicle\Tests\TestCase;
@@ -226,7 +226,7 @@ class DatagramTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceof(BusyException::class));
+            ->with($this->isInstanceof(BusyError::class));
 
         $promise2->done($this->createCallback(0), $callback);
 

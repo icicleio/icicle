@@ -15,12 +15,11 @@ interface SeekableStreamInterface extends StreamInterface
      *
      * @resolve int New pointer position.
      *
-     * @reject \Icicle\Stream\Exception\InvalidArgumentException If the whence value is invalid.
-     * @reject \Icicle\Stream\Exception\OutOfBoundsException If the new offset would be outside the stream.
-     * @reject \Icicle\Stream\Exception\RuntimeException If seeking fails.
+     * @reject \Icicle\Stream\Exception\InvalidArgumentError If the whence value is invalid.
+     * @reject \Icicle\Stream\Exception\InvalidOffsetException If the new offset would be outside the stream.
      * @reject \Icicle\Stream\Exception\UnseekableException If the stream is no longer seekable (due to being closed or
      *     for another reason).
-     * @reject \Icicle\Stream\Exception\BusyException If the stream was already waiting on a read or seek operation.
+     * @reject \Icicle\Stream\Exception\BusyError If the stream was already waiting on a read or seek operation.
      * @reject \Icicle\Promise\Exception\TimeoutException If the operation times out.
      */
     public function seek($offset, $whence = SEEK_SET, $timeout = 0);

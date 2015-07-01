@@ -2,6 +2,7 @@
 namespace Icicle\Tests\Stream;
 
 use Icicle\Loop;
+use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Stream;
 use Icicle\Tests\TestCase;
 
@@ -73,7 +74,7 @@ class StreamTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf('Icicle\Stream\Exception\ClosedException'));
+            ->with($this->isInstanceOf(ClosedException::class));
 
         $promise->done($this->createCallback(0), $callback);
 

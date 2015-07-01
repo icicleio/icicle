@@ -3,8 +3,8 @@ namespace Icicle\Loop\Manager\Select;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Exception\FreedException;
-use Icicle\Loop\Exception\ResourceBusyException;
+use Icicle\Loop\Exception\FreedError;
+use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
@@ -62,7 +62,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyException('A socket event has already been created for this resource.');
+            throw new ResourceBusyError('A socket event has already been created for this resource.');
         }
         
         return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
@@ -77,7 +77,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $resource;
         
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
-            throw new FreedException('Poll has been freed.');
+            throw new FreedError('Poll has been freed.');
         }
         
         $this->pending[$id] = $resource;

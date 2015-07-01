@@ -6,7 +6,7 @@ use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Socket\Exception\BusyException;
+use Icicle\Socket\Exception\BusyError;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\Exception\UnavailableException;
@@ -148,7 +148,7 @@ class Datagram extends Socket implements DatagramInterface
     public function receive($length = 0, $timeout = 0)
     {
         if (null !== $this->deferred) {
-            return Promise\reject(new BusyException('Already waiting on datagram.'));
+            return Promise\reject(new BusyError('Already waiting on datagram.'));
         }
         
         if (!$this->isOpen()) {

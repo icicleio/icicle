@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Socket\Exception;
 
-class FailureException extends RuntimeException {}
+class FailureException extends Exception {}

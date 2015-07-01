@@ -1,8 +1,8 @@
 <?php
 namespace Icicle\Loop\Events;
 
+use Icicle\Loop\Exception\NonResourceError;
 use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Exception\InvalidArgumentException;
 
 /**
  * Represents read and write (poll and await) socket events.
@@ -28,11 +28,13 @@ class SocketEvent implements SocketEventInterface
      * @param \Icicle\Loop\Manager\SocketManagerInterface $manager
      * @param resource $resource
      * @param callable $callback
+     *
+     * @throws \Icicle\Loop\Exception\NonResourceError If a non-resource is given for $resource.
      */
     public function __construct(SocketManagerInterface $manager, $resource, callable $callback)
     {
         if (!is_resource($resource)) {
-            throw new InvalidArgumentException('Must provide a socket or stream resource.');
+            throw new NonResourceError('Must provide a socket or stream resource.');
         }
         
         $this->manager = $manager;

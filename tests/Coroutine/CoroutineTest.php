@@ -3,7 +3,7 @@ namespace Icicle\Tests\Coroutine;
 
 use Exception;
 use Icicle\Coroutine\Coroutine;
-use Icicle\Coroutine\Exception\InvalidCallableException;
+use Icicle\Coroutine\Exception\InvalidCallableError;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\CancelledException;
@@ -713,8 +713,8 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = $wrap();
-            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
-        } catch (InvalidCallableException $exception) {
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
+        } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
     }
@@ -732,8 +732,8 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = $wrap();
-            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
-        } catch (InvalidCallableException $exception) {
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
+        } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
     }
@@ -769,8 +769,8 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = \Icicle\Coroutine\create($callback);
-            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
-        } catch (InvalidCallableException $exception) {
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
+        } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
     }
@@ -786,8 +786,8 @@ class CoroutineTest extends TestCase
         
         try {
             $coroutine = \Icicle\Coroutine\create($callback);
-            $this->fail(sprintf('Expected exception of type %s', InvalidCallableException::class));
-        } catch (InvalidCallableException $exception) {
+            $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
+        } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
         }
     }

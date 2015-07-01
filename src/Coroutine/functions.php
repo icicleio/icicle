@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Coroutine;
 
-use Icicle\Coroutine\Exception\InvalidCallableException;
+use Icicle\Coroutine\Exception\InvalidCallableError;
 use Icicle\Promise;
 
 if (!function_exists(__NAMESPACE__ . '\wrap')) {
@@ -39,7 +39,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @return \Icicle\Coroutine\Coroutine
      *
-     * @throws \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does not
+     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
      *     return a Generator.
      */
     function create(callable $worker /* , ...$args */)
@@ -53,11 +53,11 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
                 $generator = call_user_func_array($worker, $args);
             }
         } catch (\Exception $exception) {
-            throw new InvalidCallableException('The callable threw an exception.', $worker, $exception);
+            throw new InvalidCallableError('The callable threw an exception.', $worker, $exception);
         }
 
         if (!$generator instanceof \Generator) {
-            throw new InvalidCallableException('The callable did not return a Generator.', $worker);
+            throw new InvalidCallableError('The callable did not return a Generator.', $worker);
         }
 
         return new Coroutine($generator);

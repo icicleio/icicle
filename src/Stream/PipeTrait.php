@@ -40,7 +40,7 @@ trait PipeTrait
      *
      * @resolve int
      *
-     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\BusyError If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\UnwritableException If the stream is no longer writable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream is unexpectedly closed.

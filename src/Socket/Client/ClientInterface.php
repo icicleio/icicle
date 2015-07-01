@@ -19,7 +19,7 @@ interface ClientInterface extends SocketInterface, DuplexStreamInterface
      *
      * @reject \Icicle\Socket\Exception\FailureException If enabling crypto fails.
      * @reject \Icicle\Socket\Exception\ClosedException If the client has been closed.
-     * @reject \Icicle\Socket\Exception\BusyException If the client was already busy waiting to read.
+     * @reject \Icicle\Socket\Exception\BusyError If the client was already busy waiting to read.
      */
     public function enableCrypto($method, $timeout = 0);
     

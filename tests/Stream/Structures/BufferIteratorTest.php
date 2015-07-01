@@ -66,7 +66,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testInsert
-     * @expectedException \Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\OutOfBoundsException
      */
     public function testInsertOnInvalidIterator()
     {
@@ -84,7 +84,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testReplace
-     * @expectedException \Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\OutOfBoundsException
      */
     public function testReplaceOnInvalidIterator()
     {
@@ -108,7 +108,7 @@ class BufferIteratorTest extends TestCase
     
     /**
      * @depends testRemove
-     * @expectedException \Icicle\Stream\Exception\LogicException
+     * @expectedException \Icicle\Stream\Exception\OutOfBoundsException
      */
     public function testRemoveOnInvalidIterator()
     {

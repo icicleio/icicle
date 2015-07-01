@@ -2,7 +2,7 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Exception\UnsupportedException;
+use Icicle\Loop\Exception\UnsupportedError;
 use Icicle\Loop\Manager\Libevent\AwaitManager;
 use Icicle\Loop\Manager\Libevent\PollManager;
 use Icicle\Loop\Manager\Libevent\SignalManager;
@@ -34,13 +34,13 @@ class LibeventLoop extends AbstractLoop
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedException If the libevent extension is not loaded.
+     * @throws \Icicle\Loop\Exception\UnsupportedError If the libevent extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
-            throw new UnsupportedException(__CLASS__ . ' requires the libevent extension.');
+            throw new UnsupportedError(__CLASS__ . ' requires the libevent extension.');
         } // @codeCoverageIgnoreEnd
 
         // @codeCoverageIgnoreStart

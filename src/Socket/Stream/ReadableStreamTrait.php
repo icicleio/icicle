@@ -7,7 +7,7 @@ use Icicle\Promise;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Socket\SocketInterface;
-use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\BusyError;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\PipeTrait;
@@ -98,7 +98,7 @@ trait ReadableStreamTrait
     public function read($length = 0, $byte = null, $timeout = 0)
     {
         if (null !== $this->deferred) {
-            return Promise\reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyError('Already waiting on stream.'));
         }
         
         if (!$this->isReadable()) {
@@ -145,7 +145,7 @@ trait ReadableStreamTrait
      *
      * @resolve string Empty string.
      *
-     * @reject \Icicle\Stream\Exception\BusyException If a read was already pending on the stream.
+     * @reject \Icicle\Stream\Exception\BusyError If a read was already pending on the stream.
      * @reject \Icicle\Stream\Exception\UnreadableException If the stream is no longer readable.
      * @reject \Icicle\Stream\Exception\ClosedException If the stream has been closed.
      * @reject \Icicle\Stream\Exception\TimeoutException If the operation times out.
@@ -153,7 +153,7 @@ trait ReadableStreamTrait
     protected function poll($timeout = 0)
     {
         if (null !== $this->deferred) {
-            return Promise\reject(new BusyException('Already waiting on stream.'));
+            return Promise\reject(new BusyError('Already waiting on stream.'));
         }
 
         if (!$this->isReadable()) {

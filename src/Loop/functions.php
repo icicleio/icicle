@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Exception\InitializedException;
+use Icicle\Loop\Exception\InitializedError;
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
@@ -11,7 +11,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * 
      * @return \Icicle\Loop\LoopInterface
      *
-     * @throws \Icicle\Loop\Exception\InitializedException If the loop has already been initialized.
+     * @throws \Icicle\Loop\Exception\InitializedError If the loop has already been initialized.
      */
     function loop(LoopInterface $loop = null)
     {
@@ -20,7 +20,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
         if (null === $instance) {
             $instance = $loop ?: create();
         } elseif (null !== $loop) {
-            throw new InitializedException('The loop has already been initialized.');
+            throw new InitializedError('The loop has already been initialized.');
         }
 
         return $instance;
@@ -85,7 +85,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
-     * @throws \Icicle\Loop\Exception\RunningException If the loop was already running.
+     * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
     function run()
     {

@@ -23,7 +23,7 @@ interface DatagramInterface extends SocketInterface
      *
      * @resolve [string, int, string] Array containing the senders remote address, remote port, and data received.
      *
-     * @reject BusyException If a read was already pending on the datagram.
+     * @reject BusyError If a read was already pending on the datagram.
      * @reject UnreadableException If the datagram is no longer readable.
      * @reject ClosedException If the datagram has been closed.
      * @reject TimeoutException If receiving times out.

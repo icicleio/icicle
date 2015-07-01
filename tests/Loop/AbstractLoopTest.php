@@ -8,7 +8,7 @@ use Icicle\Loop\Events\SignalInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\LoopInterface;
-use Icicle\Loop\Exception\LogicException;
+use Icicle\Loop\Exception\Error;
 use Icicle\Loop\Manager\ImmediateManagerInterface;
 use Icicle\Loop\Manager\SignalManagerInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
@@ -260,7 +260,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreatePoll
-     * @expectedException \Icicle\Loop\Exception\ResourceBusyException
+     * @expectedException \Icicle\Loop\Exception\ResourceBusyError
      */
     public function testDoublePoll()
     {
@@ -422,7 +422,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenPoll
-     * @expectedException \Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedError
      */
     public function testFreePoll()
     {
@@ -444,7 +444,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testFreePoll
-     * @expectedException \Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedError
      */
     public function testFreePollWithTimeout()
     {
@@ -475,7 +475,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreateAwait
-     * @expectedException \Icicle\Loop\Exception\ResourceBusyException
+     * @expectedException \Icicle\Loop\Exception\ResourceBusyError
      */
     public function testDoubleAwait()
     {
@@ -611,7 +611,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenAwait
-     * @expectedException \Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedError
      */
     public function testFreeAwait()
     {
@@ -633,7 +633,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testFreeAwait
-     * @expectedException \Icicle\Loop\Exception\FreedException
+     * @expectedException \Icicle\Loop\Exception\FreedError
      */
     public function testFreeAwaitWithTimeout()
     {
@@ -655,13 +655,13 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenPoll
-     * @expectedException \Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\Error
      */
     public function testRunThrowsAfterThrownExceptionFromPollCallback()
     {
         list($socket) = $this->createSockets();
         
-        $exception = new LogicException();
+        $exception = new Error();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -684,13 +684,13 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenAwait
-     * @expectedException \Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\Error
      */
     public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
     {
         list( , $socket) = $this->createSockets();
         
-        $exception = new LogicException();
+        $exception = new Error();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -784,11 +784,11 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testQueue
-     * @expectedException \Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\Error
      */
     public function testRunThrowsAfterThrownExceptionFromQueueCallback()
     {
-        $exception = new LogicException();
+        $exception = new Error();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -809,7 +809,7 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testRunThrowsAfterThrownExceptionFromQueueCallback
-     * @expectedException \Icicle\Loop\Exception\RunningException
+     * @expectedException \Icicle\Loop\Exception\RunningError
      */
     public function testRunThrowsExceptionWhenAlreadyRunning()
     {
@@ -898,11 +898,11 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreateImmediate
-     * @expectedException \Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\Error
      */
     public function testRunThrowsAfterThrownExceptionFromImmediateCallback()
     {
-        $exception = new LogicException();
+        $exception = new Error();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1084,11 +1084,11 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @medium
      * @depends testCreateTimer
-     * @expectedException \Icicle\Loop\Exception\LogicException
+     * @expectedException \Icicle\Loop\Exception\Error
      */
     public function testRunThrowsAfterThrownExceptionFromTimerCallback()
     {
-        $exception = new LogicException();
+        $exception = new Error();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1298,7 +1298,7 @@ abstract class AbstractLoopTest extends TestCase
 
     /**
      * @depends testSignal
-     * @expectedException \Icicle\Loop\Exception\InvalidSignalException
+     * @expectedException \Icicle\Loop\Exception\InvalidSignalError
      */
     public function testInvalidSignal()
     {

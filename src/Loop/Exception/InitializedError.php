@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Loop\Exception;
 
-interface ExceptionInterface {}
+class InitializedError extends Error {}

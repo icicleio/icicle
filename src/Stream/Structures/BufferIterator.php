@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Stream\Structures;
 
-use Icicle\Stream\Exception\LogicException;
+use Icicle\Stream\Exception\OutOfBoundsException;
 
 /**
  */
@@ -99,12 +99,12 @@ class BufferIterator implements \SeekableIterator
      *
      * @param string $data
      *
-     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\OutOfBoundsException If the iterator is invalid.
      */
     public function insert($data)
     {
         if (!$this->valid()) {
-            throw new LogicException('The iterator is not valid!');
+            throw new OutOfBoundsException('The iterator is not valid!');
         }
         
         $this->buffer[$this->current] = $data . $this->buffer[$this->current];
@@ -117,12 +117,12 @@ class BufferIterator implements \SeekableIterator
      *
      * @return string
      *
-     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\OutOfBoundsException If the iterator is invalid.
      */
     public function replace($data)
     {
         if (!$this->valid()) {
-            throw new LogicException('The iterator is not valid!');
+            throw new OutOfBoundsException('The iterator is not valid!');
         }
         
         $temp = $this->buffer[$this->current];
@@ -137,12 +137,12 @@ class BufferIterator implements \SeekableIterator
      *
      * @return string
      *
-     * @throws \Icicle\Stream\Exception\LogicException If the iterator is invalid.
+     * @throws \Icicle\Stream\Exception\OutOfBoundsException If the iterator is invalid.
      */
     public function remove()
     {
         if (!$this->valid()) {
-            throw new LogicException('The iterator is not valid!');
+            throw new OutOfBoundsException('The iterator is not valid!');
         }
         
         $temp = $this->buffer[$this->current];

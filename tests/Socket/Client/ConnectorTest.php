@@ -8,7 +8,7 @@ use Icicle\Socket\Client\Client;
 use Icicle\Socket\Client\ClientInterface;
 use Icicle\Socket\Client\Connector;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Socket\Exception\InvalidArgumentException;
+use Icicle\Socket\Exception\InvalidArgumentError;
 use Icicle\Tests\TestCase;
 
 class ConnectorTest extends TestCase
@@ -308,7 +308,7 @@ class ConnectorTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf(InvalidArgumentException::class));
+                 ->with($this->isInstanceOf(InvalidArgumentError::class));
 
         $promise->done($this->createCallback(0), $callback);
 

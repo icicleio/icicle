@@ -22,7 +22,7 @@ interface LoopInterface
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
-     * @throws \Icicle\Loop\Exception\RunningException If the loop was already running.
+     * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
     public function run();
     
@@ -81,7 +81,7 @@ interface LoopInterface
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
-     * @throws \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
+     * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
     public function poll($resource, callable $callback);
     
@@ -93,7 +93,7 @@ interface LoopInterface
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
-     * @throws \Icicle\Loop\Exception\ResourceBusyException If a poll was already created for the resource.
+     * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
     public function await($resource, callable $callback);
     

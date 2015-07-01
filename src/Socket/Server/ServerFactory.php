@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Socket\Server;
 
-use Icicle\Socket\Exception\InvalidArgumentException;
+use Icicle\Socket\Exception\InvalidArgumentError;
 use Icicle\Socket\Exception\FailureException;
 use Icicle\Socket\ParserTrait;
 
@@ -42,7 +42,7 @@ class ServerFactory implements ServerFactoryInterface
         
         if (null !== $pem) {
             if (!file_exists($pem)) {
-                throw new InvalidArgumentException('No file found at given PEM path.');
+                throw new InvalidArgumentError('No file found at given PEM path.');
             }
             
             $context['ssl'] = [];

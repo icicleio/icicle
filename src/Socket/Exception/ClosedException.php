@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Socket\Exception;
 
-class ClosedException extends RuntimeException {}
+class ClosedException extends Exception {}

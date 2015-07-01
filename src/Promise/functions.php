@@ -3,10 +3,9 @@ namespace Icicle\Promise;
 
 use Exception;
 use Icicle\Loop;
-use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
-use Icicle\Promise\Exception\TypeException;
-use Icicle\Promise\Exception\UnresolvedException;
+use Icicle\Promise\Exception\UnresolvedError;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\LazyPromise;
 use Icicle\Promise\Structures\RejectedPromise;
@@ -86,7 +85,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 };
 
                 if (count($args) < $index) {
-                    throw new LogicException('Too few arguments given to function.');
+                    throw new InvalidArgumentError('Too few arguments given to function.');
                 }
 
                 array_splice($args, $index, 0, [$callback]);
@@ -107,7 +106,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     function adapt($thenable)
     {
         if (!is_object($thenable) || !method_exists($thenable, 'then')) {
-            return reject(new TypeException('Must provide an object with a then() method.'));
+            return reject(new InvalidArgumentError('Must provide an object with a then() method.'));
         }
 
         return new Promise(function ($resolve, $reject) use ($thenable) {
@@ -140,7 +139,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
     /**
      * This function may be used to synchronously wait for a promise to be resolved. This function should generally
-     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or anothe
+     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
      * function to group them) and synchronously wait for the task to complete. Using this function in a running event
      * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
      * program flow.
@@ -149,14 +148,14 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return mixed Promise fulfillment value.
      *
-     * @throws \Icicle\Promise\Exception\UnresolvedException If the event loop empties without fulfilling the promise.
+     * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
      * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
      */
     function wait(PromiseInterface $promise)
     {
         while ($promise->isPending()) {
             if (Loop\isEmpty()) {
-                throw new UnresolvedException('Loop emptied without resolving promise.');
+                throw new UnresolvedError('Loop emptied without resolving promise.');
             }
 
             Loop\tick(true);
@@ -244,7 +243,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     function any(array $promises)
     {
         if (empty($promises)) {
-            return reject(new LogicException('No promises provided.'));
+            return reject(new InvalidArgumentError('No promises provided.'));
         }
 
         return new Promise(function ($resolve, $reject) use ($promises) {
@@ -282,7 +281,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
         }
 
         if ($required > count($promises)) {
-            return reject(new LogicException('Too few promises provided.'));
+            return reject(new InvalidArgumentError('Too few promises provided.'));
         }
 
         return new Promise(function ($resolve, $reject) use ($promises, $required) {
@@ -322,7 +321,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     function choose(array $promises)
     {
         if (empty($promises)) {
-            return reject(new LogicException('No promises provided.'));
+            return reject(new InvalidArgumentError('No promises provided.'));
         }
 
         return new Promise(function ($resolve, $reject) use ($promises) {

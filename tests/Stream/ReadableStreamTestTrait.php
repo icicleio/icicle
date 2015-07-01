@@ -6,7 +6,7 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\BusyError;
 use Icicle\Stream\Exception\ClosedException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnwritableException;
@@ -97,7 +97,7 @@ trait ReadableStreamTestTrait
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceof(BusyException::class));
+            ->with($this->isInstanceof(BusyError::class));
 
         $promise2->done($this->createCallback(0), $callback);
 
@@ -432,7 +432,7 @@ trait ReadableStreamTestTrait
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceof(BusyException::class));
+            ->with($this->isInstanceof(BusyError::class));
 
         $promise2->done($this->createCallback(0), $callback);
 

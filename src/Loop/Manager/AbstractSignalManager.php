@@ -3,7 +3,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Exception\InvalidSignalException;
+use Icicle\Loop\Exception\InvalidSignalError;
 use Icicle\Loop\LoopInterface;
 
 abstract class AbstractSignalManager implements SignalManagerInterface
@@ -43,7 +43,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     public function create($signo, callable $callback, array $args = null)
     {
         if (!isset($this->signals[$signo])) {
-            throw new InvalidSignalException(sprintf('Invalid signal number: %d.', $signo));
+            throw new InvalidSignalError(sprintf('Invalid signal number: %d.', $signo));
         }
 
         $signal = $this->factory->signal($this, $signo, $callback);

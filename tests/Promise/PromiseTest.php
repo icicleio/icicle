@@ -5,10 +5,11 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\CancelledException;
-use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\CircularResolutionError;
+use Icicle\Promise\Exception\Error;
 use Icicle\Promise\Exception\RejectedException;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\Exception\TypeException;
+use Icicle\Promise\Exception\UnexpectedTypeError;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 use InvalidArgumentException;
@@ -369,7 +370,7 @@ class PromiseTest extends TestCase
         $this->resolve($this->promise);
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertInstanceOf(TypeException::class, $this->promise->getResult());
+        $this->assertInstanceOf(CircularResolutionError::class, $this->promise->getResult());
     }
     
     /**
@@ -394,10 +395,10 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isRejected());
-        $this->assertInstanceOf(TypeException::class, $child->getResult());
+        $this->assertInstanceOf(CircularResolutionError::class, $child->getResult());
         
         $this->assertTrue($promise->isRejected());
-        $this->assertInstanceOf(TypeException::class, $promise->getResult());
+        $this->assertInstanceOf(CircularResolutionError::class, $promise->getResult());
     }
     
     public function testRejectCallable()
@@ -914,11 +915,11 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testRejectCallable
-     * @expectedException \Icicle\Promise\Exception\LogicException
+     * @expectedException \Icicle\Promise\Exception\Error
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionAfter()
     {
-        $exception = new LogicException();
+        $exception = new Error();
         
         $this->promise->done($this->createCallback(0));
         
@@ -929,11 +930,11 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testRejectCallable
-     * @expectedException \Icicle\Promise\Exception\LogicException
+     * @expectedException \Icicle\Promise\Exception\Error
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionBefore()
     {
-        $exception = new LogicException();
+        $exception = new Error();
         
         $this->reject($exception);
         
@@ -1003,7 +1004,7 @@ class PromiseTest extends TestCase
     }
     
     /**
-     * @expectedException \Icicle\Promise\Exception\UnresolvedException
+     * @expectedException \Icicle\Promise\Exception\UnresolvedError
      */
     public function testGettingResultBeforeResolution()
     {
@@ -2024,7 +2025,7 @@ class PromiseTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(TypeException::class));
+            ->with($this->isInstanceOf(UnexpectedTypeError::class));
 
         $child->done($this->createCallback(0), $callback);
 

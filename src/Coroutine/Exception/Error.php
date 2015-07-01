@@ -1,4 +1,4 @@
 <?php
 namespace Icicle\Coroutine\Exception;
 
-interface ExceptionInterface {}
+class Error extends \Exception {}

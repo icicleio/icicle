@@ -2,7 +2,7 @@
 namespace Icicle\Tests\Stream;
 
 use Icicle\Loop;
-use Icicle\Stream\Exception\InvalidArgumentException;
+use Icicle\Stream\Exception\InvalidArgumentError;
 use Icicle\Stream\Exception\OutOfBoundsException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnseekableException;
@@ -532,7 +532,7 @@ class SinkTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(InvalidArgumentException::class));
+            ->with($this->isInstanceOf(InvalidArgumentError::class));
 
         $promise->done($this->createCallback(0), $callback);
 

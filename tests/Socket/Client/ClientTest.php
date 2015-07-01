@@ -7,7 +7,7 @@ use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Socket\Client\Client;
 use Icicle\Socket\Exception\FailureException;
-use Icicle\Stream\Exception\BusyException;
+use Icicle\Stream\Exception\BusyError;
 use Icicle\Stream\Exception\UnwritableException;
 use Icicle\Tests\TestCase;
 
@@ -189,7 +189,7 @@ class ClientTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(BusyException::class));
+            ->with($this->isInstanceOf(BusyError::class));
 
         $promise->done($this->createCallback(0), $callback);
 

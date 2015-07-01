@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Tests\Socket\Stream;
 
-use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Stream\Exception\UnreadableException;

@@ -1,9 +1,7 @@
 <?php
 namespace Icicle\Coroutine\Exception;
 
-use Exception;
-
-class InvalidCallableException extends InvalidArgumentException
+class InvalidCallableError extends Error
 {
     /**
      * @var callable
@@ -15,7 +13,7 @@ class InvalidCallableException extends InvalidArgumentException
      * @param callable $callable
      * @param \Exception|null $previous
      */
-    public function __construct($message, callable $callable, Exception $previous = null)
+    public function __construct($message, callable $callable, \Exception $previous = null)
     {
         parent::__construct($message, 0, $previous);
         

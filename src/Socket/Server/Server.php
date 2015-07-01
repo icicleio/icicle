@@ -6,7 +6,7 @@ use Icicle\Loop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
 use Icicle\Socket\Client\Client;
-use Icicle\Socket\Exception\BusyException;
+use Icicle\Socket\Exception\BusyError;
 use Icicle\Socket\Exception\ClosedException;
 use Icicle\Socket\Exception\UnavailableException;
 use Icicle\Socket\Socket;
@@ -91,7 +91,7 @@ class Server extends Socket implements ServerInterface
     public function accept()
     {
         if (null !== $this->deferred) {
-            return Promise\reject(new BusyException('Already waiting on server.'));
+            return Promise\reject(new BusyError('Already waiting on server.'));
         }
         
         if (!$this->isOpen()) {

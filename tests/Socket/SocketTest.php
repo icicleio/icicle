@@ -10,7 +10,7 @@ class SocketTest extends TestCase
     
     public function setUp()
     {
-        $this->socket = $this->getMockForAbstractClass('Icicle\Socket\Socket', [fopen('php://memory', 'r+')]);
+        $this->socket = $this->getMockForAbstractClass(Socket::class, [fopen('php://memory', 'r+')]);
     }
     
     public function tearDown()
@@ -29,7 +29,7 @@ class SocketTest extends TestCase
     }
     
     /**
-     * @expectedException \Icicle\Socket\Exception\InvalidArgumentException
+     * @expectedException \Icicle\Socket\Exception\InvalidArgumentError
      */
     public function testConstructWithNonResource()
     {

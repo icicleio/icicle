@@ -4,9 +4,9 @@ namespace Icicle\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\CancelledException;
+use Icicle\Promise\Exception\CircularResolutionError;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\Exception\TypeException;
-use Icicle\Promise\Exception\UnresolvedException;
+use Icicle\Promise\Exception\UnresolvedError;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\RejectedPromise;
 use Icicle\Promise\Structures\ThenQueue;
@@ -61,21 +61,24 @@ class Promise implements PromiseInterface
          * @param mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
-            if (null === $this->result) {
-                if ($value instanceof PromiseInterface) {
-                    $this->result = $value->unwrap();
-                } else {
-                    $this->result = new FulfilledPromise($value);
-                }
-                
-                if ($this === $this->result) {
-                    $this->result = new RejectedPromise(new TypeException('Circular reference in promise resolution.'));
-                }
-                
-                $this->result->done($this->onFulfilled, $this->onRejected);
-                
-                $this->close();
+            if (null !== $this->result) {
+                return;
             }
+
+            if ($value instanceof PromiseInterface) {
+                $this->result = $value->unwrap();
+                if ($this === $this->result) {
+                    $this->result = new RejectedPromise(
+                        new CircularResolutionError('Circular reference in promise resolution chain.')
+                    );
+                }
+            } else {
+                $this->result = new FulfilledPromise($value);
+            }
+
+            $this->result->done($this->onFulfilled, $this->onRejected);
+
+            $this->close();
         };
         
         /**
@@ -84,12 +87,14 @@ class Promise implements PromiseInterface
          * @param mixed $reason
          */
         $reject = function ($reason = null) {
-            if (null === $this->result) {
-                $this->result = new RejectedPromise($reason);
-                $this->result->done($this->onFulfilled, $this->onRejected);
-                
-                $this->close();
+            if (null !== $this->result) {
+                return;
             }
+
+            $this->result = new RejectedPromise($reason);
+            $this->result->done($this->onFulfilled, $this->onRejected);
+
+            $this->close();
         };
         
         if (null !== $onCancelled) {
@@ -323,7 +328,7 @@ class Promise implements PromiseInterface
     public function getResult()
     {
         if ($this->isPending()) {
-            throw new UnresolvedException('The promise is still pending.');
+            throw new UnresolvedError('The promise is still pending.');
         }
         
         return $this->unwrap()->getResult();

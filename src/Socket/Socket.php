@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Socket;
 
-use Icicle\Socket\Exception\InvalidArgumentException;
+use Icicle\Socket\Exception\InvalidArgumentError;
 use Icicle\Socket\Exception\FailureException;
 
 abstract class Socket implements SocketInterface
@@ -18,12 +18,12 @@ abstract class Socket implements SocketInterface
     /**
      * @param resource $socket PHP stream socket resource.
      *
-     * @throws \Icicle\Socket\Exception\InvalidArgumentException If a non-resource is given.
+     * @throws \Icicle\Socket\Exception\InvalidArgumentError If a non-resource is given.
      */
     public function __construct($socket)
     {
         if (!is_resource($socket)) {
-            throw new InvalidArgumentException('Non-resource given to constructor!');
+            throw new InvalidArgumentError('Non-resource given to constructor!');
         }
         
         $this->socket = $socket;

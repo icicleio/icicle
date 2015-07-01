@@ -37,7 +37,7 @@ class SocketEventTest extends TestCase
     
     /**
      * @depends testGetResource
-     * @expectedException \Icicle\Loop\Exception\InvalidArgumentException
+     * @expectedException \Icicle\Loop\Exception\NonResourceError
      */
     public function testInvalidResource()
     {

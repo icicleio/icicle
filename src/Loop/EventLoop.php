@@ -4,7 +4,7 @@ namespace Icicle\Loop;
 use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Exception\UnsupportedException;
+use Icicle\Loop\Exception\UnsupportedError;
 use Icicle\Loop\Manager\Event\AwaitManager;
 use Icicle\Loop\Manager\Event\PollManager;
 use Icicle\Loop\Manager\Event\SignalManager;
@@ -34,13 +34,13 @@ class EventLoop extends AbstractLoop
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedException If the event extension is not loaded.
+     * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
      */
     public function __construct(EventFactoryInterface $eventFactory = null, EventBase $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
-            throw new UnsupportedException(__CLASS__ . ' requires the event extension.');
+            throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
         } // @codeCoverageIgnoreEnd
         
         $this->base = $base ?: new EventBase();

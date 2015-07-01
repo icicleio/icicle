@@ -4,7 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\LogicException;
+use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Tests\TestCase;
 
 class PromisePromisifyTest extends TestCase
@@ -111,7 +111,7 @@ class PromisePromisifyTest extends TestCase
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-                 ->with($this->isInstanceOf(LogicException::class));
+                 ->with($this->isInstanceOf(InvalidArgumentError::class));
         
         $promisified()->done($this->createCallback(0), $callback);
         

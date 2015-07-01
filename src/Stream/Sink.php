@@ -2,7 +2,7 @@
 namespace Icicle\Stream;
 
 use Icicle\Promise;
-use Icicle\Stream\Exception\InvalidArgumentException;
+use Icicle\Stream\Exception\InvalidArgumentError;
 use Icicle\Stream\Exception\OutOfBoundsException;
 use Icicle\Stream\Exception\UnreadableException;
 use Icicle\Stream\Exception\UnseekableException;
@@ -193,7 +193,7 @@ class Sink implements DuplexStreamInterface, SeekableStreamInterface
 
             default:
                 return Promise\reject(
-                    new InvalidArgumentException('Invalid value for whence. Use SEEK_SET, SEEK_CUR, or SEEK_END.')
+                    new InvalidArgumentError('Invalid value for whence. Use SEEK_SET, SEEK_CUR, or SEEK_END.')
                 );
         }
 

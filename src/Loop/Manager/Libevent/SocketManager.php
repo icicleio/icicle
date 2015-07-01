@@ -5,8 +5,8 @@ use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Exception\FreedException;
-use Icicle\Loop\Exception\ResourceBusyException;
+use Icicle\Loop\Exception\FreedError;
+use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
 abstract class SocketManager implements SocketManagerInterface
@@ -99,7 +99,7 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyException('A socket event has already been created for that resource.');
+            throw new ResourceBusyError('A socket event has already been created for that resource.');
         }
         
         $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
@@ -116,7 +116,7 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
-            throw new FreedException('Socket event has been freed.');
+            throw new FreedError('Socket event has been freed.');
         }
         
         if (!isset($this->events[$id])) {
