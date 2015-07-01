@@ -9,7 +9,7 @@ class MultiReasonException extends Exception
     private $reasons;
     
     /**
-     * @param Exception[] $reasons Array of exceptions rejecting the promise.
+     * @param \Exception[] $reasons Array of exceptions rejecting the promise.
      */
     public function __construct(array $reasons)
     {
