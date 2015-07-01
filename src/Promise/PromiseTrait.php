@@ -51,21 +51,29 @@ trait PromiseTrait
     public function tap(callable $onFulfilled)
     {
         return $this->then(function ($value) use ($onFulfilled) {
-            return resolve($onFulfilled($value))->then(function () {
-                return $this;
-            });
+            $result = $onFulfilled($value);
+            if ($result instanceof PromiseInterface) {
+                return $result->then(function () {
+                    return $this;
+                });
+            }
+            return $this;
         });
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function cleanup(callable $onResolved)
     {
         $onResolved = function () use ($onResolved) {
-            return resolve($onResolved())->then(function () {
-                return $this;
-            });
+            $result = $onResolved();
+            if ($result instanceof PromiseInterface) {
+                return $result->then(function () {
+                    return $this;
+                });
+            }
+            return $this;
         };
 
         return $this->then($onResolved, $onResolved);
