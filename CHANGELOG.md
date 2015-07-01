@@ -1,21 +1,36 @@
 # Changelog
 
+### v0.6.0
+
+- Changes
+    - The methods `Icicle\Stream\ReadableStreamInterface::pipe()`, `Icicle\Socket\Client\ClientInterface::enableCrypto()`, and `Icicle\Socket\Client\ConnectorInterface::connect()` now return a `Generator` instead of an `Icicle\Promise\PromiseInterface` object. The returned generator can be yielded directly in a coroutine. A promise can be created from these methods if desired by passing the returned `Generator` to the `Icicle\Coroutine\Coroutine` constructor (e.g., `$coroutine = new Coroutine($connector->connect($host, $port))`. *This change was made for better performance with `yield from` in PHP 7.*
+    - `Icicle\Loop\Events\SocketEventInterface::listen()` now uses `0` to indicate no timeout.
+    - All stream methods have a `$timeout` parameter, not only stream sockets. All `$timeout` parameters now use `0` to indicate no timeout.
+    - `Icicle\Stream\ReadableStreamInterface::read()` and `Icicle\Stream\ReadableStreamInterface::pipe()` now use `0` to specify any number of bytes instead of `null`.
+    - `Icicle\Loop\schedule()` was renamed to `Icicle\Loop\queue()` and `Icicle\Loop\maxScheduleDepth()` was renamed to `Icicle\Loop\maxQueueDepth()`. `Icicle\Loop\maxQueueDepth()` requires a `$depth` parameter (use `0` for unlimited). The previous depth is still returned.
+    - `Icicle\Coroutine\async()` was renamed to `Icicle\Coroutine\wrap()`.
+    - `Icicle\Promise\join()` was renamed to `Icicle\Promise\all()`.
+    - Exceptions were remodeled based on the exception hierarchy coming in PHP 7. Each component has a class `Exception` and `Error` that extends `\Exception`. The empty `ExceptionInterface` classes were eliminated. Several classes were renamed to use the Error suffix to indicate they represent coding errors and generally should not be caught except for cleanup/logging.
+    - The protocol `unix` no longer needs to be explicitly specified when creating or connecting to a unix socket. Using `null` for the port is sufficient.
+
+---
+
 ### v0.5.3
 
 - New Features
-    - Added `Promise\wait()` function that can be used to synchronously wait for a promise to be resolved. The fulfillment value is returned or the rejection reason is thrown from the function. This function can be used to integrate Icicle into a synchronous environment, but generally should not be used in an active event loop.
+    - Added `Icicle\Promise\wait()` function that can be used to synchronously wait for a promise to be resolved. The fulfillment value is returned or the rejection reason is thrown from the function. This function can be used to integrate Icicle into a synchronous environment, but generally should not be used in an active event loop.
 - Changes
     - Various performance improvements when executing scheduled callbacks, executing promise callbacks, and checking for coroutine completion or cancellation.
 - Bug Fixes
-    - Added check in `Datagram::send()` on `stream_socket_sendto()` sending 0 bytes if the data was not immediately sent to prevent an infinite loop if the datagram is unexpectedly closed while waiting to send data. 
-    - Changed timer execution in `SelectLoop` to avoid timer drift.
+    - Added check in `Icicle\Socket\Datagram\Datagram::send()` on `stream_socket_sendto()` sending 0 bytes if the data was not immediately sent to prevent an infinite loop if the datagram is unexpectedly closed while waiting to send data. 
+    - Changed timer execution in `Icicle\Loop\SelectLoop` to avoid timer drift.
 
 ---
 
 ### v0.5.2
 
 - Changes
-    - `ReadableStreamInterface::pipe()` implementations now use coroutines instead of `Promise\iterate()`, significantly improving performance. The `Coroutine` instance is returned from `pipe()`, so piping may be paused if desired.
+    - `Icicle\Stream\ReadableStreamInterface::pipe()` implementations now use coroutines instead of `Icicle\Promise\iterate()`, significantly improving performance. The `Icicle\Coroutine\Coroutine` instance is returned from `pipe()`, so piping may be paused if desired.
 
 ---
 
@@ -76,21 +91,21 @@
 ### v0.3.0
 
 - New Features
-    - Added interface for seekable streams, `\Icicle\Stream\SeekableStreamInterface`, and the class `\Icicle\Stream\Sink` that implements the interface and acts as a seekable buffered sink.
-    - Added `splat()` method to `\Icicle\Promise\PromiseInterface`. If a promise fulfills with an array or `Traversable` object, this method uses the elements of the array as arguments to the given callback function similar to the `...` (splat) operator.
-    - Added verify peer options to `\Icicle\Socket\Server\ServerFactory`. Normally peer verification is off on the server side, but the options allow it to be turned on if desired.
-    - Added `cn` option to `\Icicle\Socket\Client\Connector` that defaults to the same value as the `name` option. Needed for PHP 5.5 for certificate validation if the CN name does not exactly match the peer name as SAN support was not implemented until PHP 5.6. (e.g., `'*.google.com'` may be used for the `cn` option to match a wildcard certificate.)
+    - Added interface for seekable streams, `Icicle\Stream\SeekableStreamInterface`, and the class `Icicle\Stream\Sink` that implements the interface and acts as a seekable buffered sink.
+    - Added `splat()` method to `Icicle\Promise\PromiseInterface`. If a promise fulfills with an array or `Traversable` object, this method uses the elements of the array as arguments to the given callback function similar to the `...` (splat) operator.
+    - Added verify peer options to `Icicle\Socket\Server\ServerFactory`. Normally peer verification is off on the server side, but the options allow it to be turned on if desired.
+    - Added `cn` option to `Icicle\Socket\Client\Connector` that defaults to the same value as the `name` option. Needed for PHP 5.5 for certificate validation if the CN name does not exactly match the peer name as SAN support was not implemented until PHP 5.6. (e.g., `'*.google.com'` may be used for the `cn` option to match a wildcard certificate.)
 
 - Changes
-    - `\Icicle\Stream\Stream` now closes only once all data has been read from the stream if `end()` is called on the stream. The logic for closing the stream was moved to the `send()` method, allowing extending classes to end the stream from an overridden `send()` method instead of calling `end()`, which results in a recursive call to `send()`.
-    - `\Icicle\Promise\PromiseInterface::tap()` and `\Icicle\Promise\PromiseInterface::cleanup()` were changed so that if the callback given to `tap()` or `cleanup()` returns a promise, the promise returned from these methods is not fulfilled until the promise returned from the callback is resolved. If the promise returned from the callback is rejected, the promise returned from these methods is rejected for the same reason.
-    - Removed `always()` and `after()` methods from `\Icicle\Promise\PromiseInterface`, since these methods encouraged poor practices and should be replaced with `cleanup()` or `done()`.
-    - Removed optional `Exception` parameter from `\Icicle\Socket\Stream\ReadableStream::close()`, `\Icicle\Socket\Stream\WritableStream::close()`, `\Icicle\Socket\Stream\DuplexStream::close()`, `\Icicle\Socket\Server\Server::close()`, and `\Icicle\Socket\Datagram\Datagram::close()`.
-    - Removed `poll()` and `await()` methods from stream interfaces. These methods only make sense on stream sockets and relied heavily on the state of the stream. The methods are still available in `\Icicle\Socket\Stream\ReadableStreamTrait` and `\Icicle\Socket\Stream\WritableStreamTrait` as `protected` methods if needed by extending classes to implement special functionality using the raw PHP stream.
-    - Modified implementations of `\Icicle\Stream\ReadableStreamInterface::pipe()` to call `end()` on the writable stream once the stream becomes unreadable if `$endWhenUnreadable` is `true`. Prior, `end()` would only be called if the stream was closed.
+    - `Icicle\Stream\Stream` now closes only once all data has been read from the stream if `end()` is called on the stream. The logic for closing the stream was moved to the `send()` method, allowing extending classes to end the stream from an overridden `send()` method instead of calling `end()`, which results in a recursive call to `send()`.
+    - `Icicle\Promise\PromiseInterface::tap()` and `Icicle\Promise\PromiseInterface::cleanup()` were changed so that if the callback given to `tap()` or `cleanup()` returns a promise, the promise returned from these methods is not fulfilled until the promise returned from the callback is resolved. If the promise returned from the callback is rejected, the promise returned from these methods is rejected for the same reason.
+    - Removed `always()` and `after()` methods from `Icicle\Promise\PromiseInterface`, since these methods encouraged poor practices and should be replaced with `cleanup()` or `done()`.
+    - Removed optional `Exception` parameter from `Icicle\Socket\Stream\ReadableStream::close()`, `Icicle\Socket\Stream\WritableStream::close()`, `Icicle\Socket\Stream\DuplexStream::close()`, `Icicle\Socket\Server\Server::close()`, and `Icicle\Socket\Datagram\Datagram::close()`.
+    - Removed `poll()` and `await()` methods from stream interfaces. These methods only make sense on stream sockets and relied heavily on the state of the stream. The methods are still available in `Icicle\Socket\Stream\ReadableStreamTrait` and `Icicle\Socket\Stream\WritableStreamTrait` as `protected` methods if needed by extending classes to implement special functionality using the raw PHP stream.
+    - Modified implementations of `Icicle\Stream\ReadableStreamInterface::pipe()` to call `end()` on the writable stream once the stream becomes unreadable if `$endWhenUnreadable` is `true`. Prior, `end()` would only be called if the stream was closed.
 
 - Bug Fixes
-    - Fixed bug in `\Icicle\Stream\PipeTrait` and `\Icicle\Socket\Stream\PipeTrait` that would rejected the returned promise even if the stream was closed or ended normally.
+    - Fixed bug in `Icicle\Stream\PipeTrait` and `Icicle\Socket\Stream\PipeTrait` that would rejected the returned promise even if the stream was closed or ended normally.
     - Fixed circular reference in stream sockets and servers that delayed garbage collection after closing the server or stream.
 
 ---
