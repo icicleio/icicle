@@ -4,11 +4,11 @@
 
 Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facilitate writing asynchronous code using techniques normally used to write synchronous code, such as returning values and throwing exceptions, instead of using nested callbacks typically found in asynchronous code.
 
-[![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 [![Build Status](https://img.shields.io/travis/icicleio/icicle/master.svg?style=flat-square)](https://travis-ci.org/icicleio/icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/icicle.svg?style=flat-square)](https://coveralls.io/r/icicleio/icicle)
 [![Semantic Version](https://img.shields.io/github/release/icicleio/icicle.svg?style=flat-square)](http://semver.org)
 [![Apache 2 License](https://img.shields.io/packagist/l/icicleio/icicle.svg?style=flat-square)](LICENSE)
+[![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
 
 #### Library Components
 
@@ -44,7 +44,7 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 // composer.json
 {
     "require": {
-        "icicleio/icicle": "^0.5"
+        "icicleio/icicle": "^0.6"
     }
 }
 ```
@@ -109,6 +109,7 @@ The `Icicle\Promise\PromiseInterface::done(callable $onFulfilled = null, callabl
 *[More on using callbacks to interact with promises...](https://github.com/icicleio/icicle/wiki/Promises#interacting-with-promises)*
 
 ```php
+use Icicle\Coroutine\Coroutine;
 use Icicle\Dns\Executor\Executor;
 use Icicle\Dns\Resolver\Resolver;
 use Icicle\Loop;
@@ -117,13 +118,14 @@ use Icicle\Socket\Client\Connector;
 
 $resolver = new Resolver(new Executor('8.8.8.8'));
 
-$promise1 = $resolver->resolve('example.com'); // Method returning a promise.
+// Method returning a Generator used to create a Coroutine (a type of promise)
+$promise1 = new Coroutine($resolver->resolve('example.com')); 
 
 $promise2 = $promise1->then(
     function (array $ips) { // Called if $promise1 is fulfilled.
         $connector = new Connector();
-		return $connector->connect($ips[0], 80); // Method returning a promise.
-		// $promise2 will adopt the state of the promise returned above.
+        return new Coroutine($connector->connect($ips[0], 80)); // Return another promise.
+        // $promise2 will adopt the state of the promise returned above.
     }
 );
 
@@ -178,12 +180,12 @@ $generator = function () {
     try {
         $resolver = new Resolver(new Executor('8.8.8.8'));
         
-        // Coroutine pauses until yielded promise is fulfilled or rejected.
+        // This coroutine pauses until yielded coroutine is fulfilled or rejected.
         $ips = (yield $resolver->resolve('example.com'));
 		
         $connector = new Connector();
         
-        // Coroutine pauses again until yielded promise is fulfilled or rejected.
+        // This coroutine pauses again until yielded coroutine is fulfilled or rejected.
         $client = (yield $connector->connect($ips[0], 80));
 		
         echo "Asynchronously connected to example.com:80\n";
