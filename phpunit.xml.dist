@@ -22,12 +22,6 @@
         <testsuite name="Icicle Coroutine">
             <directory>tests/Coroutine</directory>
         </testsuite>
-        <testsuite name="Icicle Stream">
-            <directory>tests/Stream</directory>
-        </testsuite>
-        <testsuite name="Icicle Socket">
-            <directory>tests/Socket</directory>
-        </testsuite>
     </testsuites>
     <filter>
         <whitelist>
