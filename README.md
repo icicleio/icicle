@@ -17,13 +17,13 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 - [Coroutines](#coroutines): Interruptible functions for building asynchronous code using synchronous coding patterns and error handling.
 - [Promises](#promises): Placeholders for future values of asynchronous operations. Callbacks registered with promises may return values and throw exceptions.
 - [Loop (event loop)](#loop): Used to schedule functions, run timers, handle signals, and poll sockets for pending data or await for space to write.
-- [Streams](#streams): Common interface for reading and writing data.
-- [Sockets](#sockets): Asynchronous stream sockets.
 
 #### Available Components
 
-- [HTTP](https://github.com/icicleio/http): Asynchronous HTTP server and client (under development).
+- [Streams](https://github.com/icicleio/stream): Common interface for reading and writing data.
+- [Sockets](https://github.com/icicleio/socket): Asynchronous stream socket server and client.
 - [DNS](https://github.com/icicleio/dns): Asynchronous DNS resolver and connector.
+- [HTTP](https://github.com/icicleio/http): Asynchronous HTTP server and client (under development).
 - [React Adapter](https://github.com/icicleio/react-adaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
 
 ##### Requirements
@@ -46,7 +46,7 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 // composer.json
 {
     "require": {
-        "icicleio/icicle": "^0.6"
+        "icicleio/icicle": "^0.7"
     }
 }
 ```
@@ -245,92 +245,4 @@ Third.
 Fifth.
 Fourth.
 Second.
-```
-
-## Streams
-
-**[Streams API documentation](https://github.com/icicleio/icicle/wiki/Streams)**
-
-Streams represent a common promise-based API that may be implemented by classes that read or write sequences of binary data to facilitate interoperability. The stream component defines three interfaces, one of which should be used by all streams.
-
-- `Icicle\Stream\ReadableStreamInterface`: Interface to be used by streams that are only readable.
-- `Icicle\Stream\WritableStreamInterface`: Interface to be used by streams that are only writable.
-- `Icicle\Stream\DuplexStreamInterface`: Interface to be used by streams that are readable and writable. Extends both `Icicle\Stream\ReadableStreamInterface` and `Icicle\Stream\WritableStreamInterface`.
-
-## Sockets
-
-**[Sockets API documentation](https://github.com/icicleio/icicle/wiki/Sockets)**
-
-The socket component implements network sockets as promise-based streams, server, and datagram. Creating a server and accepting connections is very simple, requiring only a few lines of code.
-
-The example below implements HTTP server that responds to any request with `Hello, world!` implemented using the promise-based server and client provided by the Socket component.
-
-```php
-use Icicle\Loop;
-use Icicle\Socket\Client\ClientInterface;
-use Icicle\Socket\Server\ServerFactory;
-
-$server = (new ServerFactory())->create('localhost', 60000);
-
-$handler = function (ClientInterface $client) use (&$handler, &$error, $server) {
-    $server->accept()->done($handler, $error);
-    
-    $response  = "HTTP/1.1 200 OK\r\n";
-    $response .= "Content-Length: 13\r\n";
-    $response .= "Connection: close\r\n";
-    $response .= "\r\n";
-    $response .= "Hello, world!";
-    
-    $client->end($response);
-};
-
-$error = function (Exception $e) {
-    echo "Error: {$e->getMessage()}\n";
-};
-
-$server->accept()->done($handler, $error);
-
-echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
-
-Loop\run();
-```
-
-The example below shows the same HTTP server as above, instead implemented using a coroutine.
-
-```php
-use Icicle\Coroutine\Coroutine;
-use Icicle\Loop;
-use Icicle\Socket\Client\ClientInterface;
-use Icicle\Socket\Server\ServerInterface;
-use Icicle\Socket\Server\ServerFactory;
-
-$server = (new ServerFactory())->create('localhost', 60000);
-
-$generator = function (ServerInterface $server) {
-    echo "Server listening on {$server->getAddress()}:{$server->getPort()}\n";
-    
-    $generator = function (ClientInterface $client) {
-        $response  = "HTTP/1.1 200 OK\r\n";
-        $response .= "Content-Length: 13\r\n";
-        $response .= "Connection: close\r\n";
-        $response .= "\r\n";
-        $response .= "Hello, world!";
-        
-        yield $client->write($response);
-        
-        $client->close();
-    };
-    
-    try {
-        while ($server->isOpen()) {
-            $coroutine = new Coroutine($generator(yield $server->accept()));
-        }
-    } catch (Exception $e) {
-        echo "Error: {$e->getMessage()}\n";
-    }
-};
-
-$coroutine = new Coroutine($generator($server));
-
-Loop\run();
 ```
