@@ -1,5 +1,12 @@
 # Changelog
 
+### v0.7.0
+
+- Changes
+    - Moved Stream and Socket components to separate repositories: [icicleio/stream](https://github.com/icicleio/stream) and [icicleio/socket](https://github.com/icicleio/socket). No API changes were made in these components from v0.6.0. If your project depends on these components, just add them as a requirement with composer.
+
+---
+
 ### v0.6.0
 
 - Changes
