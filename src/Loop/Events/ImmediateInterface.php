@@ -19,7 +19,7 @@ interface ImmediateInterface
     public function cancel();
 
     /**
-     * Calls the callback associated with the timer.
+     * Calls the callback associated with the immediate.
      */
     public function call();
     
