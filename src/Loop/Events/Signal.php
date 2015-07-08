@@ -25,7 +25,7 @@ class Signal implements SignalInterface
      * @param int $signo
      * @param callable $callback
      */
-    public function __construct(SignalManagerInterface $manager, $signo, callable $callback)
+    public function __construct(SignalManagerInterface $manager, int $signo, callable $callback)
     {
         $this->manager = $manager;
         $this->callback = $callback;
@@ -37,8 +37,7 @@ class Signal implements SignalInterface
      */
     public function call()
     {
-        $callback = $this->callback;
-        $callback($this->signo);
+        ($this->callback)($this->signo);
     }
 
     /**
@@ -68,7 +67,7 @@ class Signal implements SignalInterface
     /**
      * {@inheritdoc}
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
         return $this->manager->isEnabled($this);
     }
@@ -76,7 +75,7 @@ class Signal implements SignalInterface
     /**
      * {@inheritdoc}
      */
-    public function getSignal()
+    public function getSignal(): int
     {
         return $this->signo;
     }

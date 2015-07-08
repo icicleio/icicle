@@ -8,5 +8,5 @@ interface PromisorInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function getPromise();
+    public function getPromise(): PromiseInterface;
 }

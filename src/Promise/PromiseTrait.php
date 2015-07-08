@@ -11,21 +11,23 @@ trait PromiseTrait
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
+    abstract public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface;
     
     /**
      * {@inheritdoc}
      */
-    public function capture(callable $onRejected)
+    public function capture(callable $onRejected): PromiseInterface
     {
-        return $this->then(null, function (\Exception $exception) use ($onRejected) {
+        return $this->then(null, function (\Throwable $exception) use ($onRejected) {
             if ($onRejected instanceof \Closure) { // Closure.
                 $reflection = new \ReflectionFunction($onRejected);
             } elseif (is_array($onRejected)) { // Methods passed as an array.
                 $reflection = new \ReflectionMethod($onRejected[0], $onRejected[1]);
             } elseif (is_object($onRejected)) { // Callable objects.
                 $reflection = new \ReflectionMethod($onRejected, '__invoke');
-            } else { // Everything else (method names delimited by :: do not work with $callable() syntax before PHP 7).
+            } elseif (is_string($onRejected) && strrpos($onRejected, '::', -1)) { // ClassName::methodName strings.
+                $reflection = new \ReflectionMethod($onRejected);
+            } else { // Everything else.
                 $reflection = new \ReflectionFunction($onRejected);
             }
             
@@ -48,7 +50,7 @@ trait PromiseTrait
     /**
      * {@inheritdoc}
      */
-    public function tap(callable $onFulfilled)
+    public function tap(callable $onFulfilled): PromiseInterface
     {
         return $this->then(function ($value) use ($onFulfilled) {
             $result = $onFulfilled($value);
@@ -64,7 +66,7 @@ trait PromiseTrait
     /**
      * {@inheritdoc}
      */
-    public function cleanup(callable $onResolved)
+    public function cleanup(callable $onResolved): PromiseInterface
     {
         $onResolved = function () use ($onResolved) {
             $result = $onResolved();
@@ -82,7 +84,7 @@ trait PromiseTrait
     /**
      * {@inheritdoc}
      */
-    public function splat(callable $onFulfilled)
+    public function splat(callable $onFulfilled): PromiseInterface
     {
         return $this->then(function ($values) use ($onFulfilled) {
             if ($values instanceof \Traversable) {
@@ -95,7 +97,7 @@ trait PromiseTrait
             }
 
             ksort($values); // Ensures correct argument order.
-            return call_user_func_array($onFulfilled, $values);
+            return $onFulfilled(...$values);
         });
     }
 }

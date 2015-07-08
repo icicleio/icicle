@@ -57,7 +57,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback): SocketEventInterface
     {
         $id = (int) $resource;
         
@@ -71,7 +71,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEventInterface $socket, float $timeout = 0)
     {
         $resource = $socket->getResource();
         $id = (int) $resource;
@@ -82,7 +82,7 @@ class SocketManager implements SocketManagerInterface
         
         $this->pending[$id] = $resource;
         
-        if (0 !== $timeout) {
+        if ($timeout) {
             $timeout = (float) $timeout;
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
@@ -111,7 +111,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -139,7 +139,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -151,7 +151,7 @@ class SocketManager implements SocketManagerInterface
      *
      * @internal
      */
-    public function getPending()
+    public function getPending(): array
     {
         return $this->pending;
     }
@@ -179,7 +179,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return empty($this->pending);
     }
@@ -202,7 +202,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * @return callable
      */
-    protected function createTimerCallback()
+    protected function createTimerCallback(): callable
     {
         return function (SocketEventInterface $socket) {
             $id = (int) $socket->getResource();

@@ -45,16 +45,15 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
-    public function call($expired)
+    public function call(bool $expired)
     {
-        $callback = $this->callback;
-        $callback($this->resource, $expired);
+        ($this->callback)($this->resource, $expired);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function __invoke($expired)
+    public function __invoke(bool $expired)
     {
         $this->call($expired);
     }
@@ -62,7 +61,7 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
-    public function listen($timeout = 0)
+    public function listen(float $timeout = 0)
     {
         $this->manager->listen($this, $timeout);
     }
@@ -70,7 +69,7 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return $this->manager->isPending($this);
     }
@@ -78,7 +77,7 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed()
+    public function isFreed(): bool
     {
         return $this->manager->isFreed($this);
     }

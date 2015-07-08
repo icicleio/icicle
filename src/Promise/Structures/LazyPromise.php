@@ -30,7 +30,7 @@ class LazyPromise implements PromiseInterface
     /**
      * @return \Icicle\Promise\PromiseInterface
      */
-    protected function getPromise()
+    protected function getPromise(): PromiseInterface
     {
         if (null === $this->promise) {
             $promisor = $this->promisor;
@@ -38,7 +38,7 @@ class LazyPromise implements PromiseInterface
             
             try {
                 $this->promise = Promise\resolve($promisor());
-            } catch (\Exception $exception) {
+            } catch (\Throwable $exception) {
                 $this->promise = Promise\reject($exception);
             }
         }
@@ -49,7 +49,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface
     {
         return $this->getPromise()->then($onFulfilled, $onRejected);
     }
@@ -73,7 +73,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout(float $timeout, $reason = null): PromiseInterface
     {
         return $this->getPromise()->timeout($timeout, $reason);
     }
@@ -81,7 +81,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function delay(float $time): PromiseInterface
     {
         return $this->getPromise()->delay($time);
     }
@@ -89,7 +89,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return $this->getPromise()->isPending();
     }
@@ -97,7 +97,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function isFulfilled()
+    public function isFulfilled(): bool
     {
         return $this->getPromise()->isFulfilled();
     }
@@ -105,7 +105,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function isRejected()
+    public function isRejected(): bool
     {
         return $this->getPromise()->isRejected();
     }
@@ -121,7 +121,7 @@ class LazyPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function unwrap()
+    public function unwrap(): PromiseInterface
     {
         return $this->getPromise()->unwrap();
     }

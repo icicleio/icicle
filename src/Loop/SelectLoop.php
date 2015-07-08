@@ -5,7 +5,9 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Manager\Select\SignalManager;
 use Icicle\Loop\Manager\Select\SocketManager;
 use Icicle\Loop\Manager\Select\TimerManager;
+use Icicle\Loop\Manager\SignalManagerInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -21,7 +23,7 @@ class SelectLoop extends AbstractLoop
      *
      * @return bool
      */
-    public static function enabled()
+    public static function enabled(): bool
     {
         return true;
     }
@@ -34,11 +36,11 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function dispatch($blocking)
+    protected function dispatch(bool $blocking)
     {
         $timerManager = $this->getTimerManager();
 
-        $timeout = $blocking ? $timerManager->getInterval() : 0;
+        $timeout = $blocking ? $timerManager->getInterval(): 0;
 
         // Select available sockets for reading or writing.
         $this->select($this->getPollManager(), $this->getAwaitManager(), $timeout);
@@ -89,7 +91,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new SocketManager($this, $factory);
     }
@@ -97,7 +99,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new SocketManager($this, $factory);
     }
@@ -105,7 +107,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
         return new TimerManager($factory);
     }
@@ -113,7 +115,7 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
         return new SignalManager($this, $factory);
     }

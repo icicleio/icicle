@@ -9,6 +9,9 @@ use Icicle\Loop\Manager\Event\AwaitManager;
 use Icicle\Loop\Manager\Event\PollManager;
 use Icicle\Loop\Manager\Event\SignalManager;
 use Icicle\Loop\Manager\Event\TimerManager;
+use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.
@@ -25,7 +28,7 @@ class EventLoop extends AbstractLoop
      *
      * @return bool
      */
-    public static function enabled()
+    public static function enabled(): bool
     {
         return extension_loaded('event');
     }
@@ -53,7 +56,7 @@ class EventLoop extends AbstractLoop
      *
      * @codeCoverageIgnore
      */
-    protected function getEventBase()
+    protected function getEventBase(): EventBase
     {
         return $this->base;
     }
@@ -61,7 +64,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function dispatch($blocking)
+    protected function dispatch(bool $blocking)
     {
         $flags = EventBase::LOOP_ONCE;
         
@@ -83,7 +86,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new PollManager($factory, $this->base);
     }
@@ -91,7 +94,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new AwaitManager($factory, $this->base);
     }
@@ -99,7 +102,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
         return new TimerManager($factory, $this->base);
     }
@@ -107,7 +110,7 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
         return new SignalManager($this, $factory, $this->base);
     }

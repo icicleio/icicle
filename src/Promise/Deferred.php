@@ -32,7 +32,7 @@ class Deferred implements PromisorInterface
     /**
      * {@inheritdoc}
      */
-    public function getPromise()
+    public function getPromise(): PromiseInterface
     {
         return $this->promise;
     }

@@ -13,13 +13,13 @@ interface SocketManagerInterface
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      */
-    public function create($resource, callable $callback);
+    public function create($resource, callable $callback): SocketEventInterface;
     
     /**
      * @param \Icicle\Loop\Events\SocketEventInterface $event
      * @param float|int $timeout
      */
-    public function listen(SocketEventInterface $event, $timeout = 0);
+    public function listen(SocketEventInterface $event, float $timeout = 0);
     
     /**
      * Cancels the given socket operation.
@@ -35,7 +35,7 @@ interface SocketManagerInterface
      *
      * @return bool
      */
-    public function isPending(SocketEventInterface $event);
+    public function isPending(SocketEventInterface $event): bool;
     
     /**
      * Frees the given socket event.
@@ -51,14 +51,14 @@ interface SocketManagerInterface
      *
      * @return bool
      */
-    public function isFreed(SocketEventInterface $event);
+    public function isFreed(SocketEventInterface $event): bool;
 
     /**
      * Determines if any socket events are pending in the manager.
      *
      * @return bool
      */
-    public function isEmpty();
+    public function isEmpty(): bool;
 
     /**
      * Clears all socket events from the manager.

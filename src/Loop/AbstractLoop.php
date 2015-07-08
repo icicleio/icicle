@@ -1,12 +1,19 @@
 <?php
 namespace Icicle\Loop;
 
-use Exception;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Exception\RunningError;
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
 use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\CallableQueue;
 
 /**
@@ -62,35 +69,35 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @param bool $blocking
      */
-    abstract protected function dispatch($blocking);
+    abstract protected function dispatch(bool $blocking);
     
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface
      *
      * @return \Icicle\Loop\Manager\SocketManagerInterface
      */
-    abstract protected function createPollManager(EventFactoryInterface $eventFactory);
+    abstract protected function createPollManager(EventFactoryInterface $eventFactory): SocketManagerInterface;
     
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface
      *
      * @return \Icicle\Loop\Manager\SocketManagerInterface
      */
-    abstract protected function createAwaitManager(EventFactoryInterface $eventFactory);
+    abstract protected function createAwaitManager(EventFactoryInterface $eventFactory): SocketManagerInterface;
     
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface
      *
      * @return \Icicle\Loop\Manager\TimerManagerInterface
      */
-    abstract protected function createTimerManager(EventFactoryInterface $eventFactory);
+    abstract protected function createTimerManager(EventFactoryInterface $eventFactory): TimerManagerInterface;
 
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface
      *
      * @return \Icicle\Loop\Manager\SignalManagerInterface
      */
-    abstract protected function createSignalManager(EventFactoryInterface $eventFactory);
+    abstract protected function createSignalManager(EventFactoryInterface $eventFactory): SignalManagerInterface;
 
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
@@ -121,7 +128,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getEventFactory()
+    protected function getEventFactory(): EventFactoryInterface
     {
         return $this->eventFactory;
     }
@@ -131,7 +138,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getPollManager()
+    protected function getPollManager(): SocketManagerInterface
     {
         return $this->pollManager;
     }
@@ -141,7 +148,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getAwaitManager()
+    protected function getAwaitManager(): SocketManagerInterface
     {
         return $this->awaitManager;
     }
@@ -151,7 +158,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getTimerManager()
+    protected function getTimerManager(): TimerManagerInterface
     {
         return $this->timerManager;
     }
@@ -161,7 +168,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getImmediateManager()
+    protected function getImmediateManager(): ImmediateManagerInterface
     {
         return $this->immediateManager;
     }
@@ -171,7 +178,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @codeCoverageIgnore
      */
-    protected function getSignalManager()
+    protected function getSignalManager(): SignalManagerInterface
     {
         return $this->signalManager;
     }
@@ -181,7 +188,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return $this->pollManager->isEmpty()
             && $this->awaitManager->isEmpty()
@@ -193,7 +200,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function tick($blocking = true)
+    public function tick(bool $blocking = true)
     {
         $blocking = $blocking && $this->callableQueue->isEmpty() && $this->immediateManager->isEmpty();
         
@@ -208,7 +215,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function run()
+    public function run(): bool
     {
         if ($this->isRunning()) {
             throw new RunningError('The loop was already running.');
@@ -224,7 +231,7 @@ abstract class AbstractLoop implements LoopInterface
                 }
                 $this->tick();
             } while ($this->isRunning());
-        } catch (Exception $exception) {
+        } catch (\Throwable $exception) {
             $this->stop();
             throw $exception;
         }
@@ -235,7 +242,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function isRunning()
+    public function isRunning(): bool
     {
         return $this->running;
     }
@@ -259,7 +266,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function maxQueueDepth($depth = null)
+    public function maxQueueDepth(int $depth = null): int
     {
         return $this->callableQueue->maxDepth($depth);
     }
@@ -267,7 +274,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function poll($resource, callable $callback)
+    public function poll($resource, callable $callback): SocketEventInterface
     {
         return $this->pollManager->create($resource, $callback);
     }
@@ -275,7 +282,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function await($resource, callable $callback)
+    public function await($resource, callable $callback): SocketEventInterface
     {
         return $this->awaitManager->create($resource, $callback);
     }
@@ -283,7 +290,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function timer($interval, $periodic, callable $callback, array $args = null)
+    public function timer(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface
     {
         return $this->timerManager->create($interval, $periodic, $callback, $args);
     }
@@ -291,7 +298,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function immediate(callable $callback, array $args = null)
+    public function immediate(callable $callback, array $args = null): ImmediateInterface
     {
         return $this->immediateManager->create($callback, $args);
     }
@@ -299,7 +306,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function signal($signo, callable $callback)
+    public function signal(int $signo, callable $callback): SignalInterface
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalManager) {
@@ -314,7 +321,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @return bool
      */
-    public function signalHandlingEnabled()
+    public function signalHandlingEnabled(): bool
     {
         return null !== $this->signalManager;
     }
@@ -338,7 +345,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * @return \Icicle\Loop\Events\EventFactoryInterface
      */
-    protected function createEventFactory()
+    protected function createEventFactory(): EventFactoryInterface
     {
         return new EventFactory();
     }
@@ -348,7 +355,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @return \Icicle\Loop\Manager\ImmediateManagerInterface
      */
-    protected function createImmediateManager(EventFactoryInterface $factory)
+    protected function createImmediateManager(EventFactoryInterface $factory): ImmediateManagerInterface
     {
         return new ImmediateManager($factory);
     }

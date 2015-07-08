@@ -1,6 +1,11 @@
 <?php
 namespace Icicle\Loop;
 
+use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\TimerInterface;
+
 interface LoopInterface
 {
     /**
@@ -8,14 +13,14 @@ interface LoopInterface
      *
      * @return bool
      */
-    public static function enabled();
+    public static function enabled(): bool;
     
     /**
      * Executes a single tick, processing callbacks and handling any available I/O.
      *
      * @param bool $blocking Determines if the tick should block and wait for I/O if no other tasks are scheduled.
      */
-    public function tick($blocking = true);
+    public function tick(bool $blocking = true);
     
     /**
      * Starts the event loop.
@@ -24,7 +29,7 @@ interface LoopInterface
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    public function run();
+    public function run(): bool;
     
     /**
      * Stops the event loop.
@@ -36,7 +41,7 @@ interface LoopInterface
      *
      * @return bool
      */
-    public function isRunning();
+    public function isRunning(): bool;
     
     /**
      * Removes all events (I/O, timers, callbacks, signal handlers, etc.) from the loop.
@@ -48,7 +53,7 @@ interface LoopInterface
      *
      * @return bool
      */
-    public function isEmpty();
+    public function isEmpty(): bool;
     
     /**
      * Performs any reinitializing necessary after forking.
@@ -62,7 +67,7 @@ interface LoopInterface
      *
      * @return int Previous max depth.
      */
-    public function maxQueueDepth($depth);
+    public function maxQueueDepth(int $depth): int;
     
     /**
      * Queue a callback function to be run after all I/O has been handled in the current tick.
@@ -83,7 +88,7 @@ interface LoopInterface
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
-    public function poll($resource, callable $callback);
+    public function poll($resource, callable $callback): SocketEventInterface;
     
     /**
      * Creates an event object that can be used to wait for the socket resource to be available for writing.
@@ -95,7 +100,7 @@ interface LoopInterface
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
-    public function await($resource, callable $callback);
+    public function await($resource, callable $callback): SocketEventInterface;
     
     /**
      * Creates a timer object connected to the loop.
@@ -107,7 +112,7 @@ interface LoopInterface
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    public function timer($interval, $periodic, callable $callback, array $args = null);
+    public function timer(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface;
     
     /**
      * Creates an immediate object connected to the loop.
@@ -117,7 +122,7 @@ interface LoopInterface
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function immediate(callable $callback, array $args = null);
+    public function immediate(callable $callback, array $args = null): ImmediateInterface;
 
     /**
      * @param int $signo
@@ -125,12 +130,12 @@ interface LoopInterface
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */
-    public function signal($signo, callable $callback);
+    public function signal(int $signo, callable $callback): SignalInterface;
 
     /**
      * Determines if signal handling is enabled.
      * *
      * @return bool
      */
-    public function signalHandlingEnabled();
+    public function signalHandlingEnabled(): bool;
 }

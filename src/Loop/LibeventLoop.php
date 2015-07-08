@@ -7,6 +7,9 @@ use Icicle\Loop\Manager\Libevent\AwaitManager;
 use Icicle\Loop\Manager\Libevent\PollManager;
 use Icicle\Loop\Manager\Libevent\SignalManager;
 use Icicle\Loop\Manager\Libevent\TimerManager;
+use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\TimerManagerInterface;
 
 /**
  * Uses the libevent extension to poll sockets for I/O and create timers.
@@ -25,7 +28,7 @@ class LibeventLoop extends AbstractLoop
      *
      * @return bool
      */
-    public static function enabled()
+    public static function enabled(): bool
     {
         return extension_loaded('libevent');
     }
@@ -74,7 +77,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function dispatch($blocking)
+    protected function dispatch(bool $blocking)
     {
         $flags = EVLOOP_ONCE;
         
@@ -88,7 +91,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new PollManager($factory, $this->base);
     }
@@ -96,7 +99,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new AwaitManager($factory, $this->base);
     }
@@ -104,7 +107,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
         return new TimerManager($factory, $this->base);
     }
@@ -112,7 +115,7 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
         return new SignalManager($this, $factory, $this->base);
     }

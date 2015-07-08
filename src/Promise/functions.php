@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Promise;
 
-use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
@@ -9,6 +8,7 @@ use Icicle\Promise\Exception\UnresolvedError;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\LazyPromise;
 use Icicle\Promise\Structures\RejectedPromise;
+use Throwable;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
     /**
@@ -20,7 +20,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function resolve($value = null)
+    function resolve($value = null): PromiseInterface
     {
         if ($value instanceof PromiseInterface) {
             return $value;
@@ -36,7 +36,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function reject($reason = null)
+    function reject($reason = null): PromiseInterface
     {
         return new RejectedPromise($reason);
     }
@@ -53,15 +53,15 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return callable
      */
-    function lift(callable $worker)
+    function lift(callable $worker): callable
     {
         /**
          * @param mixed ...$args Promises or values.
          *
          * @return \Icicle\Promise\PromiseInterface
          */
-        return function (/* ...$args */) use ($worker) {
-            return all(func_get_args())->splat($worker);
+        return function (...$args) use ($worker) {
+            return all($args)->splat($worker);
         };
     }
     
@@ -74,14 +74,12 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return callable
      */
-    function promisify(callable $worker, $index = 0)
+    function promisify(callable $worker, $index = 0): callable
     {
-        return function (/* ...$args */) use ($worker, $index) {
-            $args = func_get_args();
-
+        return function (...$args) use ($worker, $index) {
             return new Promise(function ($resolve) use ($worker, $index, $args) {
-                $callback = function (/* ...$args */) use ($resolve) {
-                    $resolve(func_get_args());
+                $callback = function (...$args) use ($resolve) {
+                    $resolve($args);
                 };
 
                 if (count($args) < $index) {
@@ -90,7 +88,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 array_splice($args, $index, 0, [$callback]);
 
-                call_user_func_array($worker, $args);
+                $worker(...$args);
             });
         };
     }
@@ -103,7 +101,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return PromiseInterface Promise resolved by the $thenable object.
      */
-    function adapt($thenable)
+    function adapt($thenable): PromiseInterface
     {
         if (!is_object($thenable) || !method_exists($thenable, 'then')) {
             return reject(new InvalidArgumentError('Must provide an object with a then() method.'));
@@ -124,7 +122,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function lazy(callable $promisor /* ...$args */)
+    function lazy(callable $promisor, ...$args): PromiseInterface
     {
         $args = array_slice(func_get_args(), 1);
 
@@ -133,7 +131,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
         }
 
         return new LazyPromise(function () use ($promisor, $args) {
-            return call_user_func_array($promisor, $args);
+            return $promisor(...$args);
         });
     }
 
@@ -149,7 +147,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @return mixed Promise fulfillment value.
      *
      * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
-     * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
+     * @throws \Throwable If the promise is rejected, the rejection reason is thrown from this function.
      */
     function wait(PromiseInterface $promise)
     {
@@ -179,7 +177,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function settle(array $promises)
+    function settle(array $promises): PromiseInterface
     {
         if (empty($promises)) {
             return resolve([]);
@@ -210,7 +208,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function all(array $promises)
+    function all(array $promises): PromiseInterface
     {
         if (empty($promises)) {
             return resolve([]);
@@ -240,7 +238,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function any(array $promises)
+    function any(array $promises): PromiseInterface
     {
         if (empty($promises)) {
             return reject(new InvalidArgumentError('No promises provided.'));
@@ -251,7 +249,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             $exceptions = [];
 
             foreach ($promises as $key => $promise) {
-                $onRejected = function (Exception $exception) use ($key, &$exceptions, &$pending, $reject) {
+                $onRejected = function (Throwable $exception) use ($key, &$exceptions, &$pending, $reject) {
                     $exceptions[$key] = $exception;
                     if (0 === --$pending) {
                         $reject(new MultiReasonException($exceptions));
@@ -272,7 +270,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function some(array $promises, $required)
+    function some(array $promises, $required): PromiseInterface
     {
         $required = (int) $required;
 
@@ -318,7 +316,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function choose(array $promises)
+    function choose(array $promises): PromiseInterface
     {
         if (empty($promises)) {
             return reject(new InvalidArgumentError('No promises provided.'));
@@ -343,11 +341,15 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      */
-    function map(callable $callback, array $promises)
+    function map(callable $callback, array ...$promises): array
     {
-        return array_map(function ($promise) use ($callback) {
-            return resolve($promise)->then($callback);
-        }, $promises);
+        return array_map(function (...$args) use ($callback) {
+            if (1 === count($args)) {
+                return resolve($args[0])->then($callback);
+            }
+
+            return all($args)->splat($callback);
+        }, ...$promises);
     }
     
     /**
@@ -360,7 +362,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function reduce(array $promises, callable $callback, $initial = null)
+    function reduce(array $promises, callable $callback, $initial = null): PromiseInterface
     {
         if (empty($promises)) {
             return resolve($initial);
@@ -403,7 +405,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function iterate(callable $worker, callable $predicate, $seed = null)
+    function iterate(callable $worker, callable $predicate, $seed = null): PromiseInterface
     {
         return $result = new Promise(
             function ($resolve, $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
@@ -418,7 +420,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                             }
                             $promise = resolve($worker($value));
                             $promise->done($callback, $reject);
-                        } catch (Exception $exception) {
+                        } catch (Throwable $exception) {
                             $reject($exception);
                         }
                     }
@@ -427,7 +429,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 $promise = resolve($seed);
                 $promise->done($callback, $reject); // Start iteration with $seed.
             },
-            function (Exception $exception) use (&$promise) {
+            function (Throwable $exception) use (&$promise) {
                 $promise->cancel($exception);
             }
         );
@@ -441,17 +443,17 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
      *     Should return a promise, but can return any type of value (will be made into a promise using resolve()).
-     * @param callable<bool (Exception $exception) $onRejected> This function is called if the promise returned by
+     * @param callable<bool (Throwable $exception) $onRejected> This function is called if the promise returned by
      *     $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *     operation.
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function retry(callable $promisor, callable $onRejected)
+    function retry(callable $promisor, callable $onRejected): PromiseInterface
     {
         return $result = new Promise(
             function ($resolve, $reject) use (&$result, &$promise, $promisor, $onRejected) {
-                $callback = function (Exception $exception) use (
+                $callback = function (Throwable $exception) use (
                     &$callback, &$result, &$promise, $promisor, $onRejected, $resolve, $reject
                 ) {
                     if ($result->isPending()) {
@@ -462,7 +464,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                             }
                             $promise = resolve($promisor());
                             $promise->done($resolve, $callback);
-                        } catch (Exception $exception) {
+                        } catch (Throwable $exception) {
                             $reject($exception);
                         }
                     }
@@ -471,7 +473,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 $promise = resolve($promisor());
                 $promise->done($resolve, $callback);
             },
-            function (Exception $exception) use (&$promise) {
+            function (Throwable $exception) use (&$promise) {
                 $promise->cancel($exception);
             }
         );

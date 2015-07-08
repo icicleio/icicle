@@ -13,20 +13,18 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @return callable
      */
-    function wrap(callable $worker)
+    function wrap(callable $worker): callable
     {
         /**
          * @param mixed ...$args
          *
          * @return \Icicle\Coroutine\Coroutine
          *
-         * @throws \Icicle\Coroutine\Exception\InvalidCallableException If the callable throws an exception or does
+         * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does
          *     not return a Generator.
          */
-        return function (/* ...$args */) use ($worker) {
-            $args = func_get_args();
-            array_unshift($args, $worker);
-            return call_user_func_array(__NAMESPACE__ . '\create', $args);
+        return function (...$args) use ($worker): CoroutineInterface {
+            return create($worker, ...$args);
         };
     }
 
@@ -42,17 +40,11 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
      *     return a Generator.
      */
-    function create(callable $worker /* , ...$args */)
+    function create(callable $worker, ...$args): CoroutineInterface
     {
-        $args = array_slice(func_get_args(), 1);
-
         try {
-            if (empty($args)) {
-                $generator = $worker();
-            } else {
-                $generator = call_user_func_array($worker, $args);
-            }
-        } catch (\Exception $exception) {
+            $generator = $worker(...$args);
+        } catch (\Throwable $exception) {
             throw new InvalidCallableError('The callable threw an exception.', $worker, $exception);
         }
 
@@ -72,10 +64,10 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @resolve float Actual time slept in seconds.
      */
-    function sleep($time)
+    function sleep(float $time): \Generator
     {
-        $start = (yield Promise\resolve(microtime(true))->delay($time));
+        $start = yield Promise\resolve(microtime(true))->delay($time);
 
-        yield microtime(true) - $start;
+        return microtime(true) - $start;
     }
 }

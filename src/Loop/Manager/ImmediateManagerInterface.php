@@ -13,7 +13,7 @@ interface ImmediateManagerInterface
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function create(callable $callback, array $args = null);
+    public function create(callable $callback, array $args = null): ImmediateInterface;
 
     /**
      * Puts the immediate in the loop again for execution.
@@ -43,7 +43,7 @@ interface ImmediateManagerInterface
      *
      * @return bool
      */
-    public function isEmpty();
+    public function isEmpty(): bool;
 
     /**
      * Clears all pending immediates from the manager.
@@ -55,5 +55,5 @@ interface ImmediateManagerInterface
      *
      * @return bool
      */
-    public function tick();
+    public function tick(): bool;
 }

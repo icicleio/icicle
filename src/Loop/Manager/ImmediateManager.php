@@ -34,7 +34,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(callable $callback, array $args = null)
+    public function create(callable $callback, array $args = null): ImmediateInterface
     {
         $immediate = $this->factory->immediate($this, $callback, $args);
         
@@ -46,7 +46,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(ImmediateInterface $immediate)
+    public function isPending(ImmediateInterface $immediate): bool
     {
         return $this->immediates->contains($immediate);
     }
@@ -82,7 +82,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return 0 === $this->immediates->count();
     }
@@ -99,7 +99,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function tick()
+    public function tick(): bool
     {
         if (!$this->queue->isEmpty()) {
             $immediate = $this->queue->shift();

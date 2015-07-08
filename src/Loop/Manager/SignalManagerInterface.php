@@ -14,7 +14,7 @@ interface SignalManagerInterface
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */
-    public function create($signo, callable $callback, array $args = null);
+    public function create(int $signo, callable $callback, array $args = null): SignalInterface;
 
     /**
      * Enables listening for the signal.
@@ -37,7 +37,7 @@ interface SignalManagerInterface
      *
      * @return bool
      */
-    public function isEnabled(SignalInterface $signal);
+    public function isEnabled(SignalInterface $signal): bool;
 
     /**
      * Clears all signals from the manager.

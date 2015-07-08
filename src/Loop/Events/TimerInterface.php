@@ -6,7 +6,7 @@ interface TimerInterface
     /**
      * @return bool
      */
-    public function isPending();
+    public function isPending(): bool;
 
     /**
      * Start the timer if not pending.
@@ -23,14 +23,14 @@ interface TimerInterface
      *
      * @return float
      */
-    public function getInterval();
+    public function getInterval(): float;
 
     /**
      * Determines if the timer will be repeated.
      *
      * @return bool
      */
-    public function isPeriodic();
+    public function isPeriodic(): bool;
     
     /**
      * An unreferenced timer will allow the event loop to exit if no other events are pending.

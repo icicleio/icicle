@@ -40,7 +40,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($signo, callable $callback, array $args = null)
+    public function create(int $signo, callable $callback, array $args = null): SignalInterface
     {
         if (!isset($this->signals[$signo])) {
             throw new InvalidSignalError(sprintf('Invalid signal number: %d.', $signo));
@@ -77,7 +77,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEnabled(SignalInterface $signal)
+    public function isEnabled(SignalInterface $signal): bool
     {
         $signo = $signal->getSignal();
 
@@ -100,7 +100,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
      *
      * @return int[]
      */
-    protected function getSignalList()
+    protected function getSignalList(): array
     {
         return [
             'SIGHUP'  => SIGHUP,
@@ -123,7 +123,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
      *
      * @return callable
      */
-    protected function createSignalCallback()
+    protected function createSignalCallback(): callable
     {
         return function ($signo) {
             $handled = false;

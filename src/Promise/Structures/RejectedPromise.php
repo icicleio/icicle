@@ -1,15 +1,16 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\RejectedException;
 use Icicle\Promise\Promise;
+use Icicle\Promise\PromiseInterface;
+use Throwable;
 
 class RejectedPromise extends ResolvedPromise
 {
     /**
-     * @var Exception
+     * @var \Throwable
      */
     private $exception;
     
@@ -18,7 +19,7 @@ class RejectedPromise extends ResolvedPromise
      */
     public function __construct($reason)
     {
-        if (!$reason instanceof Exception) {
+        if (!$reason instanceof Throwable) {
             $reason = new RejectedException($reason);
         }
         
@@ -28,7 +29,7 @@ class RejectedPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface
     {
         if (null === $onRejected) {
             return $this;
@@ -38,7 +39,7 @@ class RejectedPromise extends ResolvedPromise
             Loop\queue(function () use ($resolve, $reject, $onRejected) {
                 try {
                     $resolve($onRejected($this->exception));
-                } catch (Exception $exception) {
+                } catch (Throwable $exception) {
                     $reject($exception);
                 }
             });
@@ -62,7 +63,7 @@ class RejectedPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function delay(float $time): PromiseInterface
     {
         return $this->then();
     }
@@ -70,7 +71,7 @@ class RejectedPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function isFulfilled()
+    public function isFulfilled(): bool
     {
         return false;
     }
@@ -78,7 +79,7 @@ class RejectedPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function isRejected()
+    public function isRejected(): bool
     {
         return true;
     }

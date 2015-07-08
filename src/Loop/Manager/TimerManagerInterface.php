@@ -15,7 +15,7 @@ interface TimerManagerInterface
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    public function create($interval, $periodic, callable $callback, array $args = null);
+    public function create(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface;
 
     /**
      * Starts the given timer if it is not already pending.
@@ -38,7 +38,7 @@ interface TimerManagerInterface
      *
      * @return bool
      */
-    public function isPending(TimerInterface $timer);
+    public function isPending(TimerInterface $timer): bool;
     
     /**
      * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
@@ -60,7 +60,7 @@ interface TimerManagerInterface
      *
      * @return bool
      */
-    public function isEmpty();
+    public function isEmpty(): bool;
 
     /**
      * Clears all timers from the manager.

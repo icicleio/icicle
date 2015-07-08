@@ -38,7 +38,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic, callable $callback, array $args = null)
+    public function create(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
@@ -50,7 +50,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer)
+    public function isPending(TimerInterface $timer): bool
     {
         return $this->timers->contains($timer);
     }
@@ -94,7 +94,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return !$this->timers->count();
     }
@@ -145,7 +145,7 @@ class TimerManager implements TimerManagerInterface
      *
      * @internal
      */
-    public function tick()
+    public function tick(): int
     {
         $count = 0;
         $time = microtime(true);

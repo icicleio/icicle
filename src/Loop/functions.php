@@ -1,6 +1,10 @@
 <?php
 namespace Icicle\Loop;
 
+use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Exception\InitializedError;
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
@@ -13,7 +17,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @throws \Icicle\Loop\Exception\InitializedError If the loop has already been initialized.
      */
-    function loop(LoopInterface $loop = null)
+    function loop(LoopInterface $loop = null): LoopInterface
     {
         static $instance;
 
@@ -31,7 +35,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @codeCoverageIgnore
      */
-    function create()
+    function create(): LoopInterface
     {
         if (EventLoop::enabled()) {
             return new EventLoop();
@@ -51,10 +55,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback
      * @param mixed ...$args
      */
-    function queue(callable $callback /* , ...$args */)
+    function queue(callable $callback, ...$args)
     {
-        $args = array_slice(func_get_args(), 1);
-
         loop()->queue($callback, $args);
     }
 
@@ -65,7 +67,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return int Previous max depth.
      */
-    function maxQueueDepth($depth)
+    function maxQueueDepth(int $depth): int
     {
         return loop()->maxQueueDepth($depth);
     }
@@ -75,7 +77,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @param bool $blocking
      */
-    function tick($blocking = false)
+    function tick(bool $blocking = false)
     {
         loop()->tick($blocking);
     }
@@ -97,7 +99,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return bool
      */
-    function isRunning()
+    function isRunning(): bool
     {
         return loop()->isRunning();
     }
@@ -115,7 +117,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return bool
      */
-    function isEmpty()
+    function isEmpty(): bool
     {
         return loop()->isEmpty();
     }
@@ -126,7 +128,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      */
-    function poll($socket, callable $callback)
+    function poll($socket, callable $callback): SocketEventInterface
     {
         return loop()->poll($socket, $callback);
     }
@@ -137,7 +139,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      */
-    function await($socket, callable $callback)
+    function await($socket, callable $callback): SocketEventInterface
     {
         return loop()->await($socket, $callback);
     }
@@ -149,10 +151,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    function timer($interval, callable $callback /* , ...$args */)
+    function timer(float $interval, callable $callback, ...$args): TimerInterface
     {
-        $args = array_slice(func_get_args(), 2);
-
         return loop()->timer($interval, false, $callback, $args);
     }
 
@@ -163,10 +163,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    function periodic($interval, callable $callback /* , ...$args */)
+    function periodic(float $interval, callable $callback, ...$args): TimerInterface
     {
-        $args = array_slice(func_get_args(), 2);
-
         return loop()->timer($interval, true, $callback, $args);
     }
 
@@ -176,10 +174,8 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    function immediate(callable $callback /* , ...$args */)
+    function immediate(callable $callback, ...$args): ImmediateInterface
     {
-        $args = array_slice(func_get_args(), 1);
-
         return loop()->immediate($callback, $args);
     }
 
@@ -189,7 +185,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */
-    function signal($signo, callable $callback)
+    function signal(int $signo, callable $callback): SignalInterface
     {
         return loop()->signal($signo, $callback);
     }
@@ -199,7 +195,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return bool
      */
-    function signalHandlingEnabled()
+    function signalHandlingEnabled(): bool
     {
         return loop()->signalHandlingEnabled();
     }

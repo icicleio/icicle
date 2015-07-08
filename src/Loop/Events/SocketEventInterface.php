@@ -13,12 +13,12 @@ interface SocketEventInterface
     /**
      * @param bool $expired
      */
-    public function call($expired);
+    public function call(bool $expired);
     
     /**
      * @param bool $expired
      */
-    public function __invoke($expired);
+    public function __invoke(bool $expired);
 
     /**
      * Listens for data or the ability to write.
@@ -26,7 +26,7 @@ interface SocketEventInterface
      * @param int|float $timeout Number of seconds until the callback is invoked with $expired set to true if
      *     no data is received or the socket does not become writable. Use null for no timeout.
      */
-    public function listen($timeout = 0);
+    public function listen(float $timeout = 0);
 
     /**
      * Stops listening for data or the ability to write on the socket.
@@ -38,7 +38,7 @@ interface SocketEventInterface
      *
      * @return bool
      */
-    public function isPending();
+    public function isPending(): bool;
     
     /**
      * Frees the resources used to listen for events on the socket.
@@ -48,5 +48,5 @@ interface SocketEventInterface
     /**
      * @return bool
      */
-    public function isFreed();
+    public function isFreed(): bool;
 }

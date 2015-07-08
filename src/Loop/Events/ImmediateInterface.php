@@ -6,7 +6,7 @@ interface ImmediateInterface
     /**
      * @return bool
      */
-    public function isPending();
+    public function isPending(): bool;
 
     /**
      * Execute the immediate if not pending.

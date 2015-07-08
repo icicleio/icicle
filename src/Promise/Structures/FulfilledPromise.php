@@ -30,7 +30,7 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface
     {
         if (null === $onFulfilled) {
             return $this;
@@ -40,7 +40,7 @@ class FulfilledPromise extends ResolvedPromise
             Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
-                } catch (\Exception $exception) {
+                } catch (\Throwable $exception) {
                     $reject($exception);
                 }
             });
@@ -60,7 +60,7 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function delay(float $time): PromiseInterface
     {
         return new Promise(
             function ($resolve) use (&$timer, $time) {
@@ -77,7 +77,7 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function isFulfilled()
+    public function isFulfilled(): bool
     {
         return true;
     }
@@ -85,7 +85,7 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function isRejected()
+    public function isRejected(): bool
     {
         return false;
     }

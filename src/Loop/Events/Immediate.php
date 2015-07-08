@@ -38,10 +38,9 @@ class Immediate implements ImmediateInterface
     public function call()
     {
         if (empty($this->args)) {
-            $callback = $this->callback;
-            $callback();
+            ($this->callback)();
         } else {
-            call_user_func_array($this->callback, $this->args);
+            ($this->callback)(...$this->args);
         }
     }
     
@@ -56,7 +55,7 @@ class Immediate implements ImmediateInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return $this->manager->isPending($this);
     }

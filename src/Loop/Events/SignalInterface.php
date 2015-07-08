@@ -26,12 +26,12 @@ interface SignalInterface
     /**
      * @return bool
      */
-    public function isEnabled();
+    public function isEnabled(): bool;
 
     /**
      * Signal identifier constant value, such as SIGTERM or SIGCHLD.
      *
      * @return int
      */
-    public function getSignal();
+    public function getSignal(): int;
 }

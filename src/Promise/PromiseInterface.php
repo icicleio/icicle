@@ -7,18 +7,18 @@ interface PromiseInterface
      * Assigns a set of callback functions to the promise, and returns a new promise.
      *
      * @param callable|null $onFulfilled (mixed $value) : mixed
-     * @param callable|null $onRejected (Exception $exception) : mixed
+     * @param callable|null $onRejected (\Throwable $exception) : mixed
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null);
+    public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface;
     
     /**
      * Assigns a set of callback functions to the promise. Returned values are ignored and thrown exceptions
      * are rethrown in an uncatchable way.
      *
      * @param callable|null $onFulfilled (mixed $value) : mixed
-     * @param callable|null $onRejected (Exception $exception) : mixed
+     * @param callable|null $onRejected (\Throwable $exception) : mixed
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -40,7 +40,7 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function timeout($timeout, $reason = null);
+    public function timeout(float $timeout, $reason = null): PromiseInterface;
     
     /**
      * Returns a promise that is fulfilled $time seconds after this promise is fulfilled. If the promise is rejected,
@@ -50,7 +50,7 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function delay($time);
+    public function delay(float $time): PromiseInterface;
 
     /**
      * Assigns a callback function that is called when the promise is rejected. If a typehint is defined on the callable
@@ -61,7 +61,7 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function capture(callable $onRejected);
+    public function capture(callable $onRejected): PromiseInterface;
 
     /**
      * Calls the given function with the value used to fulfill the promise, then fulfills the returned promise with
@@ -73,7 +73,7 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function tap(callable $onFulfilled);
+    public function tap(callable $onFulfilled): PromiseInterface;
     
     /**
      * The callback given to this function will be called if the promise is fulfilled or rejected. The callback is
@@ -85,7 +85,7 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function cleanup(callable $onResolved);
+    public function cleanup(callable $onResolved): PromiseInterface;
 
     /**
      * If the promise returns an array or a Traversable object, this function uses the array (or array generated from
@@ -97,35 +97,35 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function splat(callable $onFulfilled);
+    public function splat(callable $onFulfilled): PromiseInterface;
     
     /**
      * Returns true if the promise has not been resolved.
      *
      * @return bool
      */
-    public function isPending();
+    public function isPending(): bool;
     
     /**
      * Returns true if the promise has been fulfilled.
      *
      * @return bool
      */
-    public function isFulfilled();
+    public function isFulfilled(): bool;
     
     /**
      * Returns true if the promise has been rejected.
      *
      * @return bool
      */
-    public function isRejected();
+    public function isRejected(): bool;
     
     /**
      * Returns the value of the fulfilled or rejected promise if it has been resolved.
      *
      * @return mixed
      *
-     * @throws \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
+     * @throws \Icicle\Promise\Exception\UnresolvedError If the promise has not been resolved.
      */
     public function getResult();
     
@@ -136,5 +136,5 @@ interface PromiseInterface
      *
      * @internal Used to keep promise methods from exceeding the call stack depth limit.
      */
-    public function unwrap();
+    public function unwrap(): PromiseInterface;
 }

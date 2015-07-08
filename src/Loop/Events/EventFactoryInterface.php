@@ -15,7 +15,7 @@ interface EventFactoryInterface
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      */
-    public function socket(SocketManagerInterface $manager, $resource, callable $callback);
+    public function socket(SocketManagerInterface $manager, $resource, callable $callback): SocketEventInterface;
     
     /**
      * @param \Icicle\Loop\Manager\TimerManagerInterface $manager
@@ -28,11 +28,11 @@ interface EventFactoryInterface
      */
     public function timer(
         TimerManagerInterface $manager,
-        $interval,
-        $periodic,
+        float $interval,
+        bool $periodic,
         callable $callback,
         array $args = null
-    );
+    ): TimerInterface;
     
     /**
      * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
@@ -41,7 +41,11 @@ interface EventFactoryInterface
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null);
+    public function immediate(
+        ImmediateManagerInterface $manager,
+        callable $callback,
+        array $args = null
+    ): ImmediateInterface;
 
     /**
      * @param \Icicle\Loop\Manager\SignalManagerInterface $manager
@@ -50,5 +54,5 @@ interface EventFactoryInterface
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */
-    public function signal(SignalManagerInterface $manager, $signo, callable $callback);
+    public function signal(SignalManagerInterface $manager, int $signo, callable $callback): SignalInterface;
 }

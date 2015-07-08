@@ -20,7 +20,7 @@ class CallableQueue implements \Countable
     /**
      * @param int $depth
      */
-    public function __construct($depth = 0)
+    public function __construct(int $depth = 0)
     {
         if (0 !== $depth) {
             $this->maxDepth($depth);
@@ -41,7 +41,7 @@ class CallableQueue implements \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->queue);
     }
@@ -51,7 +51,7 @@ class CallableQueue implements \Countable
      *
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return empty($this->queue);
     }
@@ -71,7 +71,7 @@ class CallableQueue implements \Countable
      *
      * @return int Previous max depth.
      */
-    public function maxDepth($depth)
+    public function maxDepth(int $depth): int
     {
         $previous = $this->maxDepth;
         
@@ -86,7 +86,7 @@ class CallableQueue implements \Countable
      * 
      * @return int Number of functions called.
      */
-    public function call()
+    public function call(): int
     {
         $count = 0;
 
@@ -97,7 +97,7 @@ class CallableQueue implements \Countable
                 if (empty($args)) {
                     $callback();
                 } else {
-                    call_user_func_array($callback, $args);
+                    $callback(...$args);
                 }
             }
         } finally {
@@ -110,7 +110,7 @@ class CallableQueue implements \Countable
     /**
      * Alias of call().
      */
-    public function __invoke()
+    public function __invoke(): int
     {
         return $this->call();
     }

@@ -69,10 +69,9 @@ class Timer implements TimerInterface
     public function call()
     {
         if (empty($this->args)) {
-            $callback = $this->callback;
-            $callback();
+            ($this->callback)();
         } else {
-            call_user_func_array($this->callback, $this->args);
+            ($this->callback)(...$this->args);
         }
     }
     
@@ -87,7 +86,7 @@ class Timer implements TimerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return $this->manager->isPending($this);
     }
@@ -127,7 +126,7 @@ class Timer implements TimerInterface
     /**
      * {@inheritdoc}
      */
-    public function getInterval()
+    public function getInterval(): float
     {
         return $this->interval;
     }
@@ -135,7 +134,7 @@ class Timer implements TimerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPeriodic()
+    public function isPeriodic(): bool
     {
         return $this->periodic;
     }

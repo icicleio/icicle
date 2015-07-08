@@ -18,5 +18,5 @@ interface CoroutineInterface extends PromiseInterface
     /**
      * @return bool
      */
-    public function isPaused();
+    public function isPaused(): bool;
 }

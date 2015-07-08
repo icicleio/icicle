@@ -16,7 +16,7 @@ abstract class ResolvedPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return false;
     }
@@ -24,7 +24,7 @@ abstract class ResolvedPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout(float $timeout, $reason = null): PromiseInterface
     {
         return $this;
     }
@@ -32,7 +32,7 @@ abstract class ResolvedPromise implements PromiseInterface
     /**
      * {@inheritdoc}
      */
-    public function unwrap()
+    public function unwrap(): PromiseInterface
     {
         return $this;
     }
