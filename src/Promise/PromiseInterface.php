@@ -125,7 +125,7 @@ interface PromiseInterface
      *
      * @return mixed
      *
-     * @throws \Icicle\Promise\Exception\UnresolvedException If the promise has not been resolved.
+     * @throws \Icicle\Promise\Exception\UnresolvedError If the promise has not been resolved.
      */
     public function getResult();
     
