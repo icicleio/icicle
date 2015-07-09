@@ -19,7 +19,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([]));
         
-        Promise\all([])->done($callback, $this->createCallback(0));
+        Promise\all([])->done($callback);
         
         Loop\run();
     }
@@ -32,7 +32,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\all($values)->done($callback, $this->createCallback(0));
+        Promise\all($values)->done($callback);
         
         Loop\run();
     }
@@ -46,7 +46,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\all($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback);
         
         Loop\run();
     }
@@ -64,7 +64,7 @@ class PromiseJoinTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($values));
         
-        Promise\all($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback);
         
         Loop\run();
     }
@@ -86,7 +86,7 @@ class PromiseJoinTest extends TestCase
             return array_keys($result) === array_keys($promises);
         }));
         
-        Promise\all($promises)->done($callback, $this->createCallback(0));
+        Promise\all($promises)->done($callback);
         
         Loop\run();
     }

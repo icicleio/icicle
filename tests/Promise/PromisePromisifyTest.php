@@ -26,7 +26,7 @@ class PromisePromisifyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([1, 2, 3]));
         
-        $promisified()->done($callback, $this->createCallback(0));
+        $promisified()->done($callback);
         
         Loop\run();
     }
@@ -43,7 +43,7 @@ class PromisePromisifyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([1, 2, 3]));
         
-        $promisified(1, 2, 3)->done($callback, $this->createCallback(0));
+        $promisified(1, 2, 3)->done($callback);
         
         Loop\run();
     }
@@ -60,7 +60,7 @@ class PromisePromisifyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([1, 2, 3]));
         
-        $promisified(1, 2, 3)->done($callback, $this->createCallback(0));
+        $promisified(1, 2, 3)->done($callback);
         
         Loop\run();
     }
@@ -77,7 +77,7 @@ class PromisePromisifyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([1, 2, 3]));
         
-        $promisified(1, 2, 3)->done($callback, $this->createCallback(0));
+        $promisified(1, 2, 3)->done($callback);
         
         Loop\run();
     }

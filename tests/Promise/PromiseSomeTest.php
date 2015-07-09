@@ -32,7 +32,7 @@ class PromiseSomeTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([]));
         
-        Promise\some([1], 0)->done($callback, $this->createCallback(0));
+        Promise\some([1], 0)->done($callback);
         
         Loop\run();
     }
@@ -43,7 +43,7 @@ class PromiseSomeTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo([1, 2]));
         
-        Promise\some([1, 2, 3], 2)->done($callback, $this->createCallback(0));
+        Promise\some([1, 2, 3], 2)->done($callback);
         
         Loop\run();
     }
@@ -57,7 +57,7 @@ class PromiseSomeTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo([0 => 1, 1 => 2]));
         
-        Promise\some($promises, 2)->done($callback, $this->createCallback(0));
+        Promise\some($promises, 2)->done($callback);
         
         Loop\run();
     }
@@ -75,7 +75,7 @@ class PromiseSomeTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo([0 => 1, 2 => 3]));
         
-        Promise\some($promises, 2)->done($callback, $this->createCallback(0));
+        Promise\some($promises, 2)->done($callback);
         
         Loop\run();
     }
@@ -109,7 +109,7 @@ class PromiseSomeTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo([1 => 2, 3 => 4]));
         
-        Promise\some($promises, 2)->done($callback, $this->createCallback(0));
+        Promise\some($promises, 2)->done($callback);
         
         Loop\run();
     }

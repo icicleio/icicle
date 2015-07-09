@@ -20,7 +20,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo(null));
         
         Promise\reduce([], $this->createCallback(0))
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -34,7 +34,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo($initial));
         
         Promise\reduce([], $this->createCallback(0), $initial)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -48,7 +48,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo(6));
         
         Promise\reduce($values, function ($carry, $value) { return $carry + $value; }, 0)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -62,7 +62,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo(6));
         
         Promise\reduce($promises, function ($carry, $value) { return $carry + $value; }, 0)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -80,7 +80,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo(6));
         
         Promise\reduce($promises, function ($carry, $value) { return $carry + $value; }, 0)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -95,7 +95,7 @@ class PromiseReduceTest extends TestCase
                  ->with($this->identicalTo(10));
         
         Promise\reduce($values, function ($carry, $value) { return $carry + $value; }, $initial)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -147,7 +147,7 @@ class PromiseReduceTest extends TestCase
                 return Promise\resolve($carry + $value);
             },
             0
-        )->done($callback, $this->createCallback(0));
+        )->done($callback);
         
         Loop\run();
     }

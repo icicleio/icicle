@@ -34,7 +34,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         Loop\run();
         
@@ -57,7 +57,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         Loop\run();
         
@@ -106,7 +106,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
         
@@ -164,7 +164,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         Loop\run();
         
@@ -218,7 +218,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
 
-        $child = $coroutine->then($callback, $this->createCallback(0));
+        $coroutine->done($callback);
 
         Loop\run();
 
@@ -377,7 +377,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         Loop\run();
         
@@ -612,7 +612,7 @@ class CoroutineTest extends TestCase
         
         $this->assertInstanceOf(PromiseInterface::class, $delayed);
         
-        $delayed->done($callback, $this->createCallback(0));
+        $delayed->done($callback);
         
         Loop\run();
         
@@ -654,7 +654,7 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-        $coroutine->done($this->createCallback(1), $this->createCallback(0));
+        $coroutine->done($this->createCallback(1));
         
         Loop\run();
         
@@ -684,13 +684,13 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo(-1));
         
-        $coroutine1->done($callback, $this->createCallback(0));
+        $coroutine1->done($callback);
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo(10));
         
-        $coroutine2->done($callback, $this->createCallback(0));
+        $coroutine2->done($callback);
         
         Loop\run();
         
@@ -751,7 +751,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo(-1));
         
-        $coroutine->done($callback, $this->createCallback(0));
+        $coroutine->done($callback);
         
         Loop\run();
         
@@ -1011,7 +1011,7 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
         
         Loop\run();
     }

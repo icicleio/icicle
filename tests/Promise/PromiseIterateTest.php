@@ -27,7 +27,7 @@ class PromiseIterateTest extends TestCase
                  ->with($this->identicalTo($seed));
         
         Promise\iterate($this->createCallback(0), $predicate, $seed)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
         
@@ -52,7 +52,7 @@ class PromiseIterateTest extends TestCase
                  ->with($this->identicalTo($seed));
         
         Promise\iterate($this->createCallback(0), $predicate, $promise)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
         
@@ -123,7 +123,7 @@ class PromiseIterateTest extends TestCase
                  ->with($this->identicalTo(2));
         
         Promise\iterate($worker, $predicate, 1)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -167,7 +167,7 @@ class PromiseIterateTest extends TestCase
                  ->with($this->identicalTo(2));
         
         Promise\iterate($worker, $predicate, 1)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
         
         Loop\run();
     }
@@ -190,7 +190,7 @@ class PromiseIterateTest extends TestCase
             ->with($this->identicalTo($seed));
 
         Promise\iterate($worker, $predicate, $seed)
-               ->done($callback, $this->createCallback(0));
+               ->done($callback);
 
         Loop\run();
     }

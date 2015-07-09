@@ -19,7 +19,7 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo([]));
         
-        Promise\settle([])->done($callback, $this->createCallback(0));
+        Promise\settle([])->done($callback);
         
         Loop\run();
     }
@@ -39,7 +39,7 @@ class PromiseSettleTest extends TestCase
             return true;
         }));
         
-        Promise\settle($values)->done($callback, $this->createCallback(0));
+        Promise\settle($values)->done($callback);
         
         Loop\run();
     }
@@ -52,7 +52,7 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise\settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback);
         
         Loop\run();
     }
@@ -69,7 +69,7 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise\settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback);
         
         Loop\run();
     }
@@ -91,7 +91,7 @@ class PromiseSettleTest extends TestCase
             return array_keys($result) === array_keys($promises);
         }));
         
-        Promise\settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback);
         
         Loop\run();
     }
@@ -109,7 +109,7 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->equalTo($promises));
         
-        Promise\settle($promises)->done($callback, $this->createCallback(0));
+        Promise\settle($promises)->done($callback);
         
         Loop\run();
     }

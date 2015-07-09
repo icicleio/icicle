@@ -219,7 +219,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $this->promise->done($callback, $this->createCallback(0));
+        $this->promise->done($callback);
         
         $this->resolve($value);
         
@@ -256,7 +256,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value1));
         
-        $this->promise->done($callback, $this->createCallback(0));
+        $this->promise->done($callback);
         
         $this->resolve($value1);
         $this->resolve($value2);
@@ -281,7 +281,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $this->promise->done($callback, $this->createCallback(0));
+        $this->promise->done($callback);
         
         $this->resolve($fulfilled);
         
@@ -599,7 +599,7 @@ class PromiseTest extends TestCase
             return $value2;
         };
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         $this->resolve($value1);
         
@@ -647,7 +647,7 @@ class PromiseTest extends TestCase
             throw $exception;
         };
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         $this->resolve($value);
         
@@ -697,7 +697,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value1);
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         Loop\run();
         
@@ -745,7 +745,7 @@ class PromiseTest extends TestCase
         
         $this->resolve($value);
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         Loop\run();
         
@@ -789,9 +789,9 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
         
-        $child = $this->promise->then(null, $this->createCallback(0));
+        $child = $this->promise->then(null);
         
-        $grandchild = $child->then($callback, $this->createCallback(0));
+        $grandchild = $child->then($callback);
         
         $this->resolve($value);
         
@@ -840,7 +840,7 @@ class PromiseTest extends TestCase
             return Promise\resolve($value2);
         };
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         $this->resolve($value1);
         
@@ -865,7 +865,7 @@ class PromiseTest extends TestCase
             return Promise\reject($exception);
         };
         
-        $child = $this->promise->then($callback, $this->createCallback(0));
+        $child = $this->promise->then($callback);
         
         $this->resolve($value);
         

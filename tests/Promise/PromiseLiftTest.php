@@ -23,7 +23,7 @@ class PromiseLiftTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        $lifted()->done($callback, $this->createCallback(0));
+        $lifted()->done($callback);
         
         Loop\run();
     }
@@ -40,7 +40,7 @@ class PromiseLiftTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(-1));
         
-        $lifted(1, 2)->done($callback, $this->createCallback(0));
+        $lifted(1, 2)->done($callback);
         
         Loop\run();
     }
@@ -58,7 +58,7 @@ class PromiseLiftTest extends TestCase
                  ->with($this->identicalTo(-1));
         
         $lifted(Promise\resolve(1), Promise\resolve(2))
-            ->done($callback, $this->createCallback(0));
+            ->done($callback);
         
         Loop\run();
     }
@@ -79,7 +79,7 @@ class PromiseLiftTest extends TestCase
             Promise\resolve(1)->delay(0.2),
             Promise\resolve(2)->delay(0.1)
         )
-        ->done($callback, $this->createCallback(0));
+        ->done($callback);
         
         Loop\run();
     }
@@ -118,7 +118,7 @@ class PromiseLiftTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        $lifted()->done($callback, $this->createCallback(0));
+        $lifted()->done($callback);
         
         Loop\run();
     }
