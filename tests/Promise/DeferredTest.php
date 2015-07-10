@@ -25,7 +25,7 @@ class DeferredTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
         
-        $deferred->getPromise()->done($callback, $this->createCallback(0));
+        $deferred->getPromise()->done($callback);
         
         $deferred->resolve($value);
         

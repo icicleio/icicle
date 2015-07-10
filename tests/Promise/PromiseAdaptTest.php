@@ -34,7 +34,7 @@ class PromiseAdaptTest extends TestCase
 
         $this->assertInstanceOf(PromiseInterface::class, $promise);
 
-        $promise->done($this->createCallback(0), $this->createCallback(0));
+        $promise->done($this->createCallback(0));
 
         Loop\run();
     }
@@ -60,7 +60,7 @@ class PromiseAdaptTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($value));
 
-        $promise->done($callback, $this->createCallback(0));
+        $promise->done($callback);
 
         Loop\run();
     }

@@ -34,7 +34,7 @@ class PromiseAnyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        Promise\any($values)->done($callback, $this->createCallback(0));
+        Promise\any($values)->done($callback);
         
         Loop\run();
     }
@@ -48,7 +48,7 @@ class PromiseAnyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        Promise\any($promises)->done($callback, $this->createCallback(0));
+        Promise\any($promises)->done($callback);
         
         Loop\run();
     }
@@ -62,7 +62,7 @@ class PromiseAnyTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(2));
         
-        Promise\any($promises)->done($callback, $this->createCallback(0));
+        Promise\any($promises)->done($callback);
         
         Loop\run();
     }

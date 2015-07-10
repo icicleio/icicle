@@ -28,7 +28,7 @@ class PromiseRetryTest extends TestCase
                  ->with($this->identicalTo($value));
         
         Promise\retry($promisor, $this->createCallback(0))
-            ->done($callback, $this->createCallback(0));
+            ->done($callback);
         
         Loop\run();
     }
@@ -46,7 +46,7 @@ class PromiseRetryTest extends TestCase
                  ->with($this->identicalTo($value));
         
         Promise\retry($promisor, $this->createCallback(0))
-            ->done($callback, $this->createCallback(0));
+            ->done($callback);
         
         Loop\run();
     }
@@ -64,7 +64,7 @@ class PromiseRetryTest extends TestCase
                  ->with($this->identicalTo($value));
         
         Promise\retry($promisor, $this->createCallback(0))
-            ->done($callback, $this->createCallback(0));
+            ->done($callback);
         
         Loop\run();
     }
@@ -190,7 +190,7 @@ class PromiseRetryTest extends TestCase
                  ->with($this->identicalTo($value));
         
         Promise\retry($promisor, $onRejected)
-            ->done($callback, $this->createCallback(0));
+            ->done($callback);
         
         Loop\run();
     }

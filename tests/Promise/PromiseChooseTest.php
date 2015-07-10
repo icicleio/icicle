@@ -33,7 +33,7 @@ class PromiseChooseTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        Promise\choose($values)->done($callback, $this->createCallback(0));
+        Promise\choose($values)->done($callback);
         
         Loop\run();
     }
@@ -46,7 +46,7 @@ class PromiseChooseTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(1));
         
-        Promise\choose($promises)->done($callback, $this->createCallback(0));
+        Promise\choose($promises)->done($callback);
         
         Loop\run();
     }
@@ -59,7 +59,7 @@ class PromiseChooseTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo(2));
         
-        Promise\choose($promises)->done($callback, $this->createCallback(0));
+        Promise\choose($promises)->done($callback);
         
         Loop\run();
     }
