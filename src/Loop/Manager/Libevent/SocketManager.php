@@ -125,7 +125,7 @@ abstract class SocketManager implements SocketManagerInterface
 
         $this->pending[$id] = true;
 
-        if (0 === $timeout) {
+        if (!$timeout) {
             event_add($this->events[$id]);
             return;
         }

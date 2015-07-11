@@ -1,19 +1,19 @@
 <?php
 namespace Icicle\Tests\Loop;
 
-use Exception;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\ImmediateInterface;
 use Icicle\Loop\Events\SignalInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\LoopInterface;
-use Icicle\Loop\Exception\Error;
+use Icicle\Loop\Exception\Exception;
 use Icicle\Loop\Manager\ImmediateManagerInterface;
 use Icicle\Loop\Manager\SignalManagerInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Tests\TestCase;
+use Throwable;
 
 /**
  * Abstract class to be used as a base to test loop implementations.
@@ -655,13 +655,13 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenPoll
-     * @expectedException \Icicle\Loop\Exception\Error
+     * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromPollCallback()
     {
         list($socket) = $this->createSockets();
         
-        $exception = new Error();
+        $exception = new Exception();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -673,7 +673,7 @@ abstract class AbstractLoopTest extends TestCase
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->assertSame($exception, $e);
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
@@ -684,13 +684,13 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenAwait
-     * @expectedException \Icicle\Loop\Exception\Error
+     * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
     {
         list( , $socket) = $this->createSockets();
         
-        $exception = new Error();
+        $exception = new Exception();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -702,7 +702,7 @@ abstract class AbstractLoopTest extends TestCase
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->assertSame($exception, $e);
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
@@ -784,11 +784,11 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testQueue
-     * @expectedException \Icicle\Loop\Exception\Error
+     * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromQueueCallback()
     {
-        $exception = new Error();
+        $exception = new Exception();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -798,7 +798,7 @@ abstract class AbstractLoopTest extends TestCase
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->assertSame($exception, $e);
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
@@ -898,11 +898,11 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testCreateImmediate
-     * @expectedException \Icicle\Loop\Exception\Error
+     * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromImmediateCallback()
     {
-        $exception = new Error();
+        $exception = new Exception();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -912,7 +912,7 @@ abstract class AbstractLoopTest extends TestCase
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->assertSame($exception, $e);
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
@@ -1084,12 +1084,12 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @medium
      * @depends testCreateTimer
-     * @expectedException \Icicle\Loop\Exception\Error
+     * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromTimerCallback()
     {
-        $exception = new Error();
-        
+        $exception = new Exception();
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
@@ -1098,7 +1098,7 @@ abstract class AbstractLoopTest extends TestCase
         
         try {
             $this->loop->run(); // Exception should be thrown from loop.
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->assertSame($exception, $e);
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
@@ -1166,7 +1166,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use ($pid) {
             posix_kill($pid, SIGQUIT);
-            $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
+            $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         };
         
         $this->loop->queue($callback);
@@ -1190,7 +1190,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $callback = function () use ($pid) {
             posix_kill($pid, SIGTERM);
-            $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
+            $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         };
         
         $this->loop->queue($callback);

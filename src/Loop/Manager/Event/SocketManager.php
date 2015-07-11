@@ -114,7 +114,7 @@ abstract class SocketManager implements SocketManagerInterface
             $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
         }
 
-        if (0 === $timeout) {
+        if (!$timeout) {
             $this->events[$id]->add();
             return;
         }
