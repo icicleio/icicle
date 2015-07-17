@@ -36,7 +36,7 @@ class Promise implements PromiseInterface
     private $onRejected;
     
     /**
-     * @var \Closure|null
+     * @var callable|null
      */
     private $onCancelled;
     
@@ -96,21 +96,9 @@ class Promise implements PromiseInterface
 
             $this->close();
         };
-        
-        if (null !== $onCancelled) {
-            $this->onCancelled = function (Exception $exception) use ($reject, $onCancelled) {
-                try {
-                    $onCancelled($exception);
-                } catch (Exception $exception) {
-                    // Caught exception will now be used to reject promise.
-                }
-                
-                $reject($exception);
-            };
-        } else {
-            $this->onCancelled = $reject;
-        }
-        
+
+        $this->onCancelled = $onCancelled;
+
         try {
             $resolver($resolve, $reject);
         } catch (Exception $exception) {
@@ -217,8 +205,19 @@ class Promise implements PromiseInterface
             $reason = new CancelledException($reason);
         }
 
-        $onCancelled = $this->onCancelled;
-        $onCancelled($reason);
+        if (null !== $this->onCancelled) {
+            try {
+                $onCancelled = $this->onCancelled;
+                $onCancelled($reason);
+            } catch (Exception $exception) {
+                $reason = $exception; // Thrown exception will now be used to reject promise.
+            }
+        }
+
+        $this->result = new RejectedPromise($reason);
+        $this->result->done($this->onFulfilled, $this->onRejected);
+
+        $this->close();
     }
     
     /**
