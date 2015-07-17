@@ -61,24 +61,18 @@ class Promise implements PromiseInterface
          * @param mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
-            if (null !== $this->result) {
-                return;
-            }
-
             if ($value instanceof PromiseInterface) {
-                $this->result = $value->unwrap();
-                if ($this === $this->result) {
-                    $this->result = new RejectedPromise(
+                $value = $value->unwrap();
+                if ($this === $value) {
+                    $value = new RejectedPromise(
                         new CircularResolutionError('Circular reference in promise resolution chain.')
                     );
                 }
             } else {
-                $this->result = new FulfilledPromise($value);
+                $value = new FulfilledPromise($value);
             }
 
-            $this->result->done($this->onFulfilled, $this->onRejected);
-
-            $this->close();
+            $this->resolve($value);
         };
         
         /**
@@ -87,14 +81,7 @@ class Promise implements PromiseInterface
          * @param mixed $reason
          */
         $reject = function ($reason = null) {
-            if (null !== $this->result) {
-                return;
-            }
-
-            $this->result = new RejectedPromise($reason);
-            $this->result->done($this->onFulfilled, $this->onRejected);
-
-            $this->close();
+            $this->resolve(new RejectedPromise($reason));
         };
 
         $this->onCancelled = $onCancelled;
@@ -105,13 +92,23 @@ class Promise implements PromiseInterface
             $reject($exception);
         }
     }
-    
+
     /**
-     * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
-     * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
+     * Resolves this promise with the given promise if this promise is still pending.
+     *
+     * @param \Icicle\Promise\PromiseInterface $result
      */
-    private function close()
+    private function resolve(PromiseInterface $result)
     {
+        if (null !== $this->result) {
+            return;
+        }
+
+        $this->result = $result;
+        $this->result->done($this->onFulfilled, $this->onRejected);
+
+        // The garbage collector does not automatically detect (at least not quickly) the circular references that can
+        // be created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
         $this->onFulfilled = null;
         $this->onRejected = null;
         $this->onCancelled = null;
@@ -214,10 +211,7 @@ class Promise implements PromiseInterface
             }
         }
 
-        $this->result = new RejectedPromise($reason);
-        $this->result->done($this->onFulfilled, $this->onRejected);
-
-        $this->close();
+        $this->resolve(new RejectedPromise($reason));
     }
     
     /**
@@ -326,7 +320,7 @@ class Promise implements PromiseInterface
      */
     public function getResult()
     {
-        if ($this->isPending()) {
+        if (null === $this->result) {
             throw new UnresolvedError('The promise is still pending.');
         }
         
