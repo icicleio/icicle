@@ -126,7 +126,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve, $reject) use ($onFulfilled, $onRejected) {
+            function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
                 if (null !== $onFulfilled) {
                     $this->onFulfilled->push(function ($value) use ($resolve, $reject, $onFulfilled) {
                         try {
@@ -226,7 +226,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve) use (&$timer, $timeout, $reason) {
+            function (callable $resolve) use (&$timer, $timeout, $reason) {
                 $timer = Loop\timer($timeout, function () use ($reason) {
                     if (!$reason instanceof Exception) {
                         $reason = new TimeoutException($reason);
@@ -266,7 +266,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve) use (&$timer, $time) {
+            function (callable $resolve) use (&$timer, $time) {
                 $this->onFulfilled->push(function () use (&$timer, $time, $resolve) {
                     $timer = Loop\timer($time, function () use ($resolve) {
                         $resolve($this->result);

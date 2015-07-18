@@ -57,7 +57,7 @@ class Coroutine extends Promise implements CoroutineInterface
         $this->generator = $generator;
         
         parent::__construct(
-            function ($resolve, $reject) {
+            function (callable $resolve, callable $reject) {
                 /**
                  * @param mixed $value The value to send to the generator.
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
