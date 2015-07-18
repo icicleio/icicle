@@ -207,13 +207,9 @@ class Promise implements PromiseInterface
             $this->onFulfilled($onFulfilled);
         }
 
-        if (null !== $onRejected) {
-            $this->onRejected($onRejected);
-        } else {
-            $this->onRejected(function (Throwable $exception) {
-                throw $exception; // Rethrow exception in uncatchable way.
-            });
-        }
+        $this->onRejected($onRejected ?: function (Throwable $exception) {
+            throw $exception; // Rethrow exception in uncatchable way.
+        });
     }
     
     /**

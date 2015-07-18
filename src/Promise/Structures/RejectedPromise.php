@@ -64,7 +64,7 @@ class RejectedPromise extends ResolvedPromise
      */
     public function delay(float $time): PromiseInterface
     {
-        return $this->then();
+        return $this;
     }
     
     /**
