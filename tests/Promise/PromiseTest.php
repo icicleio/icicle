@@ -4,12 +4,14 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\CancelledException;
-use Icicle\Promise\Exception\CircularResolutionError;
-use Icicle\Promise\Exception\Error;
-use Icicle\Promise\Exception\RejectedException;
-use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\Exception\UnexpectedTypeError;
+use Icicle\Promise\Exception\{
+    CancelledException,
+    CircularResolutionError,
+    Error,
+    RejectedException,
+    TimeoutException,
+    UnexpectedTypeError
+};
 use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 use InvalidArgumentException;

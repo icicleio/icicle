@@ -4,8 +4,7 @@ namespace Icicle\Tests\Promise;
 use Exception;
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\InvalidArgumentError;
-use Icicle\Promise\Exception\MultiReasonException;
+use Icicle\Promise\Exception\{InvalidArgumentError, MultiReasonException};
 use Icicle\Tests\TestCase;
 
 class PromiseSomeTest extends TestCase

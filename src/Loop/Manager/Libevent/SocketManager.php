@@ -3,10 +3,8 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Exception\FreedError;
-use Icicle\Loop\Exception\ResourceBusyError;
+use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
+use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\Manager\SocketManagerInterface;
 
 abstract class SocketManager implements SocketManagerInterface

@@ -3,8 +3,7 @@ namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
 use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManagerInterface;
 

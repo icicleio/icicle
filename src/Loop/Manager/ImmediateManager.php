@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\Events\{EventFactoryInterface, ImmediateInterface};
 
 class ImmediateManager implements ImmediateManagerInterface
 {

@@ -2,13 +2,8 @@
 namespace Icicle\Promise;
 
 use Icicle\Loop;
-use Icicle\Promise\Exception\CancelledException;
-use Icicle\Promise\Exception\CircularResolutionError;
-use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\Exception\UnresolvedError;
-use Icicle\Promise\Structures\FulfilledPromise;
-use Icicle\Promise\Structures\RejectedPromise;
-use Icicle\Promise\Structures\ThenQueue;
+use Icicle\Promise\Exception\{CancelledException, CircularResolutionError, TimeoutException, UnresolvedError};
+use Icicle\Promise\Structures\{FulfilledPromise, RejectedPromise, ThenQueue};
 use Throwable;
 
 /**

@@ -2,8 +2,7 @@
 namespace Icicle\Promise\Structures;
 
 use Icicle\Promise;
-use Icicle\Promise\PromiseInterface;
-use Icicle\Promise\PromiseTrait;
+use Icicle\Promise\{PromiseInterface, PromiseTrait};
 
 class LazyPromise implements PromiseInterface
 {

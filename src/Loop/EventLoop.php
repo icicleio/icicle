@@ -5,13 +5,8 @@ use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Event\AwaitManager;
-use Icicle\Loop\Manager\Event\PollManager;
-use Icicle\Loop\Manager\Event\SignalManager;
-use Icicle\Loop\Manager\Event\TimerManager;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\Event\{AwaitManager, PollManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.

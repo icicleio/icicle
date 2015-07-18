@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Promise\Structures;
 
-use Icicle\Promise\PromiseInterface;
-use Icicle\Promise\PromiseTrait;
+use Icicle\Promise\{PromiseInterface, PromiseTrait};
 
 abstract class ResolvedPromise implements PromiseInterface
 {

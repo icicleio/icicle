@@ -6,8 +6,7 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableError;
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\CancelledException;
-use Icicle\Promise\Exception\TimeoutException;
+use Icicle\Promise\Exception\{CancelledException, TimeoutException};
 use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 

@@ -2,10 +2,7 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\{ImmediateInterface, SignalInterface, SocketEventInterface, TimerInterface};
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
 

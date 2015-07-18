@@ -3,8 +3,7 @@ namespace Icicle\Coroutine;
 
 use Generator;
 use Icicle\Loop;
-use Icicle\Promise\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\{Promise, PromiseInterface};
 use Throwable;
 
 /**

@@ -3,8 +3,7 @@ namespace Icicle\Promise\Structures;
 
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
-use Icicle\Promise\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\{Promise, PromiseInterface};
 
 class FulfilledPromise extends ResolvedPromise
 {

@@ -1,10 +1,8 @@
 <?php
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Exception\FreedError;
-use Icicle\Loop\Exception\ResourceBusyError;
+use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
+use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
 

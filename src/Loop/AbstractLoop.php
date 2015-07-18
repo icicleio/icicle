@@ -1,19 +1,22 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactory;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\Exception\RunningError;
-use Icicle\Loop\Exception\SignalHandlingDisabledError;
-use Icicle\Loop\Manager\ImmediateManager;
-use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\{
+    EventFactory,
+    EventFactoryInterface,
+    ImmediateInterface,
+    SignalInterface,
+    SocketEventInterface,
+    TimerInterface
+};
+use Icicle\Loop\Exception\{RunningError, SignalHandlingDisabledError};
+use Icicle\Loop\Manager\{
+    ImmediateManager,
+    ImmediateManagerInterface,
+    SignalManagerInterface,
+    SocketManagerInterface,
+    TimerManagerInterface
+};
 use Icicle\Loop\Structures\CallableQueue;
 
 /**

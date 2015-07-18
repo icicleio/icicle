@@ -1,17 +1,21 @@
 <?php
 namespace Icicle\Tests\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\{
+    EventFactoryInterface,
+    ImmediateInterface,
+    SignalInterface,
+    SocketEventInterface,
+    TimerInterface
+};
 use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Exception\Exception;
-use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\{
+    ImmediateManagerInterface,
+    SignalManagerInterface,
+    SocketManagerInterface,
+    TimerManagerInterface
+};
 use Icicle\Tests\TestCase;
 use Throwable;
 

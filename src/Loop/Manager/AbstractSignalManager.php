@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\{EventFactoryInterface, SignalInterface};
 use Icicle\Loop\Exception\InvalidSignalError;
 use Icicle\Loop\LoopInterface;
 

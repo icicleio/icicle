@@ -3,8 +3,7 @@ namespace Icicle\Tests\Promise;
 
 use Icicle\Loop;
 use Icicle\Promise;
-use Icicle\Promise\Exception\InvalidArgumentError;
-use Icicle\Promise\Exception\RejectedException;
+use Icicle\Promise\Exception\{InvalidArgumentError, RejectedException};
 use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 

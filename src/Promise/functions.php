@@ -2,12 +2,8 @@
 namespace Icicle\Promise;
 
 use Icicle\Loop;
-use Icicle\Promise\Exception\InvalidArgumentError;
-use Icicle\Promise\Exception\MultiReasonException;
-use Icicle\Promise\Exception\UnresolvedError;
-use Icicle\Promise\Structures\FulfilledPromise;
-use Icicle\Promise\Structures\LazyPromise;
-use Icicle\Promise\Structures\RejectedPromise;
+use Icicle\Promise\Exception\{InvalidArgumentError, MultiReasonException, UnresolvedError};
+use Icicle\Promise\Structures\{FulfilledPromise, LazyPromise, RejectedPromise};
 use Throwable;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {

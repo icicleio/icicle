@@ -3,13 +3,8 @@ namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Libevent\AwaitManager;
-use Icicle\Loop\Manager\Libevent\PollManager;
-use Icicle\Loop\Manager\Libevent\SignalManager;
-use Icicle\Loop\Manager\Libevent\TimerManager;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\Libevent\{AwaitManager, PollManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
 /**
  * Uses the libevent extension to poll sockets for I/O and create timers.

@@ -2,12 +2,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Manager\Select\SignalManager;
-use Icicle\Loop\Manager\Select\SocketManager;
-use Icicle\Loop\Manager\Select\TimerManager;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\Select\{SignalManager, SocketManager, TimerManager};
+use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
