@@ -237,8 +237,7 @@ class Promise implements PromiseInterface
 
         if (null !== $this->onCancelled) {
             try {
-                $onCancelled = $this->onCancelled;
-                $onCancelled($reason);
+                ($this->onCancelled)($reason);
             } catch (Throwable $exception) {
                 $reason = $exception; // Thrown exception will now be used to reject promise.
             }

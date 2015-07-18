@@ -44,8 +44,7 @@ class Deferred implements PromisorInterface
      */
     public function resolve($value = null)
     {
-        $resolve = $this->resolve;
-        $resolve($value);
+        ($this->resolve)($value);
     }
     
     /**
@@ -55,7 +54,6 @@ class Deferred implements PromisorInterface
      */
     public function reject($reason = null)
     {
-        $reject = $this->reject;
-        $reject($reason);
+        ($this->reject)($reason);
     }
 }
