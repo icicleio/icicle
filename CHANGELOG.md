@@ -1,6 +1,12 @@
 # Changelog
 
-### v0.7.0
+### v0.7.1 / v1.0.0-beta2
+
+- Modified `Icicle\Promise\Promise` for better performance. The modified implementation eliminates the creation of one closure and only creates a queue of callbacks if more than one callback is registered to be invoked on fulfillment or rejection. No changes were made to functionality.
+
+---
+
+### v0.7.0 / v1.0.0-beta1
 
 - Changes
     - Moved Stream and Socket components to separate repositories: [icicleio/stream](https://github.com/icicleio/stream) and [icicleio/socket](https://github.com/icicleio/socket). No API changes were made in these components from v0.6.0. If your project depends on these components, just add them as a requirement with composer.
