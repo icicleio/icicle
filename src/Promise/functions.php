@@ -107,7 +107,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return reject(new InvalidArgumentError('Must provide an object with a then() method.'));
         }
 
-        return new Promise(function ($resolve, $reject) use ($thenable) {
+        return new Promise(function (callable $resolve, callable $reject) use ($thenable) {
             $thenable->then($resolve, $reject);
         });
     }
@@ -183,7 +183,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return resolve([]);
         }
 
-        return new Promise(function ($resolve) use ($promises) {
+        return new Promise(function (callable $resolve) use ($promises) {
             $pending = count($promises);
 
             $after = function () use (&$promises, &$pending, $resolve) {
@@ -214,7 +214,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return resolve([]);
         }
 
-        return new Promise(function ($resolve, $reject) use ($promises) {
+        return new Promise(function (callable $resolve, callable $reject) use ($promises) {
             $pending = count($promises);
             $values = [];
 
@@ -244,7 +244,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return reject(new InvalidArgumentError('No promises provided.'));
         }
 
-        return new Promise(function ($resolve, $reject) use ($promises) {
+        return new Promise(function (callable $resolve, callable $reject) use ($promises) {
             $pending = count($promises);
             $exceptions = [];
 
@@ -282,7 +282,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return reject(new InvalidArgumentError('Too few promises provided.'));
         }
 
-        return new Promise(function ($resolve, $reject) use ($promises, $required) {
+        return new Promise(function (callable $resolve, callable $reject) use ($promises, $required) {
             $pending = count($promises);
             $required = min($pending, $required);
             $values = [];
@@ -322,7 +322,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return reject(new InvalidArgumentError('No promises provided.'));
         }
 
-        return new Promise(function ($resolve, $reject) use ($promises) {
+        return new Promise(function (callable $resolve, callable $reject) use ($promises) {
             foreach ($promises as $promise) {
                 resolve($promise)->done($resolve, $reject);
             }
@@ -368,7 +368,9 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return resolve($initial);
         }
 
-        return $result = new Promise(function ($resolve, $reject) use (&$result, $promises, $callback, $initial) {
+        return $result = new Promise(function (callable $resolve, callable $reject) use (
+            &$result, $promises, $callback, $initial
+        ) {
             $pending = count($promises);
             $carry = resolve($initial);
             $carry->done(null, $reject);
@@ -408,7 +410,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     function iterate(callable $worker, callable $predicate, $seed = null): PromiseInterface
     {
         return $result = new Promise(
-            function ($resolve, $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
+            function (callable $resolve, callable $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
                 $callback = function ($value) use (
                     &$callback, &$result, &$promise, $worker, $predicate, $resolve, $reject
                 ) {
@@ -452,7 +454,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     function retry(callable $promisor, callable $onRejected): PromiseInterface
     {
         return $result = new Promise(
-            function ($resolve, $reject) use (&$result, &$promise, $promisor, $onRejected) {
+            function (callable $resolve, callable $reject) use (&$result, &$promise, $promisor, $onRejected) {
                 $callback = function (Throwable $exception) use (
                     &$callback, &$result, &$promise, $promisor, $onRejected, $resolve, $reject
                 ) {

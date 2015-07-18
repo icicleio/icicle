@@ -7,7 +7,17 @@ class ThenQueue
      * @var callable[]
      */
     private $queue = [];
-    
+
+    /**
+     * @param callable|null $callback Initial callback to add to queue.
+     */
+    public function __construct(callable $callback = null)
+    {
+        if (null !== $callback) {
+            $this->push($callback);
+        }
+    }
+
     /**
      * Calls each callback in the queue, passing the provided value to the function.
      *
@@ -23,15 +33,15 @@ class ThenQueue
     /**
      * Unrolls instances of self to avoid blowing up the call stack on resolution.
      *
-     * @param callable $resolver
+     * @param callable $callback
      */
-    public function push(callable $resolver)
+    public function push(callable $callback)
     {
-        if ($resolver instanceof self) {
-            $this->queue = array_merge($this->queue, $resolver->queue);
+        if ($callback instanceof self) {
+            $this->queue = array_merge($this->queue, $callback->queue);
             return;
         }
 
-        $this->queue[] = $resolver;
+        $this->queue[] = $callback;
     }
 }

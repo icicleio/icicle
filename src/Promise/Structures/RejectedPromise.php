@@ -35,7 +35,7 @@ class RejectedPromise extends ResolvedPromise
             return $this;
         }
         
-        return new Promise(function ($resolve, $reject) use ($onRejected) {
+        return new Promise(function (callable $resolve, callable $reject) use ($onRejected) {
             Loop\queue(function () use ($resolve, $reject, $onRejected) {
                 try {
                     $resolve($onRejected($this->exception));

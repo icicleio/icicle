@@ -26,17 +26,17 @@ class Promise implements PromiseInterface
     private $result;
     
     /**
-     * @var \Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
      */
     private $onFulfilled;
     
     /**
-     * @var \Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
      */
     private $onRejected;
     
     /**
-     * @var \Closure|null
+     * @var callable|null
      */
     private $onCancelled;
     
@@ -51,9 +51,6 @@ class Promise implements PromiseInterface
      */
     public function __construct(callable $resolver, callable $onCancelled = null)
     {
-        $this->onFulfilled = new ThenQueue();
-        $this->onRejected = new ThenQueue();
-        
         /**
          * Resolves the promise with the given promise or value. If another promise, this promise takes
          * on the state of that promise. If a value, the promise will be fulfilled with that value.
@@ -61,24 +58,18 @@ class Promise implements PromiseInterface
          * @param mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
-            if (null !== $this->result) {
-                return;
-            }
-
             if ($value instanceof PromiseInterface) {
-                $this->result = $value->unwrap();
-                if ($this === $this->result) {
-                    $this->result = new RejectedPromise(
+                $value = $value->unwrap();
+                if ($this === $value) {
+                    $value = new RejectedPromise(
                         new CircularResolutionError('Circular reference in promise resolution chain.')
                     );
                 }
             } else {
-                $this->result = new FulfilledPromise($value);
+                $value = new FulfilledPromise($value);
             }
 
-            $this->result->done($this->onFulfilled, $this->onRejected);
-
-            $this->close();
+            $this->resolve($value);
         };
         
         /**
@@ -87,46 +78,73 @@ class Promise implements PromiseInterface
          * @param mixed $reason
          */
         $reject = function ($reason = null) {
-            if (null !== $this->result) {
-                return;
-            }
-
-            $this->result = new RejectedPromise($reason);
-            $this->result->done($this->onFulfilled, $this->onRejected);
-
-            $this->close();
+            $this->resolve(new RejectedPromise($reason));
         };
-        
-        if (null !== $onCancelled) {
-            $this->onCancelled = function (Throwable $exception) use ($reject, $onCancelled) {
-                try {
-                    $onCancelled($exception);
-                } catch (Throwable $exception) {
-                    // Caught exception will now be used to reject promise.
-                }
-                
-                $reject($exception);
-            };
-        } else {
-            $this->onCancelled = $reject;
-        }
-        
+
+        $this->onCancelled = $onCancelled;
+
         try {
             $resolver($resolve, $reject);
         } catch (Throwable $exception) {
             $reject($exception);
         }
     }
-    
+
     /**
-     * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
-     * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
+     * Resolves this promise with the given promise if this promise is still pending.
+     *
+     * @param \Icicle\Promise\PromiseInterface $result
      */
-    private function close()
+    private function resolve(PromiseInterface $result)
     {
+        if (null !== $this->result) {
+            return;
+        }
+
+        $this->result = $result;
+        $this->result->done($this->onFulfilled, $this->onRejected ?: new ThenQueue());
+
         $this->onFulfilled = null;
         $this->onRejected = null;
         $this->onCancelled = null;
+    }
+
+    /**
+     * Adds callback to the onFulfilled queue.
+     *
+     * @param callable $onFulfilled
+     */
+    private function onFulfilled(callable $onFulfilled)
+    {
+        if (null === $this->onFulfilled) {
+            $this->onFulfilled = $onFulfilled;
+            return;
+        }
+
+        if (!$this->onFulfilled instanceof ThenQueue) {
+            $this->onFulfilled = new ThenQueue($this->onFulfilled);
+        }
+
+        $this->onFulfilled->push($onFulfilled);
+    }
+
+    /**
+     * Adds callback to the onRejected queue.
+     *
+     * @param callable $onRejected
+     */
+    private function onRejected(callable $onRejected)
+    {
+        if (null === $this->onRejected) {
+            $this->onRejected = $onRejected;
+            return;
+        }
+
+        if (!$this->onRejected instanceof ThenQueue) {
+            $this->onRejected = new ThenQueue($this->onRejected);
+        }
+
+        $this->onRejected->push($onRejected);
     }
     
     /**
@@ -141,9 +159,9 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve, $reject) use ($onFulfilled, $onRejected) {
+            function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
                 if (null !== $onFulfilled) {
-                    $this->onFulfilled->push(function ($value) use ($resolve, $reject, $onFulfilled) {
+                    $this->onFulfilled(function ($value) use ($resolve, $reject, $onFulfilled) {
                         try {
                             $resolve($onFulfilled($value));
                         } catch (Throwable $exception) {
@@ -151,13 +169,13 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onFulfilled->push(function () use ($resolve) {
+                    $this->onFulfilled(function () use ($resolve) {
                         $resolve($this->result);
                     });
                 }
                 
                 if (null !== $onRejected) {
-                    $this->onRejected->push(function (Throwable $exception) use ($resolve, $reject, $onRejected) {
+                    $this->onRejected(function (Throwable $exception) use ($resolve, $reject, $onRejected) {
                         try {
                             $resolve($onRejected($exception));
                         } catch (Throwable $exception) {
@@ -165,7 +183,7 @@ class Promise implements PromiseInterface
                         }
                     });
                 } else {
-                    $this->onRejected->push(function () use ($resolve) {
+                    $this->onRejected(function () use ($resolve) {
                         $resolve($this->result);
                     });
                 }
@@ -191,13 +209,13 @@ class Promise implements PromiseInterface
         }
 
         if (null !== $onFulfilled) {
-            $this->onFulfilled->push($onFulfilled);
+            $this->onFulfilled($onFulfilled);
         }
 
         if (null !== $onRejected) {
-            $this->onRejected->push($onRejected);
+            $this->onRejected($onRejected);
         } else {
-            $this->onRejected->push(function (Throwable $exception) {
+            $this->onRejected(function (Throwable $exception) {
                 throw $exception; // Rethrow exception in uncatchable way.
             });
         }
@@ -217,8 +235,16 @@ class Promise implements PromiseInterface
             $reason = new CancelledException($reason);
         }
 
-        $onCancelled = $this->onCancelled;
-        $onCancelled($reason);
+        if (null !== $this->onCancelled) {
+            try {
+                $onCancelled = $this->onCancelled;
+                $onCancelled($reason);
+            } catch (Throwable $exception) {
+                $reason = $exception; // Thrown exception will now be used to reject promise.
+            }
+        }
+
+        $this->resolve(new RejectedPromise($reason));
     }
     
     /**
@@ -233,7 +259,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve) use (&$timer, $timeout, $reason) {
+            function (callable $resolve) use (&$timer, $timeout, $reason) {
                 $timer = Loop\timer($timeout, function () use ($reason) {
                     if (!$reason instanceof Throwable) {
                         $reason = new TimeoutException($reason);
@@ -246,8 +272,8 @@ class Promise implements PromiseInterface
                     $timer->stop();
                 };
                 
-                $this->onFulfilled->push($onResolved);
-                $this->onRejected->push($onResolved);
+                $this->onFulfilled($onResolved);
+                $this->onRejected($onResolved);
             },
             function (Throwable $exception) use (&$timer) {
                 $timer->stop();
@@ -273,14 +299,14 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function ($resolve) use (&$timer, $time) {
-                $this->onFulfilled->push(function () use (&$timer, $time, $resolve) {
+            function (callable $resolve) use (&$timer, $time) {
+                $this->onFulfilled(function () use (&$timer, $time, $resolve) {
                     $timer = Loop\timer($time, function () use ($resolve) {
                         $resolve($this->result);
                     });
                 });
                 
-                $this->onRejected->push(function () use ($resolve) {
+                $this->onRejected(function () use ($resolve) {
                     $resolve($this->result);
                 });
             },
@@ -327,7 +353,7 @@ class Promise implements PromiseInterface
      */
     public function getResult()
     {
-        if ($this->isPending()) {
+        if (null === $this->result) {
             throw new UnresolvedError('The promise is still pending.');
         }
         

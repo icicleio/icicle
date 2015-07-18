@@ -23,7 +23,7 @@ class Deferred implements PromisorInterface
      */
     public function __construct(callable $onCancelled = null)
     {
-        $this->promise = new Promise(function ($resolve, $reject) {
+        $this->promise = new Promise(function (callable $resolve, callable $reject) {
             $this->resolve = $resolve;
             $this->reject = $reject;
         }, $onCancelled);

@@ -36,7 +36,7 @@ class FulfilledPromise extends ResolvedPromise
             return $this;
         }
         
-        return new Promise(function ($resolve, $reject) use ($onFulfilled) {
+        return new Promise(function (callable $resolve, callable $reject) use ($onFulfilled) {
             Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
@@ -63,7 +63,7 @@ class FulfilledPromise extends ResolvedPromise
     public function delay(float $time): PromiseInterface
     {
         return new Promise(
-            function ($resolve) use (&$timer, $time) {
+            function (callable $resolve) use (&$timer, $time) {
                 $timer = Loop\timer($time, function () use ($resolve) {
                     $resolve($this);
                 });

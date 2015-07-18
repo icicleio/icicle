@@ -374,6 +374,36 @@ class PromiseTest extends TestCase
         $this->assertSame($exception, $this->promise->getResult());
         $this->assertSame($this->promise->getResult(), $promise->getResult());
     }
+
+    /**
+     * @depends testResolveCallableWithPendingPromise
+     */
+    public function testResolveCallableWithPendingPromiseThenResolveInvokesAllRegisteredCallbacks()
+    {
+        $value = 'test';
+
+        $this->promise->done($this->createCallback(1), $this->createCallback(0));
+        $this->promise->done($this->createCallback(1), $this->createCallback(0));
+
+        $promise = new Promise\Promise(function ($resolve) use (&$pendingResolve) {
+            $pendingResolve = $resolve;
+        });
+
+        $promise->done($this->createCallback(1), $this->createCallback(0));
+        $promise->done($this->createCallback(1), $this->createCallback(0));
+
+        $this->resolve($promise);
+
+        Loop\run();
+
+        $pendingResolve($value);
+
+        Loop\run();
+
+        $this->assertTrue($this->promise->isFulfilled());
+        $this->assertSame($value, $this->promise->getResult());
+        $this->assertSame($this->promise->getResult(), $promise->getResult());
+    }
     
     /**
      * @depends testResolveCallableWithPendingPromise
