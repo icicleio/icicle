@@ -10,17 +10,17 @@ use Icicle\Promise;
 $generator = function () {
     try {
         // Sets $start to the value returned by microtime() after approx. 1 second.
-        $start = (yield Promise\resolve(microtime(true))->delay(1));
+        $start = yield Promise\resolve(microtime(true))->delay(1);
 
         echo "Sleep time: ", microtime(true) - $start, "\n";
 
         // Throws the exception from the rejected promise into the coroutine.
-        yield Promise\reject(new Exception('Rejected promise'));
+        return yield Promise\reject(new Exception('Rejected promise'));
     } catch (Exception $e) { // Catches promise rejection reason.
         echo "Caught exception: ", $e->getMessage(), "\n";
     }
 
-    yield Promise\resolve('Coroutine completed');
+    return yield Promise\resolve('Coroutine completed');
 };
 
 $coroutine = new Coroutine($generator());

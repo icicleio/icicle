@@ -78,7 +78,7 @@ class Coroutine extends Promise implements CoroutineInterface
                         }
                         
                         if (!$this->generator->valid()) {
-                            $resolve($this->generator->getReturn() ?? $value);
+                            $resolve($this->generator->getReturn());
                             $this->close();
                             return;
                         }

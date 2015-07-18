@@ -24,14 +24,14 @@ class CoroutineTest extends TestCase
         $value = 1;
         
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield $value);
+            $yielded = yield $value;
         };
         
         $coroutine = new Coroutine($generator());
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo($value));
+            ->with($this->identicalTo(null));
         
         $coroutine->done($callback);
         
@@ -39,15 +39,37 @@ class CoroutineTest extends TestCase
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
+        $this->assertNull($coroutine->getResult());
+    }
+
+    public function testFulfilledWithReturnValue()
+    {
+        $value = 1;
+
+        $generator = function () use ($value) {
+            return yield $value;
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $coroutine->done($callback);
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->getResult());
     }
-    
+
     public function testYieldFulfilledPromise()
     {
         $value = 1;
         
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise\resolve($value));
+            return $yielded = yield Promise\resolve($value);
         };
         
         $coroutine = new Coroutine($generator());
@@ -70,7 +92,7 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$yielded, $exception) {
-            $yielded = (yield Promise\reject($exception));
+            return $yielded = yield Promise\reject($exception);
         };
         
         $coroutine = new Coroutine($generator());
@@ -96,7 +118,7 @@ class CoroutineTest extends TestCase
         $value = 1;
 
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+            return $yielded = yield Promise\resolve($value)->delay(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
@@ -115,14 +137,15 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      */
     public function testThen()
     {
         $value = 1;
         
         $generator = function () use ($value) {
-            yield $value;
+            yield 0;
+            return $value;
         };
         
         $coroutine = new Coroutine($generator());
@@ -141,7 +164,7 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      * @depends testYieldRejectedPromise
      */
     public function testCatchingRejectedPromiseException()
@@ -153,8 +176,10 @@ class CoroutineTest extends TestCase
             try {
                 yield Promise\reject($exception);
             } catch (Exception $exception) {
-                yield $value;
+                return $value;
             }
+
+            return 0;
         };
         
         $coroutine = new Coroutine($generator());
@@ -204,11 +229,13 @@ class CoroutineTest extends TestCase
 
         $generator = function () use ($exception, $value) {
             try {
-                yield $value;
+                yield 0;
                 throw $exception;
             } catch (Exception $exception) {
                 // Exception caught, but no further yields.
             }
+
+            return $value;
         };
 
         $coroutine = new Coroutine($generator());
@@ -301,7 +328,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use (&$yielded, $exception, $callback, $value) {
             try {
-                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+                $yielded = yield Promise\resolve($value)->delay(self::TIMEOUT);
                 throw $exception;
             } finally {
                 $callback();
@@ -324,6 +351,8 @@ class CoroutineTest extends TestCase
     }
 
     /**
+     * Note that yielding in a finally block is not recommended.
+     *
      * @depends testYieldPendingPromise
      * @depends testGeneratorThrowingExceptionWithFinallyRejectsCoroutine
      */
@@ -336,7 +365,7 @@ class CoroutineTest extends TestCase
             try {
                 throw $exception;
             } finally {
-                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+                $yielded = yield Promise\resolve($value)->delay(self::TIMEOUT);
             }
         };
 
@@ -356,18 +385,19 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      */
     public function testYieldGenerator()
     {
         $value = 1;
         
-        $generator = function () use (&$yielded, $value) {
+        $generator = function () use ($value) {
             $generator = function () use ($value) {
-                yield $value;
+                yield 0;
+                return $value;
             };
             
-            $yielded = (yield $generator());
+            return yield $generator();
         };
         
         $coroutine = new Coroutine($generator());
@@ -380,7 +410,36 @@ class CoroutineTest extends TestCase
         
         Loop\run();
         
-        $this->assertSame($value, $yielded);
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertSame($value, $coroutine->getResult());
+    }
+
+    /**
+     * @depends testYieldGenerator
+     */
+    public function testYieldFromGenerator()
+    {
+        $value = 1;
+
+        $generator = function () use ($value) {
+            $generator = function () use ($value) {
+                yield 0;
+                return $value;
+            };
+
+            return yield from $generator();
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $coroutine->done($callback);
+
+        Loop\run();
+
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->getResult());
     }
@@ -506,7 +565,7 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$promise) {
-            yield ($promise = Promise\resolve(1)->delay(0.1));
+            yield $promise = Promise\resolve(1)->delay(0.1);
         };
         
         $coroutine = new Coroutine($generator());
@@ -570,8 +629,7 @@ class CoroutineTest extends TestCase
     public function testTimeout()
     {
         $generator = function () use (&$promise) {
-            yield ($promise = new Promise\Promise(function () {
-            })); // Yield promise that will never resolve.
+            yield ($promise = new Promise\Promise(function () {})); // Yield promise that will never resolve.
         };
         
         $coroutine = new Coroutine($generator());
@@ -598,7 +656,8 @@ class CoroutineTest extends TestCase
         $value = 1;
         
         $generator = function () use ($value) {
-            yield $value;
+            yield 0;
+            return $value;
         };
         
         $coroutine = new Coroutine($generator());
@@ -662,12 +721,12 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      */
     public function testWrap()
     {
         $wrap = \Icicle\Coroutine\wrap(function ($left, $right) {
-            yield $left - $right;
+            return yield $left - $right;
         });
         
         $this->assertTrue(is_callable($wrap));
@@ -701,12 +760,11 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testWrap
      */
     public function testWrapWithNonGeneratorCallable()
     {
-        $callback = function () {
-        };
+        $callback = function () {};
         
         $wrap = \Icicle\Coroutine\wrap($callback);
         
@@ -719,7 +777,7 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testWrap
      */
     public function testWrapWithCallableThrowingException()
     {
@@ -738,12 +796,12 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      */
     public function testCreate()
     {
         $coroutine = \Icicle\Coroutine\create(function ($left, $right) {
-            yield $left - $right;
+            return yield $left - $right;
         }, 1, 2);
         
         $callback = $this->createCallback(1);
@@ -763,8 +821,7 @@ class CoroutineTest extends TestCase
      */
     public function testCreateWithNonGeneratorCallable()
     {
-        $callback = function () {
-        };
+        $callback = function () {};
         
         try {
             $coroutine = \Icicle\Coroutine\create($callback);
@@ -831,7 +888,7 @@ class CoroutineTest extends TestCase
             
             yield $coroutine->isPaused();
             
-            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
+            return yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
@@ -861,7 +918,7 @@ class CoroutineTest extends TestCase
             $coroutine->pause();
             $coroutine->resume();
             
-            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
+            return yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
@@ -881,7 +938,7 @@ class CoroutineTest extends TestCase
             
             Loop\queue([$coroutine, 'resume']);
             
-            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
+            return yield \Icicle\Coroutine\sleep(self::TIMEOUT);
         };
         
         $coroutine = new Coroutine($generator());
@@ -902,7 +959,7 @@ class CoroutineTest extends TestCase
             
             $coroutine->pause();
             
-            yield Promise\resolve(1);
+            return yield Promise\resolve(1);
         };
         
         $coroutine = new Coroutine($generator());
@@ -931,7 +988,7 @@ class CoroutineTest extends TestCase
             
             $coroutine->pause();
             
-            yield $promise = Promise\reject($exception);
+            yield Promise\reject($exception);
         };
         
         $coroutine = new Coroutine($generator());
@@ -993,13 +1050,13 @@ class CoroutineTest extends TestCase
     }
     
     /**
-     * @depends testYieldScalar
+     * @depends testFulfilledWithReturnValue
      */
     public function testResolvePromiseWithCoroutine()
     {
         $value = 'test';
         $generator = function () use ($value) {
-            yield 'test';
+            return yield 'test';
         };
         
         $promise = new Promise\Promise(function ($resolve) use ($generator) {
