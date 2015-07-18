@@ -47,7 +47,7 @@ abstract class SocketManager implements SocketManagerInterface
      *
      * @return \Event
      */
-    abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback);
+    abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback): Event;
     
     /**
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
@@ -74,7 +74,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         foreach ($this->events as $event) {
             if ($event->pending) {
@@ -88,7 +88,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback): SocketEventInterface
     {
         $id = (int) $resource;
         
@@ -102,7 +102,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEventInterface $socket, float $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -142,7 +142,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -171,7 +171,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -194,7 +194,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * @return callable
      */
-    protected function createCallback()
+    protected function createCallback(): callable
     {
         return function ($resource, $what, SocketEventInterface $socket) {
             $socket->call(0 !== (Event::TIMEOUT & $what));

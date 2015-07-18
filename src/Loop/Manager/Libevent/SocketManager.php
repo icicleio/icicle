@@ -80,7 +80,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         foreach ($this->pending as $pending) {
             if ($pending) {
@@ -94,7 +94,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback): SocketEventInterface
     {
         $id = (int) $resource;
         
@@ -111,7 +111,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEventInterface $socket, float $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -154,7 +154,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -184,7 +184,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -208,7 +208,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * @return callable
      */
-    protected function createCallback()
+    protected function createCallback(): callable
     {
         return function ($resource, $what, SocketEventInterface $socket) {
             $this->pending[(int) $resource] = false;

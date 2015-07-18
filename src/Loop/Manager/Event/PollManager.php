@@ -10,7 +10,7 @@ class PollManager extends SocketManager
     /**
      * {@inheritdoc}
      */
-    protected function createEvent(EventBase $base, SocketEventInterface $socket, callable $callback)
+    protected function createEvent(EventBase $base, SocketEventInterface $socket, callable $callback): Event
     {
         return new Event($base, $socket->getResource(), Event::READ, $callback, $socket);
     }

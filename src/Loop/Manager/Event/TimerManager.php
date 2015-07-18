@@ -59,7 +59,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return !$this->timers->count();
     }
@@ -67,7 +67,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic, callable $callback, array $args = null)
+    public function create($interval, $periodic, callable $callback, array $args = null): TimerInterface
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
@@ -107,7 +107,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer)
+    public function isPending(TimerInterface $timer): bool
     {
         return isset($this->timers[$timer]) && $this->timers[$timer]->pending;
     }
@@ -143,7 +143,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * @return callable
      */
-    protected function createCallback()
+    protected function createCallback(): callable
     {
         return function ($resource, $what, TimerInterface $timer) {
             if (!$this->timers[$timer]->pending) {
