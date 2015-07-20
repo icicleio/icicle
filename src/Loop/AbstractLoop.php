@@ -259,7 +259,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function maxQueueDepth($depth = null)
+    public function maxQueueDepth($depth)
     {
         return $this->callableQueue->maxDepth($depth);
     }
