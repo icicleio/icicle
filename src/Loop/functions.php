@@ -86,7 +86,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    function run()
+    function run(): bool
     {
         return loop()->run();
     }
