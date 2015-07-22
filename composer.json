@@ -24,10 +24,10 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0-dev"
+        "php": "~7.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "5.0.x-dev"
+        "phpunit/phpunit": "~5.0"
     },
     "minimum-stability": "dev",
     "suggest": {
