@@ -1,9 +1,11 @@
 language: php
 
 php:
-    - 5.5
-    - 5.6
-    - 7.0
+  - 5.5
+  - 5.6
+  - 7.0
+
+sudo: false
 
 install:
   - if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then
@@ -24,6 +26,7 @@ install:
     popd;
     echo "extension=libevent.so" >> "$(php -r 'echo php_ini_loaded_file();')";
     fi
+  - composer self-update
   - composer install --no-interaction --prefer-source
 
 script:
