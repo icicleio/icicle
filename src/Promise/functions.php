@@ -70,7 +70,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return callable
      */
-    function promisify(callable $worker, $index = 0): callable
+    function promisify(callable $worker, int $index = 0): callable
     {
         return function (...$args) use ($worker, $index) {
             return new Promise(function ($resolve) use ($worker, $index, $args) {
@@ -266,10 +266,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    function some(array $promises, $required): PromiseInterface
+    function some(array $promises, int $required): PromiseInterface
     {
-        $required = (int) $required;
-
         if (0 >= $required) {
             return resolve([]);
         }
