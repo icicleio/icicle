@@ -22,6 +22,14 @@ function exceptionHandler(RuntimeException $exception)
     return $exception;
 }
 
+class CallableExceptionHandler
+{
+    public function __invoke(RuntimeException $exception)
+    {
+        return $exception;
+    }
+}
+
 class PromiseTest extends TestCase
 {
     /**
@@ -1086,7 +1094,9 @@ class PromiseTest extends TestCase
             [function (RuntimeException $exception) { return $exception; }],
             [[$this, 'instanceExceptionHandler']],
             [[__CLASS__, 'staticExceptionHandler']],
-            [__NAMESPACE__ . '\exceptionHandler']
+            [__CLASS__ . '::staticExceptionHandler'],
+            [__NAMESPACE__ . '\exceptionHandler'],
+            [new CallableExceptionHandler()],
         ];
     }
     
