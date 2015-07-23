@@ -57,6 +57,10 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
          * @return \Icicle\Promise\PromiseInterface
          */
         return function (...$args) use ($worker) {
+            if (1 === count($args)) {
+                return resolve($args[0])->then($worker);
+            }
+
             return all($args)->splat($worker);
         };
     }
@@ -331,19 +335,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * have been resolved.
      *
      * @param callable<mixed (mixed $value)> $callback
-     * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
+     * @param mixed[] ...$promises Promises or values (passed through resolve() to create promises).
      *
      * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      */
     function map(callable $callback, array ...$promises): array
     {
-        return array_map(function (...$args) use ($callback) {
-            if (1 === count($args)) {
-                return resolve($args[0])->then($callback);
-            }
-
-            return all($args)->splat($callback);
-        }, ...$promises);
+        return array_map(lift($callback), ...$promises);
     }
     
     /**
