@@ -1,8 +1,6 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Exception\InitializedError;
-
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Returns the active event loop. Can be used to set the active event loop if the event loop has not been accessed.
@@ -10,17 +8,13 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param \Icicle\Loop\LoopInterface|null $loop
      * 
      * @return \Icicle\Loop\LoopInterface
-     *
-     * @throws \Icicle\Loop\Exception\InitializedError If the loop has already been initialized.
      */
     function loop(LoopInterface $loop = null)
     {
         static $instance;
 
-        if (null === $instance) {
+        if (null === $instance || null !== $loop) {
             $instance = $loop ?: create();
-        } elseif (null !== $loop) {
-            throw new InitializedError('The loop has already been initialized.');
         }
 
         return $instance;

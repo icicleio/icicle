@@ -30,13 +30,14 @@ class LoopTest extends TestCase
     
     /**
      * @depends testLoop
-     * @expectedException \Icicle\Loop\Exception\InitializedError
      */
     public function testLoopAfterInitialized()
     {
-        $loop = Loop\loop();
-        
-        Loop\loop($loop);
+        $loop = new SelectLoop();
+
+        $this->assertNotSame($loop, Loop\loop());
+
+        $this->assertSame($loop, Loop\loop($loop));
     }
 
     /**
