@@ -102,7 +102,7 @@ class ObjectStorage extends SplObjectStorage
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return parent::count() - $this->unreferenced->count();
     }
@@ -112,7 +112,7 @@ class ObjectStorage extends SplObjectStorage
      *
      * @return int
      */
-    public function total()
+    public function total(): int
     {
         return parent::count();
     }
@@ -123,7 +123,7 @@ class ObjectStorage extends SplObjectStorage
      *
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return 0 === parent::count();
     }
