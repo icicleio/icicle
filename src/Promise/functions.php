@@ -124,8 +124,6 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      */
     function lazy(callable $promisor, ...$args): PromiseInterface
     {
-        $args = array_slice(func_get_args(), 1);
-
         if (empty($args)) {
             return new LazyPromise($promisor);
         }
