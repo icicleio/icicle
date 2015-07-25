@@ -29,7 +29,7 @@ class Signal implements SignalInterface
     {
         $this->manager = $manager;
         $this->callback = $callback;
-        $this->signo = (int) $signo;
+        $this->signo = $signo;
     }
 
     /**

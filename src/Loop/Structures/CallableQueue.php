@@ -75,7 +75,6 @@ class CallableQueue implements \Countable
     {
         $previous = $this->maxDepth;
         
-        $depth = (int) $depth;
         $this->maxDepth = 0 > $depth ? 0 : $depth;
 
         return $previous;
