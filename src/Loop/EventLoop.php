@@ -110,6 +110,6 @@ class EventLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {
-        return new SignalManager($this, $factory, $this->base);
+        return new SignalManager($this, $factory);
     }
 }
