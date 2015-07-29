@@ -13,7 +13,6 @@ use Icicle\Loop\Manager\Select\TimerManager;
 class SelectLoop extends AbstractLoop
 {
     const MICROSEC_PER_SEC = 1e6;
-    const NANOSEC_PER_SEC = 1e9;
 
     /**
      * @var \Icicle\Loop\Manager\Select\SocketManager
@@ -94,10 +93,7 @@ class SelectLoop extends AbstractLoop
 
         // Otherwise sleep with time_nanosleep() if $timeout > 0.
         if (0 < $timeout) {
-            $seconds = (int) $timeout;
-            $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
-        
-            time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
+            usleep($timeout * self::MICROSEC_PER_SEC); // Will be interrupted if a signal is received.
         }
     }
     
