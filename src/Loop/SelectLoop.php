@@ -56,8 +56,25 @@ class SelectLoop extends AbstractLoop
     {
         $timeout = $blocking ? $this->timerManager->getInterval() : 0;
 
-        // Select available sockets for reading or writing.
-        $this->select($timeout);
+        // Use stream_select() if there are any streams in the loop.
+        if (!$this->pollManager->isEmpty() || !$this->awaitManager->isEmpty()) {
+            $seconds = (int) $timeout;
+            $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
+
+            $read = $this->pollManager->getPending();
+            $write = $this->awaitManager->getPending();
+            $except = null;
+
+            // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal.
+            $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
+
+            if ($count) {
+                $this->pollManager->handle($read);
+                $this->awaitManager->handle($write);
+            }
+        } elseif (0 < $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
+            usleep($timeout * self::MICROSEC_PER_SEC); // Will be interrupted if a signal is received.
+        }
         
         $this->timerManager->tick(); // Call any pending timers.
         
@@ -65,38 +82,7 @@ class SelectLoop extends AbstractLoop
             $this->signalManager->tick(); // Dispatch any signals that may have arrived.
         }
     }
-    
-    /**
-     * @param int|float|null $timeout
-     */
-    protected function select($timeout)
-    {
-        // Use stream_select() if there are any streams in the loop.
-        if (!$this->pollManager->isEmpty() || !$this->awaitManager->isEmpty()) {
-            $seconds = (int) $timeout;
-            $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
-            
-            $read = $this->pollManager->getPending();
-            $write = $this->awaitManager->getPending();
-            $except = null;
 
-            // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
-            $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
-            
-            if ($count) {
-                $this->pollManager->handle($read);
-                $this->awaitManager->handle($write);
-            }
-
-            return;
-        }
-
-        // Otherwise sleep with time_nanosleep() if $timeout > 0.
-        if (0 < $timeout) {
-            usleep($timeout * self::MICROSEC_PER_SEC); // Will be interrupted if a signal is received.
-        }
-    }
-    
     /**
      * {@inheritdoc}
      */
