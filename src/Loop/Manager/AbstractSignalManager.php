@@ -147,4 +147,12 @@ abstract class AbstractSignalManager implements SignalManagerInterface
             }
         };
     }
+
+    /**
+     * @return \Icicle\Loop\LoopInterface
+     */
+    protected function getLoop()
+    {
+        return $this->loop;
+    }
 }

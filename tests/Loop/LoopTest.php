@@ -136,7 +136,7 @@ class LoopTest extends TestCase
         
         $this->assertInstanceOf(TimerInterface::class, $timer);
         
-        Loop\tick(true);
+        Loop\run();
     }
     
     public function testPeriodic()
@@ -308,8 +308,10 @@ class LoopTest extends TestCase
         
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
+
+        Loop\timer(1, function () {}); // Keep loop alive until signal arrives.
         
-        Loop\tick(false);
+        Loop\tick(true);
     }
     
     /**

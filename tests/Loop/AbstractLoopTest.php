@@ -942,7 +942,7 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * 3 * self::MICROSEC_PER_SEC);
         
-        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT);
     }
     
     /**
@@ -1133,8 +1133,10 @@ abstract class AbstractLoopTest extends TestCase
 
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
     
     /**
@@ -1152,8 +1154,10 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertTrue($signal->isEnabled());
 
         posix_kill($pid, SIGQUIT);
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
     
     /**
@@ -1236,7 +1240,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(0.5, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal2->disable();
         $this->assertFalse($signal2->isEnabled());
@@ -1244,7 +1250,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(0.5, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal1->disable();
         $this->assertFalse($signal1->isEnabled());
@@ -1252,7 +1260,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(0.5, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
     }
 
     /**
@@ -1274,7 +1284,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(0.5, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal1->enable();
         $signal2->enable();
@@ -1285,7 +1297,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(0.5, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
     }
 
     /**

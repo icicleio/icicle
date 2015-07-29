@@ -2,6 +2,7 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Exception\SignalHandlingDisabledError;
 use Icicle\Loop\Manager\Select\SignalManager;
 use Icicle\Loop\Manager\Select\SocketManager;
 use Icicle\Loop\Manager\Select\TimerManager;
@@ -13,6 +14,7 @@ use Icicle\Loop\Manager\Select\TimerManager;
 class SelectLoop extends AbstractLoop
 {
     const MICROSEC_PER_SEC = 1e6;
+    const DEFAULT_SIGNAL_INTERVAL = 0.25;
 
     /**
      * @var \Icicle\Loop\Manager\Select\SocketManager
@@ -30,9 +32,14 @@ class SelectLoop extends AbstractLoop
     private $timerManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SignalManager
+     * @var \Icicle\Loop\Manager\Select\SignalManager|null
      */
     private $signalManager;
+
+    /**
+     * @var \Icicle\Loop\Events\TimerInterface|null
+     */
+    private $signalTimer;
 
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
@@ -72,15 +79,11 @@ class SelectLoop extends AbstractLoop
                 $this->pollManager->handle($read);
                 $this->awaitManager->handle($write);
             }
-        } elseif (0 < $timeout) { // Otherwise sleep with time_nanosleep() if $timeout > 0.
-            usleep($timeout * self::MICROSEC_PER_SEC); // Will be interrupted if a signal is received.
+        } elseif (0 < $timeout) { // Otherwise sleep with usleep() if $timeout > 0.
+            usleep($timeout * self::MICROSEC_PER_SEC);
         }
         
         $this->timerManager->tick(); // Call any pending timers.
-        
-        if ($this->signalHandlingEnabled()) {
-            $this->signalManager->tick(); // Dispatch any signals that may have arrived.
-        }
     }
 
     /**
@@ -112,6 +115,44 @@ class SelectLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {
-        return $this->signalManager = new SignalManager($this, $factory);
+        $this->signalManager = new SignalManager($this, $factory);
+
+        $this->signalTimer = $this->timer(self::DEFAULT_SIGNAL_INTERVAL, true, [$this->signalManager, 'tick']);
+        $this->signalTimer->unreference();
+
+        return $this->signalManager;
+    }
+
+    /**
+     * @param float|int $interval
+     *
+     * @throws \Icicle\Loop\Exception\SignalHandlingDisabledError
+     */
+    public function signalInterval($interval)
+    {
+        // @codeCoverageIgnoreStart
+        if (null === $this->signalTimer) {
+            throw new SignalHandlingDisabledError(
+                'Signal handling is not enabled.'
+            );
+        } // @codeCoverageIgnoreEnd
+
+        $this->signalTimer->stop();
+        $this->signalTimer = $this->timer($interval, true, [$this->signalManager, 'tick']);
+        $this->signalTimer->unreference();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        parent::clear();
+
+        if (null !== $this->signalTimer) {
+            $this->signalTimer->stop();
+            $this->signalTimer = $this->timer($this->signalTimer->getInterval(), true, [$this->signalManager, 'tick']);
+            $this->signalTimer->unreference();
+        }
     }
 }

@@ -35,4 +35,24 @@ class SelectLoopTest extends AbstractLoopTest
         
         $this->loop->tick(false);
     }
+
+    /**
+     * @requires extension pcntl
+     */
+    public function testSetSignalInterval()
+    {
+        $this->loop->signalInterval(self::TIMEOUT);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(SIGTERM));
+
+        $signal = $this->loop->signal(SIGTERM, $callback);
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->queue('posix_kill', [posix_getpid(), SIGTERM]);
+
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT);
+    }
 }
