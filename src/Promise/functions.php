@@ -338,7 +338,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * array is rejected for the same reason. Tip: Use all() or settle()  to determine when all promises in the array
      * have been resolved.
      *
-     * @param callable<mixed (mixed $value)> $callback
+     * @param callable<(mixed $value): mixed> $callback
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
@@ -355,7 +355,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * return a promise or value and the initial value may also be a promise or value.
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
-     * @param callable $callback (mixed $carry, mixed $value) : mixed Called for each fulfilled promise value.
+     * @param callable<(mixed $carry, mixed $value): mixed> Called for each fulfilled promise value.
      * @param mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
      * @return \Icicle\Promise\PromiseInterface
@@ -403,8 +403,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * cleared before each call to $worker to avoid filling the call stack. If $worker returns a promise, iteration
      * waits for the returned promise to be resolved.
      *
-     * @param callable<mixed (mixed $value) $worker> Called with the previous return value on each iteration.
-     * @param callable<bool (mixed $value) $predicate> Return false to stop iteration and fulfill promise.
+     * @param callable<(mixed $value): mixed $worker> Called with the previous return value on each iteration.
+     * @param callable<(mixed $value): bool $predicate> Return false to stop iteration and fulfill promise.
      * @param mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return \Icicle\Promise\PromiseInterface
@@ -448,9 +448,9 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * If the promise returned by $promisor is fulfilled, the promise returned by this function is fulfilled with the
      * same value.
      *
-     * @param callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
+     * @param callable<(): PromiseInterface> $promisor Performs an operation to be retried on failure.
      *     Should return a promise, but can return any type of value (will be made into a promise using resolve()).
-     * @param callable<bool (Exception $exception) $onRejected> This function is called if the promise returned by
+     * @param callable<(Exception $exception): bool $onRejected> This function is called if the promise returned by
      *     $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *     operation.
      *

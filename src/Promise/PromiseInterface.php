@@ -6,8 +6,8 @@ interface PromiseInterface
     /**
      * Assigns a set of callback functions to the promise, and returns a new promise.
      *
-     * @param callable|null $onFulfilled (mixed $value) : mixed
-     * @param callable|null $onRejected (Exception $exception) : mixed
+     * @param callable<(mixed $value): mixed>|null $onFulfilled
+     * @param callable<(Exception $exception): mixed>|null $onRejected
      *
      * @return \Icicle\Promise\PromiseInterface
      */
@@ -17,8 +17,8 @@ interface PromiseInterface
      * Assigns a set of callback functions to the promise. Returned values are ignored and thrown exceptions
      * are rethrown in an uncatchable way.
      *
-     * @param callable|null $onFulfilled (mixed $value) : mixed
-     * @param callable|null $onRejected (Exception $exception) : mixed
+     * @param callable<(mixed $value)>|null $onFulfilled
+     * @param callable<(Exception $exception)>|null $onRejected
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -57,7 +57,7 @@ interface PromiseInterface
      * (ex: function (RuntimeException $exception) {}), then the function will only be called if the exception is an
      * instance of the typehinted exception.
      *
-     * @param callable $onRejected
+     * @param callable<(Exception $exception): mixed)> $onRejected
      *
      * @return \Icicle\Promise\PromiseInterface
      */
@@ -69,7 +69,7 @@ interface PromiseInterface
      * If $onFulfilled throws, the returned promise is rejected with the thrown exception. The return value of
      * $onFulfilled is not used.
      *
-     * @param callable $onFulfilled
+     * @param callable<(): PromiseInterface|null)> $onFulfilled
      *
      * @return \Icicle\Promise\PromiseInterface
      */
@@ -81,7 +81,7 @@ interface PromiseInterface
      * the original promise. That is, it is fulfilled or rejected with the same value or exception. If the callback
      * throws an exception, the returned promise is rejected with that exception.
      *
-     * @param callable $onResolved
+     * @param callable<(): PromiseInterface|null)> $onResolved
      *
      * @return \Icicle\Promise\PromiseInterface
      */
@@ -93,7 +93,7 @@ interface PromiseInterface
      * function arguments. If the promise does not return an array, the returned promise will be rejected with an
      * \Icicle\Promise\Exception\TypeException.
      *
-     * @param callable $onFulfilled
+     * @param callable<(mixed ...$args): mixed> $onFulfilled
      *
      * @return \Icicle\Promise\PromiseInterface
      */
