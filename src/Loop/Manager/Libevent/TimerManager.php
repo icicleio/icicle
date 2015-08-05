@@ -3,13 +3,19 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class TimerManager implements TimerManagerInterface
 {
     const MICROSEC_PER_SEC = 1e6;
-    
+
+    /**
+     * @var \Icicle\Loop\LibeventLoop
+     */
+    private $loop;
+
     /**
      * @var resource
      */
@@ -33,17 +39,27 @@ class TimerManager implements TimerManagerInterface
     private $callback;
     
     /**
+     * @param \Icicle\Loop\LibeventLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param resource $base
      */
-    public function __construct(EventFactoryInterface $factory, $base)
+    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
-        $this->base = $base;
+        $this->base = $this->loop->getEventBase();
         
         $this->timers = new ObjectStorage();
         
-        $this->callback = $this->createCallback();
+        $this->callback = function ($resource, $what, TimerInterface $timer) {
+            if ($timer->isPeriodic()) {
+                event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
+            } else {
+                event_free($this->timers[$timer]);
+                unset($this->timers[$timer]);
+            }
+
+            $timer->call();
+        };
     }
     
     /**
@@ -140,22 +156,5 @@ class TimerManager implements TimerManagerInterface
         }
         
         $this->timers = new ObjectStorage();
-    }
-    
-    /**
-     * @return callable
-     */
-    protected function createCallback()
-    {
-        return function ($resource, $what, TimerInterface $timer) {
-            if ($timer->isPeriodic()) {
-                event_add($this->timers[$timer], $timer->getInterval() * self::MICROSEC_PER_SEC);
-            } else {
-                event_free($this->timers[$timer]);
-                unset($this->timers[$timer]);
-            }
-            
-            $timer->call();
-        };
     }
 }

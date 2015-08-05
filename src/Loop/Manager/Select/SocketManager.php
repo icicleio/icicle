@@ -5,15 +5,15 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
-use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\SelectLoop;
 
 class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
 
     /**
-     * @var \Icicle\Loop\LoopInterface
+     * @var \Icicle\Loop\SelectLoop
      */
     private $loop;
     
@@ -43,15 +43,21 @@ class SocketManager implements SocketManagerInterface
     private $timerCallback;
     
     /**
-     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\SelectLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
+    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
     {
         $this->loop = $loop;
         $this->factory = $factory;
         
-        $this->timerCallback = $this->createTimerCallback();
+        $this->timerCallback = function (SocketEventInterface $socket) {
+            $id = (int) $socket->getResource();
+            unset($this->pending[$id]);
+            unset($this->timers[$id]);
+
+            $socket->call(true);
+        };
     }
     
     /**
@@ -197,19 +203,5 @@ class SocketManager implements SocketManagerInterface
         }
         
         $this->timers = [];
-    }
-
-    /**
-     * @return callable
-     */
-    protected function createTimerCallback()
-    {
-        return function (SocketEventInterface $socket) {
-            $id = (int) $socket->getResource();
-            unset($this->pending[$id]);
-            unset($this->timers[$id]);
-            
-            $socket->call(true);
-        };
     }
 }

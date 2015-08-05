@@ -350,6 +350,6 @@ abstract class AbstractLoop implements LoopInterface
      */
     protected function createImmediateManager(EventFactoryInterface $factory)
     {
-        return new ImmediateManager($factory);
+        return new ImmediateManager($this, $factory);
     }
 }

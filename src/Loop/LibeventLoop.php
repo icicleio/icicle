@@ -56,9 +56,10 @@ class LibeventLoop extends AbstractLoop
     /**
      * @return resource
      *
+     * @internal
      * @codeCoverageIgnore
      */
-    protected function getEventBase()
+    public function getEventBase()
     {
         return $this->base;
     }
@@ -90,7 +91,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
-        return new PollManager($factory, $this->base);
+        return new PollManager($this, $factory);
     }
     
     /**
@@ -98,7 +99,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
-        return new AwaitManager($factory, $this->base);
+        return new AwaitManager($this, $factory);
     }
     
     /**
@@ -106,7 +107,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createTimerManager(EventFactoryInterface $factory)
     {
-        return new TimerManager($factory, $this->base);
+        return new TimerManager($this, $factory);
     }
 
     /**
@@ -114,6 +115,6 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {
-        return new SignalManager($this, $factory, $this->base);
+        return new SignalManager($this, $factory);
     }
 }

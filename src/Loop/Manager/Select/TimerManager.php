@@ -4,11 +4,17 @@ namespace Icicle\Loop\Manager\Select;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\TimerInterface;
 use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\SelectLoop;
 use Icicle\Loop\Structures\ObjectStorage;
 use SplPriorityQueue;
 
 class TimerManager implements TimerManagerInterface
 {
+    /**
+     * @var \Icicle\Loop\SelectLoop
+     */
+    private $loop;
+
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
      */
@@ -25,10 +31,12 @@ class TimerManager implements TimerManagerInterface
     private $timers;
     
     /**
+     * @param \Icicle\Loop\SelectLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventFactoryInterface $factory)
+    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
         
         $this->queue = new SplPriorityQueue();

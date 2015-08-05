@@ -7,12 +7,18 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\SocketEventInterface;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
+use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
 abstract class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
     const MICROSEC_PER_SEC = 1e6;
+
+    /**
+     * @var \Icicle\Loop\LibeventLoop
+     */
+    private $loop;
 
     /**
      * @var resource
@@ -56,15 +62,20 @@ abstract class SocketManager implements SocketManagerInterface
     abstract protected function createEvent($base, SocketEventInterface $event, callable $callback);
     
     /**
+     * @param \Icicle\Loop\LibeventLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      * @param resource $base
      */
-    public function __construct(EventFactoryInterface $factory, $base)
+    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
-        $this->base = $base;
+        $this->base = $this->loop->getEventBase();
         
-        $this->callback = $this->createCallback();
+        $this->callback = function ($resource, $what, SocketEventInterface $socket) {
+            $this->pending[(int) $resource] = false;
+            $socket->call(0 !== (EV_TIMEOUT & $what));
+        };
     }
     
     /**
@@ -203,16 +214,5 @@ abstract class SocketManager implements SocketManagerInterface
         $this->events = [];
         $this->sockets = [];
         $this->pending = [];
-    }
-    
-    /**
-     * @return callable
-     */
-    protected function createCallback()
-    {
-        return function ($resource, $what, SocketEventInterface $socket) {
-            $this->pending[(int) $resource] = false;
-            $socket->call(0 !== (EV_TIMEOUT & $what));
-        };
     }
 }

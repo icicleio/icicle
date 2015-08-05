@@ -3,9 +3,15 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Events\ImmediateInterface;
+use Icicle\Loop\LoopInterface;
 
 class ImmediateManager implements ImmediateManagerInterface
 {
+    /**
+     * @var \Icicle\Loop\LoopInterface
+     */
+    private $loop;
+
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
      */
@@ -22,10 +28,12 @@ class ImmediateManager implements ImmediateManagerInterface
     private $immediates;
     
     /**
-     * @param EventFactoryInterface $factory
+     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventFactoryInterface $factory)
+    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
         $this->queue = new \SplQueue();
         $this->immediates = new \SplObjectStorage();

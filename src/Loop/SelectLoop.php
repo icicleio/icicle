@@ -5,7 +5,6 @@ use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Manager\Select\SignalManager;
 use Icicle\Loop\Manager\Select\SocketManager;
 use Icicle\Loop\Manager\Select\TimerManager;
-use Icicle\Loop\Manager\SocketManagerInterface;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -15,7 +14,27 @@ class SelectLoop extends AbstractLoop
 {
     const MICROSEC_PER_SEC = 1e6;
     const NANOSEC_PER_SEC = 1e9;
-    
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SocketManager
+     */
+    private $pollManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SocketManager
+     */
+    private $awaitManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\TimerManager
+     */
+    private $timerManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SignalManager
+     */
+    private $signalManager;
+
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
      *
@@ -36,42 +55,38 @@ class SelectLoop extends AbstractLoop
      */
     protected function dispatch($blocking)
     {
-        $timerManager = $this->getTimerManager();
-
-        $timeout = $blocking ? $timerManager->getInterval() : 0;
+        $timeout = $blocking ? $this->timerManager->getInterval() : 0;
 
         // Select available sockets for reading or writing.
-        $this->select($this->getPollManager(), $this->getAwaitManager(), $timeout);
+        $this->select($timeout);
         
-        $timerManager->tick(); // Call any pending timers.
+        $this->timerManager->tick(); // Call any pending timers.
         
         if ($this->signalHandlingEnabled()) {
-            $this->getSignalManager()->tick(); // Dispatch any signals that may have arrived.
+            $this->signalManager->tick(); // Dispatch any signals that may have arrived.
         }
     }
     
     /**
-     * @param \Icicle\Loop\Manager\SocketManagerInterface $pollManager
-     * @param \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
      * @param int|float|null $timeout
      */
-    protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
+    protected function select($timeout)
     {
         // Use stream_select() if there are any streams in the loop.
-        if (!$pollManager->isEmpty() || !$awaitManager->isEmpty()) {
+        if (!$this->pollManager->isEmpty() || !$this->awaitManager->isEmpty()) {
             $seconds = (int) $timeout;
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
             
-            $read = $pollManager->getPending();
-            $write = $awaitManager->getPending();
+            $read = $this->pollManager->getPending();
+            $write = $this->awaitManager->getPending();
             $except = null;
 
             // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
             $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
             
             if ($count) {
-                $pollManager->handle($read);
-                $awaitManager->handle($write);
+                $this->pollManager->handle($read);
+                $this->awaitManager->handle($write);
             }
 
             return;
@@ -91,7 +106,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
-        return new SocketManager($this, $factory);
+        return $this->pollManager = new SocketManager($this, $factory);
     }
     
     /**
@@ -99,7 +114,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
-        return new SocketManager($this, $factory);
+        return $this->awaitManager = new SocketManager($this, $factory);
     }
     
     /**
@@ -107,7 +122,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createTimerManager(EventFactoryInterface $factory)
     {
-        return new TimerManager($factory);
+        return $this->timerManager = new TimerManager($this, $factory);
     }
 
     /**
@@ -115,6 +130,6 @@ class SelectLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory)
     {
-        return new SignalManager($this, $factory);
+        return $this->signalManager = new SignalManager($this, $factory);
     }
 }
