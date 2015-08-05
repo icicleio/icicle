@@ -1861,7 +1861,12 @@ class PromiseTest extends TestCase
 
         Loop\tick(false);
 
+        $this->assertTrue($this->promise->isFulfilled());
+        $this->assertTrue($delayed->isPending());
+
         $delayed->cancel();
+
+        Loop\run();
 
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isFulfilled());

@@ -71,13 +71,14 @@ class FulfilledPromise extends ResolvedPromise
     public function delay($time)
     {
         return new Promise(
-            function (callable $resolve) use (&$timer, $time) {
+            function (callable $resolve) use ($time) {
                 $timer = Loop\timer($time, function () use ($resolve) {
                     $resolve($this);
                 });
-            },
-            function () use (&$timer) {
-                $timer->stop();
+
+                return function () use ($timer) {
+                    $timer->stop();
+                };
             }
         );
     }
