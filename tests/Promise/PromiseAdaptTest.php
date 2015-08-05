@@ -2,6 +2,7 @@
 namespace Icicle\Tests\Promise;
 
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\RejectedException;
@@ -10,9 +11,9 @@ use Icicle\Tests\TestCase;
 
 class PromiseAdaptTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testThenCalled()

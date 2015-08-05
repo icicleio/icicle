@@ -3,6 +3,7 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
@@ -10,9 +11,9 @@ use Icicle\Tests\TestCase;
 
 class PromiseSomeTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testEmptyArray()

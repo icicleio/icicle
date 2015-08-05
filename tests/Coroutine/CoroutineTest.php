@@ -5,6 +5,7 @@ use Exception;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableError;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\TimeoutException;
@@ -15,9 +16,9 @@ class CoroutineTest extends TestCase
 {
     const TIMEOUT = 0.1;
     
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testYieldScalar()

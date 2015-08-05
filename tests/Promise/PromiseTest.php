@@ -3,6 +3,7 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\CircularResolutionError;
@@ -39,6 +40,8 @@ class PromiseTest extends TestCase
     
     public function setUp()
     {
+        Loop\loop(new SelectLoop());
+
         $this->promise = new Promise\Promise(function ($resolve, $reject) {
             $this->resolve = $resolve;
             $this->reject = $reject;
