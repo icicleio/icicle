@@ -55,7 +55,7 @@ class Promise implements PromiseInterface
     private $children = 0;
     
     /**
-     * @param callable $resolver
+     * @param callable<(callable $resolve, callable $reject, LoopInterface $loop): callable|null> $resolver
      */
     public function __construct(callable $resolver)
     {
@@ -335,6 +335,14 @@ class Promise implements PromiseInterface
     public function isRejected()
     {
         return null !== $this->result ? $this->unwrap()->isRejected() : false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isCancelled()
+    {
+        return null !== $this->result ? $this->unwrap()->isCancelled() : false;
     }
     
     /**

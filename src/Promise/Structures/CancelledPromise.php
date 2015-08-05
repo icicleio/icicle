@@ -43,7 +43,11 @@ class CancelledPromise extends ResolvedPromise
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
-        return $this->result->then($onFulfilled, $onRejected);
+        if (null === $onRejected) {
+            return $this;
+        }
+
+        return $this->result->then(null, $onRejected);
     }
 
     /**
@@ -51,7 +55,7 @@ class CancelledPromise extends ResolvedPromise
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
-        $this->result->done($onFulfilled, $onRejected);
+        $this->result->done(null, $onRejected);
     }
 
     /**
@@ -81,6 +85,14 @@ class CancelledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
+    public function isCancelled()
+    {
+        return !$this->result->isPending();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getResult()
     {
         return $this->result->getResult();
@@ -91,6 +103,6 @@ class CancelledPromise extends ResolvedPromise
      */
     public function getLoop()
     {
-        return $this->result->getResult();
+        return $this->result->getLoop();
     }
 }

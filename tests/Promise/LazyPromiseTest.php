@@ -145,6 +145,7 @@ class LazyPromiseTest extends TestCase
         $this->assertFalse($lazy->isPending());
         $this->assertFalse($lazy->isFulfilled());
         $this->assertTrue($lazy->isRejected());
+        $this->assertFalse($lazy->isCancelled());
         $this->assertSame($exception, $lazy->getResult());
         
         Loop\run();

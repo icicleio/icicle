@@ -90,6 +90,14 @@ class RejectedPromise extends ResolvedPromise
     {
         return true;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isCancelled()
+    {
+        return false;
+    }
     
     /**
      * {@inheritdoc}

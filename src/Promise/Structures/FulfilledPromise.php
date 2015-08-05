@@ -97,6 +97,14 @@ class FulfilledPromise extends ResolvedPromise
     {
         return false;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isCancelled()
+    {
+        return false;
+    }
     
     /**
      * {@inheritdoc}

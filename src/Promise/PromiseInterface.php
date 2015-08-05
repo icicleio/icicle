@@ -127,6 +127,13 @@ interface PromiseInterface
      * @return bool
      */
     public function isRejected();
+
+    /**
+     * Returns true if the promise has been cancelled.
+     *
+     * @return bool
+     */
+    public function isCancelled();
     
     /**
      * Returns the value of the fulfilled or rejected promise if it has been resolved.
