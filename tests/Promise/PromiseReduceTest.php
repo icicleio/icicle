@@ -192,4 +192,27 @@ class PromiseReduceTest extends TestCase
         
         Loop\run();
     }
-}
+
+    public function testCancelReduce()
+    {
+        $exception = new Exception();
+        $promises = [Promise\resolve(1), Promise\resolve(2)];
+
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise = Promise\reduce(
+            $promises,
+            function ($carry, $value) use ($exception) {
+                return $carry + $value;
+            },
+            new Promise\Promise(function () use ($callback) { return $callback; })
+        );
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise->cancel($exception);
+
+        Loop\run();
+    }}
