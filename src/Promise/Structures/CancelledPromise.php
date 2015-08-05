@@ -97,12 +97,4 @@ class CancelledPromise extends ResolvedPromise
     {
         return $this->result->getResult();
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getLoop()
-    {
-        return $this->result->getLoop();
-    }
 }
