@@ -1162,14 +1162,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testQuitSignalWithNoListeners()
     {
-        $pid = posix_getpid();
-        
-        $callback = function () use ($pid) {
-            posix_kill($pid, SIGQUIT);
-            $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
-        };
-        
-        $this->loop->queue($callback);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->queue('posix_kill', [posix_getpid(), SIGQUIT]);
         
         $this->assertSame(true, $this->loop->run());
     }
@@ -1180,21 +1175,16 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testTerminateSignal()
     {
-        $pid = posix_getpid();
-        
-        $callback = function ($signo) {
-            $this->assertSame(SIGTERM, $signo);
-        };
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(SIGTERM));
         
         $signal = $this->loop->signal(SIGTERM, $callback);
-        
-        $callback = function () use ($pid) {
-            posix_kill($pid, SIGTERM);
-            $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
-        };
-        
-        $this->loop->queue($callback);
-        
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->queue('posix_kill', [posix_getpid(), SIGTERM]);
+
         $this->assertSame(true, $this->loop->run());
     }
     
@@ -1205,13 +1195,15 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testChildSignal()
     {
-        $callback = function ($signo) {
-            $this->loop->stop();
-            $pid = pcntl_wait($status, WNOHANG);
-            $this->assertSame(SIGCHLD, $signo);
-            $this->assertInternalType('integer', $pid);
-            $this->assertInternalType('integer', $status);
-        };
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->will($this->returnCallback(function ($signo) {
+                $this->loop->stop();
+                $pid = pcntl_wait($status, WNOHANG);
+                $this->assertSame(SIGCHLD, $signo);
+                $this->assertInternalType('integer', $pid);
+                $this->assertInternalType('integer', $status);
+            }));
         
         $signal = $this->loop->signal(SIGCHLD, $callback);
         
@@ -1223,7 +1215,7 @@ abstract class AbstractLoopTest extends TestCase
         
         proc_open('sleep 1', $fd, $pipes);
 
-        $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
+        $this->loop->timer(2, false, function () {}); // Keep loop alive until signal arrives.
         
         $this->loop->run();
     }
