@@ -11,11 +11,11 @@ namespace Icicle\Promise;
 
 use Exception;
 use Icicle\Loop;
-use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\CircularResolutionError;
 use Icicle\Promise\Exception\InvalidResolverError;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\UnresolvedError;
+use Icicle\Promise\Structures\CancelledPromise;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\RejectedPromise;
 use Icicle\Promise\Structures\ThenQueue;
@@ -28,7 +28,7 @@ use Icicle\Promise\Structures\ThenQueue;
 class Promise implements PromiseInterface
 {
     use PromiseTrait;
-    
+
     /**
      * @var \Icicle\Promise\PromiseInterface|null
      */
@@ -56,9 +56,8 @@ class Promise implements PromiseInterface
     
     /**
      * @param callable $resolver
-     * @param callable|null $onCancelled
      */
-    public function __construct(callable $resolver, callable $onCancelled = null)
+    public function __construct(callable $resolver)
     {
         /**
          * Resolves the promise with the given promise or value. If another promise, this promise takes
@@ -89,8 +88,6 @@ class Promise implements PromiseInterface
         $reject = function ($reason = null) {
             $this->resolve(new RejectedPromise($reason));
         };
-
-        $this->onCancelled = $onCancelled;
 
         try {
             $this->onCancelled = $resolver($resolve, $reject);
@@ -158,7 +155,7 @@ class Promise implements PromiseInterface
 
         $this->onRejected->push($onRejected);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -201,11 +198,9 @@ class Promise implements PromiseInterface
                 }
 
                 return function (Exception $exception) {
-                    Loop\queue(function () use ($exception) {
-                        if (0 === --$this->children) {
-                            $this->cancel($exception);
-                        }
-                    });
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
                 };
             }
         );
@@ -240,20 +235,7 @@ class Promise implements PromiseInterface
             return;
         }
 
-        if (!$reason instanceof Exception) {
-            $reason = new CancelledException($reason);
-        }
-
-        if (null !== $this->onCancelled) {
-            try {
-                $onCancelled = $this->onCancelled;
-                $onCancelled($reason);
-            } catch (Exception $exception) {
-                $reason = $exception; // Thrown exception will now be used to reject promise.
-            }
-        }
-
-        $this->resolve(new RejectedPromise($reason));
+        $this->resolve(new CancelledPromise($reason, $this->onCancelled));
     }
     
     /**
@@ -287,11 +269,9 @@ class Promise implements PromiseInterface
                 return function (Exception $exception) use ($timer) {
                     $timer->stop();
 
-                    Loop\queue(function () use ($exception) {
-                        if (0 === --$this->children) {
-                            $this->cancel($exception);
-                        }
-                    });
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
                 };
             }
         );
@@ -325,11 +305,9 @@ class Promise implements PromiseInterface
                         $timer->stop();
                     }
 
-                    Loop\queue(function () use ($exception) {
-                        if (0 === --$this->children) {
-                            $this->cancel($exception);
-                        }
-                    });
+                    if (0 === --$this->children) {
+                        $this->cancel($exception);
+                    }
                 };
             }
         );

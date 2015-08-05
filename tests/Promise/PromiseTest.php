@@ -1358,6 +1358,68 @@ class PromiseTest extends TestCase
     /**
      * @depends testCancellation
      */
+    public function testCancellationPreventsResolveInCancellationCallable()
+    {
+        $exception = new Exception();
+
+        $promise = new Promise\Promise(function ($resolve) {
+            return function () use ($resolve) {
+                $resolve(1);
+            };
+        });
+
+        $promise->cancel($exception);
+
+        Loop\run();
+
+        $this->assertTrue($promise->isRejected());
+        $this->assertSame($exception, $promise->getResult());
+    }
+
+    /**
+     * @depends testCancellationPreventsResolveInCancellationCallable
+     */
+    public function testCancellationPreventsRejectInCancellationCallable()
+    {
+        $exception = new Exception();
+
+        $promise = new Promise\Promise(function ($resolve, $reject) {
+            return function () use ($reject) {
+                $reject(new Exception());
+            };
+        });
+
+        $promise->cancel($exception);
+
+        Loop\run();
+
+        $this->assertTrue($promise->isRejected());
+        $this->assertSame($exception, $promise->getResult());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testDoubleCancel()
+    {
+        $exception = new Exception();
+
+        $promise = new Promise\Promise(function () {});
+
+        $this->resolve($promise);
+
+        $this->promise->cancel($exception);
+        $this->promise->cancel(new Exception()); // Should have no effect.
+
+        Loop\run();
+
+        $this->assertTrue($promise->isRejected());
+        $this->assertSame($exception, $promise->getResult());
+    }
+
+    /**
+     * @depends testCancellation
+     */
     public function testTimeout()
     {
         $time = 0.1;
@@ -1678,6 +1740,8 @@ class PromiseTest extends TestCase
         Loop\tick(false);
 
         $delayed->cancel();
+
+        Loop\run();
 
         $this->assertTrue($delayed->isRejected());
         $this->assertTrue($this->promise->isFulfilled());
