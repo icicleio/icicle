@@ -821,6 +821,43 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->run();
     }
+
+    /**
+     * @depends testQueue
+     */
+    public function testRunCallsInitializeFunctionImmediately()
+    {
+        $invoked = false;
+
+        $this->loop->queue(function () use (&$invoked) {
+            $this->assertTrue($invoked);
+        });
+
+        $this->loop->run(function () use (&$invoked) {
+            $invoked = true;
+        });
+    }
+
+    /**
+     * @depends testRunCallsInitializeFunctionImmediately
+     * @expectedException \Icicle\Loop\Exception\Error
+     */
+    public function testInitializeFunctionThrowingStopsLoopAndThrowsFromRun()
+    {
+        $exception = new Error();
+
+        try {
+            $this->loop->run(function () use ($exception) {
+                throw $exception;
+            });
+        } catch (Exception $e) {
+            $this->assertSame($exception, $e);
+            $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
+            throw $e;
+        }
+
+        $this->fail('Exceptions thrown from initialize function should be thrown from run().');
+    }
     
     /**
      * @depends testQueue
@@ -895,7 +932,7 @@ abstract class AbstractLoopTest extends TestCase
 
         $this->loop->tick(false);
     }
-    
+
     /**
      * @depends testCreateImmediate
      * @expectedException \Icicle\Loop\Exception\Error

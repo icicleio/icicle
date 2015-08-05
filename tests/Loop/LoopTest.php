@@ -19,11 +19,6 @@ class LoopTest extends TestCase
      */
     protected $loop;
 
-    public function createSockets()
-    {
-        return stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-    }
-
     public function setUp()
     {
         $this->loop = $this->getMock(LoopInterface::class);
@@ -278,12 +273,15 @@ class LoopTest extends TestCase
      */
     public function testRun()
     {
+        $initialize = $this->createCallback(0);
+
         Loop\loop($this->loop);
 
         $this->loop->expects($this->once())
-            ->method('run');
+            ->method('run')
+            ->with($this->identicalTo($initialize));
 
-        Loop\run();
+        Loop\run($initialize);
     }
 
     /**

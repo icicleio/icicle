@@ -18,13 +18,16 @@ interface LoopInterface
     public function tick($blocking = true);
     
     /**
-     * Starts the event loop.
+     * Starts the event loop. If a function is provided, that function is executed immediately after starting the event
+     * loop.
+     *
+     * @param callable<(): void>|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    public function run();
+    public function run(callable $initialize = null);
     
     /**
      * Stops the event loop.
@@ -68,7 +71,7 @@ interface LoopInterface
      * Queue a callback function to be run after all I/O has been handled in the current tick.
      * Callbacks are called in the order queued.
      *
-     * @param callable $callback
+     * @param callable<(mixed ...$args): void> $callback
      * @param mixed[]|null $args Array of arguments to be passed to the callback function.
      */
     public function queue(callable $callback, array $args = null);
@@ -77,7 +80,7 @@ interface LoopInterface
      * Creates an event object that can be used to listen for available data on the stream socket.
      *
      * @param resource $resource
-     * @param callable $callback
+     * @param callable<(resource $resource, bool $expired): void> $callback
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
@@ -89,7 +92,7 @@ interface LoopInterface
      * Creates an event object that can be used to wait for the socket resource to be available for writing.
      *
      * @param resource $resource
-     * @param callable $callback
+     * @param callable<(resource $resource, bool $expired): void> $callback
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
@@ -102,7 +105,7 @@ interface LoopInterface
      *
      * @param int|float $interval
      * @param bool $periodic
-     * @param callable $callback
+     * @param callable<(mixed ...$args): void> $callback
      * @param mixed[]|null $args
      *
      * @return \Icicle\Loop\Events\TimerInterface
@@ -112,7 +115,7 @@ interface LoopInterface
     /**
      * Creates an immediate object connected to the loop.
      *
-     * @param callable $callback
+     * @param callable<(mixed ...$args): void> $callback
      * @param mixed[]|null $args
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
@@ -121,7 +124,7 @@ interface LoopInterface
 
     /**
      * @param int $signo
-     * @param callable $callback
+     * @param callable<(int $signo): void> $callback
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */

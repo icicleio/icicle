@@ -75,15 +75,18 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * Runs the event loop, dispatching I/O events, timers, etc.
+     * Starts the default event loop. If a function is provided, that function is executed immediately after starting
+     * the event loop, passing the event loop as the first argument.
+     *
+     * @param callable<(LoopInterface $loop): void>|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    function run()
+    function run(callable $initialize = null)
     {
-        return loop()->run();
+        return loop()->run($initialize);
     }
 
     /**

@@ -1,7 +1,6 @@
 <?php
 namespace Icicle\Loop;
 
-use Exception;
 use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\RunningError;
@@ -208,7 +207,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function run()
+    public function run(callable $initialize = null)
     {
         if ($this->isRunning()) {
             throw new RunningError('The loop was already running.');
@@ -217,16 +216,18 @@ abstract class AbstractLoop implements LoopInterface
         $this->running = true;
         
         try {
-            do {
+            if (null !== $initialize) {
+                $initialize();
+            }
+
+            while ($this->isRunning()) {
                 if ($this->isEmpty()) {
-                    $this->stop();
                     return false;
                 }
                 $this->tick();
-            } while ($this->isRunning());
-        } catch (Exception $exception) {
+            }
+        } finally {
             $this->stop();
-            throw $exception;
         }
         
         return true;
