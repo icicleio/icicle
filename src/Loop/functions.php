@@ -3,7 +3,7 @@ namespace Icicle\Loop;
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
-     * Returns the active event loop. Can be used to set the active event loop if the event loop has not been accessed.
+     * Returns the default event loop. Can be used to set the default event loop if an instance is provided.
      *
      * @param \Icicle\Loop\LoopInterface|null $loop
      * 
