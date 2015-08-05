@@ -28,6 +28,14 @@ abstract class ResolvedPromise implements PromiseInterface
     {
         return false;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isCancelled()
+    {
+        return false;
+    }
     
     /**
      * {@inheritdoc}
@@ -36,7 +44,15 @@ abstract class ResolvedPromise implements PromiseInterface
     {
         return $this;
     }
-    
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delay($time)
+    {
+        return $this;
+    }
+
     /**
      * {@inheritdoc}
      */

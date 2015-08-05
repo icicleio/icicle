@@ -61,9 +61,9 @@ class CancelledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function isPending()
     {
-        return $this;
+        return $this->result->isPending();
     }
 
     /**

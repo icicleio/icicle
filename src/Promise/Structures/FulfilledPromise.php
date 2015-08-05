@@ -9,6 +9,7 @@
 
 namespace Icicle\Promise\Structures;
 
+use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Promise;
@@ -48,7 +49,7 @@ class FulfilledPromise extends ResolvedPromise
             Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
-                } catch (\Exception $exception) {
+                } catch (Exception $exception) {
                     $reject($exception);
                 }
             });
@@ -99,14 +100,6 @@ class FulfilledPromise extends ResolvedPromise
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isCancelled()
-    {
-        return false;
-    }
-    
     /**
      * {@inheritdoc}
      */

@@ -66,15 +66,7 @@ class RejectedPromise extends ResolvedPromise
             });
         }
     }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function delay($time)
-    {
-        return $this;
-    }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -91,14 +83,6 @@ class RejectedPromise extends ResolvedPromise
         return true;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isCancelled()
-    {
-        return false;
-    }
-    
     /**
      * {@inheritdoc}
      */

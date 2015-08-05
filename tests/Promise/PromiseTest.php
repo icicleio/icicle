@@ -1235,7 +1235,7 @@ class PromiseTest extends TestCase
         };
 
         $promise = new Promise\Promise(function () use ($callback) { return $callback; });
-        
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
@@ -1244,6 +1244,73 @@ class PromiseTest extends TestCase
         
         $promise->cancel();
         
+        Loop\run();
+
+        $this->assertTrue($promise->isCancelled());
+        $this->assertTrue($promise->isRejected());
+        $this->assertSame($exception, $promise->getResult());
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testOnCancelledReturnsPromiseThatFulfills()
+    {
+        $callback = function () {
+            return $this->promise;
+        };
+
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(CancelledException::class));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise->cancel();
+
+        Loop\run();
+
+        $this->assertTrue($promise->isPending());
+        $this->assertFalse($promise->isCancelled());
+
+        $this->resolve(1);
+
+        Loop\run();
+
+        $this->assertTrue($promise->isCancelled());
+        $this->assertTrue($promise->isRejected());
+    }
+
+    /**
+     * @depends testOnCancelledReturnsPromiseThatFulfills
+     */
+    public function testOnCancelledReturnsPromiseThatRejects()
+    {
+        $exception = new Exception();
+
+        $callback = function () use ($exception) {
+            return $this->promise;
+        };
+
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise->cancel();
+
+        Loop\run();
+
+        $this->assertTrue($promise->isPending());
+        $this->assertFalse($promise->isCancelled());
+
+        $this->reject($exception);
+
         Loop\run();
 
         $this->assertTrue($promise->isCancelled());
