@@ -21,8 +21,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     {
         static $instance;
 
-        if (null === $instance || null !== $loop) {
-            $instance = $loop ?: create();
+        if (null !== $loop) {
+            $instance = $loop;
+        } elseif (null === $instance) {
+            $instance = create();
         }
 
         return $instance;
@@ -44,6 +46,26 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
         }
 
         return new SelectLoop();
+    }
+
+    /**
+     * Runs the tasks set up in the given function in a separate event loop from the default event loop. If the default
+     * is running, the default event loop is blocked while the separate event loop is running.
+     *
+     * @param callable $worker
+     * @param LoopInterface|null $loop
+     *
+     * @return bool
+     */
+    function with(callable $worker, LoopInterface $loop = null)
+    {
+        $previous = loop();
+
+        try {
+            return loop($loop ?: create())->run($worker);
+        } finally {
+            loop($previous);
+        }
     }
     
     /**
