@@ -1131,7 +1131,7 @@ class PromiseTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(CancelledException::class));
         
-        $promise = new Promise\Promise(function () {}, $callback);
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1151,11 +1151,11 @@ class PromiseTest extends TestCase
     {
         $exception = new Exception();
         
-        $onCancelled = function () use ($exception) {
+        $callback = function () use ($exception) {
             throw $exception;
         };
-        
-        $promise = new Promise\Promise(function () {}, $onCancelled);
+
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1181,8 +1181,8 @@ class PromiseTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
-        
-        $promise = new Promise\Promise(function () {}, $callback);
+
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -1205,8 +1205,8 @@ class PromiseTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->isInstanceOf(CancelledException::class));
-        
-        $promise = new Promise\Promise(function () {}, $callback);
+
+        $promise = new Promise\Promise(function () use ($callback) { return $callback; });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

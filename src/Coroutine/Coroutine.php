@@ -109,19 +109,20 @@ class Coroutine extends Promise implements CoroutineInterface
                 };
                 
                 Loop\queue($this->worker);
-            },
-            function (Exception $exception) {
-                try {
-                    $current = $this->generator->current(); // Get last yielded value.
-                    while ($this->generator->valid()) {
-                        if ($current instanceof PromiseInterface) {
-                            $current->cancel($exception);
+
+                return function (Exception $exception) {
+                    try {
+                        $current = $this->generator->current(); // Get last yielded value.
+                        while ($this->generator->valid()) {
+                            if ($current instanceof PromiseInterface) {
+                                $current->cancel($exception);
+                            }
+                            $current = $this->generator->throw($exception);
                         }
-                        $current = $this->generator->throw($exception);
+                    } finally {
+                        $this->close();
                     }
-                } finally {
-                    $this->close();
-                }
+                };
             }
         );
     }

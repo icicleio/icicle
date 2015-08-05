@@ -366,21 +366,20 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return resolve($initial);
         }
 
-        return $result = new Promise(function (callable $resolve, callable $reject) use (
-            &$result, $promises, $callback, $initial
-        ) {
-            $pending = count($promises);
+        return new Promise(function (callable $resolve, callable $reject) use ($promises, $callback, $initial) {
+            $pending = true;
+            $count = count($promises);
             $carry = resolve($initial);
             $carry->done(null, $reject);
 
-            $onFulfilled = function ($value) use (&$carry, &$result, &$pending, $callback, $resolve, $reject) {
-                if ($result->isPending()) {
+            $onFulfilled = function ($value) use (&$carry, &$pending, &$count, $callback, $resolve, $reject) {
+                if ($pending) {
                     $carry = $carry->then(function ($carry) use ($callback, $value) {
                         return $callback($carry, $value);
                     });
                     $carry->done(null, $reject);
 
-                    if (0 === --$pending) {
+                    if (0 === --$count) {
                         $resolve($carry);
                     }
                 }
@@ -389,6 +388,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             foreach ($promises as $promise) {
                 resolve($promise)->done($onFulfilled, $reject);
             }
+
+            return function (Exception $exception) use (&$carry, &$pending) {
+                $pending = false;
+                $carry->cancel($exception);
+            };
         });
     }
     
@@ -407,12 +411,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      */
     function iterate(callable $worker, callable $predicate, $seed = null)
     {
-        return $result = new Promise(
-            function (callable $resolve, callable $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
+        return new Promise(
+            function (callable $resolve, callable $reject) use (&$promise, $worker, $predicate, $seed) {
+                $pending = true;
                 $callback = function ($value) use (
-                    &$callback, &$result, &$promise, $worker, $predicate, $resolve, $reject
+                    &$callback, &$pending, &$promise, $worker, $predicate, $resolve, $reject
                 ) {
-                    if ($result->isPending()) {
+                    if ($pending) {
                         try {
                             if (!$predicate($value)) { // Resolve promise if $predicate returns false.
                                 $resolve($value);
@@ -428,9 +433,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 $promise = resolve($seed);
                 $promise->done($callback, $reject); // Start iteration with $seed.
-            },
-            function (Exception $exception) use (&$promise) {
-                $promise->cancel($exception);
+
+                return function (Exception $exception) use (&$promise, &$pending) {
+                    $pending = false;
+                    $promise->cancel($exception);
+                };
             }
         );
     }
@@ -451,12 +458,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      */
     function retry(callable $promisor, callable $onRejected)
     {
-        return $result = new Promise(
-            function (callable $resolve, callable $reject) use (&$result, &$promise, $promisor, $onRejected) {
+        return new Promise(
+            function (callable $resolve, callable $reject) use (&$promise, $promisor, $onRejected) {
+                $pending = true;
                 $callback = function (Exception $exception) use (
-                    &$callback, &$result, &$promise, $promisor, $onRejected, $resolve, $reject
+                    &$callback, &$pending, &$promise, $promisor, $onRejected, $resolve, $reject
                 ) {
-                    if ($result->isPending()) {
+                    if ($pending) {
                         try {
                             if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
                                 $reject($exception);
@@ -472,9 +480,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 $promise = resolve($promisor());
                 $promise->done($resolve, $callback);
-            },
-            function (Exception $exception) use (&$promise) {
-                $promise->cancel($exception);
+
+                return function (Exception $exception) use (&$promise, &$pending) {
+                    $pending = false;
+                    $promise->cancel($exception);
+                };
             }
         );
     }

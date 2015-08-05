@@ -5,6 +5,7 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\CircularResolutionError;
+use Icicle\Promise\Exception\InvalidResolverError;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\UnresolvedError;
 use Icicle\Promise\Structures\FulfilledPromise;
@@ -84,7 +85,10 @@ class Promise implements PromiseInterface
         $this->onCancelled = $onCancelled;
 
         try {
-            $resolver($resolve, $reject);
+            $this->onCancelled = $resolver($resolve, $reject);
+            if (null !== $this->onCancelled && !is_callable($this->onCancelled)) {
+                throw new InvalidResolverError('The resolver must return a callable or null.');
+            }
         } catch (Exception $exception) {
             $reject($exception);
         }
@@ -187,13 +191,14 @@ class Promise implements PromiseInterface
                         $resolve($this->result);
                     });
                 }
-            },
-            function (Exception $exception) {
-                Loop\queue(function () use ($exception) {
-                    if (0 === --$this->children) {
-                        $this->cancel($exception);
-                    }
-                });
+
+                return function (Exception $exception) {
+                    Loop\queue(function () use ($exception) {
+                        if (0 === --$this->children) {
+                            $this->cancel($exception);
+                        }
+                    });
+                };
             }
         );
     }
@@ -255,7 +260,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function (callable $resolve) use (&$timer, $timeout, $reason) {
+            function (callable $resolve) use ($timeout, $reason) {
                 $timer = Loop\timer($timeout, function () use ($reason) {
                     if (!$reason instanceof Exception) {
                         $reason = new TimeoutException($reason);
@@ -270,15 +275,16 @@ class Promise implements PromiseInterface
                 
                 $this->onFulfilled($onResolved);
                 $this->onRejected($onResolved);
-            },
-            function (Exception $exception) use (&$timer) {
-                $timer->stop();
 
-                Loop\queue(function () use ($exception) {
-                    if (0 === --$this->children) {
-                        $this->cancel($exception);
-                    }
-                });
+                return function (Exception $exception) use ($timer) {
+                    $timer->stop();
+
+                    Loop\queue(function () use ($exception) {
+                        if (0 === --$this->children) {
+                            $this->cancel($exception);
+                        }
+                    });
+                };
             }
         );
     }
@@ -295,7 +301,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function (callable $resolve) use (&$timer, $time) {
+            function (callable $resolve) use ($time) {
                 $this->onFulfilled(function () use (&$timer, $time, $resolve) {
                     $timer = Loop\timer($time, function () use ($resolve) {
                         $resolve($this->result);
@@ -305,17 +311,18 @@ class Promise implements PromiseInterface
                 $this->onRejected(function () use ($resolve) {
                     $resolve($this->result);
                 });
-            },
-            function (Exception $exception) use (&$timer) {
-                if (null !== $timer) {
-                    $timer->stop();
-                }
 
-                Loop\queue(function () use ($exception) {
-                    if (0 === --$this->children) {
-                        $this->cancel($exception);
+                return function (Exception $exception) use (&$timer) {
+                    if (null !== $timer) {
+                        $timer->stop();
                     }
-                });
+
+                    Loop\queue(function () use ($exception) {
+                        if (0 === --$this->children) {
+                            $this->cancel($exception);
+                        }
+                    });
+                };
             }
         );
     }
