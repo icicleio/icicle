@@ -90,4 +90,12 @@ class RejectedPromise extends ResolvedPromise
     {
         return $this->exception;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function wait()
+    {
+        throw $this->exception;
+    }
 }

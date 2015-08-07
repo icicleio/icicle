@@ -2383,4 +2383,57 @@ class PromiseTest extends TestCase
 
         $this->assertTrue($child->isFulfilled());
     }
+
+    public function testWaitOnFulfilledPromise()
+    {
+        $value = 'test';
+
+        $this->resolve($value);
+
+        $result = $this->promise->wait();
+
+        $this->assertSame($value, $result);
+    }
+
+    public function testWaitOnRejectedPromise()
+    {
+        $exception = new Exception();
+
+        $this->reject($exception);
+
+        try {
+            $result = $this->promise->wait();
+            $this->fail('Rejection exception should be thrown from wait().');
+        } catch (Exception $e) {
+            $this->assertSame($exception, $e);
+        }
+    }
+
+    /**
+     * @depends testWaitOnFulfilledPromise
+     */
+    public function testWaitOnPendingPromise()
+    {
+        $value = 'test';
+
+        $promise = $this->promise->delay(0.1);
+
+        $this->resolve($value);
+
+        $this->assertTrue($promise->isPending());
+
+        $result = $promise->wait();
+
+        $this->assertSame($value, $result);
+    }
+
+    /**
+     * @expectedException \Icicle\Promise\Exception\UnresolvedError
+     */
+    public function testPromiseWithNoResolutionPathThrowsException()
+    {
+        $promise = new Promise\Promise(function () {});
+
+        $result = $promise->wait();
+    }
 }

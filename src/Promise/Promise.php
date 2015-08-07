@@ -312,6 +312,22 @@ class Promise implements PromiseInterface
             }
         );
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function wait()
+    {
+        while (null === $this->result) {
+            if (Loop\isEmpty()) {
+                throw new UnresolvedError('Loop emptied without resolving promise.');
+            }
+
+            Loop\tick(true);
+        }
+
+        return $this->unwrap()->wait();
+    }
     
     /**
      * {@inheritdoc}

@@ -133,6 +133,14 @@ class LazyPromise implements PromiseInterface
     {
         return $this->getPromise()->getResult();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function wait()
+    {
+        return $this->getPromise()->wait();
+    }
     
     /**
      * {@inheritdoc}

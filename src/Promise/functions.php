@@ -146,39 +146,6 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     }
 
     /**
-     * This function may be used to synchronously wait for a promise to be resolved. This function should generally
-     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
-     * function to group them) and synchronously wait for the task to complete. Using this function in a running event
-     * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
-     * program flow.
-     *
-     * @param PromiseInterface $promise
-     *
-     * @return mixed Promise fulfillment value.
-     *
-     * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
-     * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
-     */
-    function wait(PromiseInterface $promise)
-    {
-        while ($promise->isPending()) {
-            if (Loop\isEmpty()) {
-                throw new UnresolvedError('Loop emptied without resolving promise.');
-            }
-
-            Loop\tick(true);
-        }
-
-        $result = $promise->getResult();
-
-        if ($promise->isRejected()) {
-            throw $result;
-        }
-
-        return $result;
-    }
-
-    /**
      * Returns a promise that is resolved when all promises are resolved. The returned promise will not reject by itself
      * (only if cancelled). Returned promise is fulfilled with an array of resolved promises, with keys identical and
      * corresponding to the original given array.
