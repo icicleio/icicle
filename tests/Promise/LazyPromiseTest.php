@@ -146,8 +146,13 @@ class LazyPromiseTest extends TestCase
         $this->assertFalse($lazy->isFulfilled());
         $this->assertTrue($lazy->isRejected());
         $this->assertFalse($lazy->isCancelled());
-        $this->assertSame($exception, $lazy->getResult());
-        
+
+        try {
+            $lazy->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
+
         Loop\run();
     }
 
@@ -163,7 +168,7 @@ class LazyPromiseTest extends TestCase
         $lazy = Promise\lazy($promisor, $value);
 
         $this->assertFalse($lazy->isPending());
-        $this->assertSame($value, $lazy->getResult());
+        $this->assertSame($value, $lazy->wait());
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

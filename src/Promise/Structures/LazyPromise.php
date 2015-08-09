@@ -125,14 +125,6 @@ class LazyPromise implements PromiseInterface
     {
         return $this->getPromise()->isCancelled();
     }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function getResult()
-    {
-        return $this->getPromise()->getResult();
-    }
 
     /**
      * {@inheritdoc}

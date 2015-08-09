@@ -106,7 +106,21 @@ interface PromiseInterface
      * @return \Icicle\Promise\PromiseInterface
      */
     public function splat(callable $onFulfilled);
-    
+
+    /**
+     * This function may be used to synchronously wait for a promise to be resolved. This function should generally
+     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
+     * function to group them) and synchronously wait for the task to complete. Using this function in a running event
+     * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
+     * program flow.
+     *
+     * @return mixed Promise fulfillment value.
+     *
+     * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
+     * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
+     */
+    public function wait();
+
     /**
      * Returns true if the promise has not been resolved.
      *
@@ -134,30 +148,7 @@ interface PromiseInterface
      * @return bool
      */
     public function isCancelled();
-    
-    /**
-     * Returns the value of the fulfilled or rejected promise if it has been resolved.
-     *
-     * @return mixed
-     *
-     * @throws \Icicle\Promise\Exception\UnresolvedError If the promise has not been resolved.
-     */
-    public function getResult();
 
-    /**
-     * This function may be used to synchronously wait for a promise to be resolved. This function should generally
-     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
-     * function to group them) and synchronously wait for the task to complete. Using this function in a running event
-     * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
-     * program flow.
-     *
-     * @return mixed Promise fulfillment value.
-     *
-     * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
-     * @throws \Exception If the promise is rejected, the rejection reason is thrown from this function.
-     */
-    public function wait();
-    
     /**
      * Iteratively finds the last promise in the pending chain and returns it. 
      *

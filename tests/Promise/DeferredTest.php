@@ -84,7 +84,12 @@ class DeferredTest extends TestCase
         $promise = $deferred->getPromise();
         
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($reason, $promise->getResult()->getReason());
+
+        try {
+            $promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
     
     public function testCancellation()
@@ -108,6 +113,11 @@ class DeferredTest extends TestCase
         Loop\run();
         
         $this->assertTrue($deferred->getPromise()->isRejected());
-        $this->assertSame($exception, $deferred->getPromise()->getResult());
+
+        try {
+            $deferred->getPromise()->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 }

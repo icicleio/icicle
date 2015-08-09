@@ -49,7 +49,7 @@ class CoroutineTest extends TestCase
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     public function testYieldFulfilledPromise()
@@ -72,7 +72,7 @@ class CoroutineTest extends TestCase
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     public function testYieldRejectedPromise()
@@ -95,7 +95,12 @@ class CoroutineTest extends TestCase
         
         $this->assertNull($yielded);
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -121,7 +126,7 @@ class CoroutineTest extends TestCase
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     /**
@@ -178,7 +183,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     public function testGeneratorThrowingExceptionRejectsCoroutine()
@@ -201,7 +206,12 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -232,7 +242,7 @@ class CoroutineTest extends TestCase
         Loop\run();
 
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
 
     /**
@@ -264,7 +274,12 @@ class CoroutineTest extends TestCase
         Loop\run();
 
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -296,7 +311,12 @@ class CoroutineTest extends TestCase
         Loop\run();
 
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -330,7 +350,12 @@ class CoroutineTest extends TestCase
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -362,7 +387,12 @@ class CoroutineTest extends TestCase
 
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -392,7 +422,7 @@ class CoroutineTest extends TestCase
         
         $this->assertSame($value, $yielded);
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame($value, $coroutine->getResult());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     public function testCancellation()
@@ -474,7 +504,12 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -505,7 +540,12 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -537,7 +577,12 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -571,7 +616,12 @@ class CoroutineTest extends TestCase
         
         $this->assertInstanceOf(Promise\Promise::class, $promise);
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -626,7 +676,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
+        $this->assertSame($value, $delayed->wait());
     }
     
     /**
@@ -668,7 +718,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame(null, $coroutine->getResult());
+        $this->assertSame(null, $coroutine->wait());
     }
     
     /**
@@ -704,10 +754,10 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine1->isFulfilled());
-        $this->assertSame(-1, $coroutine1->getResult());
+        $this->assertSame(-1, $coroutine1->wait());
         
         $this->assertTrue($coroutine2->isFulfilled());
-        $this->assertSame(10, $coroutine2->getResult());
+        $this->assertSame(10, $coroutine2->wait());
     }
     
     /**
@@ -765,7 +815,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame(-1, $coroutine->getResult());
+        $this->assertSame(-1, $coroutine->wait());
     }
     
     /**
@@ -810,7 +860,7 @@ class CoroutineTest extends TestCase
         
         Loop\run();
         
-        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->wait());
     }
 
     /**
@@ -857,7 +907,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertFalse($coroutine->isPending());
-        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->wait());
     }
     
     /**
@@ -899,7 +949,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertFalse($coroutine->isPending());
-        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->getResult());
+        $this->assertGreaterThanOrEqual(self::TIMEOUT, $coroutine->wait());
     }
     
     /**
@@ -926,7 +976,7 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
-        $this->assertSame(1, $coroutine->getResult());
+        $this->assertSame(1, $coroutine->wait());
     }
     
     /**
@@ -955,7 +1005,12 @@ class CoroutineTest extends TestCase
         Loop\run();
         
         $this->assertTrue($coroutine->isRejected());
-        $this->assertSame($exception, $coroutine->getResult());
+
+        try {
+            $coroutine->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**

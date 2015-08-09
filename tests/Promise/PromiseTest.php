@@ -95,7 +95,12 @@ class PromiseTest extends TestCase
         
         $this->assertFalse($promise->isPending());
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     public function testResolverReturningNonCallableRejectsPromise()
@@ -106,7 +111,12 @@ class PromiseTest extends TestCase
 
         $this->assertFalse($promise->isPending());
         $this->assertTrue($promise->isRejected());
-        $this->assertInstanceOf(InvalidResolverError::class, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(InvalidResolverError::class, $exception);
+        }
     }
 
     public function testThenReturnsPromise()
@@ -127,7 +137,7 @@ class PromiseTest extends TestCase
         $this->assertTrue($fulfilled->isFulfilled());
         $this->assertFalse($fulfilled->isRejected());
         $this->assertFalse($fulfilled->isCancelled());
-        $this->assertSame($value, $fulfilled->getResult());
+        $this->assertSame($value, $fulfilled->wait());
     }
     
     public function testReject()
@@ -142,16 +152,35 @@ class PromiseTest extends TestCase
         $this->assertFalse($rejected->isFulfilled());
         $this->assertTrue($rejected->isRejected());
         $this->assertFalse($rejected->isCancelled());
-        $this->assertSame($exception, $rejected->getResult());
+
+        try {
+            $rejected->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($exception, $exception);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function rejectionReasons()
+    {
+        return [
+            ['String to reject promise.'],
+            [new \stdClass()],
+            [[1, 2, 3]],
+            [404],
+            [3.14159],
+            [false],
+        ];
     }
     
     /**
      * @depends testReject
+     * @dataProvider rejectionReasons
      */
-    public function testRejectWithValueReason()
+    public function testRejectWithReason($reason)
     {
-        $reason = 'String to reject promise.';
-        
         $rejected = Promise\reject($reason);
         
         $this->assertInstanceOf(PromiseInterface::class, $rejected);
@@ -159,83 +188,15 @@ class PromiseTest extends TestCase
         $this->assertFalse($rejected->isPending());
         $this->assertFalse($rejected->isFulfilled());
         $this->assertTrue($rejected->isRejected());
-        
-        $result = $rejected->getResult();
-        
-        $this->assertInstanceOf(RejectedException::class, $result);
-        $this->assertSame($reason, $result->getReason());
+
+        try {
+            $rejected->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(RejectedException::class, $exception);
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
-    
-    /**
-     * @depends testRejectWithValueReason
-     */
-    public function testRejectWithObjectReason()
-    {
-        $reason = new \stdClass();
-        
-        $rejected = Promise\reject($reason);
-        
-        $result = $rejected->getResult();
-        
-        $this->assertSame($reason, $result->getReason());
-    }
-    
-    /**
-     * @depends testRejectWithValueReason
-     */
-    public function testRejectWithArrayReason()
-    {
-        $reason = [1, 2, 3];
-        
-        $rejected = Promise\reject($reason);
-        
-        $result = $rejected->getResult();
-        
-        $this->assertSame($reason, $result->getReason());
-    }
-    
-    /**
-     * @depends testRejectWithValueReason
-     */
-    public function testRejectWithIntegerReason()
-    {
-        $reason = 404;
-        
-        $rejected = Promise\reject($reason);
-        
-        $result = $rejected->getResult();
-        
-        $this->assertSame($reason, $result->getReason());
-    }
-    
-    /**
-     * @depends testRejectWithValueReason
-     */
-    public function testRejectWithFloatReason()
-    {
-        $reason = 3.14159;
-        
-        $rejected = Promise\reject($reason);
-        
-        $result = $rejected->getResult();
-        
-        $this->assertSame($reason, $result->getReason());
-    }
-    
-    /**
-     * @depends testRejectWithValueReason
-     */
-    public function testRejectWithBooleanReason()
-    {
-        $reason = false;
-        
-        $rejected = Promise\reject($reason);
-        
-        $result = $rejected->getResult();
-        
-        $this->assertSame($reason, $result->getReason());
-    }
-    
+
     public function testResolveCallableWithValue()
     {
         $value = 'test';
@@ -252,7 +213,7 @@ class PromiseTest extends TestCase
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isFulfilled());
-        $this->assertSame($value, $this->promise->getResult());
+        $this->assertSame($value, $this->promise->wait());
     }
     
     /**
@@ -290,7 +251,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
-        $this->assertSame($value1, $this->promise->getResult());
+        $this->assertSame($value1, $this->promise->wait());
     }
     
     /**
@@ -313,7 +274,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
-        $this->assertSame($value, $this->promise->getResult());
+        $this->assertSame($value, $this->promise->wait());
     }
     
     /**
@@ -372,8 +333,8 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($this->promise->isFulfilled());
-        $this->assertSame($value, $this->promise->getResult());
-        $this->assertSame($this->promise->getResult(), $promise->getResult());
+        $this->assertSame($value, $this->promise->wait());
+        $this->assertSame($this->promise->wait(), $promise->wait());
     }
     
     /**
@@ -396,8 +357,18 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertSame($exception, $this->promise->getResult());
-        $this->assertSame($this->promise->getResult(), $promise->getResult());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -426,8 +397,8 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($this->promise->isFulfilled());
-        $this->assertSame($value, $this->promise->getResult());
-        $this->assertSame($this->promise->getResult(), $promise->getResult());
+        $this->assertSame($value, $this->promise->wait());
+        $this->assertSame($this->promise->wait(), $promise->wait());
     }
     
     /**
@@ -436,9 +407,14 @@ class PromiseTest extends TestCase
     public function testResolveCallableWithSelfRejectsPromise()
     {
         $this->resolve($this->promise);
-        
+
         $this->assertTrue($this->promise->isRejected());
-        $this->assertInstanceOf(CircularResolutionError::class, $this->promise->getResult());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(CircularResolutionError::class, $exception);
+        }
     }
     
     /**
@@ -463,10 +439,20 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isRejected());
-        $this->assertInstanceOf(CircularResolutionError::class, $child->getResult());
-        
+
+        try {
+            $child->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(CircularResolutionError::class, $exception);
+        }
+
         $this->assertTrue($promise->isRejected());
-        $this->assertInstanceOf(CircularResolutionError::class, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(CircularResolutionError::class, $exception);
+        }
     }
     
     public function testRejectCallable()
@@ -485,7 +471,12 @@ class PromiseTest extends TestCase
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
-        $this->assertSame($exception, $this->promise->getResult());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -507,7 +498,13 @@ class PromiseTest extends TestCase
         
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($this->promise->isRejected());
-        $this->assertSame($reason, $this->promise->getResult()->getReason());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $exception) {
+            $this->assertInstanceOf(RejectedException::class, $exception);
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
     
     /**
@@ -545,7 +542,12 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertSame($exception1, $this->promise->getResult());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($exception1, $exception);
+        }
     }
     
     /**
@@ -638,7 +640,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
     
     /**
@@ -662,7 +664,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value2, $child->getResult());
+        $this->assertSame($value2, $child->wait());
     }
     
     /**
@@ -686,7 +688,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulFilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
     
     /**
@@ -710,7 +712,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -734,7 +741,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception2, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception2, $reason);
+        }
     }
     
     /**
@@ -758,7 +770,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value2, $child->getResult());
+        $this->assertSame($value2, $child->wait());
     }
     
     /**
@@ -782,7 +794,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulFilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
     
     /**
@@ -806,7 +818,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -830,7 +847,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception2, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception2, $reason);
+        }
     }
     
     /**
@@ -853,7 +875,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
         $this->assertFalse($grandchild->isPending());
     }
     
@@ -877,7 +899,13 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
+
         $this->assertFalse($grandchild->isPending());
     }
     
@@ -903,7 +931,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value1, $parameter);
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value2, $child->getResult());
+        $this->assertSame($value2, $child->wait());
     }
     
     /**
@@ -928,7 +956,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($value, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -953,7 +986,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception, $parameter);
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
     
     /**
@@ -978,7 +1011,12 @@ class PromiseTest extends TestCase
         
         $this->assertSame($exception1, $parameter);
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception2, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception2, $reason);
+        }
     }
     
     /**
@@ -1070,15 +1108,7 @@ class PromiseTest extends TestCase
         
         $this->assertSame('<before><after><onRejected><onRejected>', $string);
     }
-    
-    /**
-     * @expectedException \Icicle\Promise\Exception\UnresolvedError
-     */
-    public function testGettingResultBeforeResolution()
-    {
-        $this->promise->getResult();
-    }
-    
+
     /**
      * @depends testRejectCallable
      */
@@ -1097,7 +1127,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isFulfilled());
-        $this->assertNull($child->getResult());
+        $this->assertNull($child->wait());
     }
 
     /**
@@ -1128,7 +1158,7 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($exception, $child->getResult());
+        $this->assertSame($exception, $child->wait());
     }
 
     /**
@@ -1144,7 +1174,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     public function testCancellation()
@@ -1196,7 +1231,12 @@ class PromiseTest extends TestCase
         $this->assertTrue($promise->isCancelled());
         $this->assertFalse($promise->isFulfilled());
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1220,7 +1260,12 @@ class PromiseTest extends TestCase
 
         $this->assertFalse($child->isCancelled());
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -1248,7 +1293,12 @@ class PromiseTest extends TestCase
 
         $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1315,7 +1365,12 @@ class PromiseTest extends TestCase
 
         $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -1365,7 +1420,11 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertSame($reason, $promise->getResult()->getReason());
+        try {
+            $promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
     
     /**
@@ -1491,7 +1550,12 @@ class PromiseTest extends TestCase
         Loop\run();
         
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1512,7 +1576,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1533,7 +1602,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1553,7 +1627,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1580,7 +1659,12 @@ class PromiseTest extends TestCase
         $this->assertTrue($promise->isCancelled());
         $this->assertFalse($promise->isFulfilled());
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($exception, $promise->getResult());
+
+        try {
+            $promise->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1601,7 +1685,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($this->promise->isRejected());
-        $this->assertInstanceOf(TimeoutException::class, $this->promise->getResult());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $reason) {
+            $this->assertInstanceOf(TimeoutException::class, $reason);
+        }
     }
     
     /**
@@ -1640,9 +1729,18 @@ class PromiseTest extends TestCase
         $timeout->done($this->createCallback(0), $callback);
         
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
-        
-        $this->assertSame($reason, $this->promise->getResult()->getReason());
-        $this->assertSame($reason, $timeout->getResult()->getReason());
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception->getReason());
+        }
+
+        try {
+            $timeout->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
     
     /**
@@ -1660,7 +1758,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isFulfilled());
-        $this->assertSame($value, $timeout->getResult());
+        $this->assertSame($value, $timeout->wait());
     }
     
     /**
@@ -1678,7 +1776,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
-        $this->assertSame($exception, $timeout->getResult());
+
+        try {
+            $timeout->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -1696,7 +1799,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isFulfilled());
-        $this->assertSame($value, $timeout->getResult());
+        $this->assertSame($value, $timeout->wait());
     }
     
     /**
@@ -1714,7 +1817,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
         
         $this->assertTrue($timeout->isRejected());
-        $this->assertSame($exception, $timeout->getResult());
+
+        try {
+            $timeout->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
     
     /**
@@ -1730,7 +1838,7 @@ class PromiseTest extends TestCase
         $timeout->cancel();
         
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
-        
+
         $this->assertTrue($timeout->isRejected());
         $this->assertTrue($this->promise->isRejected());
     }
@@ -1809,7 +1917,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
+        $this->assertSame($value, $delayed->wait());
     }
 
     /**
@@ -1827,7 +1935,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($delayed->isRejected());
-        $this->assertSame($exception, $delayed->getResult());
+
+        try {
+            $delayed->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1845,7 +1958,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
+        $this->assertSame($value, $delayed->wait());
     }
 
     /**
@@ -1863,7 +1976,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeLessThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($delayed->isRejected());
-        $this->assertSame($exception, $delayed->getResult());
+
+        try {
+            $delayed->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -1887,7 +2005,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($delayed->isFulfilled());
-        $this->assertSame($value, $delayed->getResult());
+        $this->assertSame($value, $delayed->wait());
     }
 
     /**
@@ -2034,7 +2152,7 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
 
     /**
@@ -2051,7 +2169,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2074,7 +2197,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
 
     /**
@@ -2096,7 +2219,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2118,7 +2246,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2135,7 +2268,7 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
 
     /**
@@ -2152,7 +2285,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2175,7 +2313,7 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isFulfilled());
-        $this->assertSame($value, $child->getResult());
+        $this->assertSame($value, $child->wait());
     }
 
     /**
@@ -2197,7 +2335,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2219,7 +2362,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2242,7 +2390,12 @@ class PromiseTest extends TestCase
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2264,7 +2417,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     /**
@@ -2285,7 +2443,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     public function testSplat()
@@ -2358,7 +2521,12 @@ class PromiseTest extends TestCase
         Loop\run();
 
         $this->assertTrue($child->isRejected());
-        $this->assertSame($exception, $child->getResult());
+
+        try {
+            $child->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 
     public function testSplatWithTraversable()

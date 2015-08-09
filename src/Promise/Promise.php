@@ -360,19 +360,7 @@ class Promise implements PromiseInterface
     {
         return null !== $this->result ? $this->unwrap()->isCancelled() : false;
     }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function getResult()
-    {
-        if (null === $this->result) {
-            throw new UnresolvedError('The promise is still pending.');
-        }
-        
-        return $this->unwrap()->getResult();
-    }
-    
+
     /**
      * {@inheritdoc}
      */

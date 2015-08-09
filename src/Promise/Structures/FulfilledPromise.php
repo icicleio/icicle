@@ -103,14 +103,6 @@ class FulfilledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function getResult()
-    {
-        return $this->value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function wait()
     {
         return $this->value;

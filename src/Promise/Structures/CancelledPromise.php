@@ -93,14 +93,6 @@ class CancelledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function getResult()
-    {
-        return $this->result->getResult();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function wait()
     {
         return $this->result->wait();

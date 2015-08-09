@@ -50,7 +50,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame($values[$key] + 1, $promise->getResult());
+            $this->assertSame($values[$key] + 1, $promise->wait());
         }
     }
     
@@ -73,7 +73,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+            $this->assertSame($promises[$key]->wait() + 1, $promise->wait());
         }
     }
     
@@ -105,7 +105,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isFulfilled());
-            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+            $this->assertSame($promises[$key]->wait() + 1, $promise->wait());
         }
     }
     
@@ -127,7 +127,12 @@ class PromiseMapTest extends TestCase
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertTrue($promise->isRejected());
-            $this->assertSame($exception, $promise->getResult());
+
+            try {
+                $promise->wait();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+            }
         }
     }
     
@@ -154,7 +159,12 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isRejected());
-            $this->assertSame($exception, $promise->getResult());
+
+            try {
+                $promise->wait();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+            }
         }
     }
 }

@@ -41,7 +41,7 @@ class PromiseSettleTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->callback(function ($result) use ($values) {
             foreach ($result as $key => $promise) {
-                if ($promise->getResult() !== $values[$key]) {
+                if ($promise->wait() !== $values[$key]) {
                     return false;
                 }
             }
