@@ -331,6 +331,26 @@ class LoopTest extends TestCase
 
         Loop\stop();
     }
+
+    /**
+     * @depends testLoop
+     */
+    public function testWith()
+    {
+        Loop\loop($this->loop);
+
+        $loop = $this->getMock(LoopInterface::class);
+
+        $worker = $this->createCallback(0);
+
+        $loop->expects($this->once())
+            ->method('run')
+            ->with($this->identicalTo($worker));
+
+        Loop\with($worker, $loop);
+
+        $this->assertSame($this->loop, Loop\loop());
+    }
     
     /**
      * @depends testLoop
