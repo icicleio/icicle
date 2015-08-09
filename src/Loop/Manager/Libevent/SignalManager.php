@@ -23,7 +23,6 @@ class SignalManager extends AbstractSignalManager
     /**
      * @param \Icicle\Loop\LoopInterface $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param resource $base
      */
     public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
     {
