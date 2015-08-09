@@ -1151,8 +1151,17 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->fail('Loop should not catch exceptions thrown from timer callbacks.');
     }
+
+    /**
+     * @requires extension pcntl
+     */
+    public function testSignalHandlingEnabled()
+    {
+        $this->assertTrue($this->loop->signalHandlingEnabled());
+    }
     
     /**
+     * @depends testSignalHandlingEnabled
      * @requires extension pcntl
      */
     public function testSignal()

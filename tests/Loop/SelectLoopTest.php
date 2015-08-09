@@ -16,7 +16,7 @@ class SelectLoopTest extends AbstractLoopTest
 {
     public function createLoop(EventFactoryInterface $eventFactory)
     {
-        return new SelectLoop($eventFactory);
+        return new SelectLoop(true, $eventFactory);
     }
     
     public function testEnabled()

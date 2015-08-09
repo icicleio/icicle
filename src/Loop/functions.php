@@ -31,21 +31,23 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
+     *
      * @return \Icicle\Loop\LoopInterface
      *
      * @codeCoverageIgnore
      */
-    function create()
+    function create($enableSignals = true)
     {
         if (EventLoop::enabled()) {
-            return new EventLoop();
+            return new EventLoop($enableSignals);
         }
 
         if (LibeventLoop::enabled()) {
-            return new LibeventLoop();
+            return new LibeventLoop($enableSignals);
         }
 
-        return new SelectLoop();
+        return new SelectLoop($enableSignals);
     }
 
     /**

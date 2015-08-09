@@ -39,13 +39,17 @@ class EventLoop extends AbstractLoop
     }
     
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null, EventBase $base = null)
-    {
+    public function __construct(
+        $enableSignals = true,
+        EventFactoryInterface $eventFactory = null,
+        EventBase $base = null
+    ) {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
@@ -53,7 +57,7 @@ class EventLoop extends AbstractLoop
         
         $this->base = $base ?: new EventBase();
 
-        parent::__construct($eventFactory);
+        parent::__construct($enableSignals, $eventFactory);
     }
 
     /**

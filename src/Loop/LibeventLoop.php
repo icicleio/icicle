@@ -39,12 +39,13 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the libevent extension is not loaded.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null, $base = null)
+    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
@@ -58,7 +59,7 @@ class LibeventLoop extends AbstractLoop
             $this->base = $base;
         }
         
-        parent::__construct($eventFactory);
+        parent::__construct($enableSignals, $eventFactory);
     }
 
     /**

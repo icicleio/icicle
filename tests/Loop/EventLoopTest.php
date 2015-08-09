@@ -29,7 +29,7 @@ class EventLoopTest extends AbstractLoopTest
     
     public function createLoop(EventFactoryInterface $eventFactory)
     {
-        return new EventLoop($eventFactory, self::$base);
+        return new EventLoop(true, $eventFactory, self::$base);
     }
     
     public function testEnabled()

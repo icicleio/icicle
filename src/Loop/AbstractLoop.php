@@ -100,9 +100,10 @@ abstract class AbstractLoop implements LoopInterface
     abstract protected function createSignalManager(EventFactoryInterface $eventFactory);
 
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      */
-    public function __construct(EventFactoryInterface $eventFactory = null)
+    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null)
     {
         $this->eventFactory = $eventFactory;
         
@@ -118,7 +119,7 @@ abstract class AbstractLoop implements LoopInterface
         $this->pollManager = $this->createPollManager($this->eventFactory);
         $this->awaitManager = $this->createAwaitManager($this->eventFactory);
         
-        if (extension_loaded('pcntl')) {
+        if ($enableSignals && extension_loaded('pcntl')) {
             $this->signalManager = $this->createSignalManager($this->eventFactory);
         }
     }
