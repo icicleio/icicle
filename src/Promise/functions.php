@@ -13,7 +13,6 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
-use Icicle\Promise\Exception\UnresolvedError;
 use Icicle\Promise\Structures\FulfilledPromise;
 use Icicle\Promise\Structures\LazyPromise;
 use Icicle\Promise\Structures\RejectedPromise;
