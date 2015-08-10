@@ -80,9 +80,9 @@ interface LoopInterface
      * Callbacks are called in the order queued.
      *
      * @param callable<(mixed ...$args): void> $callback
-     * @param mixed[]|null $args Array of arguments to be passed to the callback function.
+     * @param mixed[] $args Array of arguments to be passed to the callback function.
      */
-    public function queue(callable $callback, array $args = null);
+    public function queue(callable $callback, array $args = []);
     
     /**
      * Creates an event object that can be used to listen for available data on the stream socket.
@@ -114,21 +114,21 @@ interface LoopInterface
      * @param int|float $interval
      * @param bool $periodic
      * @param callable<(mixed ...$args): void> $callback
-     * @param mixed[]|null $args
+     * @param mixed[] $args
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    public function timer($interval, $periodic, callable $callback, array $args = null);
+    public function timer($interval, $periodic, callable $callback, array $args = []);
     
     /**
      * Creates an immediate object connected to the loop.
      *
      * @param callable<(mixed ...$args): void> $callback
-     * @param mixed[]|null $args
+     * @param mixed[] $args
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function immediate(callable $callback, array $args = null);
+    public function immediate(callable $callback, array $args = []);
 
     /**
      * @param int $signo

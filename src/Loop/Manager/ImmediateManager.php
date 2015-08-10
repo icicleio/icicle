@@ -50,7 +50,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(callable $callback, array $args = null)
+    public function create(callable $callback, array $args = [])
     {
         $immediate = $this->factory->immediate($this, $callback, $args);
         

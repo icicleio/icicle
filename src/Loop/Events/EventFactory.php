@@ -35,7 +35,7 @@ class EventFactory implements EventFactoryInterface
         $interval,
         $periodic,
         callable $callback,
-        array $args = null
+        array $args = []
     ) {
         return new Timer($manager, $interval, $periodic, $callback, $args);
     }
@@ -43,7 +43,7 @@ class EventFactory implements EventFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
+    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = [])
     {
         return new Immediate($manager, $callback, $args);
     }

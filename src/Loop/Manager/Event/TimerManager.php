@@ -89,7 +89,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic, callable $callback, array $args = null)
+    public function create($interval, $periodic, callable $callback, array $args = [])
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         

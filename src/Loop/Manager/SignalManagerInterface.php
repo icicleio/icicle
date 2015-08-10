@@ -22,7 +22,7 @@ interface SignalManagerInterface
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */
-    public function create($signo, callable $callback, array $args = null);
+    public function create($signo, callable $callback, array $args = []);
 
     /**
      * Enables listening for the signal.

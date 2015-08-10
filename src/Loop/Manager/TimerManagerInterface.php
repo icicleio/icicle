@@ -23,7 +23,7 @@ interface TimerManagerInterface
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    public function create($interval, $periodic, callable $callback, array $args = null);
+    public function create($interval, $periodic, callable $callback, array $args = []);
 
     /**
      * Starts the given timer if it is not already pending.

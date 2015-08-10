@@ -21,7 +21,7 @@ interface ImmediateManagerInterface
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function create(callable $callback, array $args = null);
+    public function create(callable $callback, array $args = []);
 
     /**
      * Puts the immediate in the loop again for execution.

@@ -37,9 +37,9 @@ class CallableQueue implements \Countable
     
     /**
      * @param callable $callback
-     * @param mixed[]|null $args
+     * @param mixed[] $args
      */
-    public function insert(callable $callback, array $args = null)
+    public function insert(callable $callback, array $args = [])
     {
         $this->queue[] = [$callback, $args];
     }

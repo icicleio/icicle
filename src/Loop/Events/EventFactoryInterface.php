@@ -30,7 +30,7 @@ interface EventFactoryInterface
      * @param int|float $interval Timer interval.
      * @param bool $periodic Set to true to repeat the timer every interval seconds, false for a one-time timer.
      * @param callable $callback Callback function invoked after the interval elapses.
-     * @param mixed[]|null $args Arguments to pass to the callback function.
+     * @param mixed[] $args Arguments to pass to the callback function.
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
@@ -39,17 +39,17 @@ interface EventFactoryInterface
         $interval,
         $periodic,
         callable $callback,
-        array $args = null
+        array $args = []
     );
     
     /**
      * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
      * @param callable $callback Callback function to be invoked.
-     * @param mixed[]|null $args Arguments to pass to the callback function.
+     * @param mixed[] $args Arguments to pass to the callback function.
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = null);
+    public function immediate(ImmediateManagerInterface $manager, callable $callback, array $args = []);
 
     /**
      * @param \Icicle\Loop\Manager\SignalManagerInterface $manager

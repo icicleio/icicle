@@ -24,7 +24,7 @@ class TimerTest extends TestCase
         $this->manager = $this->getMock(TimerManagerInterface::class);
     }
     
-    public function createTimer($interval, $periodic, callable $callback, array $args = null)
+    public function createTimer($interval, $periodic, callable $callback, array $args = [])
     {
         return new Timer($this->manager, $interval, $periodic, $callback, $args);
     }

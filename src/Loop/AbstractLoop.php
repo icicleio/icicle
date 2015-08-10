@@ -261,7 +261,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function queue(callable $callback, array $args = null)
+    public function queue(callable $callback, array $args = [])
     {
         $this->callableQueue->insert($callback, $args);
     }
@@ -293,7 +293,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function timer($interval, $periodic, callable $callback, array $args = null)
+    public function timer($interval, $periodic, callable $callback, array $args = [])
     {
         return $this->timerManager->create($interval, $periodic, $callback, $args);
     }
@@ -301,7 +301,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function immediate(callable $callback, array $args = null)
+    public function immediate(callable $callback, array $args = [])
     {
         return $this->immediateManager->create($callback, $args);
     }

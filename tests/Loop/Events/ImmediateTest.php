@@ -22,7 +22,7 @@ class ImmediateTest extends TestCase
         $this->manager = $this->getMock(ImmediateManagerInterface::class);
     }
     
-    public function createImmediate(callable $callback, array $args = null)
+    public function createImmediate(callable $callback, array $args = [])
     {
         return new Immediate($this->manager, $callback, $args);
     }
