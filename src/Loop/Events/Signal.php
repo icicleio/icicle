@@ -60,6 +60,14 @@ class Signal implements SignalInterface
     /**
      * {@inheritdoc}
      */
+    public function setCallback(callable $callback)
+    {
+        $this->callback = $callback;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function enable()
     {
         $this->manager->enable($this);

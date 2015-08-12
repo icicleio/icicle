@@ -95,6 +95,25 @@ class SocketEventTest extends TestCase
         
         $event->listen();
     }
+
+    /**
+     * @depends testCall
+     */
+    public function testSetCallback()
+    {
+        list($socket) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($socket), $this->identicalTo(false));
+
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+
+        $event->setCallback($callback);
+
+        $event->call(false);
+        $event->call(false);
+    }
     
     /**
      * @depends testListen

@@ -69,6 +69,25 @@ class SignalTest extends TestCase
         $signal();
     }
 
+    /**
+     * @depends testCall
+     */
+    public function testSetCallback()
+    {
+        $signo = 1;
+
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($signo));
+
+        $signal = $this->createSignal($signo, $this->createCallback(0));
+
+        $signal->setCallback($callback);
+
+        $signal->call();
+        $signal->call();
+    }
+
     public function testEnable()
     {
         $timer = $this->createSignal(1, $this->createCallback(0));

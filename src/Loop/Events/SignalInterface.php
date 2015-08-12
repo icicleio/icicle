@@ -22,6 +22,11 @@ interface SignalInterface
     public function __invoke();
 
     /**
+     * @param callable $callback
+     */
+    public function setCallback(callable $callback);
+
+    /**
      * Enables listening for the signal.
      */
     public function enable();

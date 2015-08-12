@@ -70,6 +70,14 @@ class SocketEvent implements SocketEventInterface
     /**
      * {@inheritdoc}
      */
+    public function setCallback(callable $callback)
+    {
+        $this->callback = $callback;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function listen($timeout = 0)
     {
         $this->manager->listen($this, $timeout);

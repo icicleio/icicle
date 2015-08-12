@@ -29,6 +29,11 @@ interface SocketEventInterface
     public function __invoke($expired);
 
     /**
+     * @param callable $callback
+     */
+    public function setCallback(callable $callback);
+
+    /**
      * Listens for data or the ability to write.
      *
      * @param int|float $timeout Number of seconds until the callback is invoked with $expired set to true if
