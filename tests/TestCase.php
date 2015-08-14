@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests;
 
 use Icicle\Tests\Stub\CallbackStub;
@@ -15,7 +23,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      *
      * @param int $count Number of times the callback should be called.
      *
-     * @return callable Object that is callable and expects to be called the given number of times.
+     * @return callable|\PHPUnit_Framework_MockObject_MockObject Object that is callable and expects to be called the
+     * given number of times.
      */
     public function createCallback($count)
     {

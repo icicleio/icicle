@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Event;
@@ -29,13 +37,17 @@ class EventLoop extends AbstractLoop
     }
     
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null, EventBase $base = null)
-    {
+    public function __construct(
+        bool $enableSignals = true,
+        EventFactoryInterface $eventFactory = null,
+        EventBase $base = null
+    ) {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
@@ -43,15 +55,16 @@ class EventLoop extends AbstractLoop
         
         $this->base = $base ?: new EventBase();
 
-        parent::__construct($eventFactory);
+        parent::__construct($enableSignals, $eventFactory);
     }
 
     /**
      * @return \EventBase
      *
+     * @internal
      * @codeCoverageIgnore
      */
-    protected function getEventBase(): EventBase
+    public function getEventBase(): EventBase
     {
         return $this->base;
     }
@@ -83,7 +96,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new PollManager($factory, $this->base);
+        return new PollManager($this, $factory);
     }
     
     /**
@@ -91,7 +104,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new AwaitManager($factory, $this->base);
+        return new AwaitManager($this, $factory);
     }
     
     /**
@@ -99,7 +112,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
-        return new TimerManager($factory, $this->base);
+        return new TimerManager($this, $factory);
     }
 
     /**
@@ -107,6 +120,6 @@ class EventLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
-        return new SignalManager($this, $factory, $this->base);
+        return new SignalManager($this, $factory);
     }
 }

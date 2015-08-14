@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\{
@@ -24,7 +32,7 @@ interface EventFactoryInterface
      * @param int|float $interval Timer interval.
      * @param bool $periodic Set to true to repeat the timer every interval seconds, false for a one-time timer.
      * @param callable $callback Callback function invoked after the interval elapses.
-     * @param mixed[]|null $args Arguments to pass to the callback function.
+     * @param mixed[] $args Arguments to pass to the callback function.
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
@@ -33,20 +41,20 @@ interface EventFactoryInterface
         float $interval,
         bool $periodic,
         callable $callback,
-        array $args = null
+        array $args = []
     ): TimerInterface;
     
     /**
      * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
      * @param callable $callback Callback function to be invoked.
-     * @param mixed[]|null $args Arguments to pass to the callback function.
+     * @param mixed[] $args Arguments to pass to the callback function.
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
     public function immediate(
         ImmediateManagerInterface $manager,
         callable $callback,
-        array $args = null
+        array $args = []
     ): ImmediateInterface;
 
     /**

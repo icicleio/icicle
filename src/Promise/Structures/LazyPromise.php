@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Promise\Structures;
 
 use Icicle\Promise;
@@ -108,13 +116,21 @@ class LazyPromise implements PromiseInterface
     {
         return $this->getPromise()->isRejected();
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function getResult()
+    public function isCancelled(): bool
     {
-        return $this->getPromise()->getResult();
+        return $this->getPromise()->isCancelled();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function wait()
+    {
+        return $this->getPromise()->wait();
     }
     
     /**

@@ -1,9 +1,23 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Promise;
 
 use Icicle\Loop;
-use Icicle\Promise\Exception\{CancelledException, CircularResolutionError, TimeoutException, UnresolvedError};
-use Icicle\Promise\Structures\{FulfilledPromise, RejectedPromise, ThenQueue};
+use Icicle\Promise\Exception\{
+    CancelledException,
+    CircularResolutionError,
+    InvalidResolverError,
+    TimeoutException,
+    UnresolvedError
+};
+use Icicle\Promise\Structures\{CancelledPromise, FulfilledPromise, RejectedPromise, ThenQueue};
 use Throwable;
 
 /**
@@ -14,7 +28,7 @@ use Throwable;
 class Promise implements PromiseInterface
 {
     use PromiseTrait;
-    
+
     /**
      * @var \Icicle\Promise\PromiseInterface|null
      */
@@ -41,10 +55,9 @@ class Promise implements PromiseInterface
     private $children = 0;
     
     /**
-     * @param callable $resolver
-     * @param callable|null $onCancelled
+     * @param callable<(callable $resolve, callable $reject, LoopInterface $loop): callable|null> $resolver
      */
-    public function __construct(callable $resolver, callable $onCancelled = null)
+    public function __construct(callable $resolver)
     {
         /**
          * Resolves the promise with the given promise or value. If another promise, this promise takes
@@ -76,10 +89,11 @@ class Promise implements PromiseInterface
             $this->resolve(new RejectedPromise($reason));
         };
 
-        $this->onCancelled = $onCancelled;
-
         try {
-            $resolver($resolve, $reject);
+            $this->onCancelled = $resolver($resolve, $reject);
+            if (null !== $this->onCancelled && !is_callable($this->onCancelled)) {
+                throw new InvalidResolverError('The resolver must return a callable or null.');
+            }
         } catch (Throwable $exception) {
             $reject($exception);
         }
@@ -141,7 +155,7 @@ class Promise implements PromiseInterface
 
         $this->onRejected->push($onRejected);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -182,13 +196,12 @@ class Promise implements PromiseInterface
                         $resolve($this->result);
                     });
                 }
-            },
-            function (Throwable $exception) {
-                Loop\queue(function () use ($exception) {
+
+                return function (Throwable $exception) {
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }
-                });
+                };
             }
         );
     }
@@ -222,19 +235,7 @@ class Promise implements PromiseInterface
             return;
         }
 
-        if (!$reason instanceof Throwable) {
-            $reason = new CancelledException($reason);
-        }
-
-        if (null !== $this->onCancelled) {
-            try {
-                ($this->onCancelled)($reason);
-            } catch (Throwable $exception) {
-                $reason = $exception; // Thrown exception will now be used to reject promise.
-            }
-        }
-
-        $this->resolve(new RejectedPromise($reason));
+        $this->resolve(new CancelledPromise($reason, $this->onCancelled));
     }
     
     /**
@@ -249,7 +250,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function (callable $resolve) use (&$timer, $timeout, $reason) {
+            function (callable $resolve) use ($timeout, $reason) {
                 $timer = Loop\timer($timeout, function () use ($reason) {
                     if (!$reason instanceof Throwable) {
                         $reason = new TimeoutException($reason);
@@ -264,15 +265,14 @@ class Promise implements PromiseInterface
                 
                 $this->onFulfilled($onResolved);
                 $this->onRejected($onResolved);
-            },
-            function (Throwable $exception) use (&$timer) {
-                $timer->stop();
 
-                Loop\queue(function () use ($exception) {
+                return function (Throwable $exception) use ($timer) {
+                    $timer->stop();
+
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }
-                });
+                };
             }
         );
     }
@@ -289,7 +289,7 @@ class Promise implements PromiseInterface
         ++$this->children;
         
         return new self(
-            function (callable $resolve) use (&$timer, $time) {
+            function (callable $resolve) use ($time) {
                 $this->onFulfilled(function () use (&$timer, $time, $resolve) {
                     $timer = Loop\timer($time, function () use ($resolve) {
                         $resolve($this->result);
@@ -299,19 +299,34 @@ class Promise implements PromiseInterface
                 $this->onRejected(function () use ($resolve) {
                     $resolve($this->result);
                 });
-            },
-            function (Throwable $exception) use (&$timer) {
-                if (null !== $timer) {
-                    $timer->stop();
-                }
 
-                Loop\queue(function () use ($exception) {
+                return function (Throwable $exception) use (&$timer) {
+                    if (null !== $timer) {
+                        $timer->stop();
+                    }
+
                     if (0 === --$this->children) {
                         $this->cancel($exception);
                     }
-                });
+                };
             }
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function wait()
+    {
+        while (null === $this->result) {
+            if (Loop\isEmpty()) {
+                throw new UnresolvedError('Loop emptied without resolving promise.');
+            }
+
+            Loop\tick(true);
+        }
+
+        return $this->unwrap()->wait();
     }
     
     /**
@@ -337,19 +352,15 @@ class Promise implements PromiseInterface
     {
         return null !== $this->result ? $this->unwrap()->isRejected() : false;
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function getResult()
+    public function isCancelled(): bool
     {
-        if (null === $this->result) {
-            throw new UnresolvedError('The promise is still pending.');
-        }
-        
-        return $this->unwrap()->getResult();
+        return null !== $this->result ? $this->unwrap()->isCancelled() : false;
     }
-    
+
     /**
      * {@inheritdoc}
      */

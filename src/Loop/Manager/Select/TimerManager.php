@@ -1,13 +1,27 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager\Select;
 
 use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
 use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\SelectLoop;
 use Icicle\Loop\Structures\ObjectStorage;
 use SplPriorityQueue;
 
 class TimerManager implements TimerManagerInterface
 {
+    /**
+     * @var \Icicle\Loop\SelectLoop
+     */
+    private $loop;
+
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
      */
@@ -24,10 +38,12 @@ class TimerManager implements TimerManagerInterface
     private $timers;
     
     /**
+     * @param \Icicle\Loop\SelectLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventFactoryInterface $factory)
+    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
         
         $this->queue = new SplPriorityQueue();
@@ -37,7 +53,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface
+    public function create(float $interval, bool $periodic, callable $callback, array $args = []): TimerInterface
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         

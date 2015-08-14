@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\{
@@ -103,9 +111,10 @@ abstract class AbstractLoop implements LoopInterface
     abstract protected function createSignalManager(EventFactoryInterface $eventFactory): SignalManagerInterface;
 
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      */
-    public function __construct(EventFactoryInterface $eventFactory = null)
+    public function __construct(bool $enableSignals = true, EventFactoryInterface $eventFactory = null)
     {
         $this->eventFactory = $eventFactory;
         
@@ -121,7 +130,7 @@ abstract class AbstractLoop implements LoopInterface
         $this->pollManager = $this->createPollManager($this->eventFactory);
         $this->awaitManager = $this->createAwaitManager($this->eventFactory);
         
-        if (extension_loaded('pcntl')) {
+        if ($enableSignals && extension_loaded('pcntl')) {
             $this->signalManager = $this->createSignalManager($this->eventFactory);
         }
     }
@@ -218,7 +227,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function run(): bool
+    public function run(callable $initialize = null): bool
     {
         if ($this->isRunning()) {
             throw new RunningError('The loop was already running.');
@@ -227,16 +236,18 @@ abstract class AbstractLoop implements LoopInterface
         $this->running = true;
         
         try {
-            do {
+            if (null !== $initialize) {
+                $initialize();
+            }
+
+            while ($this->isRunning()) {
                 if ($this->isEmpty()) {
-                    $this->stop();
                     return false;
                 }
                 $this->tick();
-            } while ($this->isRunning());
-        } catch (\Throwable $exception) {
+            }
+        } finally {
             $this->stop();
-            throw $exception;
         }
         
         return true;
@@ -261,7 +272,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function queue(callable $callback, array $args = null)
+    public function queue(callable $callback, array $args = [])
     {
         $this->callableQueue->insert($callback, $args);
     }
@@ -293,7 +304,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function timer(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface
+    public function timer(float $interval, bool $periodic, callable $callback, array $args = []): TimerInterface
     {
         return $this->timerManager->create($interval, $periodic, $callback, $args);
     }
@@ -301,7 +312,7 @@ abstract class AbstractLoop implements LoopInterface
     /**
      * {@inheritdoc}
      */
-    public function immediate(callable $callback, array $args = null): ImmediateInterface
+    public function immediate(callable $callback, array $args = []): ImmediateInterface
     {
         return $this->immediateManager->create($callback, $args);
     }
@@ -360,6 +371,6 @@ abstract class AbstractLoop implements LoopInterface
      */
     protected function createImmediateManager(EventFactoryInterface $factory): ImmediateManagerInterface
     {
-        return new ImmediateManager($factory);
+        return new ImmediateManager($this, $factory);
     }
 }

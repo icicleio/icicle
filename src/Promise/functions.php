@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Promise;
 
 use Icicle\Loop;
@@ -131,39 +139,6 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
         return new LazyPromise(function () use ($promisor, $args) {
             return $promisor(...$args);
         });
-    }
-
-    /**
-     * This function may be used to synchronously wait for a promise to be resolved. This function should generally
-     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
-     * function to group them) and synchronously wait for the task to complete. Using this function in a running event
-     * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
-     * program flow.
-     *
-     * @param PromiseInterface $promise
-     *
-     * @return mixed Promise fulfillment value.
-     *
-     * @throws \Icicle\Promise\Exception\UnresolvedError If the event loop empties without fulfilling the promise.
-     * @throws \Throwable If the promise is rejected, the rejection reason is thrown from this function.
-     */
-    function wait(PromiseInterface $promise)
-    {
-        while ($promise->isPending()) {
-            if (Loop\isEmpty()) {
-                throw new UnresolvedError('Loop emptied without resolving promise.');
-            }
-
-            Loop\tick(true);
-        }
-
-        $result = $promise->getResult();
-
-        if ($promise->isRejected()) {
-            throw $result;
-        }
-
-        return $result;
     }
 
     /**
@@ -332,8 +307,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * array is rejected for the same reason. Tip: Use all() or settle()  to determine when all promises in the array
      * have been resolved.
      *
-     * @param callable<mixed (mixed $value)> $callback
-     * @param mixed[] ...$promises Promises or values (passed through resolve() to create promises).
+     * @param callable<(mixed $value): mixed> $callback
+     * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
      * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      */
@@ -347,7 +322,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * return a promise or value and the initial value may also be a promise or value.
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
-     * @param callable $callback (mixed $carry, mixed $value) : mixed Called for each fulfilled promise value.
+     * @param callable<(mixed $carry, mixed $value): mixed> Called for each fulfilled promise value.
      * @param mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
      * @return \Icicle\Promise\PromiseInterface
@@ -358,21 +333,20 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             return resolve($initial);
         }
 
-        return $result = new Promise(function (callable $resolve, callable $reject) use (
-            &$result, $promises, $callback, $initial
-        ) {
-            $pending = count($promises);
+        return new Promise(function (callable $resolve, callable $reject) use ($promises, $callback, $initial) {
+            $pending = true;
+            $count = count($promises);
             $carry = resolve($initial);
             $carry->done(null, $reject);
 
-            $onFulfilled = function ($value) use (&$carry, &$result, &$pending, $callback, $resolve, $reject) {
-                if ($result->isPending()) {
+            $onFulfilled = function ($value) use (&$carry, &$pending, &$count, $callback, $resolve, $reject) {
+                if ($pending) {
                     $carry = $carry->then(function ($carry) use ($callback, $value) {
                         return $callback($carry, $value);
                     });
                     $carry->done(null, $reject);
 
-                    if (0 === --$pending) {
+                    if (0 === --$count) {
                         $resolve($carry);
                     }
                 }
@@ -381,6 +355,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             foreach ($promises as $promise) {
                 resolve($promise)->done($onFulfilled, $reject);
             }
+
+            return function (Throwable $exception) use (&$carry, &$pending) {
+                $pending = false;
+                $carry->cancel($exception);
+            };
         });
     }
     
@@ -391,20 +370,21 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * cleared before each call to $worker to avoid filling the call stack. If $worker returns a promise, iteration
      * waits for the returned promise to be resolved.
      *
-     * @param callable<mixed (mixed $value) $worker> Called with the previous return value on each iteration.
-     * @param callable<bool (mixed $value) $predicate> Return false to stop iteration and fulfill promise.
+     * @param callable<(mixed $value): mixed $worker> Called with the previous return value on each iteration.
+     * @param callable<(mixed $value): bool $predicate> Return false to stop iteration and fulfill promise.
      * @param mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
      * @return \Icicle\Promise\PromiseInterface
      */
     function iterate(callable $worker, callable $predicate, $seed = null): PromiseInterface
     {
-        return $result = new Promise(
-            function (callable $resolve, callable $reject) use (&$result, &$promise, $worker, $predicate, $seed) {
+        return new Promise(
+            function (callable $resolve, callable $reject) use (&$promise, $worker, $predicate, $seed) {
+                $pending = true;
                 $callback = function ($value) use (
-                    &$callback, &$result, &$promise, $worker, $predicate, $resolve, $reject
+                    &$callback, &$pending, &$promise, $worker, $predicate, $resolve, $reject
                 ) {
-                    if ($result->isPending()) {
+                    if ($pending) {
                         try {
                             if (!$predicate($value)) { // Resolve promise if $predicate returns false.
                                 $resolve($value);
@@ -420,9 +400,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 $promise = resolve($seed);
                 $promise->done($callback, $reject); // Start iteration with $seed.
-            },
-            function (Throwable $exception) use (&$promise) {
-                $promise->cancel($exception);
+
+                return function (Throwable $exception) use (&$promise, &$pending) {
+                    $pending = false;
+                    $promise->cancel($exception);
+                };
             }
         );
     }
@@ -433,9 +415,9 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * If the promise returned by $promisor is fulfilled, the promise returned by this function is fulfilled with the
      * same value.
      *
-     * @param callable<PromiseInterface ()> $promisor Performs an operation to be retried on failure.
+     * @param callable<(): PromiseInterface> $promisor Performs an operation to be retried on failure.
      *     Should return a promise, but can return any type of value (will be made into a promise using resolve()).
-     * @param callable<bool (Throwable $exception) $onRejected> This function is called if the promise returned by
+     * @param callable<(Exception $exception): bool $onRejected> This function is called if the promise returned by
      *     $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *     operation.
      *
@@ -443,12 +425,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      */
     function retry(callable $promisor, callable $onRejected): PromiseInterface
     {
-        return $result = new Promise(
-            function (callable $resolve, callable $reject) use (&$result, &$promise, $promisor, $onRejected) {
+        return new Promise(
+            function (callable $resolve, callable $reject) use (&$promise, $promisor, $onRejected) {
+                $pending = true;
                 $callback = function (Throwable $exception) use (
-                    &$callback, &$result, &$promise, $promisor, $onRejected, $resolve, $reject
+                    &$callback, &$pending, &$promise, $promisor, $onRejected, $resolve, $reject
                 ) {
-                    if ($result->isPending()) {
+                    if ($pending) {
                         try {
                             if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
                                 $reject($exception);
@@ -464,9 +447,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 $promise = resolve($promisor());
                 $promise->done($resolve, $callback);
-            },
-            function (Throwable $exception) use (&$promise) {
-                $promise->cancel($exception);
+
+                return function (Throwable $exception) use (&$promise, &$pending) {
+                    $pending = false;
+                    $promise->cancel($exception);
+                };
             }
         );
     }

@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\TimerManagerInterface;
@@ -43,14 +51,14 @@ class Timer implements TimerInterface
      * @param int|float $interval Number of seconds until the callback function is called.
      * @param bool $periodic True to repeat the timer, false to only run it once.
      * @param callable $callback Function called when the interval expires.
-     * @param mixed[]|null $args Optional array of arguments to pass the callback function.
+     * @param mixed[] $args Optional array of arguments to pass the callback function.
      */
     public function __construct(
         TimerManagerInterface $manager,
         $interval,
         $periodic,
         callable $callback,
-        array $args = null
+        array $args = []
     ) {
         $this->manager = $manager;
         $this->interval = (float) $interval;

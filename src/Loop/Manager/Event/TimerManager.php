@@ -1,14 +1,28 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
+use Icicle\Loop\EventLoop;
 use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
 use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManagerInterface;
 
 class TimerManager implements TimerManagerInterface
 {
+    /**
+     * @var \Icicle\Loop\EventLoop
+     */
+    private $loop;
+
     /**
      * @var EventBase
      */
@@ -32,17 +46,25 @@ class TimerManager implements TimerManagerInterface
     private $callback;
     
     /**
-     * @param EventFactoryInterface $factory
-     * @param EventBase $base
+     * @param \Icicle\Loop\EventLoop $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventFactoryInterface $factory, EventBase $base)
+    public function __construct(EventLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
-        $this->base = $base;
+        $this->base = $this->loop->getEventBase();
         
         $this->timers = new ObjectStorage();
         
-        $this->callback = $this->createCallback();
+        $this->callback = function ($resource, int $what, TimerInterface $timer) {
+            if (!$this->timers[$timer]->pending) {
+                $this->timers[$timer]->free();
+                unset($this->timers[$timer]);
+            }
+
+            $timer->call();
+        };
     }
     
     /**
@@ -66,7 +88,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic, callable $callback, array $args = null): TimerInterface
+    public function create($interval, $periodic, callable $callback, array $args = []): TimerInterface
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
@@ -137,20 +159,5 @@ class TimerManager implements TimerManagerInterface
         }
         
         $this->timers = new ObjectStorage();
-    }
-    
-    /**
-     * @return callable
-     */
-    protected function createCallback(): callable
-    {
-        return function ($resource, $what, TimerInterface $timer) {
-            if (!$this->timers[$timer]->pending) {
-                $this->timers[$timer]->free();
-                unset($this->timers[$timer]);
-            }
-            
-            $timer->call();
-        };
     }
 }

@@ -1,8 +1,17 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
+use Icicle\Loop\EventLoop;
 use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\Manager\SocketManagerInterface;
@@ -10,6 +19,11 @@ use Icicle\Loop\Manager\SocketManagerInterface;
 abstract class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
+
+    /**
+     * @var \Icicle\Loop\EventLoop
+     */
+    private $loop;
 
     /**
      * @var \EventBase
@@ -48,15 +62,18 @@ abstract class SocketManager implements SocketManagerInterface
     abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback): Event;
     
     /**
+     * @param \Icicle\Loop\EventLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param \EventBase $base
      */
-    public function __construct(EventFactoryInterface $factory, EventBase $base)
+    public function __construct(EventLoop $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
-        $this->base = $base;
+        $this->base = $this->loop->getEventBase();
         
-        $this->callback = $this->createCallback();
+        $this->callback = function ($resource, int $what, SocketEventInterface $socket) {
+            $socket->call(0 !== (Event::TIMEOUT & $what));
+        };
     }
     
     /**
@@ -187,15 +204,5 @@ abstract class SocketManager implements SocketManagerInterface
         
         $this->events = [];
         $this->sockets = [];
-    }
-    
-    /**
-     * @return callable
-     */
-    protected function createCallback(): callable
-    {
-        return function ($resource, $what, SocketEventInterface $socket) {
-            $socket->call(0 !== (Event::TIMEOUT & $what));
-        };
     }
 }

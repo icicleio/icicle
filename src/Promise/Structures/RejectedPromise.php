@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Promise\Structures;
 
 use Icicle\Loop;
@@ -58,15 +66,7 @@ class RejectedPromise extends ResolvedPromise
             });
         }
     }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function delay(float $time): PromiseInterface
-    {
-        return $this;
-    }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -82,12 +82,12 @@ class RejectedPromise extends ResolvedPromise
     {
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function getResult()
+    public function wait()
     {
-        return $this->exception;
+        throw $this->exception;
     }
 }

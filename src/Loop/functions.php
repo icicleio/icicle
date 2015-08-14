@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\{ImmediateInterface, SignalInterface, SocketEventInterface, TimerInterface};
@@ -6,43 +14,63 @@ use Icicle\Loop\Exception\InitializedError;
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
-     * Returns the active event loop. Can be used to set the active event loop if the event loop has not been accessed.
+     * Returns the default event loop. Can be used to set the default event loop if an instance is provided.
      *
      * @param \Icicle\Loop\LoopInterface|null $loop
      * 
      * @return \Icicle\Loop\LoopInterface
-     *
-     * @throws \Icicle\Loop\Exception\InitializedError If the loop has already been initialized.
      */
     function loop(LoopInterface $loop = null): LoopInterface
     {
         static $instance;
 
-        if (null === $instance) {
-            $instance = $loop ?: create();
-        } elseif (null !== $loop) {
-            throw new InitializedError('The loop has already been initialized.');
+        if (null !== $loop) {
+            $instance = $loop;
+        } elseif (null === $instance) {
+            $instance = create();
         }
 
         return $instance;
     }
 
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
+     *
      * @return \Icicle\Loop\LoopInterface
      *
      * @codeCoverageIgnore
      */
-    function create(): LoopInterface
+    function create(bool $enableSignals = true): LoopInterface
     {
         if (EventLoop::enabled()) {
-            return new EventLoop();
+            return new EventLoop($enableSignals);
         }
 
         if (LibeventLoop::enabled()) {
-            return new LibeventLoop();
+            return new LibeventLoop($enableSignals);
         }
 
-        return new SelectLoop();
+        return new SelectLoop($enableSignals);
+    }
+
+    /**
+     * Runs the tasks set up in the given function in a separate event loop from the default event loop. If the default
+     * is running, the default event loop is blocked while the separate event loop is running.
+     *
+     * @param callable $worker
+     * @param LoopInterface|null $loop
+     *
+     * @return bool
+     */
+    function with(callable $worker, LoopInterface $loop = null): bool
+    {
+        $previous = loop();
+
+        try {
+            return loop($loop ?: create())->run($worker);
+        } finally {
+            loop($previous);
+        }
     }
     
     /**
@@ -80,15 +108,18 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     }
 
     /**
-     * Runs the event loop, dispatching I/O events, timers, etc.
+     * Starts the default event loop. If a function is provided, that function is executed immediately after starting
+     * the event loop, passing the event loop as the first argument.
+     *
+     * @param callable<(): void>|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    function run(): bool
+    function run(callable $initialize = null): bool
     {
-        return loop()->run();
+        return loop()->run($initialize);
     }
 
     /**

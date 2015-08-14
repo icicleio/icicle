@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\{ImmediateInterface, SignalInterface, SocketEventInterface, TimerInterface};
@@ -20,13 +28,16 @@ interface LoopInterface
     public function tick(bool $blocking = true);
     
     /**
-     * Starts the event loop.
+     * Starts the event loop. If a function is provided, that function is executed immediately after starting the event
+     * loop.
+     *
+     * @param callable<(): void>|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
      * @throws \Icicle\Loop\Exception\RunningError If the loop was already running.
      */
-    public function run(): bool;
+    public function run(callable $initialize = null): bool;
     
     /**
      * Stops the event loop.
@@ -70,16 +81,16 @@ interface LoopInterface
      * Queue a callback function to be run after all I/O has been handled in the current tick.
      * Callbacks are called in the order queued.
      *
-     * @param callable $callback
-     * @param mixed[]|null $args Array of arguments to be passed to the callback function.
+     * @param callable<(mixed ...$args): void> $callback
+     * @param mixed[] $args Array of arguments to be passed to the callback function.
      */
-    public function queue(callable $callback, array $args = null);
+    public function queue(callable $callback, array $args = []);
     
     /**
      * Creates an event object that can be used to listen for available data on the stream socket.
      *
      * @param resource $resource
-     * @param callable $callback
+     * @param callable<(resource $resource, bool $expired): void> $callback
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
@@ -91,7 +102,7 @@ interface LoopInterface
      * Creates an event object that can be used to wait for the socket resource to be available for writing.
      *
      * @param resource $resource
-     * @param callable $callback
+     * @param callable<(resource $resource, bool $expired): void> $callback
      *
      * @return \Icicle\Loop\Events\SocketEventInterface
      *
@@ -104,26 +115,26 @@ interface LoopInterface
      *
      * @param int|float $interval
      * @param bool $periodic
-     * @param callable $callback
-     * @param mixed[]|null $args
+     * @param callable<(mixed ...$args): void> $callback
+     * @param mixed[] $args
      *
      * @return \Icicle\Loop\Events\TimerInterface
      */
-    public function timer(float $interval, bool $periodic, callable $callback, array $args = null): TimerInterface;
+    public function timer(float $interval, bool $periodic, callable $callback, array $args = []): TimerInterface;
     
     /**
      * Creates an immediate object connected to the loop.
      *
-     * @param callable $callback
-     * @param mixed[]|null $args
+     * @param callable<(mixed ...$args): void> $callback
+     * @param mixed[] $args
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function immediate(callable $callback, array $args = null): ImmediateInterface;
+    public function immediate(callable $callback, array $args = []): ImmediateInterface;
 
     /**
      * @param int $signo
-     * @param callable $callback
+     * @param callable<(int $signo): void> $callback
      *
      * @return \Icicle\Loop\Events\SignalInterface
      */

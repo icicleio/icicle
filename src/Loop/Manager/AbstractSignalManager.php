@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\{EventFactoryInterface, SignalInterface};
@@ -39,7 +47,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(int $signo, callable $callback, array $args = null): SignalInterface
+    public function create(int $signo, callable $callback, array $args = []): SignalInterface
     {
         if (!isset($this->signals[$signo])) {
             throw new InvalidSignalError(sprintf('Invalid signal number: %d.', $signo));
@@ -101,20 +109,49 @@ abstract class AbstractSignalManager implements SignalManagerInterface
      */
     protected function getSignalList(): array
     {
-        return [
-            'SIGHUP'  => SIGHUP,
-            'SIGINT'  => SIGINT,
-            'SIGQUIT' => SIGQUIT,
-            'SIGILL'  => SIGILL,
-            'SIGABRT' => SIGABRT,
-            'SIGTERM' => SIGTERM,
-            'SIGCHLD' => SIGCHLD,
-            'SIGCONT' => SIGCONT,
-            'SIGTSTP' => SIGTSTP,
-            'SIGPIPE' => SIGPIPE,
-            'SIGUSR1' => SIGUSR1,
-            'SIGUSR2' => SIGUSR2,
+        $signals = [
+            SIGHUP,
+            SIGINT,
+            SIGQUIT,
+            SIGILL,
+            SIGABRT,
+            SIGTRAP,
+            SIGBUS,
+            SIGTERM,
+            SIGSEGV,
+            SIGFPE,
+            SIGALRM,
+            SIGVTALRM,
+            SIGPROF,
+            SIGIO,
+            SIGCONT,
+            SIGURG,
+            SIGPIPE,
+            SIGXCPU,
+            SIGXFSZ,
+            SIGTTIN,
+            SIGTTOU,
+            SIGUSR1,
+            SIGUSR2,
         ];
+
+        if (defined('SIGIOT')) {
+            $signals[] = SIGIOT;
+        }
+
+        if (defined('SIGSTKFLT')) {
+            $signals[] = SIGSTKFLT;
+        }
+
+        if (defined('SIGCLD')) {
+            $signals[] = SIGCLD;
+        }
+
+        if (defined('SIGCHLD')) {
+            $signals[] = SIGCHLD;
+        }
+
+        return $signals;
     }
 
     /**
@@ -135,15 +172,29 @@ abstract class AbstractSignalManager implements SignalManagerInterface
                 case SIGHUP:
                 case SIGINT:
                 case SIGQUIT:
+                case SIGABRT:
+                case SIGTRAP:
+                case SIGXCPU:
                     if (!$handled) {
                         $this->loop->stop();
                     }
                     break;
 
                 case SIGTERM:
+                case SIGBUS:
+                case SIGSEGV:
+                case SIGFPE:
                     $this->loop->stop();
                     break;
             }
         };
+    }
+
+    /**
+     * @return \Icicle\Loop\LoopInterface
+     */
+    protected function getLoop()
+    {
+        return $this->loop;
     }
 }

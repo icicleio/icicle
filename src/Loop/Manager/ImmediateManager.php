@@ -1,10 +1,24 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\{EventFactoryInterface, ImmediateInterface};
+use Icicle\Loop\LoopInterface;
 
 class ImmediateManager implements ImmediateManagerInterface
 {
+    /**
+     * @var \Icicle\Loop\LoopInterface
+     */
+    private $loop;
+
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
      */
@@ -21,10 +35,12 @@ class ImmediateManager implements ImmediateManagerInterface
     private $immediates;
     
     /**
-     * @param EventFactoryInterface $factory
+     * @param \Icicle\Loop\LoopInterface $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventFactoryInterface $factory)
+    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
     {
+        $this->loop = $loop;
         $this->factory = $factory;
         $this->queue = new \SplQueue();
         $this->immediates = new \SplObjectStorage();
@@ -33,7 +49,7 @@ class ImmediateManager implements ImmediateManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(callable $callback, array $args = null): ImmediateInterface
+    public function create(callable $callback, array $args = []): ImmediateInterface
     {
         $immediate = $this->factory->immediate($this, $callback, $args);
         

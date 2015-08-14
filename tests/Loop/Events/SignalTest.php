@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\Signal;
@@ -59,6 +67,25 @@ class SignalTest extends TestCase
 
         $signal();
         $signal();
+    }
+
+    /**
+     * @depends testCall
+     */
+    public function testSetCallback()
+    {
+        $signo = 1;
+
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($signo));
+
+        $signal = $this->createSignal($signo, $this->createCallback(0));
+
+        $signal->setCallback($callback);
+
+        $signal->call();
+        $signal->call();
     }
 
     public function testEnable()

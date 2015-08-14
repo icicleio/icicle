@@ -1,17 +1,26 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\PromiseInterface;
 use Icicle\Tests\TestCase;
 
 class PromiseMapTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testEmptyArray()
@@ -41,7 +50,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame($values[$key] + 1, $promise->getResult());
+            $this->assertSame($values[$key] + 1, $promise->wait());
         }
     }
     
@@ -64,7 +73,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+            $this->assertSame($promises[$key]->wait() + 1, $promise->wait());
         }
     }
     
@@ -96,7 +105,7 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isFulfilled());
-            $this->assertSame($promises[$key]->getResult() + 1, $promise->getResult());
+            $this->assertSame($promises[$key]->wait() + 1, $promise->wait());
         }
     }
     
@@ -118,7 +127,12 @@ class PromiseMapTest extends TestCase
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
             $this->assertTrue($promise->isRejected());
-            $this->assertSame($exception, $promise->getResult());
+
+            try {
+                $promise->wait();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+            }
         }
     }
     
@@ -145,7 +159,12 @@ class PromiseMapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isRejected());
-            $this->assertSame($exception, $promise->getResult());
+
+            try {
+                $promise->wait();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+            }
         }
     }
 
@@ -171,7 +190,7 @@ class PromiseMapTest extends TestCase
 
         foreach ($result as $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame(4, $promise->getResult());
+            $this->assertSame(4, $promise->wait());
         }
     }
 
@@ -200,7 +219,7 @@ class PromiseMapTest extends TestCase
 
         foreach ($result as $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame(4, $promise->getResult());
+            $this->assertSame(4, $promise->wait());
         }
     }
 
@@ -237,7 +256,7 @@ class PromiseMapTest extends TestCase
 
         foreach ($result as $promise) {
             $this->assertInstanceOf(PromiseInterface::class, $promise);
-            $this->assertSame(4, $promise->getResult());
+            $this->assertSame(4, $promise->wait());
         }
     }
 
@@ -267,7 +286,11 @@ class PromiseMapTest extends TestCase
 
         foreach ($result as $key => $promise) {
             $this->assertTrue($promise->isRejected());
-            $this->assertSame($exception, $promise->getResult());
+            try {
+                $promise->wait();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+            }
         }
     }
 }

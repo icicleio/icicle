@@ -1,8 +1,17 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Deferred;
 use Icicle\Promise\Exception\RejectedException;
@@ -10,9 +19,9 @@ use Icicle\Tests\TestCase;
 
 class DeferredTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testResolve()
@@ -75,7 +84,12 @@ class DeferredTest extends TestCase
         $promise = $deferred->getPromise();
         
         $this->assertTrue($promise->isRejected());
-        $this->assertSame($reason, $promise->getResult()->getReason());
+
+        try {
+            $promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception->getReason());
+        }
     }
     
     public function testCancellation()
@@ -99,6 +113,11 @@ class DeferredTest extends TestCase
         Loop\run();
         
         $this->assertTrue($deferred->getPromise()->isRejected());
-        $this->assertSame($exception, $deferred->getPromise()->getResult());
+
+        try {
+            $deferred->getPromise()->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
     }
 }

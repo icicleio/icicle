@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Coroutine;
 
 use Generator;
@@ -108,19 +116,20 @@ class Coroutine extends Promise implements CoroutineInterface
                 };
                 
                 Loop\queue($this->worker);
-            },
-            function (Throwable $exception) {
-                try {
-                    $current = $this->generator->current(); // Get last yielded value.
-                    while ($this->generator->valid()) {
-                        if ($current instanceof PromiseInterface) {
-                            $current->cancel($exception);
+
+                return function (Throwable $exception) {
+                    try {
+                        $current = $this->generator->current(); // Get last yielded value.
+                        while ($this->generator->valid()) {
+                            if ($current instanceof PromiseInterface) {
+                                $current->cancel($exception);
+                            }
+                            $current = $this->generator->throw($exception);
                         }
-                        $current = $this->generator->throw($exception);
+                    } finally {
+                        $this->close();
                     }
-                } finally {
-                    $this->close();
-                }
+                };
             }
         );
     }

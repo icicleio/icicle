@@ -1,9 +1,19 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Promise\Structures;
 
+use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\{Promise, PromiseInterface};
+use Throwable;
 
 class FulfilledPromise extends ResolvedPromise
 {
@@ -39,7 +49,7 @@ class FulfilledPromise extends ResolvedPromise
             Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
                 try {
                     $resolve($onFulfilled($this->value));
-                } catch (\Throwable $exception) {
+                } catch (Throwable $exception) {
                     $reject($exception);
                 }
             });
@@ -62,13 +72,14 @@ class FulfilledPromise extends ResolvedPromise
     public function delay(float $time): PromiseInterface
     {
         return new Promise(
-            function (callable $resolve) use (&$timer, $time) {
+            function (callable $resolve) use ($time) {
                 $timer = Loop\timer($time, function () use ($resolve) {
                     $resolve($this);
                 });
-            },
-            function () use (&$timer) {
-                $timer->stop();
+
+                return function () use ($timer) {
+                    $timer->stop();
+                };
             }
         );
     }
@@ -88,11 +99,11 @@ class FulfilledPromise extends ResolvedPromise
     {
         return false;
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function getResult()
+    public function wait()
     {
         return $this->value;
     }

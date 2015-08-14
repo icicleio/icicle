@@ -1,7 +1,16 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
+use Icicle\Loop\Exception\SignalHandlingDisabledError;
 use Icicle\Loop\Manager\Select\{SignalManager, SocketManager, TimerManager};
 use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
@@ -12,8 +21,33 @@ use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerMa
 class SelectLoop extends AbstractLoop
 {
     const MICROSEC_PER_SEC = 1e6;
-    const NANOSEC_PER_SEC = 1e9;
-    
+    const DEFAULT_SIGNAL_INTERVAL = 0.25;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SocketManager
+     */
+    private $pollManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SocketManager
+     */
+    private $awaitManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\TimerManager
+     */
+    private $timerManager;
+
+    /**
+     * @var \Icicle\Loop\Manager\Select\SignalManager|null
+     */
+    private $signalManager;
+
+    /**
+     * @var \Icicle\Loop\Events\TimerInterface|null
+     */
+    private $signalTimer;
+
     /**
      * Always returns true for this class, since this class only requires core PHP functions.
      *
@@ -34,62 +68,37 @@ class SelectLoop extends AbstractLoop
      */
     protected function dispatch(bool $blocking)
     {
-        $timerManager = $this->getTimerManager();
+        $timeout = $blocking ? $this->timerManager->getInterval() : 0;
 
-        $timeout = $blocking ? $timerManager->getInterval(): 0;
-
-        // Select available sockets for reading or writing.
-        $this->select($this->getPollManager(), $this->getAwaitManager(), $timeout);
-        
-        $timerManager->tick(); // Call any pending timers.
-        
-        if ($this->signalHandlingEnabled()) {
-            $this->getSignalManager()->tick(); // Dispatch any signals that may have arrived.
-        }
-    }
-    
-    /**
-     * @param \Icicle\Loop\Manager\SocketManagerInterface $pollManager
-     * @param \Icicle\Loop\Manager\SocketManagerInterface $awaitManager
-     * @param int|float|null $timeout
-     */
-    protected function select(SocketManagerInterface $pollManager, SocketManagerInterface $awaitManager, $timeout)
-    {
         // Use stream_select() if there are any streams in the loop.
-        if (!$pollManager->isEmpty() || !$awaitManager->isEmpty()) {
+        if (!$this->pollManager->isEmpty() || !$this->awaitManager->isEmpty()) {
             $seconds = (int) $timeout;
             $microseconds = ($timeout - $seconds) * self::MICROSEC_PER_SEC;
-            
-            $read = $pollManager->getPending();
-            $write = $awaitManager->getPending();
+
+            $read = $this->pollManager->getPending();
+            $write = $this->awaitManager->getPending();
             $except = null;
 
-            // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal. *sigh*
+            // Error reporting suppressed since stream_select() emits an E_WARNING if it is interrupted by a signal.
             $count = @stream_select($read, $write, $except, null === $timeout ? null : $seconds, $microseconds);
-            
+
             if ($count) {
-                $pollManager->handle($read);
-                $awaitManager->handle($write);
+                $this->pollManager->handle($read);
+                $this->awaitManager->handle($write);
             }
-
-            return;
+        } elseif (0 < $timeout) { // Otherwise sleep with usleep() if $timeout > 0.
+            usleep($timeout * self::MICROSEC_PER_SEC);
         }
-
-        // Otherwise sleep with time_nanosleep() if $timeout > 0.
-        if (0 < $timeout) {
-            $seconds = (int) $timeout;
-            $nanoseconds = ($timeout - $seconds) * self::NANOSEC_PER_SEC;
         
-            time_nanosleep($seconds, $nanoseconds); // Will be interrupted if a signal is received.
-        }
+        $this->timerManager->tick(); // Call any pending timers.
     }
-    
+
     /**
      * {@inheritdoc}
      */
     protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new SocketManager($this, $factory);
+        return $this->pollManager = new SocketManager($this, $factory);
     }
     
     /**
@@ -97,7 +106,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new SocketManager($this, $factory);
+        return $this->awaitManager = new SocketManager($this, $factory);
     }
     
     /**
@@ -105,7 +114,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
-        return new TimerManager($factory);
+        return $this->timerManager = new TimerManager($this, $factory);
     }
 
     /**
@@ -113,6 +122,44 @@ class SelectLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
-        return new SignalManager($this, $factory);
+        $this->signalManager = new SignalManager($this, $factory);
+
+        $this->signalTimer = $this->timer(self::DEFAULT_SIGNAL_INTERVAL, true, [$this->signalManager, 'tick']);
+        $this->signalTimer->unreference();
+
+        return $this->signalManager;
+    }
+
+    /**
+     * @param float|int $interval
+     *
+     * @throws \Icicle\Loop\Exception\SignalHandlingDisabledError
+     */
+    public function signalInterval(float $interval)
+    {
+        // @codeCoverageIgnoreStart
+        if (null === $this->signalTimer) {
+            throw new SignalHandlingDisabledError(
+                'Signal handling is not enabled.'
+            );
+        } // @codeCoverageIgnoreEnd
+
+        $this->signalTimer->stop();
+        $this->signalTimer = $this->timer($interval, true, [$this->signalManager, 'tick']);
+        $this->signalTimer->unreference();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        parent::clear();
+
+        if (null !== $this->signalTimer) {
+            $this->signalTimer->stop();
+            $this->signalTimer = $this->timer($this->signalTimer->getInterval(), true, [$this->signalManager, 'tick']);
+            $this->signalTimer->unreference();
+        }
     }
 }

@@ -1,8 +1,16 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager\Libevent;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Manager\AbstractSignalManager;
 
 class SignalManager extends AbstractSignalManager
@@ -15,13 +23,14 @@ class SignalManager extends AbstractSignalManager
     /**
      * @param \Icicle\Loop\LoopInterface $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param resource $base
      */
-    public function __construct(LoopInterface $loop, EventFactoryInterface $factory, $base)
+    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
     {
         parent::__construct($loop, $factory);
 
         $callback = $this->createSignalCallback();
+
+        $base = $loop->getEventBase();
 
         foreach ($this->getSignalList() as $signo) {
             $event = event_new();

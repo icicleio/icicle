@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\{
@@ -29,7 +37,7 @@ class EventFactory implements EventFactoryInterface
         float $interval,
         bool $periodic,
         callable $callback,
-        array $args = null
+        array $args = []
     ): TimerInterface {
         return new Timer($manager, $interval, $periodic, $callback, $args);
     }
@@ -40,7 +48,7 @@ class EventFactory implements EventFactoryInterface
     public function immediate(
         ImmediateManagerInterface $manager,
         callable $callback,
-        array $args = null
+        array $args = []
     ): ImmediateInterface {
         return new Immediate($manager, $callback, $args);
     }

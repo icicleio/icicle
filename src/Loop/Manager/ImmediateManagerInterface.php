@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\ImmediateInterface;
@@ -13,7 +21,7 @@ interface ImmediateManagerInterface
      *
      * @return \Icicle\Loop\Events\ImmediateInterface
      */
-    public function create(callable $callback, array $args = null): ImmediateInterface;
+    public function create(callable $callback, array $args = []): ImmediateInterface;
 
     /**
      * Puts the immediate in the loop again for execution.

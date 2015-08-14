@@ -1,16 +1,25 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
 class PromiseReduceTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testEmptyArrayWithNoInitial()
@@ -191,4 +200,27 @@ class PromiseReduceTest extends TestCase
         
         Loop\run();
     }
-}
+
+    public function testCancelReduce()
+    {
+        $exception = new Exception();
+        $promises = [Promise\resolve(1), Promise\resolve(2)];
+
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $promise = Promise\reduce(
+            $promises,
+            function ($carry, $value) use ($exception) {
+                return $carry + $value;
+            },
+            new Promise\Promise(function () use ($callback) { return $callback; })
+        );
+
+        $promise->done($this->createCallback(0), $callback);
+
+        $promise->cancel($exception);
+
+        Loop\run();
+    }}

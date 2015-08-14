@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\Immediate;
@@ -14,7 +22,7 @@ class ImmediateTest extends TestCase
         $this->manager = $this->getMock(ImmediateManagerInterface::class);
     }
     
-    public function createImmediate(callable $callback, array $args = null)
+    public function createImmediate(callable $callback, array $args = [])
     {
         return new Immediate($this->manager, $callback, $args);
     }

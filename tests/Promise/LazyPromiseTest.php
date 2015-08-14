@@ -1,16 +1,25 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Loop;
+use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Tests\TestCase;
 
 class LazyPromiseTest extends TestCase
 {
-    public function tearDown()
+    public function setUp()
     {
-        Loop\clear();
+        Loop\loop(new SelectLoop());
     }
     
     public function testPromisorNotCalledOnConstruct()
@@ -136,8 +145,14 @@ class LazyPromiseTest extends TestCase
         $this->assertFalse($lazy->isPending());
         $this->assertFalse($lazy->isFulfilled());
         $this->assertTrue($lazy->isRejected());
-        $this->assertSame($exception, $lazy->getResult());
-        
+        $this->assertFalse($lazy->isCancelled());
+
+        try {
+            $lazy->wait();
+        } catch (Exception $reason) {
+            $this->assertSame($exception, $reason);
+        }
+
         Loop\run();
     }
 
@@ -153,7 +168,7 @@ class LazyPromiseTest extends TestCase
         $lazy = Promise\lazy($promisor, $value);
 
         $this->assertFalse($lazy->isPending());
-        $this->assertSame($value, $lazy->getResult());
+        $this->assertSame($value, $lazy->wait());
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

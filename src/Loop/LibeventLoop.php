@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
@@ -29,12 +37,13 @@ class LibeventLoop extends AbstractLoop
     }
     
     /**
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the libevent extension is not loaded.
      */
-    public function __construct(EventFactoryInterface $eventFactory = null, $base = null)
+    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!self::enabled()) {
@@ -48,15 +57,16 @@ class LibeventLoop extends AbstractLoop
             $this->base = $base;
         }
         
-        parent::__construct($eventFactory);
+        parent::__construct($enableSignals, $eventFactory);
     }
 
     /**
      * @return resource
      *
+     * @internal
      * @codeCoverageIgnore
      */
-    protected function getEventBase()
+    public function getEventBase()
     {
         return $this->base;
     }
@@ -88,7 +98,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new PollManager($factory, $this->base);
+        return new PollManager($this, $factory);
     }
     
     /**
@@ -96,7 +106,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new AwaitManager($factory, $this->base);
+        return new AwaitManager($this, $factory);
     }
     
     /**
@@ -104,7 +114,7 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
-        return new TimerManager($factory, $this->base);
+        return new TimerManager($this, $factory);
     }
 
     /**
@@ -112,6 +122,6 @@ class LibeventLoop extends AbstractLoop
      */
     protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
-        return new SignalManager($this, $factory, $this->base);
+        return new SignalManager($this, $factory);
     }
 }

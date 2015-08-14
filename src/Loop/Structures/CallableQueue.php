@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Loop\Structures;
 
 /**
@@ -29,9 +37,9 @@ class CallableQueue implements \Countable
     
     /**
      * @param callable $callback
-     * @param mixed[]|null $args
+     * @param mixed[] $args
      */
-    public function insert(callable $callback, array $args = null)
+    public function insert(callable $callback, array $args = [])
     {
         $this->queue[] = [$callback, $args];
     }

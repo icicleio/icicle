@@ -1,5 +1,21 @@
 # Changelog
 
+### v0.8.0 / v1.0.0-beta3
+
+- New Features
+    - The default event loop can be swapped during execution. Normally this is not recommended and will break a program, but it can be useful in certain circumstances (forking, threading).
+    - Added the function `Icicle\Loop\with()` that accepts a function that is run in a separate loop from the default event loop (a specific loop instance can be provided to the function). The default loop is blocked while running the loop.
+
+- Changes
+    - The cancellation callable is no longer passed to the `Icicle\Promise\Promise` constructor, it should be returned from the resolver function passed to the constructor. This change was made to avoid the need to create reference variables to share values between functions. Instead values can just be used in the cancellation function returned from the resolver. The resolver function must return a `callable` or `null`.
+    - Cancelling a promise is now an asynchronous task. Calling `Icicle\Promise\Promise::cancel()` does not immediately call the cancellation method (if given), it is called later (like a function registered with `then()`).
+    - `Icicle/Promise/PromiseInterface` now includes an `isCancelled()` method. When a promise is cancelled, this method will return true once the promise has been cancelled. Note that if a child promise is rejected due to an `$onRejected` callable throwing after cancelling the parent promise, `isCancelled()` of the child promise will return false because the promise was not cancelled, it was rejected from the `$onRejected` callback.
+
+- Bug Fixes
+    - Fixed issue where `Icicle\Loop\SelectLoop` would not dispatch a signal while blocking. The issue was fixed by adding a periodic timer that checks for signals that may have arrived. The interval of this timer can be set with `Icicle\Loop\SelectLoop::signalInterval()`.
+ 
+---
+
 ### v0.7.1 / v1.0.0-beta2
 
 - Modified `Icicle\Promise\Promise` for better performance. The modified implementation eliminates the creation of one closure and only creates a queue of callbacks if more than one callback is registered to be invoked on fulfillment or rejection. No changes were made to functionality.

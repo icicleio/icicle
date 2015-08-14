@@ -1,4 +1,12 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop\Events\{
@@ -825,6 +833,43 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->run();
     }
+
+    /**
+     * @depends testQueue
+     */
+    public function testRunCallsInitializeFunctionImmediately()
+    {
+        $invoked = false;
+
+        $this->loop->queue(function () use (&$invoked) {
+            $this->assertTrue($invoked);
+        });
+
+        $this->loop->run(function () use (&$invoked) {
+            $invoked = true;
+        });
+    }
+
+    /**
+     * @depends testRunCallsInitializeFunctionImmediately
+     * @expectedException \Icicle\Loop\Exception\Exception
+     */
+    public function testInitializeFunctionThrowingStopsLoopAndThrowsFromRun()
+    {
+        $exception = new Exception();
+
+        try {
+            $this->loop->run(function () use ($exception) {
+                throw $exception;
+            });
+        } catch (Exception $e) {
+            $this->assertSame($exception, $e);
+            $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
+            throw $e;
+        }
+
+        $this->fail('Exceptions thrown from initialize function should be thrown from run().');
+    }
     
     /**
      * @depends testQueue
@@ -899,7 +944,7 @@ abstract class AbstractLoopTest extends TestCase
 
         $this->loop->tick(false);
     }
-    
+
     /**
      * @depends testCreateImmediate
      * @expectedException \Icicle\Loop\Exception\Exception
@@ -946,7 +991,7 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * 3 * self::MICROSEC_PER_SEC);
         
-        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT);
     }
     
     /**
@@ -1110,8 +1155,17 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->fail('Loop should not catch exceptions thrown from timer callbacks.');
     }
+
+    /**
+     * @requires extension pcntl
+     */
+    public function testSignalHandlingEnabled()
+    {
+        $this->assertTrue($this->loop->signalHandlingEnabled());
+    }
     
     /**
+     * @depends testSignalHandlingEnabled
      * @requires extension pcntl
      */
     public function testSignal()
@@ -1137,8 +1191,10 @@ abstract class AbstractLoopTest extends TestCase
 
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
     
     /**
@@ -1156,8 +1212,10 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertTrue($signal->isEnabled());
 
         posix_kill($pid, SIGQUIT);
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
     
     /**
@@ -1166,14 +1224,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testQuitSignalWithNoListeners()
     {
-        $pid = posix_getpid();
-        
-        $callback = function () use ($pid) {
-            posix_kill($pid, SIGQUIT);
-            $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
-        };
-        
-        $this->loop->queue($callback);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->queue('posix_kill', [posix_getpid(), SIGQUIT]);
         
         $this->assertSame(true, $this->loop->run());
     }
@@ -1184,21 +1237,16 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testTerminateSignal()
     {
-        $pid = posix_getpid();
-        
-        $callback = function ($signo) {
-            $this->assertSame(SIGTERM, $signo);
-        };
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(SIGTERM));
         
         $signal = $this->loop->signal(SIGTERM, $callback);
-        
-        $callback = function () use ($pid) {
-            posix_kill($pid, SIGTERM);
-            $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
-        };
-        
-        $this->loop->queue($callback);
-        
+
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->queue('posix_kill', [posix_getpid(), SIGTERM]);
+
         $this->assertSame(true, $this->loop->run());
     }
     
@@ -1209,13 +1257,15 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testChildSignal()
     {
-        $callback = function ($signo) {
-            $this->loop->stop();
-            $pid = pcntl_wait($status, WNOHANG);
-            $this->assertSame(SIGCHLD, $signo);
-            $this->assertInternalType('integer', $pid);
-            $this->assertInternalType('integer', $status);
-        };
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->will($this->returnCallback(function ($signo) {
+                $this->loop->stop();
+                $pid = pcntl_wait($status, WNOHANG);
+                $this->assertSame(SIGCHLD, $signo);
+                $this->assertInternalType('integer', $pid);
+                $this->assertInternalType('integer', $status);
+            }));
         
         $signal = $this->loop->signal(SIGCHLD, $callback);
         
@@ -1227,7 +1277,7 @@ abstract class AbstractLoopTest extends TestCase
         
         proc_open('sleep 1', $fd, $pipes);
 
-        $this->loop->timer(10, false, function () {}); // Keep loop alive until signal arrives.
+        $this->loop->timer(2, false, function () {}); // Keep loop alive until signal arrives.
         
         $this->loop->run();
     }
@@ -1248,7 +1298,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal2->disable();
         $this->assertFalse($signal2->isEnabled());
@@ -1256,7 +1308,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal1->disable();
         $this->assertFalse($signal1->isEnabled());
@@ -1264,7 +1318,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
     }
 
     /**
@@ -1286,7 +1342,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
 
         $signal1->enable();
         $signal2->enable();
@@ -1297,7 +1355,9 @@ abstract class AbstractLoopTest extends TestCase
         posix_kill($pid, SIGUSR1);
         posix_kill($pid, SIGUSR2);
 
-        $this->loop->tick(false);
+        $this->loop->timer(1, false, function () {}); // Keep loop alive until signal arrives.
+
+        $this->loop->tick(true);
     }
 
     /**

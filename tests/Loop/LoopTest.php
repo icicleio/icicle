@@ -1,39 +1,49 @@
 <?php
+
+/*
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ *
+ * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
+ * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ */
+
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
+use Icicle\Loop\LoopInterface;
 use Icicle\Loop\Events\{ImmediateInterface, SignalInterface, SocketEventInterface, TimerInterface};
-use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase
 {
     const TIMEOUT = 0.1;
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
-    
-    public function createSockets()
+
+    /**
+     * @var \Icicle\Loop\LoopInterface
+     */
+    protected $loop;
+
+    public function setUp()
     {
-        return stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+        $this->loop = $this->getMock(LoopInterface::class);
     }
     
     public function testLoop()
     {
-        $loop = new SelectLoop();
+        Loop\loop($this->loop);
         
-        Loop\loop($loop);
-        
-        $this->assertSame($loop, Loop\loop());
+        $this->assertSame($this->loop, Loop\loop());
     }
     
     /**
      * @depends testLoop
-     * @expectedException \Icicle\Loop\Exception\InitializedError
      */
     public function testLoopAfterInitialized()
     {
-        $loop = Loop\loop();
-        
-        Loop\loop($loop);
+        $this->assertNotSame($this->loop, Loop\loop());
+
+        $this->assertSame($this->loop, Loop\loop($this->loop));
     }
 
     /**
@@ -41,9 +51,15 @@ class LoopTest extends TestCase
      */
     public function testQueue()
     {
-        Loop\queue($this->createCallback(1));
-        
-        Loop\tick(true);
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('queue')
+            ->with($this->identicalTo($callback));
+
+        Loop\queue($callback);
     }
     
     /**
@@ -51,72 +67,92 @@ class LoopTest extends TestCase
      */
     public function testQueueWithArguments()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(1, 2, 3.14, 'test');
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('queue')
+            ->with($this->identicalTo($callback), $this->identicalTo([1, 2, 3.14, 'test']));
+
         Loop\queue($callback, 1, 2, 3.14, 'test');
-        
-        Loop\tick(true);
     }
 
     /**
-     * @depends testQueue
+     * @depends testLoop
+     */
+    public function testMaxQueueDepth()
+    {
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('maxQueueDepth')
+            ->with($this->identicalTo(1));
+
+        Loop\maxQueueDepth(1);
+    }
+
+    /**
+     * @depends testLoop
      */
     public function testIsEmpty()
     {
-        $this->assertTrue(Loop\isEmpty());
+        Loop\loop($this->loop);
 
-        Loop\queue(function () {});
+        $this->loop->expects($this->once())
+            ->method('isEmpty');
 
-        $this->assertFalse(Loop\isEmpty());
-
-        Loop\tick(true);
+        Loop\isEmpty();
     }
 
+    /**
+     * @depends testLoop
+     */
     public function testPoll()
     {
-        list($readable, $writable) = $this->createSockets();
-        
-        fwrite($writable, self::WRITE_STRING);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($readable, false);
-        
-        $poll = Loop\poll($readable, $callback);
-        
-        $this->assertInstanceOf(SocketEventInterface::class, $poll);
-        
-        $poll->listen();
-        
-        Loop\run();
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('poll')
+            ->with($this->identicalTo(0), $this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(SocketEventInterface::class)));
+
+        Loop\poll(0, $callback); // No need to pass a real resource, as it is not checked here.
     }
-    
+
+    /**
+     * @depends testLoop
+     */
     public function testAwait()
     {
-        list($readable, $writable) = $this->createSockets();
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with($writable, false);
-        
-        $await = Loop\await($writable, $callback);
-        
-        $this->assertInstanceOf(SocketEventInterface::class, $await);
-        
-        $await->listen();
-        
-        Loop\run();
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('await')
+            ->with($this->identicalTo(0), $this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(SocketEventInterface::class)));
+
+        Loop\await(0, $callback); // No need to pass a real resource, as it is not checked here.
     }
     
     public function testTimer()
     {
-        $timer = Loop\timer(self::TIMEOUT, $this->createCallback(1));
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('timer')
+            ->with($this->identicalTo(self::TIMEOUT), $this->identicalTo(false), $this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+
+        $timer = Loop\timer(self::TIMEOUT, $callback);
+
         $this->assertInstanceOf(TimerInterface::class, $timer);
-        
-        Loop\run();
     }
     
     /**
@@ -124,31 +160,42 @@ class LoopTest extends TestCase
      */
     public function testTimerWithArguments()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(1, 2, 3.14, 'test');
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('timer')
+            ->with(
+                $this->identicalTo(self::TIMEOUT),
+                $this->identicalTo(false),
+                $this->identicalTo($callback),
+                $this->identicalTo([1, 2, 3.14, 'test'])
+            )
+            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+
         $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
         $this->assertInstanceOf(TimerInterface::class, $timer);
-        
-        Loop\tick(true);
     }
-    
+
+    /**
+     * @depends testLoop
+     */
     public function testPeriodic()
     {
-        $callback = $this->createCallback(1);
-        
-        $callback = function () use (&$timer, $callback) {
-            $callback();
-            $timer->stop();
-        };
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('timer')
+            ->with($this->identicalTo(self::TIMEOUT), $this->identicalTo(true), $this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+
         $timer = Loop\periodic(self::TIMEOUT, $callback);
-        
+
         $this->assertInstanceOf(TimerInterface::class, $timer);
-        
-        Loop\run();
     }
     
     /**
@@ -156,29 +203,42 @@ class LoopTest extends TestCase
      */
     public function testPeriodicWithArguments()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(1, 2, 3.14, 'test');
-        
-        $callback = function (/* ...$args */) use (&$timer, $callback) {
-            $timer->stop();
-            call_user_func_array($callback, func_get_args());
-        };
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('timer')
+            ->with(
+                $this->identicalTo(self::TIMEOUT),
+                $this->identicalTo(true),
+                $this->identicalTo($callback),
+                $this->identicalTo([1, 2, 3.14, 'test'])
+            )
+            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+
         $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
-        
+
         $this->assertInstanceOf(TimerInterface::class, $timer);
-        
-        Loop\run();
     }
-    
+
+    /**
+     * @depends testLoop
+     */
     public function testImmediate()
     {
-        $immediate = Loop\immediate($this->createCallback(1));
-        
+        Loop\loop($this->loop);
+
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('immediate')
+            ->with($this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
+
+        $immediate = Loop\immediate($callback);
+
         $this->assertInstanceOf(ImmediateInterface::class, $immediate);
-        
-        Loop\run();
     }
     
     /**
@@ -186,126 +246,126 @@ class LoopTest extends TestCase
      */
     public function testImmediateWithArguments()
     {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(1, 2, 3.14, 'test');
-        
-        $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
-        
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
-        
-        Loop\run();
-    }
-    
-    /**
-     * @depends testQueue
-     */
-    public function testQueueWithinQueuedCallback()
-    {
-        $callback = function () {
-            Loop\queue($this->createCallback(1));
-        };
-        
-        Loop\queue($callback);
-        
-        Loop\tick(true);
-    }
-    
-    /**
-     * @depends testQueue
-     */
-    public function testMaxQueueDepth()
-    {
-        $previous = Loop\maxQueueDepth(1);
-        
-        $this->assertSame(1, Loop\maxQueueDepth(1));
-        
-        Loop\queue($this->createCallback(1));
-        Loop\queue($this->createCallback(0));
-        
-        Loop\tick(true);
-        
-        Loop\maxQueueDepth($previous);
+        Loop\loop($this->loop);
 
-        $this->assertSame($previous, Loop\maxQueueDepth($previous));
+        $callback = $this->createCallback(0);
+
+        $this->loop->expects($this->once())
+            ->method('immediate')
+            ->with($this->identicalTo($callback), $this->identicalTo([1, 2, 3.14, 'test']))
+            ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
+
+        $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
+
+        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
     }
-    
+
     /**
      * @depends testLoop
      */
     public function testSignalHandlingEnabled()
     {
-        $this->assertSame(extension_loaded('pcntl'), Loop\signalHandlingEnabled());
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('signalHandlingEnabled');
+
+        Loop\signalHandlingEnabled();
     }
-    
+
     /**
-     * @depends testQueue
+     * @depends testLoop
+     */
+    public function testRun()
+    {
+        $initialize = $this->createCallback(0);
+
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('run')
+            ->with($this->identicalTo($initialize));
+
+        Loop\run($initialize);
+    }
+
+    /**
+     * @depends testLoop
+     */
+    public function testTick()
+    {
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('tick')
+            ->with($this->identicalTo(false));
+
+        Loop\tick(false);
+    }
+
+    /**
+     * @depends testLoop
      */
     public function testIsRunning()
     {
-        $callback = function () {
-            $this->assertTrue(Loop\isRunning());
-        };
-        
-        Loop\queue($callback);
-        
-        Loop\run();
-        
-        $callback = function () {
-            $this->assertFalse(Loop\isRunning());
-        };
-        
-        Loop\queue($callback);
-        
-        Loop\tick(true);
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('isRunning');
+
+        Loop\isRunning();
     }
     
     /**
-     * @depends testIsRunning
+     * @depends testLoop
      */
     public function testStop()
     {
-        $callback = function () {
-            Loop\stop();
-            $this->assertFalse(Loop\isRunning());
-        };
-        
-        Loop\queue($callback);
-        
-        $this->assertTrue(Loop\run());
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('stop');
+
+        Loop\stop();
+    }
+
+    /**
+     * @depends testLoop
+     */
+    public function testWith()
+    {
+        Loop\loop($this->loop);
+
+        $loop = $this->getMock(LoopInterface::class);
+
+        $worker = $this->createCallback(0);
+
+        $loop->expects($this->once())
+            ->method('run')
+            ->with($this->identicalTo($worker));
+
+        Loop\with($worker, $loop);
+
+        $this->assertSame($this->loop, Loop\loop());
     }
     
     /**
-     * @requires extension pcntl
      * @depends testLoop
      */
     public function testSignal()
     {
-        $pid = posix_getpid();
-        
-        $callback1 = $this->createCallback(1);
-        $callback1->method('__invoke')
-                  ->with($this->identicalTo(SIGUSR1));
-        
-        $callback2 = $this->createCallback(1);
-        $callback2->method('__invoke')
-                  ->with($this->identicalTo(SIGUSR2));
-        
-        $callback3 = $this->createCallback(1);
-        
-        $signal = Loop\signal(SIGUSR1, $callback1);
-        $this->assertInstanceOf(SignalInterface::class, $signal);
+        Loop\loop($this->loop);
 
-        $signal = Loop\signal(SIGUSR2, $callback2);
-        $this->assertInstanceOf(SignalInterface::class, $signal);
+        $callback = $this->createCallback(0);
 
-        $signal = Loop\signal(SIGUSR1, $callback3);
+        $this->loop->expects($this->once())
+            ->method('signal')
+            ->with($this->identicalTo(1), $this->identicalTo($callback))
+            ->will($this->returnValue($this->getMock(SignalInterface::class)));
+
+        $signal = Loop\signal(1, $callback);
+
         $this->assertInstanceOf(SignalInterface::class, $signal);
-        
-        posix_kill($pid, SIGUSR1);
-        posix_kill($pid, SIGUSR2);
-        
-        Loop\tick(false);
     }
     
     /**
@@ -313,11 +373,12 @@ class LoopTest extends TestCase
      */
     public function testClear()
     {
-        Loop\queue($this->createCallback(0));
-        
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('clear');
+
         Loop\clear();
-        
-        Loop\tick(false);
     }
     
     /**
@@ -325,10 +386,11 @@ class LoopTest extends TestCase
      */
     public function testReInit()
     {
-        Loop\queue($this->createCallback(1));
-        
+        Loop\loop($this->loop);
+
+        $this->loop->expects($this->once())
+            ->method('reInit');
+
         Loop\reInit();
-        
-        Loop\tick(false);
     }
 }

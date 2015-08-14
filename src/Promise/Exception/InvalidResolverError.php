@@ -9,4 +9,4 @@
 
 namespace Icicle\Promise\Exception;
 
-class UnresolvedError extends Error {}
+class InvalidResolverError extends Error {}
