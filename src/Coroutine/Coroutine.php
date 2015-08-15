@@ -51,7 +51,7 @@ class Coroutine extends Promise implements CoroutineInterface
                 $yielded = $generator->current();
 
                 if (!$generator->valid()) {
-                    $resolve();
+                    $resolve($generator->getReturn());
                     return;
                 }
 
@@ -163,8 +163,7 @@ class Coroutine extends Promise implements CoroutineInterface
             $this->paused = false;
             
             if (null !== $this->next) {
-                list($value, $exception) = $this->next;
-                Loop\queue($this->worker, $value, $exception);
+                Loop\queue($this->worker, ...$this->next);
                 $this->next = null;
             }
         }

@@ -757,7 +757,7 @@ class CoroutineTest extends TestCase
     /**
      * @depends testYieldScalar
      */
-    public function testInvalidGenerator()
+    public function testFastInvalidGenerator()
     {
         $generator = function () {
             if (false) {
@@ -767,12 +767,35 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-        $coroutine->done($this->createCallback(1));
-        
         Loop\run();
         
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame(null, $coroutine->wait());
+    }
+
+    /**
+     * @depends testFastInvalidGenerator
+     */
+    public function testFastReturningGenerator()
+    {
+        $value = 1;
+
+        $generator = function () use ($value) {
+            if (true) {
+                return $value;
+            }
+
+            yield;
+
+            return -$value;
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertSame($value, $coroutine->wait());
     }
     
     /**
