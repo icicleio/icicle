@@ -5,6 +5,7 @@
 - New Features
     - The default event loop can be swapped during execution. Normally this is not recommended and will break a program, but it can be useful in certain circumstances (forking, threading).
     - Added the function `Icicle\Loop\with()` that accepts a function that is run in a separate loop from the default event loop (a specific loop instance can be provided to the function). The default loop is blocked while running the loop.
+    - `Icicle\Loop\Events\SocketEventInterface` and `Icicle\Loop\Events\SignalInterface` gained a `setCallback()` method that allows the callback invoked when an event occurs to be swapped without needing to create a new event.
 
 - Changes
     - The cancellation callable is no longer passed to the `Icicle\Promise\Promise` constructor, it should be returned from the resolver function passed to the constructor. This change was made to avoid the need to create reference variables to share values between functions. Instead values can just be used in the cancellation function returned from the resolver. The resolver function must return a `callable` or `null`.
