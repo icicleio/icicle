@@ -23,11 +23,6 @@ use Icicle\Promise\PromiseInterface;
 class Coroutine extends Promise implements CoroutineInterface
 {
     /**
-     * @var \Generator|null
-     */
-    private $generator;
-
-    /**
      * @var \Closure|null
      */
     private $worker;
@@ -38,69 +33,55 @@ class Coroutine extends Promise implements CoroutineInterface
     private $capture;
     
     /**
-     * @var mixed
+     * @var mixed[]|null
      */
-    private $current;
-    
-    /**
-     * @var bool
-     */
-    private $ready = false;
-    
+    private $next;
+
     /**
      * @var bool
      */
     private $paused = false;
 
     /**
-     * @var bool
-     */
-    private $initial = true;
-    
-    /**
      * @param \Generator $generator
      */
     public function __construct(Generator $generator)
     {
-        $this->generator = $generator;
-        
         parent::__construct(
-            function (callable $resolve, callable $reject) {
+            function (callable $resolve, callable $reject) use ($generator) {
+                $yielded = $generator->current();
+
+                if (!$generator->valid()) {
+                    $resolve();
+                    return;
+                }
+
                 /**
                  * @param mixed $value The value to send to the generator.
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
-                $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
-                    if ($this->paused) { // If paused, mark coroutine as ready to resume.
-                        $this->ready = true;
+                $this->worker = function ($value = null, Exception $exception = null) use (
+                    $resolve, $reject, $generator
+                ) {
+                    if ($this->paused) { // If paused, save parameters for use when resuming.
+                        $this->next = [$value, $exception];
                         return;
                     }
                     
                     try {
-                        if ($this->initial) { // Get result of first yield statement.
-                            $this->initial = false;
-                            $this->current = $this->generator->current();
-                        } elseif (null !== $exception) { // Throw exception at current execution point.
-                            $this->current = $this->generator->throw($exception);
+                        if (null !== $exception) { // Throw exception at current execution point.
+                            $yielded = $generator->throw($exception);
                         } else { // Send the new value and execute to next yield statement.
-                            $this->current = $this->generator->send($value);
+                            $yielded = $generator->send($value);
                         }
                         
-                        if (!$this->generator->valid()) {
+                        if (!$generator->valid()) {
                             $resolve($value);
                             $this->close();
                             return;
                         }
-                        
-                        if ($this->current instanceof Generator) {
-                            $this->current = new self($this->current);
-                        }
-                        
-                        if ($this->current instanceof PromiseInterface) {
-                            $this->current->done($this->worker, $this->capture);
-                        } else {
-                            Loop\queue($this->worker, $this->current);
-                        }
+
+                        $this->next($yielded);
                     } catch (Exception $exception) {
                         $reject($exception);
                         $this->close();
@@ -115,17 +96,17 @@ class Coroutine extends Promise implements CoroutineInterface
                         $worker(null, $exception);
                     }
                 };
-                
-                Loop\queue($this->worker);
 
-                return function (Exception $exception) {
+                $this->next($yielded);
+
+                return function (Exception $exception) use ($generator) {
                     try {
-                        $current = $this->generator->current(); // Get last yielded value.
-                        while ($this->generator->valid()) {
+                        $current = $generator->current(); // Get last yielded value.
+                        while ($generator->valid()) {
                             if ($current instanceof PromiseInterface) {
                                 $current->cancel($exception);
                             }
-                            $current = $this->generator->throw($exception);
+                            $current = $generator->throw($exception);
                         }
                     } finally {
                         $this->close();
@@ -134,6 +115,24 @@ class Coroutine extends Promise implements CoroutineInterface
             }
         );
     }
+
+    /**
+     * Examines the value yielded from the generator and prepares the next step in interation.
+     *
+     * @param mixed $yielded
+     */
+    private function next($yielded)
+    {
+        if ($yielded instanceof Generator) {
+            $yielded = new self($yielded);
+        }
+
+        if ($yielded instanceof PromiseInterface) {
+            $yielded->done($this->worker, $this->capture);
+        } else {
+            Loop\queue($this->worker, $yielded);
+        }
+    }
     
     /**
      * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
@@ -141,10 +140,9 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     private function close()
     {
-        $this->generator = null;
         $this->capture = null;
         $this->worker = null;
-        $this->current = null;
+        $this->next = null;
         
         $this->paused = true;
     }
@@ -165,14 +163,10 @@ class Coroutine extends Promise implements CoroutineInterface
         if ($this->isPending() && $this->paused) {
             $this->paused = false;
             
-            if ($this->ready) {
-                if ($this->current instanceof PromiseInterface) {
-                    $this->current->done($this->worker, $this->capture);
-                } else {
-                    Loop\queue($this->worker, $this->current);
-                }
-                
-                $this->ready = false;
+            if (null !== $this->next) {
+                list($value, $exception) = $this->next;
+                Loop\queue($this->worker, $value, $exception);
+                $this->next = null;
             }
         }
     }

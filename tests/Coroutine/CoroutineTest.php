@@ -521,7 +521,7 @@ class CoroutineTest extends TestCase
         
         $generator = function () use ($exception) {
             try {
-                yield 1;
+                yield new Promise\Promise(function () {});
             } catch (Exception $e) {
                 throw $exception;
             }
@@ -561,8 +561,6 @@ class CoroutineTest extends TestCase
         
         $coroutine = new Coroutine($generator());
         
-        Loop\tick(); // Get to first yield statement.
-        
         $this->assertTrue($coroutine->isPending());
         $this->assertInstanceOf(Promise\Promise::class, $promise);
         
@@ -601,8 +599,6 @@ class CoroutineTest extends TestCase
         };
         
         $coroutine = new Coroutine($generator());
-        
-        Loop\tick(); // Get to first yield statement.
         
         $coroutine->cancel($exception);
         
@@ -869,7 +865,8 @@ class CoroutineTest extends TestCase
     public function testPause()
     {
         $generator = function () {
-            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
+            yield 1;
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT * 2);
         };
         
         $coroutine = new Coroutine($generator());
@@ -1019,6 +1016,8 @@ class CoroutineTest extends TestCase
     public function testMultiplePauseAndResume()
     {
         $generator = function () use (&$coroutine) {
+            yield \Icicle\Coroutine\sleep(self::TIMEOUT);
+
             $coroutine->pause();
 
             yield \Icicle\Coroutine\sleep(self::TIMEOUT);
