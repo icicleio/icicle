@@ -185,6 +185,36 @@ class CoroutineTest extends TestCase
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->wait());
     }
+
+    /**
+     * @depends testYieldScalar
+     * @depends testYieldRejectedPromise
+     */
+    public function testCatchingRejectedPromiseExceptionWithNoFurtherYields()
+    {
+        $exception = new Exception();
+
+        $generator = function () use ($exception) {
+            try {
+                yield Promise\reject($exception);
+            } catch (Exception $exception) {
+                // No further yields in generator.
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo(null));
+
+        $coroutine->done($callback);
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+        $this->assertSame(null, $coroutine->wait());
+    }
     
     public function testGeneratorThrowingExceptionRejectsCoroutine()
     {

@@ -30,7 +30,7 @@ class Coroutine extends Promise implements CoroutineInterface
     /**
      * @var \Closure|null
      */
-    private $worker;
+    private $send;
     
     /**
      * @var \Closure|null
@@ -66,21 +66,17 @@ class Coroutine extends Promise implements CoroutineInterface
 
                 /**
                  * @param mixed $value The value to send to the generator.
-                 * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
-                $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
-                    if ($this->paused) { // If paused, save parameters for use when resuming.
-                        $this->next = [$value, $exception];
+                $this->send = function ($value = null) use ($resolve, $reject) {
+                    if ($this->paused) { // If paused, save callable and value for resuming.
+                        $this->next = [$this->send, $value];
                         return;
                     }
                     
                     try {
-                        if (null !== $exception) { // Throw exception at current execution point.
-                            $yielded = $this->generator->throw($exception);
-                        } else { // Send the new value and execute to next yield statement.
-                            $yielded = $this->generator->send($value);
-                        }
-                        
+                        // Send the new value and execute to next yield statement.
+                        $yielded = $this->generator->send($value);
+
                         if (!$this->generator->valid()) {
                             $resolve($value);
                             $this->close();
@@ -97,9 +93,26 @@ class Coroutine extends Promise implements CoroutineInterface
                 /**
                  * @param \Exception $exception Exception to be thrown into the generator.
                  */
-                $this->capture = function (Exception $exception) {
-                    if (null !== ($worker = $this->worker)) { // Coroutine may have been closed.
-                        $worker(null, $exception);
+                $this->capture = function (Exception $exception) use ($resolve, $reject) {
+                    if ($this->paused) { // If paused, save callable and exception for resuming.
+                        $this->next = [$this->capture, $exception];
+                        return;
+                    }
+
+                    try {
+                        // Throw exception at current execution point.
+                        $yielded = $this->generator->throw($exception);
+
+                        if (!$this->generator->valid()) {
+                            $resolve();
+                            $this->close();
+                            return;
+                        }
+
+                        $this->next($yielded);
+                    } catch (Exception $exception) {
+                        $reject($exception);
+                        $this->close();
                     }
                 };
 
@@ -134,9 +147,9 @@ class Coroutine extends Promise implements CoroutineInterface
         }
 
         if ($yielded instanceof PromiseInterface) {
-            $yielded->done($this->worker, $this->capture);
+            $yielded->done($this->send, $this->capture);
         } else {
-            Loop\queue($this->worker, $yielded);
+            Loop\queue($this->send, $yielded);
         }
     }
     
@@ -148,7 +161,7 @@ class Coroutine extends Promise implements CoroutineInterface
     {
         $this->generator = null;
         $this->capture = null;
-        $this->worker = null;
+        $this->send = null;
         $this->next = null;
         
         $this->paused = true;
@@ -171,8 +184,8 @@ class Coroutine extends Promise implements CoroutineInterface
             $this->paused = false;
             
             if (null !== $this->next) {
-                list($value, $exception) = $this->next;
-                Loop\queue($this->worker, $value, $exception);
+                list($callable, $value) = $this->next;
+                Loop\queue($callable, $value);
                 $this->next = null;
             }
         }
