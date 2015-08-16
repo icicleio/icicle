@@ -185,4 +185,13 @@ class Coroutine extends Promise implements CoroutineInterface
     {
         return $this->paused;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function cancel($reason = null)
+    {
+        $this->pause();
+        parent::cancel($reason);
+    }
 }
