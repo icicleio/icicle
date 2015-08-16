@@ -209,7 +209,7 @@ class CoroutineTest extends TestCase
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->wait());
     }
-    
+
     public function testGeneratorThrowingExceptionRejectsCoroutine()
     {
         $exception = new Exception();
