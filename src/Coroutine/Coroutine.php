@@ -23,6 +23,11 @@ use Icicle\Promise\PromiseInterface;
 class Coroutine extends Promise implements CoroutineInterface
 {
     /**
+     * @var \Generator|null
+     */
+    private $generator;
+
+    /**
      * @var \Closure|null
      */
     private $worker;
@@ -47,12 +52,15 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     public function __construct(Generator $generator)
     {
-        parent::__construct(
-            function (callable $resolve, callable $reject) use ($generator) {
-                $yielded = $generator->current();
+        $this->generator = $generator;
 
-                if (!$generator->valid()) {
+        parent::__construct(
+            function (callable $resolve, callable $reject) {
+                $yielded = $this->generator->current();
+
+                if (!$this->generator->valid()) {
                     $resolve();
+                    $this->close();
                     return;
                 }
 
@@ -60,9 +68,7 @@ class Coroutine extends Promise implements CoroutineInterface
                  * @param mixed $value The value to send to the generator.
                  * @param \Exception|null $exception Exception object to be thrown into the generator if not null.
                  */
-                $this->worker = function ($value = null, Exception $exception = null) use (
-                    $resolve, $reject, $generator
-                ) {
+                $this->worker = function ($value = null, Exception $exception = null) use ($resolve, $reject) {
                     if ($this->paused) { // If paused, save parameters for use when resuming.
                         $this->next = [$value, $exception];
                         return;
@@ -70,12 +76,12 @@ class Coroutine extends Promise implements CoroutineInterface
                     
                     try {
                         if (null !== $exception) { // Throw exception at current execution point.
-                            $yielded = $generator->throw($exception);
+                            $yielded = $this->generator->throw($exception);
                         } else { // Send the new value and execute to next yield statement.
-                            $yielded = $generator->send($value);
+                            $yielded = $this->generator->send($value);
                         }
                         
-                        if (!$generator->valid()) {
+                        if (!$this->generator->valid()) {
                             $resolve($value);
                             $this->close();
                             return;
@@ -99,14 +105,14 @@ class Coroutine extends Promise implements CoroutineInterface
 
                 $this->next($yielded);
 
-                return function (Exception $exception) use ($generator) {
+                return function (Exception $exception)  {
                     try {
-                        $current = $generator->current(); // Get last yielded value.
-                        while ($generator->valid()) {
+                        $current = $this->generator->current(); // Get last yielded value.
+                        while ($this->generator->valid()) {
                             if ($current instanceof PromiseInterface) {
                                 $current->cancel($exception);
                             }
-                            $current = $generator->throw($exception);
+                            $current = $this->generator->throw($exception);
                         }
                     } finally {
                         $this->close();
@@ -140,6 +146,7 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     private function close()
     {
+        $this->generator = null;
         $this->capture = null;
         $this->worker = null;
         $this->next = null;
