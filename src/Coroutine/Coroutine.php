@@ -121,11 +121,8 @@ class Coroutine extends Promise implements CoroutineInterface
                 return function (Exception $exception)  {
                     try {
                         $current = $this->generator->current(); // Get last yielded value.
-                        while ($this->generator->valid()) {
-                            if ($current instanceof PromiseInterface) {
-                                $current->cancel($exception);
-                            }
-                            $current = $this->generator->throw($exception);
+                        if ($current instanceof PromiseInterface) {
+                            $current->cancel($exception);
                         }
                     } finally {
                         $this->close();
@@ -159,14 +156,15 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     private function close()
     {
-        $this->generator = null;
-        $this->capture = null;
-        $this->send = null;
         $this->next = null;
-        
+        $this->send = null;
+        $this->capture = null;
+
         $this->paused = true;
+
+        $this->generator = null;
     }
-    
+
     /**
      * {@inheritdoc}
      */
