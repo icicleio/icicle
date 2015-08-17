@@ -105,11 +105,11 @@ interface PromiseInterface
      *
      * @return \Icicle\Promise\PromiseInterface
      */
-    public function splat(callable $onFulfilled);
+    public function splat(callable $onFulfilled): PromiseInterface;
 
     /**
      * This function may be used to synchronously wait for a promise to be resolved. This function should generally
-     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
+     * not be used within a running event loop, but rather to set up a task (or set of tasks, then use all() or another
      * function to group them) and synchronously wait for the task to complete. Using this function in a running event
      * loop will not block the loop, but it will prevent control from moving past the call to this function and disrupt
      * program flow.
