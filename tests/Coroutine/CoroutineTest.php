@@ -569,43 +569,7 @@ class CoroutineTest extends TestCase
             $this->assertSame($exception, $reason);
         }
     }
-    
-    /**
-     * @depends testCancellation
-     */
-    public function testCancellationWithThrownException()
-    {
-        $exception = new Exception();
-        
-        $generator = function () use ($exception) {
-            try {
-                yield new Promise\Promise(function () {});
-            } catch (Exception $e) {
-                throw $exception;
-            }
-        };
-        
-        $coroutine = new Coroutine($generator());
-        
-        $coroutine->cancel(); // Uses default cancellation exception.
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->with($this->identicalTo($exception));
-        
-        $coroutine->done($this->createCallback(0), $callback);
-        
-        Loop\run();
-        
-        $this->assertTrue($coroutine->isRejected());
 
-        try {
-            $coroutine->wait();
-        } catch (Exception $reason) {
-            $this->assertSame($exception, $reason);
-        }
-    }
-    
     /**
      * @depends testCancellationWithSpecificException
      */
@@ -614,7 +578,7 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$promise) {
-            yield $promise = Promise\resolve(1)->delay(0.1);
+            yield ($promise = Promise\resolve(1)->delay(0.1));
         };
         
         $coroutine = new Coroutine($generator());
@@ -644,15 +608,16 @@ class CoroutineTest extends TestCase
     /**
      * @depends testCancellationWithPendingPromise
      */
-    public function testCancellationWithTryCatchYieldingPendingPromise()
+    public function testCancellationWithFinallyBlock()
     {
         $exception = new Exception();
-        
-        $generator = function () use (&$promise) {
+        $executed = false;
+
+        $generator = function () use (&$executed) {
             try {
                 yield Promise\resolve(1)->delay(0.1);
-            } catch (Exception $exception) {
-                yield ($promise = Promise\resolve(2)->delay(0.1));
+            } finally {
+                $executed = true;
             }
         };
         
@@ -668,16 +633,37 @@ class CoroutineTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf(Promise\Promise::class, $promise);
-        $this->assertTrue($promise->isRejected());
-
-        try {
-            $coroutine->wait();
-        } catch (Exception $reason) {
-            $this->assertSame($exception, $reason);
-        }
+        $this->assertTrue($executed);
     }
-    
+
+    /**
+     * @depends testCancellationWithPendingPromise
+     */
+    public function testCancellationWithThrowFromFinallyBlock()
+    {
+        $exception = new Exception();
+
+        $generator = function () use ($exception) {
+            try {
+                yield Promise\resolve(1)->delay(0.1);
+            } finally {
+                throw $exception;
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $coroutine->cancel();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
     /**
      * @depends testCancellation
      */

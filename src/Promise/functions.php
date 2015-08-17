@@ -64,7 +64,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
          *
          * @return \Icicle\Promise\PromiseInterface
          */
-        return function (...$args) use ($worker) {
+        return function (...$args) use ($worker): PromiseInterface {
             if (1 === count($args)) {
                 return resolve($args[0])->then($worker);
             }
@@ -84,8 +84,8 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      */
     function promisify(callable $worker, int $index = 0): callable
     {
-        return function (...$args) use ($worker, $index) {
-            return new Promise(function ($resolve) use ($worker, $index, $args) {
+        return function (...$args) use ($worker, $index): PromiseInterface {
+            return new Promise(function (callable $resolve) use ($worker, $index, $args) {
                 $callback = function (...$args) use ($resolve) {
                     $resolve($args);
                 };
@@ -308,7 +308,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * have been resolved.
      *
      * @param callable<(mixed $value): mixed> $callback
-     * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
+     * @param mixed[] ...$promises Promises or values (passed through resolve() to create promises).
      *
      * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
      */
