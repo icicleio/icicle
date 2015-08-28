@@ -39,6 +39,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create($enableSignals = true)
     {
+        if (EvLoop::enabled()) {
+            return new EvLoop($enableSignals);
+        }
+
         if (EventLoop::enabled()) {
             return new EventLoop($enableSignals);
         }
