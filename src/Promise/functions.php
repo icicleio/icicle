@@ -11,7 +11,7 @@ namespace Icicle\Promise;
 
 use Icicle\Loop;
 use Icicle\Promise\Exception\{InvalidArgumentError, MultiReasonException, UnresolvedError};
-use Icicle\Promise\Structures\{FulfilledPromise, LazyPromise, RejectedPromise};
+use Icicle\Promise\Internal\{FulfilledPromise, LazyPromise, RejectedPromise};
 use Throwable;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {

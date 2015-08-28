@@ -17,7 +17,7 @@ use Icicle\Promise\Exception\{
     TimeoutException,
     UnresolvedError
 };
-use Icicle\Promise\Structures\{CancelledPromise, FulfilledPromise, RejectedPromise, ThenQueue};
+use Icicle\Promise\Internal\{CancelledPromise, FulfilledPromise, RejectedPromise, ThenQueue};
 use Throwable;
 
 /**
@@ -35,12 +35,12 @@ class Promise implements PromiseInterface
     private $result;
     
     /**
-     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Internal\ThenQueue|null
      */
     private $onFulfilled;
     
     /**
-     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Internal\ThenQueue|null
      */
     private $onRejected;
     

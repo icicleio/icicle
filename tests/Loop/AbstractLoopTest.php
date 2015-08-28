@@ -32,7 +32,7 @@ use Throwable;
  */
 abstract class AbstractLoopTest extends TestCase
 {
-    const TIMEOUT = 0.1;
+    const TIMEOUT = 0.2;
     const RUNTIME = 0.05; // Allowed deviation from projected run times.
     const MICROSEC_PER_SEC = 1e6;
     const WRITE_STRING = '1234567890';
@@ -307,7 +307,7 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @depends testListenPoll
      */
-    public function testCanelPoll()
+    public function testCancelPoll()
     {
         list($socket) = $this->createSockets();
         
@@ -478,9 +478,9 @@ abstract class AbstractLoopTest extends TestCase
     
     public function testCreateAwait()
     {
-        list( , $socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
         $this->assertInstanceOf(SocketEventInterface::class, $await);
     }
@@ -491,11 +491,11 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testDoubleAwait()
     {
-        list( , $socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
     }
     
     /**
@@ -503,14 +503,14 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testListenAwait()
     {
-        list( , $socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
                  ->with($this->identicalTo(false));
         
-        $await = $this->loop->await($socket, $callback);
+        $await = $this->loop->await($writable, $callback);
         
         $await->listen();
         
@@ -524,14 +524,14 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testRelistenAwait()
     {
-        list($socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
         $callback = $this->createCallback(2);
         
         $callback->method('__invoke')
                  ->with($this->identicalTo(false));
         
-        $await = $this->loop->await($socket, $callback);
+        $await = $this->loop->await($writable, $callback);
         
         $await->listen();
         
@@ -551,9 +551,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testCancelAwait()
     {
-        list($socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
         $await->listen();
         
@@ -606,9 +606,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testCancelAwaitWithTimeout()
     {
-        list($socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
         $await->listen(self::TIMEOUT);
         
@@ -627,9 +627,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testFreeAwait()
     {
-        list($socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
         $await->listen();
         
@@ -649,9 +649,9 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testFreeAwaitWithTimeout()
     {
-        list($socket) = $this->createSockets();
+        list($readable, $writable) = $this->createSockets();
         
-        $await = $this->loop->await($socket, $this->createCallback(0));
+        $await = $this->loop->await($writable, $this->createCallback(0));
         
         $await->listen(self::TIMEOUT);
         
@@ -664,7 +664,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $await->listen(self::TIMEOUT);
     }
-    
+
     /**
      * @depends testListenPoll
      * @expectedException \Icicle\Loop\Exception\Exception
@@ -678,11 +678,11 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
-        
+
         $poll = $this->loop->poll($socket, $callback);
-        
+
         $poll->listen();
-        
+
         try {
             $this->loop->run(); // Exception should be thrown from loop.
         } catch (Throwable $e) {
@@ -690,28 +690,28 @@ abstract class AbstractLoopTest extends TestCase
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
         }
-        
+
         $this->fail('Loop should not catch exceptions thrown from poll callbacks.');
-    }    
-    
+    }
+
     /**
      * @depends testListenAwait
      * @expectedException \Icicle\Loop\Exception\Exception
      */
     public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
     {
-        list( , $socket) = $this->createSockets();
-        
+        list($readable, $writable) = $this->createSockets();
+
         $exception = new Exception();
-        
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->will($this->throwException($exception));
-        
-        $await = $this->loop->await($socket, $callback);
-        
+
+        $await = $this->loop->await($writable, $callback);
+
         $await->listen();
-        
+
         try {
             $this->loop->run(); // Exception should be thrown from loop.
         } catch (Throwable $e) {
@@ -719,7 +719,7 @@ abstract class AbstractLoopTest extends TestCase
             $this->assertFalse($this->loop->isRunning()); // Loop should report that it has stopped.
             throw $e;
         }
-        
+
         $this->fail('Loop should not catch exceptions thrown from await callbacks.');
     }
     
@@ -747,7 +747,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($args[0]), $this->identicalTo($args[1]), $this->identicalTo($args[2]));
-        
+
         $this->loop->queue($callback, $args);
         
         $this->loop->run();
@@ -991,36 +991,24 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * 3 * self::MICROSEC_PER_SEC);
         
-        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT);
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME);
     }
     
-    /**
-     * @depends testNoBlockingOnEmptyLoop
-     */
     public function testUnreferenceTimer()
     {
-        $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(0));
-        
-        $timer->unreference();
-        
-        $this->assertTrue($this->loop->isEmpty());
-        
-        $this->assertRunTimeLessThan([$this->loop, 'run'], self::TIMEOUT);
-    }
-    
-    /**
-     * @depends testUnreferenceTimer
-     */
-    public function testReferenceTimer()
-    {
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
-        
+
         $timer->unreference();
+
+        $this->assertTrue($this->loop->isEmpty());
+
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
         $timer->reference();
         
         $this->assertFalse($this->loop->isEmpty());
-        
-        $this->assertRunTimeGreaterThan([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME);
+
+        $this->assertRunTimeGreaterThan([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME * 2);
     }
     
     /**

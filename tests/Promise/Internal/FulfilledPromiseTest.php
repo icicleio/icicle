@@ -7,10 +7,10 @@
  * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Tests\Promise\Structures;
+namespace Icicle\Tests\Promise\Internal;
 
 use Icicle\Promise\Promise;
-use Icicle\Promise\Structures\FulfilledPromise;
+use Icicle\Promise\Internal\FulfilledPromise;
 use Icicle\Tests\TestCase;
 
 /**

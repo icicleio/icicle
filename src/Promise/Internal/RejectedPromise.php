@@ -7,7 +7,7 @@
  * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Promise\Structures;
+namespace Icicle\Promise\Internal;
 
 use Icicle\Loop;
 use Icicle\Promise\{Exception\RejectedException, Promise, PromiseInterface};

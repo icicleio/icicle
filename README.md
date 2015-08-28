@@ -20,8 +20,9 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 #### Available Components
 
-- [Streams](https://github.com/icicleio/stream): Common interface for reading and writing data.
-- [Sockets](https://github.com/icicleio/socket): Asynchronous stream socket server and client.
+- [Stream](https://github.com/icicleio/stream): Common coroutine-based interface for reading and writing data.
+- [Socket](https://github.com/icicleio/socket): Asynchronous stream socket server and client.
+- [Concurrent](https://github.com/icicleio/concurrent): Provides an easy to use interface for parallel execution with non-blocking communication and task execution (under development).
 - [DNS](https://github.com/icicleio/dns): Asynchronous DNS resolver and connector.
 - [HTTP](https://github.com/icicleio/http): Asynchronous HTTP server and client (under development).
 - [React Adapter](https://github.com/icicleio/react-adaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
@@ -53,10 +54,10 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 
 ##### Suggested
 
-- [openssl extension](http://php.net/manual/en/book.openssl.php): Enables using SSL/TLS on sockets.
 - [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling.
-- [event extension](http://pecl.php.net/package/event): Allows for the most performant event loop implementation.
-- [libevent extension](http://pecl.php.net/package/libevent): Similar to the event extension, it allows for a more performant event loop implementation.
+- [ev extension](https://pecl.php.net/package/ev): Allows for the most performant event loop implementation.
+- [event extension](https://pecl.php.net/package/event): Another extension allowing for event loop implementation with better performance (ev extension preferred).
+- [libevent extension](https://pecl.php.net/package/libevent): Similar to the event extension, it allows for event loop implementation with better performance (ev extension preferred).
 
 #### Example
 

@@ -42,6 +42,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create(bool $enableSignals = true): LoopInterface
     {
+        if (EvLoop::enabled()) {
+            return new EvLoop($enableSignals);
+        }
+
         if (EventLoop::enabled()) {
             return new EventLoop($enableSignals);
         }
