@@ -20,8 +20,9 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 
 #### Available Components
 
-- [Streams](https://github.com/icicleio/stream): Common interface for reading and writing data.
-- [Sockets](https://github.com/icicleio/socket): Asynchronous stream socket server and client.
+- [Stream](https://github.com/icicleio/stream): Common coroutine-based interface for reading and writing data.
+- [Socket](https://github.com/icicleio/socket): Asynchronous stream socket server and client.
+- [Concurrent](https://github.com/icicleio/concurrent): Provides an easy to use interface for parallel execution with non-blocking communication and task execution (under development).
 - [DNS](https://github.com/icicleio/dns): Asynchronous DNS resolver and connector.
 - [HTTP](https://github.com/icicleio/http): Asynchronous HTTP server and client (under development).
 - [React Adapter](https://github.com/icicleio/react-adaptor): Adapts the event loop and promises of Icicle to interfaces compatible with components built for React.
