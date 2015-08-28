@@ -1,6 +1,17 @@
 # Changelog
 
-### v0.8.0 / v1.0.0-beta3
+### v0.8.1
+
+- New Features
+    - Added `Icicle\Loop\EvLoop` supporting the `ev` extension. This loop is now the default event loop used if the `ev` extension is available.
+    - `Icicle\Promise\map()` now accepts any number of arrays like `array_map()`, passing an element of each array as an argument to the callback function.
+    
+- Bug Fixes
+    - Coroutines are paused immediately upon cancellation to ensure execution does not continue after cancellation.
+
+---
+
+### v0.8.0
 
 - New Features
     - The default event loop can be swapped during execution. Normally this is not recommended and will break a program, but it can be useful in certain circumstances (forking, threading).
@@ -17,13 +28,13 @@
  
 ---
 
-### v0.7.1 / v1.0.0-beta2
+### v0.7.1
 
 - Modified `Icicle\Promise\Promise` for better performance. The modified implementation eliminates the creation of one closure and only creates a queue of callbacks if more than one callback is registered to be invoked on fulfillment or rejection. No changes were made to functionality.
 
 ---
 
-### v0.7.0 / v1.0.0-beta1
+### v0.7.0
 
 - Changes
     - Moved Stream and Socket components to separate repositories: [icicleio/stream](https://github.com/icicleio/stream) and [icicleio/socket](https://github.com/icicleio/socket). No API changes were made in these components from v0.6.0. If your project depends on these components, just add them as a requirement with composer.
