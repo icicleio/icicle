@@ -9,10 +9,8 @@
 
 namespace Icicle\Promise\Structures;
 
-use Exception;
 use Icicle\Loop;
-use Icicle\Promise\Exception\InvalidArgumentError;
-use Icicle\Promise\{Promise, PromiseInterface};
+use Icicle\Promise\{Exception\InvalidArgumentError, Promise, PromiseInterface};
 use Throwable;
 
 class FulfilledPromise extends ResolvedPromise

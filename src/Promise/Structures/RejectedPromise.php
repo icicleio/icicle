@@ -10,8 +10,7 @@
 namespace Icicle\Promise\Structures;
 
 use Icicle\Loop;
-use Icicle\Promise\Exception\RejectedException;
-use Icicle\Promise\{Promise, PromiseInterface};
+use Icicle\Promise\{Exception\RejectedException, Promise, PromiseInterface};
 use Throwable;
 
 class RejectedPromise extends ResolvedPromise
