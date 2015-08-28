@@ -2,11 +2,9 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Manager\Ev\AwaitManager;
-use Icicle\Loop\Manager\Ev\PollManager;
-use Icicle\Loop\Manager\Ev\SignalManager;
-use Icicle\Loop\Manager\Ev\TimerManager;
 use Icicle\Loop\Exception\UnsupportedError;
+use Icicle\Loop\Manager\Ev\{AwaitManager, PollManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
 /**
  * Uses the ev extension to poll sockets for I/O and create timers.
@@ -23,7 +21,7 @@ class EvLoop extends AbstractLoop
      *
      * @return  bool
      */
-    public static function enabled()
+    public static function enabled(): bool
     {
         return extension_loaded('ev');
     }
@@ -52,7 +50,7 @@ class EvLoop extends AbstractLoop
      *
      * @codeCoverageIgnore
      */
-    public function getEvLoop()
+    public function getEvLoop(): \EvLoop
     {
         return $this->loop;
     }
@@ -60,7 +58,7 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function dispatch($blocking)
+    protected function dispatch(bool $blocking)
     {
         $flags = \Ev::RUN_ONCE;
         
@@ -82,7 +80,7 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new PollManager($this, $factory);
     }
@@ -90,7 +88,7 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
         return new AwaitManager($this, $factory);
     }
@@ -98,7 +96,7 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
     {
         return new TimerManager($this, $factory);
     }
@@ -106,7 +104,7 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
     {
         return new SignalManager($this, $factory);
     }

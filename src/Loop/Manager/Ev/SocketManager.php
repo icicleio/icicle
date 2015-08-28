@@ -1,11 +1,9 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
 use Icicle\Loop\EvLoop;
-use Icicle\Loop\Exception\FreedError;
-use Icicle\Loop\Exception\ResourceBusyError;
+use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\Manager\SocketManagerInterface;
 
 abstract class SocketManager implements SocketManagerInterface
@@ -51,7 +49,7 @@ abstract class SocketManager implements SocketManagerInterface
      *
      * @return  \EvIO
      */
-    abstract protected function createEvent(\EvLoop $loop, SocketEventInterface $event, callable $callback);
+    abstract protected function createEvent(\EvLoop $loop, SocketEventInterface $event, callable $callback): \EvIO;
     
     /**
      * @param   \Icicle\Loop\EvLoop $loop
@@ -104,7 +102,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         foreach ($this->events as $event) {
             if ($event->is_active) {
@@ -118,7 +116,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback): SocketEventInterface
     {
         $id = (int) $resource;
         
@@ -138,7 +136,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEventInterface $socket, float $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -182,7 +180,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         
@@ -212,7 +210,7 @@ abstract class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEventInterface $socket): bool
     {
         $id = (int) $socket->getResource();
         

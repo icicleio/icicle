@@ -1,8 +1,7 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
 use Icicle\Loop\EvLoop;
 use Icicle\Loop\Manager\TimerManagerInterface;
 use Icicle\Loop\Structures\ObjectStorage;
@@ -70,7 +69,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return !$this->timers->count();
     }
@@ -78,7 +77,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic = false, callable $callback, array $args = null)
+    public function create(float $interval, bool $periodic, callable $callback, array $args = []): TimerInterface
     {
         $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
         
@@ -115,7 +114,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer)
+    public function isPending(TimerInterface $timer): bool
     {
         return isset($this->timers[$timer]) && $this->timers[$timer]->is_active;
     }
