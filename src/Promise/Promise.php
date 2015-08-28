@@ -15,10 +15,10 @@ use Icicle\Promise\Exception\CircularResolutionError;
 use Icicle\Promise\Exception\InvalidResolverError;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\UnresolvedError;
-use Icicle\Promise\Structures\CancelledPromise;
-use Icicle\Promise\Structures\FulfilledPromise;
-use Icicle\Promise\Structures\RejectedPromise;
-use Icicle\Promise\Structures\ThenQueue;
+use Icicle\Promise\Internal\CancelledPromise;
+use Icicle\Promise\Internal\FulfilledPromise;
+use Icicle\Promise\Internal\RejectedPromise;
+use Icicle\Promise\Internal\ThenQueue;
 
 /**
  * Promise implementation based on the Promises/A+ specification adding support for cancellation.
@@ -35,12 +35,12 @@ class Promise implements PromiseInterface
     private $result;
     
     /**
-     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Internal\ThenQueue|null
      */
     private $onFulfilled;
     
     /**
-     * @var callable|\Icicle\Promise\Structures\ThenQueue|null
+     * @var callable|\Icicle\Promise\Internal\ThenQueue|null
      */
     private $onRejected;
     

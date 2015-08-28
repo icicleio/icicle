@@ -13,9 +13,9 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\MultiReasonException;
-use Icicle\Promise\Structures\FulfilledPromise;
-use Icicle\Promise\Structures\LazyPromise;
-use Icicle\Promise\Structures\RejectedPromise;
+use Icicle\Promise\Internal\FulfilledPromise;
+use Icicle\Promise\Internal\LazyPromise;
+use Icicle\Promise\Internal\RejectedPromise;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
     /**
