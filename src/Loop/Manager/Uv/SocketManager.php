@@ -10,7 +10,7 @@
 namespace Icicle\Loop\Manager\Uv;
 
 use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
-use Icicle\Loop\Exception\{Exception, FreedError, ResourceBusyError};
+use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
 use Icicle\Loop\UvLoop;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
@@ -83,7 +83,7 @@ abstract class SocketManager implements SocketManagerInterface
 
             // Some other error.
             if ($status < 0) {
-                throw new Exception('An unknown error was encountered with the socket. Was the socket closed prematurely?');
+                throw new UvException($status);
             }
 
             $this->pending[(int) $resource] = false;
@@ -107,6 +107,7 @@ abstract class SocketManager implements SocketManagerInterface
     public function __destruct()
     {
         foreach ($this->polls as $poll) {
+            \uv_poll_stop($poll);
             \uv_close($poll);
         }
     }
