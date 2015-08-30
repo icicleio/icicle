@@ -3,20 +3,20 @@ language: php
 php:
   - 7.0
 
-sudo: true
+sudo: false
 
 install:
   - curl -LS https://github.com/libuv/libuv/archive/v1.6.1.tar.gz | tar -xz;
     pushd libuv-*;
     ./autogen.sh;
-    ./configure;
+    ./configure --prefix=$(dirname `pwd`)/libuv;
     make;
-    sudo make install;
+    make install;
     popd;
     git clone https://github.com/bwoebi/php-uv.git;
     pushd php-uv;
     phpize;
-    ./configure;
+    ./configure --with-uv=$(dirname `pwd`)/libuv;
     make;
     make install;
     popd;
