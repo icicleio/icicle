@@ -86,6 +86,7 @@ abstract class SocketManager implements SocketManagerInterface
                 throw new UvException($status);
             }
 
+            \uv_poll_stop($poll);
             $this->pending[(int) $resource] = false;
 
             $socket = $this->sockets[(int) $resource];
@@ -94,6 +95,10 @@ abstract class SocketManager implements SocketManagerInterface
 
         $this->timerCallback = function (SocketEventInterface $socket) {
             $id = (int) $socket->getResource();
+
+            \uv_poll_stop($this->polls[$id]);
+            $this->pending[(int) $resource] = false;
+
             unset($this->pending[$id]);
             unset($this->timers[$id]);
 
