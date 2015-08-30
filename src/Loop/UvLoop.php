@@ -35,9 +35,9 @@ class UvLoop extends AbstractLoop
     }
 
     /**
-     * @param bool                                           $enableSignals True to enable signal handling, false to disable.
+     * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
-     * @param resource|null                                  $loop          Resource created by uv_loop_new() or null to create a new event loop.
+     * @param resource|null $loop Resource created by uv_loop_new() or null to create a new event loop.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the uv extension is not loaded.
      */

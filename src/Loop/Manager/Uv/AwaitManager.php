@@ -9,8 +9,6 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\Events\SocketEventInterface;
-
 class AwaitManager extends SocketManager
 {
     /**

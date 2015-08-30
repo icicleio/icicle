@@ -10,9 +10,9 @@
 namespace Icicle\Loop\Manager\Uv;
 
 use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
-use Icicle\Loop\UvLoop;
 use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\UvLoop;
 
 class TimerManager implements TimerManagerInterface
 {
@@ -36,7 +36,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * @var \Icicle\Loop\Events\TimerInterface[] Array mapping uv_timer handles to Timer objects.
      */
-    private $timerReverseTable = [];
+    private $handles = [];
 
     /**
      * @var callable
@@ -54,11 +54,13 @@ class TimerManager implements TimerManagerInterface
 
         $this->timers = new ObjectStorage();
 
-        $this->callback = function ($timerHandle) {
-            $timer = $this->timerReverseTable[(int)$timerHandle];
+        $this->callback = function ($handle) {
+            $id = (int) $handle;
+            $timer = $this->handles[$id];
 
             if (!$timer->isPeriodic()) {
-                $this->stop($timer);
+                unset($this->timers[$timer]);
+                unset($this->handles[$id]);
             }
 
             $timer->call();
@@ -73,9 +75,6 @@ class TimerManager implements TimerManagerInterface
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
             \uv_close($this->timers->getInfo());
         }
-
-        // Need to completely destroy timer events before freeing base or an error is generated.
-        $this->timers = null;
     }
 
     /**
@@ -104,17 +103,19 @@ class TimerManager implements TimerManagerInterface
     public function start(TimerInterface $timer)
     {
         if (!isset($this->timers[$timer])) {
-            $timerHandle = \uv_timer_init($this->loopHandle);
+            $handle = \uv_timer_init($this->loopHandle);
+
+            $interval = $timer->getInterval() * self::MILLISEC_PER_SEC;
 
             \uv_timer_start(
-                $timerHandle,
-                $timer->getInterval() * self::MILLISEC_PER_SEC,
-                $timer->getInterval() * self::MILLISEC_PER_SEC,
+                $handle,
+                $interval,
+                $timer->isPeriodic() ? $interval : 0,
                 $this->callback
             );
 
-            $this->timers[$timer] = $timerHandle;
-            $this->timerReverseTable[(int)$timerHandle] = $timer;
+            $this->timers[$timer] = $handle;
+            $this->handles[(int) $handle] = $timer;
         }
     }
 
@@ -124,13 +125,12 @@ class TimerManager implements TimerManagerInterface
     public function stop(TimerInterface $timer)
     {
         if (isset($this->timers[$timer])) {
-            $timerHandle = $this->timers[$timer];
+            $handle = $this->timers[$timer];
 
-            \uv_timer_stop($timerHandle);
-            \uv_close($timerHandle);
+            \uv_close($handle);
 
             unset($this->timers[$timer]);
-            unset($this->timerReverseTable[(int)$timerHandle]);
+            unset($this->handles[(int) $handle]);
         }
     }
 
@@ -164,10 +164,10 @@ class TimerManager implements TimerManagerInterface
     public function clear()
     {
         for ($this->timers->rewind(); $this->timers->valid(); $this->timers->next()) {
-            \uv_timer_stop($this->timers->getInfo());
             \uv_close($this->timers->getInfo());
         }
 
         $this->timers = new ObjectStorage();
+        $this->handles = [];
     }
 }

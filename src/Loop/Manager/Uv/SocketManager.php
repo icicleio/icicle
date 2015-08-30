@@ -11,17 +11,18 @@ namespace Icicle\Loop\Manager\Uv;
 
 use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
-use Icicle\Loop\UvLoop;
 use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\UvLoop;
 
 abstract class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
+    const MILLISEC_PER_SEC = 1e3;
 
     /**
-     * @var \Icicle\Loop\UvLoop
+     * @var resource A uv_loop handle.
      */
-    private $loop;
+    private $loopHandle;
 
     /**
      * @var \Icicle\Loop\Events\EventFactoryInterface
@@ -72,7 +73,7 @@ abstract class SocketManager implements SocketManagerInterface
      */
     public function __construct(UvLoop $loop, EventFactoryInterface $factory)
     {
-        $this->loop = $loop;
+        $this->loopHandle = $loop->getLoopHandle();
         $this->factory = $factory;
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
@@ -81,28 +82,30 @@ abstract class SocketManager implements SocketManagerInterface
                 return;
             }
 
+            \uv_poll_stop($poll);
+
+            $id = (int) $resource;
+
             // Some other error.
             if ($status < 0) {
                 throw new UvException($status);
             }
 
-            \uv_poll_stop($poll);
-            $this->pending[(int) $resource] = false;
+            $this->pending[$id] = false;
 
-            $socket = $this->sockets[(int) $resource];
-            $socket->call(false);
+            if (isset($this->timers[$id])) {
+                \uv_timer_stop($this->timers[$id]);
+            }
+
+            $this->sockets[$id]->call(false);
         };
 
-        $this->timerCallback = function (SocketEventInterface $socket) {
-            $id = (int) $socket->getResource();
-
+        $this->timerCallback = function (int $id) {
             \uv_poll_stop($this->polls[$id]);
-            $this->pending[(int) $resource] = false;
 
-            unset($this->pending[$id]);
-            unset($this->timers[$id]);
+            $this->pending[$id] = false;
 
-            $socket->call(true);
+            $this->sockets[$id]->call(true);
         };
     }
 
@@ -112,8 +115,11 @@ abstract class SocketManager implements SocketManagerInterface
     public function __destruct()
     {
         foreach ($this->polls as $poll) {
-            \uv_poll_stop($poll);
             \uv_close($poll);
+        }
+
+        foreach ($this->timers as $timer) {
+            \uv_close($timer);
         }
     }
 
@@ -153,7 +159,8 @@ abstract class SocketManager implements SocketManagerInterface
      */
     public function listen(SocketEventInterface $socket, float $timeout = 0)
     {
-        $id = (int) $socket->getResource();
+        $resource = $socket->getResource();
+        $id = (int) $resource;
 
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
             throw new FreedError('Socket event has been freed.');
@@ -161,7 +168,7 @@ abstract class SocketManager implements SocketManagerInterface
 
         // If no poll handle exists for the socket, create one now.
         if (!isset($this->polls[$id])) {
-            $this->polls[$id] = \uv_poll_init($this->loop->getLoopHandle(), $socket->getResource());
+            $this->polls[$id] = \uv_poll_init($this->loopHandle, $resource);
         }
 
         // Begin polling for events.
@@ -170,12 +177,17 @@ abstract class SocketManager implements SocketManagerInterface
 
         // If a timeout is given, set up a separate timer for cancelling the poll in the future.
         if ($timeout) {
-            $timeout = (float) $timeout;
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
 
-            $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, [$socket]);
+            if (!isset($this->timers[$id])) {
+                $this->timers[$id] = \uv_timer_init($this->loopHandle);
+            }
+
+            \uv_timer_start($this->timers[$id], $timeout * self::MILLISEC_PER_SEC, 0, function () use ($id) {
+                ($this->timerCallback)($id);
+            });
         }
     }
 
@@ -186,12 +198,15 @@ abstract class SocketManager implements SocketManagerInterface
     {
         $id = (int) $socket->getResource();
 
-        if (isset($this->sockets[$id], $this->polls[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id], $this->polls[$id], $this->pending[$id])
+            && $socket === $this->sockets[$id]
+            && $this->pending[$id]
+        ) {
             \uv_poll_stop($this->polls[$id]);
             $this->pending[$id] = false;
 
             if (isset($this->timers[$id])) {
-                $this->timers[$id]->stop();
+                \uv_timer_stop($this->timers[$id]);
             }
         }
     }
@@ -225,7 +240,7 @@ abstract class SocketManager implements SocketManagerInterface
             }
 
             if (isset($this->timers[$id])) {
-                $this->timers[$id]->stop();
+                \uv_close($this->timers[$id]);
                 unset($this->timers[$id]);
             }
         }
@@ -251,7 +266,7 @@ abstract class SocketManager implements SocketManagerInterface
         }
 
         foreach ($this->timers as $timer) {
-            $timer->stop();
+            \uv_close($timer);
         }
 
         $this->polls = [];
