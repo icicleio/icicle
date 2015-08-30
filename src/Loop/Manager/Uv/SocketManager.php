@@ -77,19 +77,23 @@ abstract class SocketManager implements SocketManagerInterface
         $this->factory = $factory;
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
-            // If $status is EAGAIN, the callback was a false alarm.
-            if ($status === \UV::EAGAIN) {
+            // If $status is a severe error, stop the poll and throw an exception.
+            if ($status === \UV::EACCES
+            || $status === \UV::EBADF
+            || $status === \UV::EINVAL
+            || $status === \UV::ENOTSOCK) {
+                \uv_poll_stop($poll);
+                throw new UvException($status);
+            }
+
+            // Ignore other (probably) trivial warnings. Hopefully nothing goes wrong...
+            if ($status < 0) {
                 return;
             }
 
             \uv_poll_stop($poll);
 
             $id = (int) $resource;
-
-            // Some other error.
-            if ($status < 0) {
-                throw new UvException($status);
-            }
 
             if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
                 \uv_timer_stop($this->timers[$id]);
