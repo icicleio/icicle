@@ -14,7 +14,7 @@ use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
 use Icicle\Loop\Manager\SocketManagerInterface;
 use Icicle\Loop\UvLoop;
 
-abstract class SocketManager implements SocketManagerInterface
+class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
     const MILLISEC_PER_SEC = 1e3;
@@ -60,35 +60,36 @@ abstract class SocketManager implements SocketManagerInterface
     private $timerCallback;
 
     /**
-     * Starts a uv_poll handle to begin listening for I/O events.
-     *
-     * @param resource $pollHandle A uv_poll handle.
-     * @param callable $callback
+     * @var int
      */
-    abstract protected function beginPoll($pollHandle, callable $callback);
+    private $type;
 
     /**
      * @param \Icicle\Loop\UvLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param int $eventType
      */
-    public function __construct(UvLoop $loop, EventFactoryInterface $factory)
+    public function __construct(UvLoop $loop, EventFactoryInterface $factory, int $eventType)
     {
         $this->loopHandle = $loop->getLoopHandle();
         $this->factory = $factory;
+        $this->type = $eventType;
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
-            // If $status is a severe error, stop the poll and throw an exception.
-            if ($status === \UV::EACCES
-            || $status === \UV::EBADF
-            || $status === \UV::EINVAL
-            || $status === \UV::ENOTSOCK) {
-                \uv_poll_stop($poll);
-                throw new UvException($status);
-            }
+            switch ($status) {
+                // If $status is a severe error, stop the poll and throw an exception.
+                case \UV::EACCES:
+                case \UV::EBADF:
+                case \UV::EINVAL:
+                case \UV::ENOTSOCK:
+                    \uv_poll_stop($poll);
+                    throw new UvException($status);
 
-            // Ignore other (probably) trivial warnings. Hopefully nothing goes wrong...
-            if ($status < 0) {
-                return;
+                case 0: // OK
+                    break;
+
+                default: // Ignore other (probably) trivial warnings. Hopefully nothing goes wrong...
+                    return;
             }
 
             \uv_poll_stop($poll);
@@ -173,7 +174,7 @@ abstract class SocketManager implements SocketManagerInterface
         }
 
         // Begin polling for events.
-        $this->beginPoll($this->polls[$id], $this->pollCallback);
+        \uv_poll_start($this->polls[$id], $this->type, $this->pollCallback);
 
         // If a timeout is given, set up a separate timer for cancelling the poll in the future.
         if ($timeout) {
