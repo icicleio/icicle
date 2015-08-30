@@ -56,9 +56,15 @@ class TimerManager implements TimerManagerInterface
 
         $this->callback = function ($handle) {
             $id = (int) $handle;
+
+            if (!isset($this->handles[$id])) {
+                return;
+            }
+
             $timer = $this->handles[$id];
 
             if (!$timer->isPeriodic()) {
+                \uv_close($this->timers[$timer]);
                 unset($this->timers[$timer]);
                 unset($this->handles[$id]);
             }

@@ -21,7 +21,7 @@ class SignalManager extends AbstractSignalManager
     private $sigHandles = [];
 
     /**
-     * @param \Icicle\Loop\UvLoop                       $loop
+     * @param \Icicle\Loop\UvLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
     public function __construct(UvLoop $loop, EventFactoryInterface $factory)
