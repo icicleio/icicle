@@ -95,13 +95,7 @@ class UvLoop extends AbstractLoop
      */
     protected function dispatch(bool $blocking)
     {
-        $flags = \UV::RUN_ONCE;
-
-        if (!$blocking) {
-            $flags |= \UV::RUN_NOWAIT;
-        }
-
-        \uv_run($this->loopHandle, $flags);
+        \uv_run($this->loopHandle, $blocking ? \UV::RUN_ONCE : \UV::RUN_NOWAIT);
     }
 
     /**
