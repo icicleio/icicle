@@ -16,7 +16,7 @@ use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
-abstract class SocketManager implements SocketManagerInterface
+class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
     const MICROSEC_PER_SEC = 1e6;
@@ -55,28 +55,23 @@ abstract class SocketManager implements SocketManagerInterface
      * @var callable
      */
     private $callback;
-    
+
     /**
-     * Creates an event resource on the given event base for the SocketEventInterface.
-     *
-     * @param resource $base Event base resource.
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
-     * @param callable $callback
-     *
-     * @return resource Event resource.
+     * @var int
      */
-    abstract protected function createEvent($base, SocketEventInterface $event, callable $callback);
+    private $type;
     
     /**
      * @param \Icicle\Loop\LibeventLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     * @param resource $base
+     * @param int $eventType
      */
-    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
+    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory, int $eventType)
     {
         $this->loop = $loop;
         $this->factory = $factory;
         $this->base = $this->loop->getEventBase();
+        $this->type = $eventType;
         
         $this->callback = function ($resource, int $what, SocketEventInterface $socket) {
             $this->pending[(int) $resource] = false;
@@ -137,7 +132,11 @@ abstract class SocketManager implements SocketManagerInterface
         }
         
         if (!isset($this->events[$id])) {
-            $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
+            $event = event_new();
+            event_set($event, $socket->getResource(), $this->type, $this->callback, $socket);
+            event_base_set($event, $this->base);
+
+            $this->events[$id] = $event;
         }
 
         $this->pending[$id] = true;
@@ -147,7 +146,6 @@ abstract class SocketManager implements SocketManagerInterface
             return;
         }
 
-        $timeout = (float) $timeout;
         if (self::MIN_TIMEOUT > $timeout) {
             $timeout = self::MIN_TIMEOUT;
         }

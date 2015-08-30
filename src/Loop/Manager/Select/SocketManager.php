@@ -95,7 +95,6 @@ class SocketManager implements SocketManagerInterface
         $this->pending[$id] = $resource;
         
         if ($timeout) {
-            $timeout = (float) $timeout;
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
