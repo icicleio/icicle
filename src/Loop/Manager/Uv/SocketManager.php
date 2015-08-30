@@ -165,7 +165,7 @@ abstract class SocketManager implements SocketManagerInterface
 
         // If no poll handle exists for the socket, create one now.
         if (!isset($this->polls[$id])) {
-            $this->polls[$id] = \uv_poll_init($this->loopHandle, $resource);
+            $this->polls[$id] = \uv_poll_init_socket($this->loopHandle, $resource);
         }
 
         // Begin polling for events.
