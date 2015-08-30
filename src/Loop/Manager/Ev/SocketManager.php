@@ -8,7 +8,7 @@ use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\Manager\SocketManagerInterface;
 
-abstract class SocketManager implements SocketManagerInterface
+class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
 
@@ -41,26 +41,22 @@ abstract class SocketManager implements SocketManagerInterface
      * @var callable
      */
     private $timerCallback;
+
+    /**
+     * @var int
+     */
+    private $type;
     
     /**
-     * Creates an Event object on the given EventBase for the SocketEventInterface.
-     *
-     * @param   \EvLoop $loop
-     * @param   \Icicle\Loop\Events\SocketEventInterface $event
-     * @param   callable $callback
-     *
-     * @return  \EvIO
+     * @param \Icicle\Loop\EvLoop $loop
+     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param int $eventType
      */
-    abstract protected function createEvent(\EvLoop $loop, SocketEventInterface $event, callable $callback);
-    
-    /**
-     * @param   \Icicle\Loop\EvLoop $loop
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
-     */
-    public function __construct(EvLoop $loop, EventFactoryInterface $factory)
+    public function __construct(EvLoop $loop, EventFactoryInterface $factory, $eventType)
     {
         $this->factory = $factory;
         $this->loop = $loop->getEvLoop();
+        $this->type = $eventType;
         
         $this->socketCallback = function (\EvIO $event) {
             /** @var \Icicle\Loop\Events\SocketEventInterface $socket */
@@ -128,7 +124,8 @@ abstract class SocketManager implements SocketManagerInterface
 
         $socket = $this->factory->socket($this, $resource, $callback);
 
-        $event = $this->createEvent($this->loop, $socket, $this->socketCallback);
+        $event = $this->loop->io($resource, $this->type, $this->socketCallback, $socket);
+        $event->stop();
 
         $this->events[$id] = $event;
 

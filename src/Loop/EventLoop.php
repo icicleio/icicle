@@ -13,9 +13,8 @@ use Event;
 use EventBase;
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Event\AwaitManager;
-use Icicle\Loop\Manager\Event\PollManager;
 use Icicle\Loop\Manager\Event\SignalManager;
+use Icicle\Loop\Manager\Event\SocketManager;
 use Icicle\Loop\Manager\Event\TimerManager;
 
 /**
@@ -98,7 +97,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory)
     {
-        return new PollManager($this, $factory);
+        return new SocketManager($this, $factory, Event::READ);
     }
     
     /**
@@ -106,7 +105,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory)
     {
-        return new AwaitManager($this, $factory);
+        return new SocketManager($this, $factory, Event::WRITE);
     }
     
     /**
