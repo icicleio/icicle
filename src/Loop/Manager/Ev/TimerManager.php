@@ -94,11 +94,13 @@ class TimerManager implements TimerManagerInterface
      */
     public function start(TimerInterface $timer)
     {
-        $interval = $timer->getInterval();
+        if (!isset($this->timers[$timer])) {
+            $interval = $timer->getInterval();
 
-        $event = $this->loop->timer($interval, $timer->isPeriodic() ? $interval : 0, $this->callback, $timer);
+            $event = $this->loop->timer($interval, $timer->isPeriodic() ? $interval : 0, $this->callback, $timer);
 
-        $this->timers[$timer] = $event;
+            $this->timers[$timer] = $event;
+        }
     }
 
     /**
