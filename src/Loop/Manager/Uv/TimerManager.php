@@ -19,7 +19,7 @@ class TimerManager implements TimerManagerInterface
     const MILLISEC_PER_SEC = 1e3;
 
     /**
-     * @var resource
+     * @var resource A uv_loop handle.
      */
     private $loopHandle;
 
@@ -29,14 +29,12 @@ class TimerManager implements TimerManagerInterface
     private $factory;
 
     /**
-     * ObjectStorage mapping Timer objects to event resources.
-     *
-     * @var \Icicle\Loop\Structures\ObjectStorage
+     * @var \Icicle\Loop\Structures\ObjectStorage ObjectStorage mapping Timer objects to uv_timer handles.
      */
     private $timers;
 
     /**
-     * @var array Array mapping timer handles to Timer objects.
+     * @var \Icicle\Loop\Events\TimerInterface[] Array mapping uv_timer handles to Timer objects.
      */
     private $timerReverseTable = [];
 

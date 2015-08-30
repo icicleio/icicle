@@ -20,9 +20,7 @@ use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerMa
 class UvLoop extends AbstractLoop
 {
     /**
-     * Uv loop created with uv_loop_new().
-     *
-     * @var resource
+     * @var resource A uv_loop handle created with uv_loop_new().
      */
     private $loopHandle;
 
