@@ -1022,11 +1022,11 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
-        $this->loop->tick(true);
+        $this->loop->tick(false);
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
-        $this->loop->tick(true);
+        $this->loop->tick(false);
     }
     
     /**
