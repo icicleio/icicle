@@ -1239,38 +1239,6 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @medium
-     * @depends testSignal
-     * @runInSeparateProcess
-     */
-    public function testChildSignal()
-    {
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->will($this->returnCallback(function ($signo) {
-                $this->loop->stop();
-                $pid = pcntl_wait($status, WNOHANG);
-                $this->assertSame(SIGCHLD, $signo);
-                $this->assertInternalType('integer', $pid);
-                $this->assertInternalType('integer', $status);
-            }));
-        
-        $signal = $this->loop->signal(SIGCHLD, $callback);
-        
-        $fd = [
-            ['pipe', 'r'], // stdin
-            ['pipe', 'w'], // stdout
-            ['pipe', 'w'], // stderr
-        ];
-        
-        proc_open('sleep 1', $fd, $pipes);
-
-        $this->loop->timer(2, false, function () {}); // Keep loop alive until signal arrives.
-        
-        $this->loop->run();
-    }
-    
-    /**
      * @depends testSignal
      */
     public function testDisableSignal()
