@@ -3,11 +3,30 @@ language: php
 php:
   - 7.0
 
-sudo: false
+sudo: true
 
 install:
+  - curl -LS https://github.com/libuv/libuv/archive/v1.6.1.tar.gz | tar -xz;
+    pushd libuv-*;
+    ./autogen.sh;
+    ./configure;
+    make;
+    sudo make install;
+    popd;
+    git clone https://github.com/bwoebi/php-uv.git;
+    pushd php-uv;
+    phpize;
+    ./configure;
+    make;
+    make install;
+    popd;
+    echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')";
   - composer self-update
   - composer install --no-interaction --prefer-source
 
 script:
-  - vendor/bin/phpunit
+  - phpdbg -qrr vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
+
+after_script:
+  - composer require satooshi/php-coveralls dev-master
+  - vendor/bin/coveralls -v --exclude-no-stmt
