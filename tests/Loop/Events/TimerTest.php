@@ -131,6 +131,27 @@ class TimerTest extends TestCase
         
         $timer->reference();
     }
+
+    /**
+     * @depends testUnreference
+     * @depends testStart
+     */
+    public function testStartAfterUnreference()
+    {
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('unreference')
+            ->with($this->identicalTo($timer));
+
+        $this->manager->expects($this->once())
+            ->method('start')
+            ->with($this->identicalTo($timer));
+
+        $timer->unreference();
+
+        $timer->start();
+    }
     
     /**
      * @depends testCall
