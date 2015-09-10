@@ -45,6 +45,11 @@ class Timer implements TimerInterface
      * @var bool
      */
     private $periodic;
+
+    /**
+     * @var bool
+     */
+    private $referenced = true;
     
     /**
      * @param \Icicle\Loop\Manager\TimerManagerInterface $manager
@@ -106,6 +111,10 @@ class Timer implements TimerInterface
     public function start()
     {
         $this->manager->start($this);
+
+        if (!$this->referenced) {
+            $this->unreference();
+        }
     }
 
     /**
@@ -121,6 +130,7 @@ class Timer implements TimerInterface
      */
     public function unreference()
     {
+        $this->referenced = false;
         $this->manager->unreference($this);
     }
     
@@ -129,6 +139,7 @@ class Timer implements TimerInterface
      */
     public function reference()
     {
+        $this->referenced = true;
         $this->manager->reference($this);
     }
     
