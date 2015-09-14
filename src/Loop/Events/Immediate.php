@@ -29,6 +29,11 @@ class Immediate implements ImmediateInterface
     private $args;
 
     /**
+     * @var bool
+     */
+    private $referenced = true;
+
+    /**
      * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
      * @param callable $callback Function called when the interval expires.
      * @param mixed[] $args Optional array of arguments to pass the callback function.
@@ -75,6 +80,10 @@ class Immediate implements ImmediateInterface
     public function execute()
     {
         $this->manager->execute($this);
+
+        if (!$this->referenced) {
+            $this->manager->unreference($this);
+        }
     }
 
     /**
@@ -83,5 +92,23 @@ class Immediate implements ImmediateInterface
     public function cancel()
     {
         $this->manager->cancel($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference()
+    {
+        $this->referenced = false;
+        $this->manager->unreference($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference()
+    {
+        $this->referenced = true;
+        $this->manager->reference($this);
     }
 }

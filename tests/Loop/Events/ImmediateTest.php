@@ -80,6 +80,49 @@ class ImmediateTest extends TestCase
         $immediate->cancel();
     }
 
+    public function testUnreference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('unreference')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->unreference();
+    }
+
+    public function testReference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('reference')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->reference();
+    }
+
+    /**
+     * @depends testUnreference
+     * @depends testExecute
+     */
+    public function testExecuteAfterUnreference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('unreference')
+            ->with($this->identicalTo($immediate));
+
+        $this->manager->expects($this->once())
+            ->method('execute')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->unreference();
+
+        $immediate->execute();
+    }
+
     /**
      * @depends testCall
      */

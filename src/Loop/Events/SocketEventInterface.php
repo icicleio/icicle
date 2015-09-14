@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Events;
 
-interface SocketEventInterface
+interface SocketEventInterface extends EventInterface
 {
     /**
      * Returns the PHP resource.

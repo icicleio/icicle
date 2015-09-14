@@ -33,6 +33,11 @@ class SocketManager implements SocketManagerInterface
     private $timers = [];
 
     /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
+
+    /**
      * @var callable
      */
     private $socketCallback;
@@ -102,8 +107,8 @@ class SocketManager implements SocketManagerInterface
      */
     public function isEmpty()
     {
-        foreach ($this->events as $event) {
-            if ($event->is_active) {
+        foreach ($this->events as $id => $event) {
+            if ($event->is_active && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -197,7 +202,7 @@ class SocketManager implements SocketManagerInterface
         
         if (isset($this->events[$id]) && $socket === $this->events[$id]->data) {
             $this->events[$id]->stop();
-            unset($this->events[$id]);
+            unset($this->events[$id], $this->unreferenced[$id]);
 
             if (isset($this->timers[$id])) {
                 $this->timers[$id]->stop();
@@ -215,7 +220,27 @@ class SocketManager implements SocketManagerInterface
         
         return !isset($this->events[$id]) || $socket !== $this->events[$id]->data;
     }
-    
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->events[$id]) && $socket === $this->events[$id]->data) {
+            $this->unreferenced = $socket;
+        }
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -230,6 +255,7 @@ class SocketManager implements SocketManagerInterface
         }
         
         $this->events = [];
+        $this->unreferenced = [];
         $this->timers = [];
     }
 }

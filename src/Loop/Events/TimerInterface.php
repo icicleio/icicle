@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Events;
 
-interface TimerInterface
+interface TimerInterface extends EventInterface
 {
     /**
      * @return bool
@@ -41,20 +41,10 @@ interface TimerInterface
     public function isPeriodic();
     
     /**
-     * An unreferenced timer will allow the event loop to exit if no other events are pending.
-     */
-    public function unreference();
-    
-    /**
-     * Adds a reference to the timer, causing the event loop to continue to run if the timer is still pending.
-     */
-    public function reference();
-
-    /**
      * Calls the callback associated with the timer.
      */
     public function call();
-    
+
     /**
      * Alias of call().
      */

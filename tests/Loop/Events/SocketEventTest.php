@@ -178,4 +178,30 @@ class SocketEventTest extends TestCase
         
         $event->cancel();
     }
+
+    public function testUnreference()
+    {
+        list($socket) = $this->createSockets();
+
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('unreference')
+            ->with($this->identicalTo($event));
+
+        $event->unreference();
+    }
+
+    public function testReference()
+    {
+        list($socket) = $this->createSockets();
+
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('reference')
+            ->with($this->identicalTo($event));
+
+        $event->reference();
+    }
 }

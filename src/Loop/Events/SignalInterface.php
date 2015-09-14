@@ -9,13 +9,13 @@
 
 namespace Icicle\Loop\Events;
 
-interface SignalInterface
+interface SignalInterface extends EventInterface
 {
     /**
      * Calls the callback associated with the timer.
      */
     public function call();
-    
+
     /**
      * Alias of call().
      */

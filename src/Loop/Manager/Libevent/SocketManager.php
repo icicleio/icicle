@@ -52,6 +52,11 @@ class SocketManager implements SocketManagerInterface
      * @var bool[]
      */
     private $pending = [];
+
+    /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
     
     /**
      * @var callable
@@ -96,8 +101,8 @@ class SocketManager implements SocketManagerInterface
      */
     public function isEmpty()
     {
-        foreach ($this->pending as $pending) {
-            if ($pending) {
+        foreach ($this->pending as $id => $pending) {
+            if ($pending && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -189,8 +194,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
-            unset($this->pending[$id]);
+            unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
                 event_free($this->events[$id]);
@@ -207,6 +211,26 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced = $socket;
+        }
     }
     
     /**

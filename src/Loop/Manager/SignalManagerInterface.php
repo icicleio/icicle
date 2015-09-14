@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\SignalInterface;
 
-interface SignalManagerInterface
+interface SignalManagerInterface extends EventManagerInterface
 {
     /**
      * Creates a signal event connected to the manager.
@@ -48,7 +48,18 @@ interface SignalManagerInterface
     public function isEnabled(SignalInterface $signal);
 
     /**
-     * Clears all signals from the manager.
+     * Unreferences the given signal event, that is, if the signal is pending in the loop, the loop should not continue
+     * running.
+     *
+     * @param \Icicle\Loop\Events\SignalInterface $signal
      */
-    public function clear();
+    public function unreference(SignalInterface $signal);
+
+    /**
+     * References a signal if it was previously unreferenced. That is, if the timer is pending the loop will continue
+     * running.
+     *
+     * @param \Icicle\Loop\Events\SignalInterface $signal
+     */
+    public function reference(SignalInterface $signal);
 }

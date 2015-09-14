@@ -44,6 +44,11 @@ class SocketManager implements SocketManagerInterface
      * @var \Icicle\Loop\Events\TimerInterface[]
      */
     private $timers = [];
+
+    /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
     
     /**
      * @var callable
@@ -140,8 +145,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
-            unset($this->pending[$id]);
+            unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->timers[$id])) {
                 $this->timers[$id]->stop();
@@ -189,13 +193,43 @@ class SocketManager implements SocketManagerInterface
             }
         }
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced = $socket;
+        }
+    }
     
     /**
      * {@inheritdoc}
      */
     public function isEmpty()
     {
-        return empty($this->pending);
+        if (empty($this->unreferenced)) {
+            return empty($this->pending);
+        }
+
+        foreach ($this->pending as $pending) {
+            if (!isset($this->unreferenced[(int) $pending])) {
+                return false;
+            }
+        }
+
+        return true;
     }
     
     /**
@@ -205,6 +239,7 @@ class SocketManager implements SocketManagerInterface
     {
         $this->sockets = [];
         $this->pending = [];
+        $this->unreferenced = [];
         
         foreach ($this->timers as $timer) {
             $timer->stop();

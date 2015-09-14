@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\TimerInterface;
 
-interface TimerManagerInterface
+interface TimerManagerInterface extends EventManagerInterface
 {
     /**
      * Creates a timer object connected to the manager.
@@ -47,7 +47,7 @@ interface TimerManagerInterface
      * @return bool
      */
     public function isPending(TimerInterface $timer);
-    
+
     /**
      * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
      *
@@ -62,16 +62,4 @@ interface TimerManagerInterface
      * @param \Icicle\Loop\Events\TimerInterface $timer
      */
     public function reference(TimerInterface $timer);
-
-    /**
-     * Determines if any referenced timers are pending in the manager.
-     *
-     * @return bool
-     */
-    public function isEmpty();
-
-    /**
-     * Clears all timers from the manager.
-     */
-    public function clear();
 }

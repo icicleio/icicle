@@ -29,6 +29,11 @@ class Signal implements SignalInterface
     private $signo;
 
     /**
+     * @var bool
+     */
+    private $referenced = false;
+
+    /**
      * @param \Icicle\Loop\Manager\SignalManagerInterface $manager
      * @param int $signo
      * @param callable $callback
@@ -71,6 +76,10 @@ class Signal implements SignalInterface
     public function enable()
     {
         $this->manager->enable($this);
+
+        if ($this->referenced) {
+            $this->manager->reference($this);
+        }
     }
 
     /**
@@ -95,5 +104,23 @@ class Signal implements SignalInterface
     public function getSignal()
     {
         return $this->signo;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference()
+    {
+        $this->referenced = false;
+        $this->manager->unreference($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference()
+    {
+        $this->referenced = true;
+        $this->manager->reference($this);
     }
 }

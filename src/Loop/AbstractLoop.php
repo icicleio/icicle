@@ -50,7 +50,7 @@ abstract class AbstractLoop implements LoopInterface
     private $immediateManager;
 
     /**
-     * @var \Icicle\Loop\Manager\SignalManagerInterface
+     * @var \Icicle\Loop\Manager\SignalManagerInterface|null
      */
     private $signalManager;
     
@@ -105,12 +105,8 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null)
     {
-        $this->eventFactory = $eventFactory;
-        
-        if (null === $this->eventFactory) {
-            $this->eventFactory = $this->createEventFactory();
-        }
-        
+        $this->eventFactory = $eventFactory ?: $this->createEventFactory();
+
         $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
         
         $this->immediateManager = $this->createImmediateManager($this->eventFactory);
@@ -195,7 +191,8 @@ abstract class AbstractLoop implements LoopInterface
             && $this->awaitManager->isEmpty()
             && $this->timerManager->isEmpty()
             && $this->callableQueue->isEmpty()
-            && $this->immediateManager->isEmpty();
+            && $this->immediateManager->isEmpty()
+            && (null === $this->signalManager || $this->signalManager->isEmpty());
     }
     
     /**

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Events;
 
-interface ImmediateInterface
+interface ImmediateInterface extends EventInterface
 {
     /**
      * @return bool
@@ -30,7 +30,7 @@ interface ImmediateInterface
      * Calls the callback associated with the immediate.
      */
     public function call();
-    
+
     /**
      * Alias of call().
      */

@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\SocketEventInterface;
 
-interface SocketManagerInterface
+interface SocketManagerInterface extends EventManagerInterface
 {
     /**
      * Returns a SocketEventInterface object for the given stream socket resource.
@@ -62,14 +62,18 @@ interface SocketManagerInterface
     public function isFreed(SocketEventInterface $event);
 
     /**
-     * Determines if any socket events are pending in the manager.
+     * Unreferences the given socket event, that is, if the event is pending in the loop, the loop should not continue
+     * running.
      *
-     * @return bool
+     * @param \Icicle\Loop\Events\SocketEventInterface $event
      */
-    public function isEmpty();
+    public function unreference(SocketEventInterface $event);
 
     /**
-     * Clears all socket events from the manager.
+     * References a socket event if it was previously unreferenced. That is, if the event is pending the loop will
+     * continue running.
+     *
+     * @param \Icicle\Loop\Events\SocketEventInterface $event
      */
-    public function clear();
+    public function reference(SocketEventInterface $event);
 }

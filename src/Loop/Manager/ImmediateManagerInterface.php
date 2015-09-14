@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\ImmediateInterface;
 
-interface ImmediateManagerInterface
+interface ImmediateManagerInterface extends EventManagerInterface
 {
     /**
      * Creates an immediate object connected to the manager.
@@ -47,21 +47,25 @@ interface ImmediateManagerInterface
     public function isPending(ImmediateInterface $immediate);
 
     /**
-     * Determines if any immediates are pending in the manager.
-     *
-     * @return bool
-     */
-    public function isEmpty();
-
-    /**
-     * Clears all pending immediates from the manager.
-     */
-    public function clear();
-
-    /**
      * Calls the next pending immediate. Returns true if an immediate was executed, false if not.
      *
      * @return bool
      */
     public function tick();
+
+    /**
+     * Unreferences the given immediate, that is, if the immediate is pending in the loop, the loop should not continue
+     * running.
+     *
+     * @param \Icicle\Loop\Events\ImmediateInterface $immediate
+     */
+    public function unreference(ImmediateInterface $immediate);
+
+    /**
+     * References an immediate if it was previously unreferenced. That is, if the immediate is pending the loop will
+     * continue running.
+     *
+     * @param \Icicle\Loop\Events\ImmediateInterface $immediate
+     */
+    public function reference(ImmediateInterface $immediate);
 }

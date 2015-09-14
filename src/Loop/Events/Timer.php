@@ -113,7 +113,7 @@ class Timer implements TimerInterface
         $this->manager->start($this);
 
         if (!$this->referenced) {
-            $this->unreference();
+            $this->manager->unreference($this);
         }
     }
 

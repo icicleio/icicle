@@ -122,4 +122,20 @@ class SocketEvent implements SocketEventInterface
     {
         return $this->resource;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference()
+    {
+        $this->manager->unreference($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference()
+    {
+        $this->manager->reference($this);
+    }
 }
