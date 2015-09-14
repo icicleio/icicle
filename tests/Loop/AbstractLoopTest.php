@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop;
@@ -32,8 +32,8 @@ use Throwable;
  */
 abstract class AbstractLoopTest extends TestCase
 {
-    const TIMEOUT = 0.2;
-    const RUNTIME = 0.05; // Allowed deviation from projected run times.
+    const TIMEOUT = 0.3;
+    const RUNTIME = 0.1; // Allowed deviation from projected run times.
     const MICROSEC_PER_SEC = 1e6;
     const WRITE_STRING = '1234567890';
     const RESOURCE = 1;
@@ -129,10 +129,20 @@ abstract class AbstractLoopTest extends TestCase
             ->will($this->returnCallback(function () use ($socket, $manager) {
                 $manager->free($socket);
             }));
-    
+
         $socket->method('isFreed')
             ->will($this->returnCallback(function () use ($socket, $manager) {
                 return $manager->isFreed($socket);
+            }));
+
+        $socket->method('unreference')
+            ->will($this->returnCallback(function () use ($socket, $manager) {
+                $manager->unreference($socket);
+            }));
+
+        $socket->method('reference')
+            ->will($this->returnCallback(function () use ($socket, $manager) {
+                $manager->reference($socket);
             }));
         
         return $socket;
@@ -165,6 +175,16 @@ abstract class AbstractLoopTest extends TestCase
         $immediate->method('isPending')
             ->will($this->returnCallback(function () use ($immediate, $manager) {
                 return $manager->isPending($immediate);
+            }));
+
+        $immediate->method('unreference')
+            ->will($this->returnCallback(function () use ($immediate, $manager) {
+                $manager->unreference($immediate);
+            }));
+
+        $immediate->method('reference')
+            ->will($this->returnCallback(function () use ($immediate, $manager) {
+                $manager->reference($immediate);
             }));
         
         return $immediate;
@@ -249,6 +269,16 @@ abstract class AbstractLoopTest extends TestCase
         $signal->method('isEnabled')
             ->will($this->returnCallback(function () use ($signal, $manager) {
                 return $manager->isEnabled($signal);
+            }));
+
+        $signal->method('unreference')
+            ->will($this->returnCallback(function () use ($signal, $manager) {
+                $manager->unreference($signal);
+            }));
+
+        $signal->method('reference')
+            ->will($this->returnCallback(function () use ($signal, $manager) {
+                $manager->reference($signal);
             }));
 
         return $signal;
@@ -475,6 +505,24 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll->listen(self::TIMEOUT);
     }
+
+    public function testUnreferencePoll()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $poll = $this->loop->poll($writable, $this->createCallback(0));
+        $poll->listen();
+
+        $poll->unreference();
+
+        $this->assertTrue($this->loop->isEmpty());
+
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $poll->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
+    }
     
     public function testCreateAwait()
     {
@@ -663,6 +711,24 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertFalse($await->isPending());
         
         $await->listen(self::TIMEOUT);
+    }
+
+    public function testUnreferenceAwait()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $await = $this->loop->await($writable, $this->createCallback(0));
+        $await->listen();
+
+        $await->unreference();
+
+        $this->assertTrue($this->loop->isEmpty());
+
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $await->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
     }
 
     /**
@@ -968,6 +1034,21 @@ abstract class AbstractLoopTest extends TestCase
         }
         
         $this->fail('Loop should not catch exceptions thrown from immediate callbacks.');
+    }
+
+    public function testUnreferenceImmediate()
+    {
+        $immediate = $this->loop->immediate($this->createCallback(0));
+
+        $immediate->unreference();
+
+        $this->assertTrue($this->loop->isEmpty());
+
+        $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $immediate->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
     }
     
     /**
@@ -1355,6 +1436,28 @@ abstract class AbstractLoopTest extends TestCase
     public function testInvalidSignal()
     {
         $this->loop->signal(-1, $this->createCallback(0));
+    }
+
+    /**
+     * @depends testDisableSignal
+     */
+    public function testReferenceSignal()
+    {
+        $pid = posix_getpid();
+
+        $signal = $this->loop->signal(SIGUSR1, function () use (&$signal) {
+            $signal->unreference();
+        });
+
+        $this->loop->timer(1, false, 'posix_kill', [$pid, SIGUSR1])->unreference();
+
+        $this->assertTrue($this->loop->isEmpty());
+
+        $signal->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
+
+        $this->assertRunTimeGreaterThan([$this->loop, 'run'], 1 - self::RUNTIME);
     }
 
     /**

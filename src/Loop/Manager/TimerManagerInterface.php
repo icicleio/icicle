@@ -4,14 +4,14 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\TimerInterface;
 
-interface TimerManagerInterface
+interface TimerManagerInterface extends EventManagerInterface
 {
     /**
      * Creates a timer object connected to the manager.
@@ -62,16 +62,4 @@ interface TimerManagerInterface
      * @param \Icicle\Loop\Events\TimerInterface $timer
      */
     public function reference(TimerInterface $timer);
-
-    /**
-     * Determines if any referenced timers are pending in the manager.
-     *
-     * @return bool
-     */
-    public function isEmpty(): bool;
-
-    /**
-     * Clears all timers from the manager.
-     */
-    public function clear();
 }

@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager;
@@ -31,6 +31,11 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     private $signals = [];
 
     /**
+     * @var \SplObjectStorage
+     */
+    private $referenced;
+
+    /**
      * @param \Icicle\Loop\LoopInterface $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
@@ -42,6 +47,8 @@ abstract class AbstractSignalManager implements SignalManagerInterface
         foreach ($this->getSignalList() as $signo) {
             $this->signals[$signo] = new \SplObjectStorage();
         }
+
+        $this->referenced = new \SplObjectStorage();
     }
 
     /**
@@ -79,6 +86,8 @@ abstract class AbstractSignalManager implements SignalManagerInterface
         if (isset($this->signals[$signo]) && $this->signals[$signo]->contains($signal)) {
             $this->signals[$signo]->detach($signal);
         }
+
+        $this->referenced->detach($signal);
     }
 
     /**
@@ -99,6 +108,34 @@ abstract class AbstractSignalManager implements SignalManagerInterface
         foreach ($this->signals as $signo => $signals) {
             $this->signals[$signo] = new \SplObjectStorage();
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SignalInterface $signal)
+    {
+        $signo = $signal->getSignal();
+
+        if ($this->signals[$signo]->contains($signal)) {
+            $this->referenced->attach($signal);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SignalInterface $signal)
+    {
+        $this->referenced->detach($signal);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isEmpty(): bool
+    {
+        return !$this->referenced->count();
     }
 
     /**
@@ -193,7 +230,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * @return \Icicle\Loop\LoopInterface
      */
-    protected function getLoop()
+    protected function getLoop(): LoopInterface
     {
         return $this->loop;
     }

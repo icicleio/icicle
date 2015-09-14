@@ -7,14 +7,19 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Promise;
+namespace Icicle\Loop\Manager;
 
-interface PromisorInterface
+interface EventManagerInterface
 {
     /**
-     * Returns the internal PromiseInterface object.
+     * Determines if any referenced events are pending in the manager.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return bool
      */
-    public function getPromise(): PromiseInterface;
+    public function isEmpty(): bool;
+
+    /**
+     * Clears all events from the manager.
+     */
+    public function clear();
 }

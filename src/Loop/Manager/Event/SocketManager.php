@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager\Event;
@@ -44,6 +44,11 @@ class SocketManager implements SocketManagerInterface
      * @var \Icicle\Loop\Events\SocketEventInterface[]
      */
     private $sockets = [];
+
+    /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
     
     /**
      * @var callable
@@ -87,8 +92,8 @@ class SocketManager implements SocketManagerInterface
      */
     public function isEmpty(): bool
     {
-        foreach ($this->events as $event) {
-            if ($event->pending) {
+        foreach ($this->events as $id => $event) {
+            if ($event->pending && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -169,7 +174,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
+            unset($this->sockets[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
                 $this->events[$id]->free();
@@ -186,6 +191,27 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $socket;
+        }
     }
     
     /**

@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop\Events;
@@ -177,5 +177,31 @@ class SocketEventTest extends TestCase
             ->with($this->identicalTo($event));
         
         $event->cancel();
+    }
+
+    public function testUnreference()
+    {
+        list($socket) = $this->createSockets();
+
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('unreference')
+            ->with($this->identicalTo($event));
+
+        $event->unreference();
+    }
+
+    public function testReference()
+    {
+        list($socket) = $this->createSockets();
+
+        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('reference')
+            ->with($this->identicalTo($event));
+
+        $event->reference();
     }
 }

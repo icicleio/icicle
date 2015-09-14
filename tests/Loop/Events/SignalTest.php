@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop\Events;
@@ -90,13 +90,13 @@ class SignalTest extends TestCase
 
     public function testEnable()
     {
-        $timer = $this->createSignal(1, $this->createCallback(0));
+        $signal = $this->createSignal(1, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('enable')
-            ->with($this->identicalTo($timer));
+            ->with($this->identicalTo($signal));
 
-        $timer->enable();
+        $signal->enable();
     }
 
     public function testIsEnabled()
@@ -113,12 +113,55 @@ class SignalTest extends TestCase
     
     public function testDisable()
     {
-        $timer = $this->createSignal(1, $this->createCallback(0));
+        $signal = $this->createSignal(1, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('disable')
-            ->with($this->identicalTo($timer));
-        
-        $timer->disable();
+            ->with($this->identicalTo($signal));
+
+        $signal->disable();
+    }
+
+    public function testUnreference()
+    {
+        $signal = $this->createSignal(1, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('unreference')
+            ->with($this->identicalTo($signal));
+
+        $signal->unreference();
+    }
+
+    public function testReference()
+    {
+        $signal = $this->createSignal(1, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('reference')
+            ->with($this->identicalTo($signal));
+
+        $signal->reference();
+    }
+
+    /**
+     * @depends testReference
+     * @depends testEnable
+     */
+    public function testExecuteAfterReference()
+    {
+        $signal = $this->createSignal(1, $this->createCallback(0));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('reference')
+            ->with($this->identicalTo($signal));
+
+        $this->manager->expects($this->once())
+            ->method('enable')
+            ->with($this->identicalTo($signal));
+
+        $signal->reference();
+
+        $signal->enable();
     }
 }

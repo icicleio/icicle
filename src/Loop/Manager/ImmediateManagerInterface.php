@@ -4,14 +4,14 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\ImmediateInterface;
 
-interface ImmediateManagerInterface
+interface ImmediateManagerInterface extends EventManagerInterface
 {
     /**
      * Creates an immediate object connected to the manager.
@@ -47,21 +47,25 @@ interface ImmediateManagerInterface
     public function isPending(ImmediateInterface $immediate);
 
     /**
-     * Determines if any immediates are pending in the manager.
-     *
-     * @return bool
-     */
-    public function isEmpty(): bool;
-
-    /**
-     * Clears all pending immediates from the manager.
-     */
-    public function clear();
-
-    /**
      * Calls the next pending immediate. Returns true if an immediate was executed, false if not.
      *
      * @return bool
      */
     public function tick(): bool;
+
+    /**
+     * Unreferences the given immediate, that is, if the immediate is pending in the loop, the loop should not continue
+     * running.
+     *
+     * @param \Icicle\Loop\Events\ImmediateInterface $immediate
+     */
+    public function unreference(ImmediateInterface $immediate);
+
+    /**
+     * References an immediate if it was previously unreferenced. That is, if the immediate is pending the loop will
+     * continue running.
+     *
+     * @param \Icicle\Loop\Events\ImmediateInterface $immediate
+     */
+    public function reference(ImmediateInterface $immediate);
 }

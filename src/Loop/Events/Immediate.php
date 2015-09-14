@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Events;
@@ -27,6 +27,11 @@ class Immediate implements ImmediateInterface
      * @var mixed[]|null
      */
     private $args;
+
+    /**
+     * @var bool
+     */
+    private $referenced = true;
 
     /**
      * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
@@ -74,6 +79,10 @@ class Immediate implements ImmediateInterface
     public function execute()
     {
         $this->manager->execute($this);
+
+        if (!$this->referenced) {
+            $this->manager->unreference($this);
+        }
     }
 
     /**
@@ -82,5 +91,23 @@ class Immediate implements ImmediateInterface
     public function cancel()
     {
         $this->manager->cancel($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference()
+    {
+        $this->referenced = false;
+        $this->manager->unreference($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference()
+    {
+        $this->referenced = true;
+        $this->manager->reference($this);
     }
 }
