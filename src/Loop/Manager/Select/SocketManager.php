@@ -210,7 +210,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
 
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            $this->unreferenced = $socket;
+            $this->unreferenced[$id] = $socket;
         }
     }
     

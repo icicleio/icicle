@@ -177,7 +177,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
+            unset($this->sockets[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
                 $this->events[$id]->free();
@@ -213,7 +213,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
 
         if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
-            $this->unreferenced = $socket;
+            $this->unreferenced[$id] = $socket;
         }
     }
     

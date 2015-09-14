@@ -135,6 +135,11 @@ abstract class AbstractLoopTest extends TestCase
             ->will($this->returnCallback(function () use ($socket, $manager) {
                 $manager->unreference($socket);
             }));
+
+        $socket->method('reference')
+            ->will($this->returnCallback(function () use ($socket, $manager) {
+                $manager->reference($socket);
+            }));
         
         return $socket;
     }
@@ -171,6 +176,11 @@ abstract class AbstractLoopTest extends TestCase
         $immediate->method('unreference')
             ->will($this->returnCallback(function () use ($immediate, $manager) {
                 $manager->unreference($immediate);
+            }));
+
+        $immediate->method('reference')
+            ->will($this->returnCallback(function () use ($immediate, $manager) {
+                $manager->reference($immediate);
             }));
         
         return $immediate;
@@ -255,6 +265,11 @@ abstract class AbstractLoopTest extends TestCase
         $signal->method('isEnabled')
             ->will($this->returnCallback(function () use ($signal, $manager) {
                 return $manager->isEnabled($signal);
+            }));
+
+        $signal->method('unreference')
+            ->will($this->returnCallback(function () use ($signal, $manager) {
+                $manager->unreference($signal);
             }));
 
         $signal->method('reference')
@@ -492,12 +507,17 @@ abstract class AbstractLoopTest extends TestCase
         list($readable, $writable) = $this->createSockets();
 
         $poll = $this->loop->poll($writable, $this->createCallback(0));
+        $poll->listen();
 
         $poll->unreference();
 
         $this->assertTrue($this->loop->isEmpty());
 
         $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $poll->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
     }
     
     public function testCreateAwait()
@@ -694,12 +714,17 @@ abstract class AbstractLoopTest extends TestCase
         list($readable, $writable) = $this->createSockets();
 
         $await = $this->loop->await($writable, $this->createCallback(0));
+        $await->listen();
 
         $await->unreference();
 
         $this->assertTrue($this->loop->isEmpty());
 
         $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $await->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
     }
 
     /**
@@ -1016,6 +1041,10 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertTrue($this->loop->isEmpty());
 
         $this->assertRunTimeLessThan([$this->loop, 'run'], self::RUNTIME);
+
+        $immediate->reference();
+
+        $this->assertFalse($this->loop->isEmpty());
     }
     
     /**
@@ -1413,7 +1442,7 @@ abstract class AbstractLoopTest extends TestCase
         $pid = posix_getpid();
 
         $signal = $this->loop->signal(SIGUSR1, function () use (&$signal) {
-            $signal->disable();
+            $signal->unreference();
         });
 
         $this->loop->timer(1, false, 'posix_kill', [$pid, SIGUSR1])->unreference();
