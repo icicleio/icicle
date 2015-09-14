@@ -28,8 +28,8 @@ use Icicle\Tests\TestCase;
  */
 abstract class AbstractLoopTest extends TestCase
 {
-    const TIMEOUT = 0.2;
-    const RUNTIME = 0.05; // Allowed deviation from projected run times.
+    const TIMEOUT = 0.3;
+    const RUNTIME = 0.1; // Allowed deviation from projected run times.
     const MICROSEC_PER_SEC = 1e6;
     const WRITE_STRING = '1234567890';
     const RESOURCE = 1;
@@ -1424,7 +1424,7 @@ abstract class AbstractLoopTest extends TestCase
 
         $this->assertFalse($this->loop->isEmpty());
 
-        $this->assertRunTimeGreaterThan([$this->loop, 'run'], 1);
+        $this->assertRunTimeGreaterThan([$this->loop, 'run'], 1 - self::RUNTIME);
     }
 
     /**
