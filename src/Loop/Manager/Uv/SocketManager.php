@@ -50,6 +50,11 @@ class SocketManager implements SocketManagerInterface
     private $sockets = [];
 
     /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
+
+    /**
      * @var callable Callback for poll events.
      */
     private $pollCallback;
@@ -133,8 +138,8 @@ class SocketManager implements SocketManagerInterface
      */
     public function isEmpty(): bool
     {
-        foreach ($this->polls as $poll) {
-            if (\uv_is_active($poll)) {
+        foreach ($this->polls as $id =>$poll) {
+            if (\uv_is_active($poll) && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -231,7 +236,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
 
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
+            unset($this->sockets[$id], $this->unreferenced[$id]);
 
             if (isset($this->polls[$id])) {
                 \uv_close($this->polls[$id]);
@@ -256,6 +261,26 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
 
         return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $socket;
+        }
     }
 
     /**
