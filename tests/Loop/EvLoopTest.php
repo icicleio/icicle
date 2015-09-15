@@ -22,9 +22,4 @@ class EvLoopTest extends AbstractLoopTest
     {
         return new EvLoop(true, $eventFactory, self::$base);
     }
-    
-    public function testEnabled()
-    {
-        $this->assertSame(extension_loaded('ev'), EvLoop::enabled());
-    }
 }

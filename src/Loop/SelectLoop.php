@@ -50,16 +50,6 @@ class SelectLoop extends AbstractLoop
     private $signalTimer;
 
     /**
-     * Always returns true for this class, since this class only requires core PHP functions.
-     *
-     * @return bool
-     */
-    public static function enabled()
-    {
-        return true;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function reInit() { /* Nothing to be done after fork. */ }

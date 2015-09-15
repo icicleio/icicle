@@ -18,16 +18,6 @@ class EvLoop extends AbstractLoop
     private $loop;
 
     /**
-     * Determines if the ev extension is loaded, which is required for this class.
-     *
-     * @return  bool
-     */
-    public static function enabled()
-    {
-        return extension_loaded('ev');
-    }
-
-    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EvLoop|null $loop Use null for an EvLoop object to be automatically created.
@@ -37,7 +27,7 @@ class EvLoop extends AbstractLoop
     public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, \EvLoop $loop = null)
     {
         // @codeCoverageIgnoreStart
-        if (!self::enabled()) {
+        if (!extension_loaded('ev')) {
             throw new UnsupportedError(__CLASS__ . ' requires the ev extension.');
         } // @codeCoverageIgnoreEnd
         

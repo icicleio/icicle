@@ -12,13 +12,6 @@ namespace Icicle\Loop;
 interface LoopInterface
 {
     /**
-     * Determines if the necessary components for the loop class are available.
-     *
-     * @return bool
-     */
-    public static function enabled();
-    
-    /**
      * Executes a single tick, processing callbacks and handling any available I/O.
      *
      * @param bool $blocking Determines if the tick should block and wait for I/O if no other tasks are scheduled.

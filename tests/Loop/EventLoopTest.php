@@ -31,9 +31,4 @@ class EventLoopTest extends AbstractLoopTest
     {
         return new EventLoop(true, $eventFactory, self::$base);
     }
-    
-    public function testEnabled()
-    {
-        $this->assertSame(extension_loaded('event'), EventLoop::enabled());
-    }
 }

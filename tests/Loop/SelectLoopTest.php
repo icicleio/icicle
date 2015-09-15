@@ -18,12 +18,7 @@ class SelectLoopTest extends AbstractLoopTest
     {
         return new SelectLoop(true, $eventFactory);
     }
-    
-    public function testEnabled()
-    {
-        $this->assertTrue(SelectLoop::enabled());
-    }
-    
+
     public function testListenAwaitWithExpiredTimeout()
     {
         list($readable, $writable) = $this->createSockets();
