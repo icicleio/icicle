@@ -4,12 +4,12 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Events;
 
-interface TimerInterface
+interface TimerInterface extends EventInterface
 {
     /**
      * @return bool
@@ -41,20 +41,10 @@ interface TimerInterface
     public function isPeriodic(): bool;
     
     /**
-     * An unreferenced timer will allow the event loop to exit if no other events are pending.
-     */
-    public function unreference();
-    
-    /**
-     * Adds a reference to the timer, causing the event loop to continue to run if the timer is still pending.
-     */
-    public function reference();
-
-    /**
      * Calls the callback associated with the timer.
      */
     public function call();
-    
+
     /**
      * Alias of call().
      */

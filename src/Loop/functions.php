@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop;
@@ -42,15 +42,15 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create(bool $enableSignals = true): LoopInterface
     {
-        if (EvLoop::enabled()) {
+        if (extension_loaded('ev')) {
             return new EvLoop($enableSignals);
         }
 
-        if (EventLoop::enabled()) {
+        if (extension_loaded('event')) {
             return new EventLoop($enableSignals);
         }
 
-        if (LibeventLoop::enabled()) {
+        if (extension_loaded('libevent')) {
             return new LibeventLoop($enableSignals);
         }
 

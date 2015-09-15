@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop;
@@ -61,7 +61,7 @@ abstract class AbstractLoop implements LoopInterface
     private $immediateManager;
 
     /**
-     * @var \Icicle\Loop\Manager\SignalManagerInterface
+     * @var \Icicle\Loop\Manager\SignalManagerInterface|null
      */
     private $signalManager;
     
@@ -116,12 +116,8 @@ abstract class AbstractLoop implements LoopInterface
      */
     public function __construct(bool $enableSignals = true, EventFactoryInterface $eventFactory = null)
     {
-        $this->eventFactory = $eventFactory;
-        
-        if (null === $this->eventFactory) {
-            $this->eventFactory = $this->createEventFactory();
-        }
-        
+        $this->eventFactory = $eventFactory ?: $this->createEventFactory();
+
         $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
         
         $this->immediateManager = $this->createImmediateManager($this->eventFactory);
@@ -206,7 +202,8 @@ abstract class AbstractLoop implements LoopInterface
             && $this->awaitManager->isEmpty()
             && $this->timerManager->isEmpty()
             && $this->callableQueue->isEmpty()
-            && $this->immediateManager->isEmpty();
+            && $this->immediateManager->isEmpty()
+            && (null === $this->signalManager || $this->signalManager->isEmpty());
     }
     
     /**

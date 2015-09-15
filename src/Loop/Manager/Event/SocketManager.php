@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager\Event;
@@ -16,7 +16,7 @@ use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 use Icicle\Loop\Manager\SocketManagerInterface;
 
-abstract class SocketManager implements SocketManagerInterface
+class SocketManager implements SocketManagerInterface
 {
     const MIN_TIMEOUT = 0.001;
 
@@ -44,32 +44,33 @@ abstract class SocketManager implements SocketManagerInterface
      * @var \Icicle\Loop\Events\SocketEventInterface[]
      */
     private $sockets = [];
+
+    /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
     
     /**
      * @var callable
      */
     private $callback;
-    
+
     /**
-     * Creates an Event object on the given EventBase for the SocketEventInterface.
-     *
-     * @param \EventBase $base
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
-     * @param callable $callback
-     *
-     * @return \Event
+     * @var int
      */
-    abstract protected function createEvent(EventBase $base, SocketEventInterface $event, callable $callback): Event;
-    
+    private $type;
+
     /**
      * @param \Icicle\Loop\EventLoop $loop
      * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param int $eventType
      */
-    public function __construct(EventLoop $loop, EventFactoryInterface $factory)
+    public function __construct(EventLoop $loop, EventFactoryInterface $factory, int $eventType)
     {
         $this->loop = $loop;
         $this->factory = $factory;
         $this->base = $this->loop->getEventBase();
+        $this->type = $eventType;
         
         $this->callback = function ($resource, int $what, SocketEventInterface $socket) {
             $socket->call(0 !== (Event::TIMEOUT & $what));
@@ -91,8 +92,8 @@ abstract class SocketManager implements SocketManagerInterface
      */
     public function isEmpty(): bool
     {
-        foreach ($this->events as $event) {
-            if ($event->pending) {
+        foreach ($this->events as $id => $event) {
+            if ($event->pending && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -126,7 +127,7 @@ abstract class SocketManager implements SocketManagerInterface
         }
         
         if (!isset($this->events[$id])) {
-            $this->events[$id] = $this->createEvent($this->base, $socket, $this->callback);
+            $this->events[$id] = new Event($this->base, $socket->getResource(), $this->type, $this->callback, $socket);
         }
 
         if (!$timeout) {
@@ -134,7 +135,6 @@ abstract class SocketManager implements SocketManagerInterface
             return;
         }
         
-        $timeout = (float) $timeout;
         if (self::MIN_TIMEOUT > $timeout) {
             $timeout = self::MIN_TIMEOUT;
         }
@@ -174,7 +174,7 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
+            unset($this->sockets[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
                 $this->events[$id]->free();
@@ -191,6 +191,27 @@ abstract class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $socket;
+        }
     }
     
     /**

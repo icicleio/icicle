@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Promise;
@@ -1335,14 +1335,14 @@ class PromiseTest extends TestCase
 
         Loop\run();
 
-        $this->assertTrue($promise->isPending());
-        $this->assertFalse($promise->isCancelled());
+        $this->assertFalse($promise->isPending());
+        $this->assertTrue($promise->isCancelled());
+        $this->assertFalse($promise->isRejected());
 
         $this->resolve(1);
 
         Loop\run();
 
-        $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
     }
 
@@ -1369,14 +1369,14 @@ class PromiseTest extends TestCase
 
         Loop\run();
 
-        $this->assertTrue($promise->isPending());
-        $this->assertFalse($promise->isCancelled());
+        $this->assertFalse($promise->isPending());
+        $this->assertTrue($promise->isCancelled());
+        $this->assertFalse($promise->isRejected());
 
         $this->reject($exception);
 
         Loop\run();
 
-        $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
 
         try {

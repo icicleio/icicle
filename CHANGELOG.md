@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.8.2
+
+- Bug Fixes
+    - Fixed issue where a promise would report as pending for some time after being cancelled.
+    - Timers that are restarted after being unreferenced would become referenced again. This issue has now been fixed.
+
 ### v0.8.1
 
 - New Features

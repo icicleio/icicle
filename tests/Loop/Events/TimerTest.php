@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop\Events;
@@ -130,6 +130,27 @@ class TimerTest extends TestCase
             ->with($this->identicalTo($timer));
         
         $timer->reference();
+    }
+
+    /**
+     * @depends testUnreference
+     * @depends testStart
+     */
+    public function testStartAfterUnreference()
+    {
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('unreference')
+            ->with($this->identicalTo($timer));
+
+        $this->manager->expects($this->once())
+            ->method('start')
+            ->with($this->identicalTo($timer));
+
+        $timer->unreference();
+
+        $timer->start();
     }
     
     /**

@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop\Events;
@@ -78,6 +78,49 @@ class ImmediateTest extends TestCase
             ->with($this->identicalTo($immediate));
 
         $immediate->cancel();
+    }
+
+    public function testUnreference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('unreference')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->unreference();
+    }
+
+    public function testReference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('reference')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->reference();
+    }
+
+    /**
+     * @depends testUnreference
+     * @depends testExecute
+     */
+    public function testExecuteAfterUnreference()
+    {
+        $immediate = $this->createImmediate($this->createCallback(0));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('unreference')
+            ->with($this->identicalTo($immediate));
+
+        $this->manager->expects($this->once())
+            ->method('execute')
+            ->with($this->identicalTo($immediate));
+
+        $immediate->unreference();
+
+        $immediate->execute();
     }
 
     /**

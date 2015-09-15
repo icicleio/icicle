@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Promise\Internal;
@@ -61,17 +61,9 @@ class CancelledPromise extends ResolvedPromise
     /**
      * {@inheritdoc}
      */
-    public function isPending(): bool
-    {
-        return $this->result->isPending();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function isFulfilled(): bool
     {
-        return $this->result->isFulfilled();
+        return false;
     }
 
     /**
@@ -79,7 +71,7 @@ class CancelledPromise extends ResolvedPromise
      */
     public function isRejected(): bool
     {
-        return $this->result->isRejected();
+        return $this->result->isRejected(); // Rejected once cancellation function is invoked.
     }
 
     /**
@@ -87,7 +79,7 @@ class CancelledPromise extends ResolvedPromise
      */
     public function isCancelled(): bool
     {
-        return !$this->result->isPending();
+        return true;
     }
 
     /**

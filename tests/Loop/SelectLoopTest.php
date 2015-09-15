@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Tests\Loop;
@@ -18,12 +18,7 @@ class SelectLoopTest extends AbstractLoopTest
     {
         return new SelectLoop(true, $eventFactory);
     }
-    
-    public function testEnabled()
-    {
-        $this->assertTrue(SelectLoop::enabled());
-    }
-    
+
     public function testListenAwaitWithExpiredTimeout()
     {
         list($readable, $writable) = $this->createSockets();

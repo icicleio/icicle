@@ -3,7 +3,7 @@ namespace Icicle\Loop;
 
 use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Ev\{AwaitManager, PollManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Ev\{SignalManager, SocketManager, TimerManager};
 use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
 
 /**
@@ -17,16 +17,6 @@ class EvLoop extends AbstractLoop
     private $loop;
 
     /**
-     * Determines if the ev extension is loaded, which is required for this class.
-     *
-     * @return  bool
-     */
-    public static function enabled(): bool
-    {
-        return extension_loaded('ev');
-    }
-
-    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EvLoop|null $loop Use null for an EvLoop object to be automatically created.
@@ -36,7 +26,7 @@ class EvLoop extends AbstractLoop
     public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, \EvLoop $loop = null)
     {
         // @codeCoverageIgnoreStart
-        if (!self::enabled()) {
+        if (!extension_loaded('ev')) {
             throw new UnsupportedError(__CLASS__ . ' requires the ev extension.');
         } // @codeCoverageIgnoreEnd
         
@@ -82,7 +72,7 @@ class EvLoop extends AbstractLoop
      */
     protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new PollManager($this, $factory);
+        return new SocketManager($this, $factory, \Ev::READ);
     }
     
     /**
@@ -90,7 +80,7 @@ class EvLoop extends AbstractLoop
      */
     protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
     {
-        return new AwaitManager($this, $factory);
+        return new SocketManager($this, $factory, \Ev::WRITE);
     }
     
     /**

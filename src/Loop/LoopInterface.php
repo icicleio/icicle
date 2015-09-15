@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop;
@@ -13,13 +13,6 @@ use Icicle\Loop\Events\{ImmediateInterface, SignalInterface, SocketEventInterfac
 
 interface LoopInterface
 {
-    /**
-     * Determines if the necessary components for the loop class are available.
-     *
-     * @return bool
-     */
-    public static function enabled(): bool;
-    
     /**
      * Executes a single tick, processing callbacks and handling any available I/O.
      *

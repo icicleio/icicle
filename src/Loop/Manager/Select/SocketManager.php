@@ -4,7 +4,7 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager\Select;
@@ -42,6 +42,11 @@ class SocketManager implements SocketManagerInterface
      * @var \Icicle\Loop\Events\TimerInterface[]
      */
     private $timers = [];
+
+    /**
+     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     */
+    private $unreferenced = [];
     
     /**
      * @var callable
@@ -95,7 +100,6 @@ class SocketManager implements SocketManagerInterface
         $this->pending[$id] = $resource;
         
         if ($timeout) {
-            $timeout = (float) $timeout;
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
@@ -138,8 +142,7 @@ class SocketManager implements SocketManagerInterface
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id]);
-            unset($this->pending[$id]);
+            unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->timers[$id])) {
                 $this->timers[$id]->stop();
@@ -187,13 +190,43 @@ class SocketManager implements SocketManagerInterface
             }
         }
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(SocketEventInterface $socket)
+    {
+        unset($this->unreferenced[(int) $socket->getResource()]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(SocketEventInterface $socket)
+    {
+        $id = (int) $socket->getResource();
+
+        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $socket;
+        }
+    }
     
     /**
      * {@inheritdoc}
      */
     public function isEmpty(): bool
     {
-        return empty($this->pending);
+        if (empty($this->unreferenced)) {
+            return empty($this->pending);
+        }
+
+        foreach ($this->pending as $pending) {
+            if (!isset($this->unreferenced[(int) $pending])) {
+                return false;
+            }
+        }
+
+        return true;
     }
     
     /**
@@ -203,6 +236,7 @@ class SocketManager implements SocketManagerInterface
     {
         $this->sockets = [];
         $this->pending = [];
+        $this->unreferenced = [];
         
         foreach ($this->timers as $timer) {
             $timer->stop();

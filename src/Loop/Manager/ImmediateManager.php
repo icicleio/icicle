@@ -4,13 +4,14 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\{EventFactoryInterface, ImmediateInterface};
 use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Structures\ObjectStorage;
 
 class ImmediateManager implements ImmediateManagerInterface
 {
@@ -30,7 +31,7 @@ class ImmediateManager implements ImmediateManagerInterface
     private $queue;
     
     /**
-     * @var \SplObjectStorage
+     * @var \Icicle\Loop\Structures\ObjectStorage
      */
     private $immediates;
     
@@ -43,7 +44,7 @@ class ImmediateManager implements ImmediateManagerInterface
         $this->loop = $loop;
         $this->factory = $factory;
         $this->queue = new \SplQueue();
-        $this->immediates = new \SplObjectStorage();
+        $this->immediates = new ObjectStorage();
     }
     
     /**
@@ -99,9 +100,25 @@ class ImmediateManager implements ImmediateManagerInterface
      */
     public function isEmpty(): bool
     {
-        return 0 === $this->immediates->count();
+        return !$this->immediates->count();
     }
-    
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unreference(ImmediateInterface $immediate)
+    {
+        $this->immediates->unreference($immediate);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reference(ImmediateInterface $immediate)
+    {
+        $this->immediates->reference($immediate);
+    }
+
     /**
      * {@inheritdoc}
      */

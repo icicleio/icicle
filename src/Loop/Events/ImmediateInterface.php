@@ -4,12 +4,12 @@
  * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
- * @license Apache-2.0 See the LICENSE file that was distributed with this source code for more information.
+ * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
 namespace Icicle\Loop\Events;
 
-interface ImmediateInterface
+interface ImmediateInterface extends EventInterface
 {
     /**
      * @return bool
@@ -30,7 +30,7 @@ interface ImmediateInterface
      * Calls the callback associated with the immediate.
      */
     public function call();
-    
+
     /**
      * Alias of call().
      */
