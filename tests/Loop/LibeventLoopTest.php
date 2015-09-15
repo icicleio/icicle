@@ -30,9 +30,4 @@ class LibeventLoopTest extends AbstractLoopTest
     {
         return new LibeventLoop(true, $eventFactory, self::$base);
     }
-    
-    public function testEnabled()
-    {
-        $this->assertSame(extension_loaded('libevent'), LibeventLoop::enabled());
-    }
 }

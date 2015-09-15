@@ -27,16 +27,6 @@ class EventLoop extends AbstractLoop
     private $base;
 
     /**
-     * Determines if the event extension is loaded, which is required for this class.
-     *
-     * @return bool
-     */
-    public static function enabled(): bool
-    {
-        return extension_loaded('event');
-    }
-    
-    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
@@ -49,7 +39,7 @@ class EventLoop extends AbstractLoop
         EventBase $base = null
     ) {
         // @codeCoverageIgnoreStart
-        if (!self::enabled()) {
+        if (!extension_loaded('event')) {
             throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
         } // @codeCoverageIgnoreEnd
         

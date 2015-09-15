@@ -42,15 +42,15 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create(bool $enableSignals = true): LoopInterface
     {
-        if (EvLoop::enabled()) {
+        if (extension_loaded('ev')) {
             return new EvLoop($enableSignals);
         }
 
-        if (EventLoop::enabled()) {
+        if (extension_loaded('event')) {
             return new EventLoop($enableSignals);
         }
 
-        if (LibeventLoop::enabled()) {
+        if (extension_loaded('libevent')) {
             return new LibeventLoop($enableSignals);
         }
 
