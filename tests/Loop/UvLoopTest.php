@@ -30,9 +30,4 @@ class UvLoopTest extends AbstractLoopTest
     {
         return new UvLoop(true, $eventFactory, self::$base);
     }
-
-    public function testEnabled()
-    {
-        $this->assertSame(extension_loaded('uv'), UvLoop::enabled());
-    }
 }

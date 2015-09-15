@@ -25,16 +25,6 @@ class UvLoop extends AbstractLoop
     private $loopHandle;
 
     /**
-     * Determines if the UV extension is loaded, which is required for this class.
-     *
-     * @return bool
-     */
-    public static function enabled(): bool
-    {
-        return extension_loaded('uv');
-    }
-
-    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param resource|null $loop Resource created by uv_loop_new() or null to create a new event loop.
@@ -44,7 +34,7 @@ class UvLoop extends AbstractLoop
     public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, $loop = null)
     {
         // @codeCoverageIgnoreStart
-        if (!self::enabled()) {
+        if (!extension_loaded('uv')) {
             throw new UnsupportedError(__CLASS__ . ' requires the UV extension.');
         } // @codeCoverageIgnoreEnd
 
