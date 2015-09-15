@@ -17,7 +17,7 @@ class UvException extends Exception
     public function __construct($errorCode)
     {
         parent::__construct(
-            sprintf('UV_%s: %s', \uv_error_name($errorCode), \ucfirst(\uv_strerror($errorCode))),
+            sprintf('UV_%s: %s', \uv_err_name($errorCode), \ucfirst(\uv_strerror($errorCode))),
             $errorCode
         );
     }
