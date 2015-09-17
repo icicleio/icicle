@@ -1,10 +1,20 @@
 # Changelog
 
+### v0.8.3
+
+- New Features
+    - Added `Coroutine\run()` function that may be used to create an initial coroutine that runs the rest of the application. This function should not be called in a running event loop.
+    - All loop events can now be referenced/unreferenced like timers using the `reference()` and `unreference()` methods on event objects. Only referenced events will prevent an event loop from exiting the `run()` method. Signal events are created as unreferenced, while all other events are created as referenced.
+
+---
+
 ### v0.8.2
 
 - Bug Fixes
     - Fixed issue where a promise would report as pending for some time after being cancelled.
     - Timers that are restarted after being unreferenced would become referenced again. This issue has now been fixed.
+
+---
 
 ### v0.8.1
 
