@@ -49,11 +49,11 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
      *     return a Generator.
-     * @throws \Exception Coroutine rejection reason.
+     * @throws \Throwable Coroutine rejection reason.
      */
-    function run(callable $worker /* , ...$args */)
+    function run(callable $worker, ...$args)
     {
-        return call_user_func_array(__NAMESPACE__ . '\create', func_get_args())->wait();
+        return create($worker, ...$args)->wait();
     }
 
     /**
