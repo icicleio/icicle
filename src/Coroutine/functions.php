@@ -37,11 +37,31 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
     }
 
     /**
+     * Calls the function (which should return a Generator written as a coroutine), then runs the coroutine. This
+     * function should not be called within a running event loop. This function is meant to be used to create an
+     * initial coroutine that runs the rest of the application. The resolution value of the coroutine is returned or
+     * the rejection reason is thrown from this function.
+     *
+     * @param callable $worker Function returning a Generator written as a coroutine.
+     * @param mixed ...$args Arguments passed to $worker.
+     *
+     * @return mixed Coroutine resolution value.
+     *
+     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
+     *     return a Generator.
+     * @throws \Exception Coroutine rejection reason.
+     */
+    function run(callable $worker /* , ...$args */)
+    {
+        return call_user_func_array(__NAMESPACE__ . '\create', func_get_args())->wait();
+    }
+
+    /**
      * Calls the callable with the given arguments which must return a \Generator, which is then made into a coroutine
      * and returned.
      *
-     * @param callable $worker
-     * @param mixed ...$args
+     * @param callable $worker Function returning a Generator written as a coroutine.
+     * @param mixed ...$args Arguments passed to $worker.
      *
      * @return \Icicle\Coroutine\Coroutine
      *
