@@ -32,8 +32,12 @@ class LoopTest extends TestCase
     public function testLoop()
     {
         Loop\loop($this->loop);
-        
-        $this->assertSame($this->loop, Loop\loop());
+
+        $this->loop->expects($this->once())
+            ->method('isEmpty')
+            ->will($this->returnValue(false));
+
+        $this->assertFalse(Loop\loop()->isEmpty());
     }
     
     /**
@@ -41,9 +45,9 @@ class LoopTest extends TestCase
      */
     public function testLoopAfterInitialized()
     {
-        $this->assertNotSame($this->loop, Loop\loop());
+        $this->assertFalse($this->loop === Loop\loop());
 
-        $this->assertSame($this->loop, Loop\loop($this->loop));
+        $this->assertTrue($this->loop === Loop\loop($this->loop));
     }
 
     /**
@@ -151,8 +155,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(TimerInterface::class)));
 
         $timer = Loop\timer(self::TIMEOUT, $callback);
-
-        $this->assertInstanceOf(TimerInterface::class, $timer);
     }
     
     /**
@@ -175,8 +177,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(TimerInterface::class)));
 
         $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
-        
-        $this->assertInstanceOf(TimerInterface::class, $timer);
     }
 
     /**
@@ -194,8 +194,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(TimerInterface::class)));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback);
-
-        $this->assertInstanceOf(TimerInterface::class, $timer);
     }
     
     /**
@@ -218,8 +216,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(TimerInterface::class)));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
-
-        $this->assertInstanceOf(TimerInterface::class, $timer);
     }
 
     /**
@@ -237,8 +233,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
 
         $immediate = Loop\immediate($callback);
-
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
     }
     
     /**
@@ -256,8 +250,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
 
         $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
-
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
     }
 
     /**
@@ -346,7 +338,7 @@ class LoopTest extends TestCase
 
         Loop\with($worker, $loop);
 
-        $this->assertSame($this->loop, Loop\loop());
+        $this->assertTrue($this->loop === Loop\loop());
     }
     
     /**
@@ -364,8 +356,6 @@ class LoopTest extends TestCase
             ->will($this->returnValue($this->getMock(SignalInterface::class)));
 
         $signal = Loop\signal(1, $callback);
-
-        $this->assertInstanceOf(SignalInterface::class, $signal);
     }
     
     /**
