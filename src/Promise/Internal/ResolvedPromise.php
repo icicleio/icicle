@@ -9,7 +9,7 @@
 
 namespace Icicle\Promise\Internal;
 
-use Icicle\Promise\{PromiseInterface, PromiseTrait};
+use Icicle\Promise\PromiseInterface;
 
 abstract class ResolvedPromise implements PromiseInterface
 {

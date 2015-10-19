@@ -27,7 +27,7 @@ use Throwable;
  */
 class Promise implements PromiseInterface
 {
-    use PromiseTrait;
+    use Internal\PromiseTrait;
 
     /**
      * @var \Icicle\Promise\PromiseInterface|null

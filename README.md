@@ -7,10 +7,8 @@ Icicle uses [Coroutines](#coroutines) built with [Promises](#promises) to facili
 [![Build Status](https://img.shields.io/travis/icicleio/icicle/v1.x.svg?style=flat-square)](https://travis-ci.org/icicleio/icicle)
 [![Coverage Status](https://img.shields.io/coveralls/icicleio/icicle/v1.x.svg?style=flat-square)](https://coveralls.io/r/icicleio/icicle)
 [![Semantic Version](https://img.shields.io/github/release/icicleio/icicle.svg?style=flat-square)](http://semver.org)
-[![Apache 2 License](https://img.shields.io/packagist/l/icicleio/icicle.svg?style=flat-square)](LICENSE)
+[![MIT License](https://img.shields.io/packagist/l/icicleio/icicle.svg?style=flat-square)](LICENSE)
 [![@icicleio on Twitter](https://img.shields.io/badge/twitter-%40icicleio-5189c7.svg?style=flat-square)](https://twitter.com/icicleio)
-
-**Note to php[architect] readers:** Some changes have been made since the article was written. The most significant is that the `Icicle\Loop\Loop` facade class no longer exists and has been replaced by a set of functions in the `Icicle\Loop` namespace. For example, `Icicle\Loop\Loop::run()` has become `Icicle\Loop\run()`. Some methods that returned promises have been changed to be coroutines, returning `Generator` instances that can made into a promise by simply wrapping the method call with `new Icicle\Coroutine\Coroutine(/* ... */)`. This change was made to support `yield from` in PHP 7. See the [changelog](CHANGELOG.md) for more details on the recent changes.
 
 #### Library Components
 

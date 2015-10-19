@@ -296,8 +296,11 @@ abstract class AbstractLoopTest extends TestCase
         list($socket) = $this->createSockets();
         
         $poll = $this->loop->poll($socket, $this->createCallback(0));
-        
-        $this->assertInstanceOf(SocketEventInterface::class, $poll);
+
+        $poll->expects($this->once())
+            ->method('isPending');
+
+        $this->assertFalse($poll->isPending());
     }
     
     /**
@@ -529,8 +532,11 @@ abstract class AbstractLoopTest extends TestCase
         list($readable, $writable) = $this->createSockets();
         
         $await = $this->loop->await($writable, $this->createCallback(0));
-        
-        $this->assertInstanceOf(SocketEventInterface::class, $await);
+
+        $await->expects($this->once())
+            ->method('isPending');
+
+        $this->assertFalse($await->isPending());
     }
     
     /**
@@ -950,9 +956,10 @@ abstract class AbstractLoopTest extends TestCase
     public function testCreateImmediate()
     {
         $immediate = $this->loop->immediate($this->createCallback(1));
-        
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
-        
+
+        $immediate->expects($this->once())
+            ->method('isPending');
+
         $this->assertTrue($immediate->isPending());
         
         $this->loop->tick(false); // Should invoke immediate callback.
@@ -1057,7 +1064,10 @@ abstract class AbstractLoopTest extends TestCase
     public function testCreateTimer()
     {
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
-        
+
+        $timer->expects($this->once())
+            ->method('isPending');
+
         $this->assertTrue($timer->isPending());
         
         $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);
