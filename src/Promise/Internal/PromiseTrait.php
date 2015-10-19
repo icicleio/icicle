@@ -7,9 +7,10 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Promise;
+namespace Icicle\Promise\Internal;
 
 use Icicle\Promise\Exception\UnexpectedTypeError;
+use Icicle\Promise\PromiseInterface;
 
 trait PromiseTrait
 {

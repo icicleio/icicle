@@ -10,7 +10,6 @@
 namespace Icicle\Promise\Internal;
 
 use Icicle\Promise\PromiseInterface;
-use Icicle\Promise\PromiseTrait;
 
 abstract class ResolvedPromise implements PromiseInterface
 {

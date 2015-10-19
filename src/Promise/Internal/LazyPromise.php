@@ -11,7 +11,6 @@ namespace Icicle\Promise\Internal;
 
 use Icicle\Promise;
 use Icicle\Promise\PromiseInterface;
-use Icicle\Promise\PromiseTrait;
 
 class LazyPromise implements PromiseInterface
 {
