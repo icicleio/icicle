@@ -26,6 +26,11 @@ class UvLoopTest extends AbstractLoopTest
         }
     }
 
+    public function tearDown()
+    {
+        $this->loop->clear();
+    }
+
     public function createLoop(EventFactoryInterface $eventFactory)
     {
         return new UvLoop(true, $eventFactory, self::$base);
