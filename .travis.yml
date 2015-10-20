@@ -25,7 +25,7 @@ install:
   - composer install --no-interaction --prefer-source
 
 script:
-  - phpdbg -qrr vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
+  - phpdbg -qrr vendor/bin/phpunit --coverage-clover build/logs/clover.xml
 
 after_script:
   - composer require satooshi/php-coveralls dev-master
