@@ -82,6 +82,9 @@ class SocketManager implements SocketManagerInterface
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
             switch ($status) {
+                case 0: // OK
+                    break;
+
                 // If $status is a severe error, stop the poll and throw an exception.
                 case \UV::EACCES:
                 case \UV::EBADF:
@@ -90,10 +93,7 @@ class SocketManager implements SocketManagerInterface
                     \uv_poll_stop($poll);
                     throw new UvException($status);
 
-                case 0: // OK
-                    break;
-
-                default: // Ignore other (probably) trivial warnings. Hopefully nothing goes wrong...
+                default: // Ignore other (probably) trivial warnings and continuing polling.
                     return;
             }
 
