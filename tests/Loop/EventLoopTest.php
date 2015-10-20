@@ -26,6 +26,11 @@ class EventLoopTest extends AbstractLoopTest
             self::$base = new EventBase();
         }
     }
+
+    public function tearDown()
+    {
+        $this->loop->clear();
+    }
     
     public function createLoop(EventFactoryInterface $eventFactory)
     {

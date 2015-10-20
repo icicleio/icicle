@@ -18,6 +18,11 @@ class EvLoopTest extends AbstractLoopTest
         }
     }
 
+    public function tearDown()
+    {
+        $this->loop->clear();
+    }
+
     public function createLoop(EventFactoryInterface $eventFactory)
     {
         return new EvLoop(true, $eventFactory, self::$base);
