@@ -10,14 +10,14 @@
 namespace Icicle\Promise\Internal;
 
 use Icicle\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 
-class LazyPromise implements PromiseInterface
+class LazyPromise implements Thenable
 {
-    use PromiseTrait;
+    use SharedMethods;
     
     /**
-     * @var \Icicle\Promise\PromiseInterface|null
+     * @var \Icicle\Promise\Thenable|null
      */
     private $promise;
     
@@ -35,7 +35,7 @@ class LazyPromise implements PromiseInterface
     }
     
     /**
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     protected function getPromise()
     {

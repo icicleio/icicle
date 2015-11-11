@@ -2,7 +2,6 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop\EvLoop;
-use Icicle\Loop\Events\EventFactoryInterface;
 
 /**
  * @requires extension ev
@@ -23,8 +22,8 @@ class EvLoopTest extends AbstractLoopTest
         $this->loop->clear();
     }
 
-    public function createLoop(EventFactoryInterface $eventFactory)
+    public function createLoop()
     {
-        return new EvLoop(true, $eventFactory, self::$base);
+        return new EvLoop(true, self::$base);
     }
 }

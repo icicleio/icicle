@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop;
 
-interface LoopInterface
+interface Loop
 {
     /**
      * Executes a single tick, processing callbacks and handling any available I/O.
@@ -60,7 +60,7 @@ interface LoopInterface
     public function reInit();
     
     /**
-     * Sets the maximum number of callbacks set with LoopInterface::queue() that will be executed per tick.
+     * Sets the maximum number of callbacks set with Loop::queue() that will be executed per tick.
      *
      * @param int $depth Maximum number of functions to execute each tick. Use 0 for unlimited.
      *
@@ -83,7 +83,7 @@ interface LoopInterface
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEvent
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
@@ -95,7 +95,7 @@ interface LoopInterface
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEvent
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
@@ -109,7 +109,7 @@ interface LoopInterface
      * @param callable<(mixed ...$args): void> $callback
      * @param mixed[] $args
      *
-     * @return \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\Timer
      */
     public function timer($interval, $periodic, callable $callback, array $args = []);
     
@@ -119,7 +119,7 @@ interface LoopInterface
      * @param callable<(mixed ...$args): void> $callback
      * @param mixed[] $args
      *
-     * @return \Icicle\Loop\Events\ImmediateInterface
+     * @return \Icicle\Loop\Events\Immediate
      */
     public function immediate(callable $callback, array $args = []);
 
@@ -127,7 +127,7 @@ interface LoopInterface
      * @param int $signo
      * @param callable<(int $signo): void> $callback
      *
-     * @return \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\Signal
      */
     public function signal($signo, callable $callback);
 

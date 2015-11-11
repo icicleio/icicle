@@ -11,7 +11,6 @@ namespace Icicle\Tests\Loop;
 
 use EventBase;
 use Icicle\Loop\EventLoop;
-use Icicle\Loop\Events\EventFactoryInterface;
 
 /**
  * @requires extension event
@@ -32,8 +31,8 @@ class EventLoopTest extends AbstractLoopTest
         $this->loop->clear();
     }
     
-    public function createLoop(EventFactoryInterface $eventFactory)
+    public function createLoop()
     {
-        return new EventLoop(true, $eventFactory, self::$base);
+        return new EventLoop(true, self::$base);
     }
 }

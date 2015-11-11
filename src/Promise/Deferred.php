@@ -9,7 +9,7 @@
 
 namespace Icicle\Promise;
 
-class Deferred implements PromisorInterface
+class Deferred implements Promisor
 {
     /**
      * @var Promise

@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\Signal;
-use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SignalManager;
 use Icicle\Tests\TestCase;
 
 class SignalTest extends TestCase
@@ -21,7 +21,7 @@ class SignalTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock(SignalManagerInterface::class);
+        $this->manager = $this->getMock(SignalManager::class);
     }
     
     public function createSignal($signo, callable $callback)

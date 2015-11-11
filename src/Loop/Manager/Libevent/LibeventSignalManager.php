@@ -9,11 +9,10 @@
 
 namespace Icicle\Loop\Manager\Libevent;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Manager\AbstractSignalManager;
 
-class SignalManager extends AbstractSignalManager
+class LibeventSignalManager extends AbstractSignalManager
 {
     /**
      * @var resource[]
@@ -21,12 +20,11 @@ class SignalManager extends AbstractSignalManager
     private $events = [];
 
     /**
-     * @param \Icicle\Loop\LoopInterface $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\LibeventLoop $loop
      */
-    public function __construct(LibeventLoop $loop, EventFactoryInterface $factory)
+    public function __construct(LibeventLoop $loop)
     {
-        parent::__construct($loop, $factory);
+        parent::__construct($loop);
 
         $callback = $this->createSignalCallback();
 

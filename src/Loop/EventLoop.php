@@ -11,11 +11,10 @@ namespace Icicle\Loop;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Event\SignalManager;
-use Icicle\Loop\Manager\Event\SocketManager;
-use Icicle\Loop\Manager\Event\TimerManager;
+use Icicle\Loop\Manager\Event\EventSignalManager;
+use Icicle\Loop\Manager\Event\EventSocketManager;
+use Icicle\Loop\Manager\Event\EventTimerManager;
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.
@@ -29,14 +28,12 @@ class EventLoop extends AbstractLoop
 
     /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
-     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
      */
     public function __construct(
         $enableSignals = true,
-        EventFactoryInterface $eventFactory = null,
         EventBase $base = null
     ) {
         // @codeCoverageIgnoreStart
@@ -46,7 +43,7 @@ class EventLoop extends AbstractLoop
         
         $this->base = $base ?: new EventBase();
 
-        parent::__construct($enableSignals, $eventFactory);
+        parent::__construct($enableSignals);
     }
 
     /**
@@ -85,32 +82,32 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager()
     {
-        return new SocketManager($this, $factory, Event::READ);
+        return new EventSocketManager($this, Event::READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager()
     {
-        return new SocketManager($this, $factory, Event::WRITE);
+        return new EventSocketManager($this, Event::WRITE);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager()
     {
-        return new TimerManager($this, $factory);
+        return new EventTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager()
     {
-        return new SignalManager($this, $factory);
+        return new EventSignalManager($this);
     }
 }

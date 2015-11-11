@@ -1,24 +1,18 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\Timer;
 use Icicle\Loop\EvLoop;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\TimerManager;
 use Icicle\Loop\Structures\ObjectStorage;
 
-class TimerManager implements TimerManagerInterface
+class EvTimerManager implements TimerManager
 {
     /**
      * @var \EvLoop
      */
     private $loop;
-    
-    /**
-     * @var EventFactoryInterface
-     */
-    private $factory;
-    
+
     /**
      * ObjectStorage mapping Timer objects to EvTimer objects.
      *
@@ -33,17 +27,15 @@ class TimerManager implements TimerManagerInterface
     
     /**
      * @param   \Icicle\Loop\EvLoop $loop
-     * @param   \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EvLoop $loop, EventFactoryInterface $factory)
+    public function __construct(EvLoop $loop)
     {
-        $this->factory = $factory;
         $this->loop = $loop->getEvLoop();
         
         $this->timers = new ObjectStorage();
         
         $this->callback = function (\EvTimer $event) {
-            /** @var \Icicle\Loop\Events\TimerInterface $timer */
+            /** @var \Icicle\Loop\Events\Timer $timer */
             $timer = $event->data;
 
             if (!$timer->isPeriodic()) {
@@ -80,11 +72,9 @@ class TimerManager implements TimerManagerInterface
      */
     public function create($interval, $periodic = false, callable $callback, array $args = [])
     {
-        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
-        
-        $event = $this->loop->timer($interval, $periodic ? $interval : 0, $this->callback, $timer);
-        
-        $this->timers[$timer] = $event;
+        $timer = new Timer($this, $interval, $periodic, $callback, $args);
+
+        $this->start($timer);
 
         return $timer;
     }
@@ -92,7 +82,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function start(TimerInterface $timer)
+    public function start(Timer $timer)
     {
         if (!isset($this->timers[$timer])) {
             $interval = $timer->getInterval();
@@ -106,7 +96,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function stop(TimerInterface $timer)
+    public function stop(Timer $timer)
     {
         if (isset($this->timers[$timer])) {
             $this->timers[$timer]->stop();
@@ -117,7 +107,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer)
+    public function isPending(Timer $timer)
     {
         return isset($this->timers[$timer]) && $this->timers[$timer]->is_active;
     }
@@ -125,7 +115,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(TimerInterface $timer)
+    public function unreference(Timer $timer)
     {
         $this->timers->unreference($timer);
     }
@@ -133,7 +123,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(TimerInterface $timer)
+    public function reference(Timer $timer)
     {
         $this->timers->reference($timer);
     }

@@ -17,7 +17,7 @@ use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\CancelledException;
 use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 use Icicle\Tests\TestCase;
 
 class CoroutineTest extends TestCase
@@ -148,7 +148,7 @@ class CoroutineTest extends TestCase
         
         $child = $coroutine->then($callback, $this->createCallback(0));
         
-        $this->assertInstanceOf(PromiseInterface::class, $child);
+        $this->assertInstanceOf(Thenable::class, $child);
         
         Loop\run();
         
@@ -654,7 +654,7 @@ class CoroutineTest extends TestCase
         
         $timeout = $coroutine->timeout(self::TIMEOUT);
         
-        $this->assertInstanceOf(PromiseInterface::class, $timeout);
+        $this->assertInstanceOf(Thenable::class, $timeout);
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -681,7 +681,7 @@ class CoroutineTest extends TestCase
         
         $delayed = $coroutine->delay(self::TIMEOUT);
         
-        $this->assertInstanceOf(PromiseInterface::class, $delayed);
+        $this->assertInstanceOf(Thenable::class, $delayed);
         
         $delayed->done($callback);
         

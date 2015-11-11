@@ -12,10 +12,9 @@ namespace Icicle\Loop\Manager\Event;
 use Event;
 use EventBase;
 use Icicle\Loop\EventLoop;
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Manager\AbstractSignalManager;
 
-class SignalManager extends AbstractSignalManager
+class EventSignalManager extends AbstractSignalManager
 {
     /**
      * @var \Event[]
@@ -24,11 +23,10 @@ class SignalManager extends AbstractSignalManager
 
     /**
      * @param \Icicle\Loop\EventLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(EventLoop $loop, EventFactoryInterface $factory)
+    public function __construct(EventLoop $loop)
     {
-        parent::__construct($loop, $factory);
+        parent::__construct($loop);
 
         $callback = $this->createSignalCallback();
 

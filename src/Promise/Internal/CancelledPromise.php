@@ -15,7 +15,7 @@ use Icicle\Promise\Exception\CancelledException;
 class CancelledPromise extends ResolvedPromise
 {
     /**
-     * @var \Icicle\Promise\PromiseInterface
+     * @var \Icicle\Promise\Thenable
      */
     private $result;
 

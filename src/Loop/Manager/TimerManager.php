@@ -9,9 +9,9 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Events\Timer;
 
-interface TimerManagerInterface extends EventManagerInterface
+interface TimerManager extends EventManager
 {
     /**
      * Creates a timer object connected to the manager.
@@ -21,45 +21,45 @@ interface TimerManagerInterface extends EventManagerInterface
      * @param callable $callback
      * @param mixed[]|null $args
      *
-     * @return \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\Timer
      */
     public function create($interval, $periodic, callable $callback, array $args = []);
 
     /**
      * Starts the given timer if it is not already pending.
      *
-     * @param \Icicle\Loop\Events\TimerInterface $timer
+     * @param \Icicle\Loop\Events\Timer $timer
      */
-    public function start(TimerInterface $timer);
+    public function start(Timer $timer);
 
     /**
      * Cancels the given timer.
      *
-     * @param \Icicle\Loop\Events\TimerInterface $timer
+     * @param \Icicle\Loop\Events\Timer $timer
      */
-    public function stop(TimerInterface $timer);
+    public function stop(Timer $timer);
     
     /**
      * Determines if the timer is pending.
      *
-     * @param \Icicle\Loop\Events\TimerInterface $timer
+     * @param \Icicle\Loop\Events\Timer $timer
      *
      * @return bool
      */
-    public function isPending(TimerInterface $timer);
+    public function isPending(Timer $timer);
 
     /**
      * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
      *
-     * @param \Icicle\Loop\Events\TimerInterface $timer
+     * @param \Icicle\Loop\Events\Timer $timer
      */
-    public function unreference(TimerInterface $timer);
+    public function unreference(Timer $timer);
     
     /**
      * References a timer if it was previously unreferenced. That is, if the timer is pending the loop will continue
      * running.
      *
-     * @param \Icicle\Loop\Events\TimerInterface $timer
+     * @param \Icicle\Loop\Events\Timer $timer
      */
-    public function reference(TimerInterface $timer);
+    public function reference(Timer $timer);
 }

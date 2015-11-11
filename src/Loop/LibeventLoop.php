@@ -9,11 +9,10 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Libevent\SignalManager;
-use Icicle\Loop\Manager\Libevent\SocketManager;
-use Icicle\Loop\Manager\Libevent\TimerManager;
+use Icicle\Loop\Manager\Libevent\LibeventSignalManager;
+use Icicle\Loop\Manager\Libevent\LibeventSocketManager;
+use Icicle\Loop\Manager\Libevent\LibeventTimerManager;
 
 /**
  * Uses the libevent extension to poll sockets for I/O and create timers.
@@ -29,12 +28,11 @@ class LibeventLoop extends AbstractLoop
 
     /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
-     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
      * @throws \Icicle\Loop\Exception\UnsupportedError If the libevent extension is not loaded.
      */
-    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, $base = null)
+    public function __construct($enableSignals = true, $base = null)
     {
         // @codeCoverageIgnoreStart
         if (!extension_loaded('libevent')) {
@@ -48,7 +46,7 @@ class LibeventLoop extends AbstractLoop
             $this->base = $base;
         }
         
-        parent::__construct($enableSignals, $eventFactory);
+        parent::__construct($enableSignals);
     }
 
     /**
@@ -87,32 +85,32 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager()
     {
-        return new SocketManager($this, $factory, EV_READ);
+        return new LibeventSocketManager($this, EV_READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager()
     {
-        return new SocketManager($this, $factory, EV_WRITE);
+        return new LibeventSocketManager($this, EV_WRITE);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager()
     {
-        return new TimerManager($this, $factory);
+        return new LibeventTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager()
     {
-        return new SignalManager($this, $factory);
+        return new LibeventSignalManager($this);
     }
 }

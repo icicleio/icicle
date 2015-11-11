@@ -9,12 +9,12 @@
 
 namespace Icicle\Promise;
 
-interface PromisorInterface
+interface Promisor
 {
     /**
-     * Returns the internal PromiseInterface object.
+     * Returns the internal Thenable object.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function getPromise();
 }

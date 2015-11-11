@@ -9,7 +9,7 @@
 
 namespace Icicle\Promise;
 
-interface PromiseInterface
+interface Thenable
 {
     /**
      * Assigns a set of callback functions to the promise, and returns a new promise.
@@ -17,7 +17,7 @@ interface PromiseInterface
      * @param callable<(mixed $value): mixed>|null $onFulfilled
      * @param callable<(Exception $exception): mixed>|null $onRejected
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -46,7 +46,7 @@ interface PromiseInterface
      * @param float $timeout
      * @param mixed $reason
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function timeout($timeout, $reason = null);
     
@@ -56,7 +56,7 @@ interface PromiseInterface
      *
      * @param float $time
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function delay($time);
 
@@ -67,7 +67,7 @@ interface PromiseInterface
      *
      * @param callable<(Exception $exception): mixed)> $onRejected
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function capture(callable $onRejected);
 
@@ -77,9 +77,9 @@ interface PromiseInterface
      * If $onFulfilled throws, the returned promise is rejected with the thrown exception. The return value of
      * $onFulfilled is not used.
      *
-     * @param callable<(): PromiseInterface|null)> $onFulfilled
+     * @param callable<(): Thenable|null)> $onFulfilled
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function tap(callable $onFulfilled);
     
@@ -89,9 +89,9 @@ interface PromiseInterface
      * the original promise. That is, it is fulfilled or rejected with the same value or exception. If the callback
      * throws an exception, the returned promise is rejected with that exception.
      *
-     * @param callable<(): PromiseInterface|null)> $onResolved
+     * @param callable<(): Thenable|null)> $onResolved
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function cleanup(callable $onResolved);
 
@@ -103,7 +103,7 @@ interface PromiseInterface
      *
      * @param callable<(mixed ...$args): mixed> $onFulfilled
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     public function splat(callable $onFulfilled);
 
@@ -152,7 +152,7 @@ interface PromiseInterface
     /**
      * Iteratively finds the last promise in the pending chain and returns it. 
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      *
      * @internal Used to keep promise methods from exceeding the call stack depth limit.
      */

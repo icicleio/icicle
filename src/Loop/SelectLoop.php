@@ -9,11 +9,10 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
-use Icicle\Loop\Manager\Select\SignalManager;
-use Icicle\Loop\Manager\Select\SocketManager;
-use Icicle\Loop\Manager\Select\TimerManager;
+use Icicle\Loop\Manager\Select\SelectSignalManager;
+use Icicle\Loop\Manager\Select\SelectSocketManager;
+use Icicle\Loop\Manager\Select\SelectTimerManager;
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -25,27 +24,27 @@ class SelectLoop extends AbstractLoop
     const DEFAULT_SIGNAL_INTERVAL = 0.25;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
      */
     private $pollManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
      */
     private $awaitManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\TimerManager
+     * @var \Icicle\Loop\Manager\Select\SelectTimerManager
      */
     private $timerManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SignalManager|null
+     * @var \Icicle\Loop\Manager\Select\SelectSignalManager|null
      */
     private $signalManager;
 
     /**
-     * @var \Icicle\Loop\Events\TimerInterface|null
+     * @var \Icicle\Loop\Events\Timer|null
      */
     private $signalTimer;
 
@@ -87,33 +86,33 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory)
+    protected function createPollManager()
     {
-        return $this->pollManager = new SocketManager($this, $factory);
+        return $this->pollManager = new SelectSocketManager($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory)
+    protected function createAwaitManager()
     {
-        return $this->awaitManager = new SocketManager($this, $factory);
+        return $this->awaitManager = new SelectSocketManager($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory)
+    protected function createTimerManager()
     {
-        return $this->timerManager = new TimerManager($this, $factory);
+        return $this->timerManager = new SelectTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory)
+    protected function createSignalManager()
     {
-        $this->signalManager = new SignalManager($this, $factory);
+        $this->signalManager = new SelectSignalManager($this);
 
         $this->signalTimer = $this->timer(self::DEFAULT_SIGNAL_INTERVAL, true, [$this->signalManager, 'tick']);
         $this->signalTimer->unreference();

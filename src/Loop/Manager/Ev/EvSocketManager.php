@@ -1,14 +1,13 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\SocketEvent;
 use Icicle\Loop\EvLoop;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
-use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\SocketManager;
 
-class SocketManager implements SocketManagerInterface
+class EvSocketManager implements SocketManager
 {
     const MIN_TIMEOUT = 0.001;
 
@@ -16,12 +15,7 @@ class SocketManager implements SocketManagerInterface
      * @var \EvLoop
      */
     private $loop;
-    
-    /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
-    
+
     /**
      * @var \EvIO[]
      */
@@ -33,7 +27,7 @@ class SocketManager implements SocketManagerInterface
     private $timers = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEvent[]
      */
     private $unreferenced = [];
 
@@ -54,17 +48,15 @@ class SocketManager implements SocketManagerInterface
     
     /**
      * @param \Icicle\Loop\EvLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      * @param int $eventType
      */
-    public function __construct(EvLoop $loop, EventFactoryInterface $factory, $eventType)
+    public function __construct(EvLoop $loop, $eventType)
     {
-        $this->factory = $factory;
         $this->loop = $loop->getEvLoop();
         $this->type = $eventType;
         
         $this->socketCallback = function (\EvIO $event) {
-            /** @var \Icicle\Loop\Events\SocketEventInterface $socket */
+            /** @var \Icicle\Loop\Events\SocketEvent $socket */
             $socket = $event->data;
             $id = (int) $socket->getResource();
 
@@ -77,7 +69,7 @@ class SocketManager implements SocketManagerInterface
         };
 
         $this->timerCallback = function (\EvTimer $event) {
-            /** @var \Icicle\Loop\Events\SocketEventInterface $socket */
+            /** @var \Icicle\Loop\Events\SocketEvent $socket */
             $socket = $event->data;
             $id = (int) $socket->getResource();
 
@@ -127,7 +119,7 @@ class SocketManager implements SocketManagerInterface
             throw new ResourceBusyError('A poll has already been created for that resource.');
         }
 
-        $socket = $this->factory->socket($this, $resource, $callback);
+        $socket = new SocketEvent($this, $resource, $callback);
 
         $event = $this->loop->io($resource, $this->type, $this->socketCallback, $socket);
         $event->stop();
@@ -140,7 +132,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEvent $socket, $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -168,7 +160,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEventInterface $socket)
+    public function cancel(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
@@ -184,7 +176,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
@@ -196,7 +188,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * @inheritdoc
      */
-    public function free(SocketEventInterface $socket)
+    public function free(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
@@ -214,7 +206,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
@@ -224,7 +216,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEventInterface $socket)
+    public function reference(SocketEvent $socket)
     {
         unset($this->unreferenced[(int) $socket->getResource()]);
     }
@@ -232,7 +224,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEventInterface $socket)
+    public function unreference(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
 

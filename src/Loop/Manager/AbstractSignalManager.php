@@ -9,22 +9,17 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\EventFactory;
+use Icicle\Loop\Events\Signal;
 use Icicle\Loop\Exception\InvalidSignalError;
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Loop;
 
-abstract class AbstractSignalManager implements SignalManagerInterface
+abstract class AbstractSignalManager implements SignalManager
 {
     /**
-     * @var \Icicle\Loop\LoopInterface
+     * @var \Icicle\Loop\Loop
      */
     private $loop;
-
-    /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
 
     /**
      * @var \SplObjectStorage[]
@@ -37,13 +32,11 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     private $referenced;
 
     /**
-     * @param \Icicle\Loop\LoopInterface $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\Loop $loop
      */
-    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
+    public function __construct(Loop $loop)
     {
         $this->loop = $loop;
-        $this->factory = $factory;
 
         foreach ($this->getSignalList() as $signo) {
             $this->signals[$signo] = new \SplObjectStorage();
@@ -55,20 +48,20 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($signo, callable $callback, array $args = [])
+    public function create($signo, callable $callback)
     {
         if (!isset($this->signals[$signo])) {
             throw new InvalidSignalError(sprintf('Invalid signal number: %d.', $signo));
         }
 
-        $signal = $this->factory->signal($this, $signo, $callback);
+        $signal = new Signal($this, $signo, $callback);
 
         $this->signals[$signo]->attach($signal);
 
         return $signal;
     }
 
-    public function enable(SignalInterface $signal)
+    public function enable(Signal $signal)
     {
         $signo = $signal->getSignal();
 
@@ -80,7 +73,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function disable(SignalInterface $signal)
+    public function disable(Signal $signal)
     {
         $signo = $signal->getSignal();
 
@@ -94,7 +87,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isEnabled(SignalInterface $signal)
+    public function isEnabled(Signal $signal)
     {
         $signo = $signal->getSignal();
 
@@ -114,7 +107,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(SignalInterface $signal)
+    public function reference(Signal $signal)
     {
         $signo = $signal->getSignal();
 
@@ -126,7 +119,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(SignalInterface $signal)
+    public function unreference(Signal $signal)
     {
         $this->referenced->detach($signal);
     }
@@ -229,7 +222,7 @@ abstract class AbstractSignalManager implements SignalManagerInterface
     }
 
     /**
-     * @return \Icicle\Loop\LoopInterface
+     * @return \Icicle\Loop\Loop
      */
     protected function getLoop()
     {

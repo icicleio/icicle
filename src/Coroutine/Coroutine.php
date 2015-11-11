@@ -13,14 +13,14 @@ use Exception;
 use Generator;
 use Icicle\Loop;
 use Icicle\Promise\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 
 /**
  * This class implements cooperative coroutines using Generators. Coroutines should yield promises to pause execution
  * of the coroutine until the promise has resolved. If the promise is fulfilled, the fulfillment value is sent to the
  * generator. If the promise is rejected, the rejection exception is thrown into the generator.
  */
-class Coroutine extends Promise implements CoroutineInterface
+class Coroutine extends Promise
 {
     /**
      * @var \Generator|null
@@ -121,7 +121,7 @@ class Coroutine extends Promise implements CoroutineInterface
                 return function (Exception $exception)  {
                     try {
                         $current = $this->generator->current(); // Get last yielded value.
-                        if ($current instanceof PromiseInterface) {
+                        if ($current instanceof Thenable) {
                             $current->cancel($exception);
                         }
                     } finally {
@@ -143,7 +143,7 @@ class Coroutine extends Promise implements CoroutineInterface
             $yielded = new self($yielded);
         }
 
-        if ($yielded instanceof PromiseInterface) {
+        if ($yielded instanceof Thenable) {
             $yielded->done($this->send, $this->capture);
         } else {
             Loop\queue($this->send, $yielded);

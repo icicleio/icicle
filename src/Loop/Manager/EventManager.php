@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager;
 
-interface EventManagerInterface
+interface EventManager
 {
     /**
      * Determines if any referenced events are pending in the manager.

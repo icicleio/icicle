@@ -9,18 +9,16 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactory;
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\RunningError;
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
-use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Manager\SharedImmediateManager;
 use Icicle\Loop\Structures\CallableQueue;
 
 /**
  * Abstract base class from which loop implementations may be derived. Loop implementations do not have to extend this
- * class, they only need to implement Icicle\Loop\LoopInterface.
+ * class, they only need to implement Icicle\Loop\Loop.
  */
-abstract class AbstractLoop implements LoopInterface
+abstract class AbstractLoop implements Loop
 {
     const DEFAULT_MAX_DEPTH = 1000;
 
@@ -30,35 +28,30 @@ abstract class AbstractLoop implements LoopInterface
     private $callableQueue;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManagerInterface
+     * @var \Icicle\Loop\Manager\SocketManager
      */
     private $pollManager;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManagerInterface
+     * @var \Icicle\Loop\Manager\SocketManager
      */
     private $awaitManager;
     
     /**
-     * @var \Icicle\Loop\Manager\TimerManagerInterface
+     * @var \Icicle\Loop\Manager\TimerManager
      */
     private $timerManager;
     
     /**
-     * @var \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @var \Icicle\Loop\Manager\ImmediateManager
      */
     private $immediateManager;
 
     /**
-     * @var \Icicle\Loop\Manager\SignalManagerInterface|null
+     * @var \Icicle\Loop\Manager\SignalManager|null
      */
     private $signalManager;
-    
-    /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $eventFactory;
-    
+
     /**
      * @var bool
      */
@@ -72,66 +65,45 @@ abstract class AbstractLoop implements LoopInterface
     abstract protected function dispatch($blocking);
     
     /**
-     * @param \Icicle\Loop\Events\EventFactoryInterface
-     *
-     * @return \Icicle\Loop\Manager\SocketManagerInterface
+     * @return \Icicle\Loop\Manager\SocketManager
      */
-    abstract protected function createPollManager(EventFactoryInterface $eventFactory);
+    abstract protected function createPollManager();
     
     /**
-     * @param \Icicle\Loop\Events\EventFactoryInterface
-     *
-     * @return \Icicle\Loop\Manager\SocketManagerInterface
+     * @return \Icicle\Loop\Manager\SocketManager
      */
-    abstract protected function createAwaitManager(EventFactoryInterface $eventFactory);
+    abstract protected function createAwaitManager();
     
     /**
-     * @param \Icicle\Loop\Events\EventFactoryInterface
-     *
-     * @return \Icicle\Loop\Manager\TimerManagerInterface
+     * @return \Icicle\Loop\Manager\TimerManager
      */
-    abstract protected function createTimerManager(EventFactoryInterface $eventFactory);
+    abstract protected function createTimerManager();
 
     /**
-     * @param \Icicle\Loop\Events\EventFactoryInterface
-     *
-     * @return \Icicle\Loop\Manager\SignalManagerInterface
+     * @return \Icicle\Loop\Manager\SignalManager
      */
-    abstract protected function createSignalManager(EventFactoryInterface $eventFactory);
+    abstract protected function createSignalManager();
 
     /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
-     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      */
-    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null)
+    public function __construct($enableSignals = true)
     {
-        $this->eventFactory = $eventFactory ?: $this->createEventFactory();
-
         $this->callableQueue = new CallableQueue(self::DEFAULT_MAX_DEPTH);
         
-        $this->immediateManager = $this->createImmediateManager($this->eventFactory);
-        $this->timerManager = $this->createTimerManager($this->eventFactory);
+        $this->immediateManager = $this->createImmediateManager();
+        $this->timerManager = $this->createTimerManager();
         
-        $this->pollManager = $this->createPollManager($this->eventFactory);
-        $this->awaitManager = $this->createAwaitManager($this->eventFactory);
+        $this->pollManager = $this->createPollManager();
+        $this->awaitManager = $this->createAwaitManager();
         
         if ($enableSignals && extension_loaded('pcntl')) {
-            $this->signalManager = $this->createSignalManager($this->eventFactory);
+            $this->signalManager = $this->createSignalManager();
         }
     }
-    
+
     /**
-     * @return \Icicle\Loop\Events\EventFactoryInterface
-     *
-     * @codeCoverageIgnore
-     */
-    protected function getEventFactory()
-    {
-        return $this->eventFactory;
-    }
-    
-    /**
-     * @return \Icicle\Loop\Manager\SocketManagerInterface
+     * @return \Icicle\Loop\Manager\SocketManager
      *
      * @codeCoverageIgnore
      */
@@ -141,7 +113,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return \Icicle\Loop\Manager\SocketManagerInterface
+     * @return \Icicle\Loop\Manager\SocketManager
      *
      * @codeCoverageIgnore
      */
@@ -151,7 +123,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return \Icicle\Loop\Manager\TimerManagerInterface
+     * @return \Icicle\Loop\Manager\TimerManager
      *
      * @codeCoverageIgnore
      */
@@ -161,7 +133,7 @@ abstract class AbstractLoop implements LoopInterface
     }
     
     /**
-     * @return \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @return \Icicle\Loop\Manager\ImmediateManager
      *
      * @codeCoverageIgnore
      */
@@ -171,7 +143,7 @@ abstract class AbstractLoop implements LoopInterface
     }
 
     /**
-     * @return \Icicle\Loop\Manager\SignalManagerInterface
+     * @return \Icicle\Loop\Manager\SignalManager
      *
      * @codeCoverageIgnore
      */
@@ -341,22 +313,12 @@ abstract class AbstractLoop implements LoopInterface
             $this->signalManager->clear();
         }
     }
-    
+
     /**
-     * @return \Icicle\Loop\Events\EventFactoryInterface
+     * @return \Icicle\Loop\Manager\ImmediateManager
      */
-    protected function createEventFactory()
+    protected function createImmediateManager()
     {
-        return new EventFactory();
-    }
-    
-    /**
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     *
-     * @return \Icicle\Loop\Manager\ImmediateManagerInterface
-     */
-    protected function createImmediateManager(EventFactoryInterface $factory)
-    {
-        return new ImmediateManager($this, $factory);
+        return new SharedImmediateManager($this);
     }
 }

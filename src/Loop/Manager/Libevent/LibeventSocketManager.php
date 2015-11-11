@@ -7,48 +7,48 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Manager\Event;
+namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
-use Icicle\Loop\EventLoop;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\SocketEvent;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
-use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\LibeventLoop;
+use Icicle\Loop\Manager\SocketManager;
 
-class SocketManager implements SocketManagerInterface
+class LibeventSocketManager implements SocketManager
 {
     const MIN_TIMEOUT = 0.001;
+    const MICROSEC_PER_SEC = 1e6;
 
     /**
-     * @var \Icicle\Loop\EventLoop
+     * @var \Icicle\Loop\LibeventLoop
      */
     private $loop;
 
     /**
-     * @var \EventBase
+     * @var resource
      */
     private $base;
-    
+
     /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
-    
-    /**
-     * @var \Event[]
+     * @var resource[]
      */
     private $events = [];
     
     /**
-     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEvent[]
      */
     private $sockets = [];
+    
+    /**
+     * @var bool[]
+     */
+    private $pending = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEvent[]
      */
     private $unreferenced = [];
     
@@ -61,21 +61,20 @@ class SocketManager implements SocketManagerInterface
      * @var int
      */
     private $type;
-
+    
     /**
-     * @param \Icicle\Loop\EventLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
+     * @param \Icicle\Loop\LibeventLoop $loop
      * @param int $eventType
      */
-    public function __construct(EventLoop $loop, EventFactoryInterface $factory, $eventType)
+    public function __construct(LibeventLoop $loop, $eventType)
     {
         $this->loop = $loop;
-        $this->factory = $factory;
         $this->base = $this->loop->getEventBase();
         $this->type = $eventType;
         
-        $this->callback = function ($resource, $what, SocketEventInterface $socket) {
-            $socket->call(0 !== (Event::TIMEOUT & $what));
+        $this->callback = function ($resource, $what, SocketEvent $socket) {
+            $this->pending[(int) $resource] = false;
+            $socket->call(0 !== (EV_TIMEOUT & $what));
         };
     }
     
@@ -85,7 +84,7 @@ class SocketManager implements SocketManagerInterface
     public function __destruct()
     {
         foreach ($this->events as $event) {
-            $event->free();
+            event_free($event);
         }
     }
     
@@ -94,8 +93,8 @@ class SocketManager implements SocketManagerInterface
      */
     public function isEmpty()
     {
-        foreach ($this->events as $id => $event) {
-            if ($event->pending && !isset($this->unreferenced[$id])) {
+        foreach ($this->pending as $id => $pending) {
+            if ($pending && !isset($this->unreferenced[$id])) {
                 return false;
             }
         }
@@ -114,13 +113,16 @@ class SocketManager implements SocketManagerInterface
             throw new ResourceBusyError('A socket event has already been created for that resource.');
         }
         
-        return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
+        $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
+        $this->pending[$id] = false;
+        
+        return $this->sockets[$id];
     }
     
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, $timeout = 0)
+    public function listen(SocketEvent $socket, $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -129,58 +131,65 @@ class SocketManager implements SocketManagerInterface
         }
         
         if (!isset($this->events[$id])) {
-            $this->events[$id] = new Event($this->base, $socket->getResource(), $this->type, $this->callback, $socket);
+            $event = event_new();
+            event_set($event, $socket->getResource(), $this->type, $this->callback, $socket);
+            event_base_set($event, $this->base);
+
+            $this->events[$id] = $event;
         }
 
+        $this->pending[$id] = true;
+
         if (0 === $timeout) {
-            $this->events[$id]->add();
+            event_add($this->events[$id]);
             return;
         }
-        
+
         $timeout = (float) $timeout;
         if (self::MIN_TIMEOUT > $timeout) {
             $timeout = self::MIN_TIMEOUT;
         }
 
-        $this->events[$id]->add($timeout);
+        event_add($this->events[$id], $timeout * self::MICROSEC_PER_SEC);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEventInterface $socket)
+    public function cancel(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id]) {
-            $this->events[$id]->del();
+            event_del($this->events[$id]);
+            $this->pending[$id] = false;
         }
     }
     
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket)
+    public function isPending(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
-        return isset($this->sockets[$id], $this->events[$id])
+        return isset($this->sockets[$id], $this->pending[$id])
             && $socket === $this->sockets[$id]
-            && $this->events[$id]->pending;
+            && $this->pending[$id];
     }
     
     /**
      * {@inheritdoc}
      */
-    public function free(SocketEventInterface $socket)
+    public function free(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
         if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            unset($this->sockets[$id], $this->unreferenced[$id]);
+            unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
-                $this->events[$id]->free();
+                event_free($this->events[$id]);
                 unset($this->events[$id]);
             }
         }
@@ -189,18 +198,17 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket)
+    public function isFreed(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
         
         return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
     }
 
-
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEventInterface $socket)
+    public function reference(SocketEvent $socket)
     {
         unset($this->unreferenced[(int) $socket->getResource()]);
     }
@@ -208,7 +216,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEventInterface $socket)
+    public function unreference(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
 
@@ -223,10 +231,11 @@ class SocketManager implements SocketManagerInterface
     public function clear()
     {
         foreach ($this->events as $event) {
-            $event->free();
+            event_free($event);
         }
         
         $this->events = [];
         $this->sockets = [];
+        $this->pending = [];
     }
 }

@@ -9,57 +9,56 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\SignalInterface;
+use Icicle\Loop\Events\Signal;
 
-interface SignalManagerInterface extends EventManagerInterface
+interface SignalManager extends EventManager
 {
     /**
      * Creates a signal event connected to the manager.
      *
      * @param int $signo
      * @param callable $callback
-     * @param mixed[]|null $args
      *
-     * @return \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\Signal
      */
-    public function create($signo, callable $callback, array $args = []);
+    public function create($signo, callable $callback);
 
     /**
      * Enables listening for the signal.
      *
-     * @param \Icicle\Loop\Events\SignalInterface $signal
+     * @param \Icicle\Loop\Events\Signal $signal
      */
-    public function enable(SignalInterface $signal);
+    public function enable(Signal $signal);
 
     /**
      * Disables listening for the signal.
      *
-     * @param \Icicle\Loop\Events\SignalInterface
+     * @param \Icicle\Loop\Events\Signal
      */
-    public function disable(SignalInterface $signal);
+    public function disable(Signal $signal);
     
     /**
      * Determines if the signal event is in the loop.
      *
-     * @param \Icicle\Loop\Events\SignalInterface
+     * @param \Icicle\Loop\Events\Signal
      *
      * @return bool
      */
-    public function isEnabled(SignalInterface $signal);
+    public function isEnabled(Signal $signal);
 
     /**
      * Unreferences the given signal event, that is, if the signal is pending in the loop, the loop should not continue
      * running.
      *
-     * @param \Icicle\Loop\Events\SignalInterface $signal
+     * @param \Icicle\Loop\Events\Signal $signal
      */
-    public function unreference(SignalInterface $signal);
+    public function unreference(Signal $signal);
 
     /**
      * References a signal if it was previously unreferenced. That is, if the timer is pending the loop will continue
      * running.
      *
-     * @param \Icicle\Loop\Events\SignalInterface $signal
+     * @param \Icicle\Loop\Events\Signal $signal
      */
-    public function reference(SignalInterface $signal);
+    public function reference(Signal $signal);
 }

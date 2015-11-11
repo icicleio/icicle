@@ -9,7 +9,6 @@
 
 namespace Icicle\Tests\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\LibeventLoop;
 
 /**
@@ -31,8 +30,8 @@ class LibeventLoopTest extends AbstractLoopTest
         $this->loop->clear();
     }
     
-    public function createLoop(EventFactoryInterface $eventFactory)
+    public function createLoop()
     {
-        return new LibeventLoop(true, $eventFactory, self::$base);
+        return new LibeventLoop(true, self::$base);
     }
 }

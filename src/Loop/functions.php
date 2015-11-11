@@ -13,11 +13,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * Returns the default event loop. Can be used to set the default event loop if an instance is provided.
      *
-     * @param \Icicle\Loop\LoopInterface|null $loop
+     * @param \Icicle\Loop\Loop|null $loop
      * 
-     * @return \Icicle\Loop\LoopInterface
+     * @return \Icicle\Loop\Loop
      */
-    function loop(LoopInterface $loop = null)
+    function loop(Loop $loop = null)
     {
         static $instance;
 
@@ -33,7 +33,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      *
-     * @return \Icicle\Loop\LoopInterface
+     * @return \Icicle\Loop\Loop
      *
      * @codeCoverageIgnore
      */
@@ -59,11 +59,11 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * is running, the default event loop is blocked while the separate event loop is running.
      *
      * @param callable $worker
-     * @param LoopInterface|null $loop
+     * @param Loop|null $loop
      *
      * @return bool
      */
-    function with(callable $worker, LoopInterface $loop = null)
+    function with(callable $worker, Loop $loop = null)
     {
         $previous = loop();
 
@@ -114,7 +114,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * Starts the default event loop. If a function is provided, that function is executed immediately after starting
      * the event loop, passing the event loop as the first argument.
      *
-     * @param callable<(LoopInterface $loop): void>|null $initialize
+     * @param callable<(Loop $loop): void>|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
@@ -157,7 +157,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when data is available on the socket.
      *
-     * @return \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEvent
      */
     function poll($socket, callable $callback)
     {
@@ -168,7 +168,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when the socket is available to write.
      *
-     * @return \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEvent
      */
     function await($socket, callable $callback)
     {
@@ -180,7 +180,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when the timer expires.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\Timer
      */
     function timer($interval, callable $callback /* , ...$args */)
     {
@@ -194,7 +194,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when the timer expires.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\TimerInterface
+     * @return \Icicle\Loop\Events\Timer
      */
     function periodic($interval, callable $callback /* , ...$args */)
     {
@@ -207,7 +207,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when no other active events are available.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\ImmediateInterface
+     * @return \Icicle\Loop\Events\Immediate
      */
     function immediate(callable $callback /* , ...$args */)
     {
@@ -220,7 +220,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
      * @param callable $callback Function to invoke when the given signal arrives.
      *
-     * @return \Icicle\Loop\Events\SignalInterface
+     * @return \Icicle\Loop\Events\Signal
      */
     function signal($signo, callable $callback)
     {

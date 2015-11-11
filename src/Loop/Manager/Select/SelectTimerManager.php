@@ -9,25 +9,19 @@
 
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Manager\TimerManager;
 use Icicle\Loop\SelectLoop;
 use Icicle\Loop\Structures\ObjectStorage;
 use SplPriorityQueue;
 
-class TimerManager implements TimerManagerInterface
+class SelectTimerManager implements TimerManager
 {
     /**
      * @var \Icicle\Loop\SelectLoop
      */
     private $loop;
 
-    /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
-    
     /**
      * @var \SplPriorityQueue
      */
@@ -40,13 +34,11 @@ class TimerManager implements TimerManagerInterface
     
     /**
      * @param \Icicle\Loop\SelectLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(SelectLoop $loop, EventFactoryInterface $factory)
+    public function __construct(SelectLoop $loop)
     {
         $this->loop = $loop;
-        $this->factory = $factory;
-        
+
         $this->queue = new SplPriorityQueue();
         $this->timers = new ObjectStorage();
     }
@@ -56,7 +48,7 @@ class TimerManager implements TimerManagerInterface
      */
     public function create($interval, $periodic, callable $callback, array $args = [])
     {
-        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
+        $timer = new Timer($this, $interval, $periodic, $callback, $args);
         
         $this->start($timer);
         
@@ -66,7 +58,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer)
+    public function isPending(Timer $timer)
     {
         return $this->timers->contains($timer);
     }
@@ -74,7 +66,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function start(TimerInterface $timer)
+    public function start(Timer $timer)
     {
         if (!$this->timers->contains($timer)) {
             $timeout = microtime(true) + $timer->getInterval();
@@ -86,7 +78,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function stop(TimerInterface $timer)
+    public function stop(Timer $timer)
     {
         $this->timers->detach($timer);
     }
@@ -94,7 +86,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(TimerInterface $timer)
+    public function unreference(Timer $timer)
     {
         $this->timers->unreference($timer);
     }
@@ -102,7 +94,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(TimerInterface $timer)
+    public function reference(Timer $timer)
     {
         $this->timers->reference($timer);
     }

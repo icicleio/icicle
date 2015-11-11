@@ -13,7 +13,7 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 
 class FulfilledPromise extends ResolvedPromise
 {
@@ -23,14 +23,14 @@ class FulfilledPromise extends ResolvedPromise
     private $value;
     
     /**
-     * @param mixed $value Anything other than a PromiseInterface object.
+     * @param mixed $value Anything other than a Thenable object.
      *
-     * @throws \Icicle\Promise\Exception\InvalidArgumentError If a PromiseInterface is given as the value.
+     * @throws \Icicle\Promise\Exception\InvalidArgumentError If a Thenable is given as the value.
      */
     public function __construct($value)
     {
-        if ($value instanceof PromiseInterface) {
-            throw new InvalidArgumentError('Cannot use a PromiseInterface as a fulfilled promise value.');
+        if ($value instanceof Thenable) {
+            throw new InvalidArgumentError('Cannot use a Thenable as a fulfilled promise value.');
         }
         
         $this->value = $value;

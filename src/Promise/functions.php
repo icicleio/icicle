@@ -20,16 +20,16 @@ use Icicle\Promise\Internal\RejectedPromise;
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
     /**
      * Return a promise using the given value. There are two possible outcomes depending on the type of the passed value:
-     * (1) PromiseInterface: The promise is returned without modification.
+     * (1) Thenable: The promise is returned without modification.
      * (2) All other types: A fulfilled promise is returned using the given value as the result.
      *
      * @param mixed $value
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function resolve($value = null)
     {
-        if ($value instanceof PromiseInterface) {
+        if ($value instanceof Thenable) {
             return $value;
         }
 
@@ -41,7 +41,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param mixed $reason
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function reject($reason = null)
     {
@@ -65,7 +65,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
         /**
          * @param mixed ...$args Promises or values.
          *
-         * @return \Icicle\Promise\PromiseInterface
+         * @return \Icicle\Promise\Thenable
          */
         return function (/* ...$args */) use ($worker) {
             $args = func_get_args();
@@ -110,11 +110,11 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
     /**
      * Adapts any object with a then(callable $onFulfilled, callable $onRejected) method to a promise usable by
-     * components depending on promises implementing PromiseInterface.
+     * components depending on promises implementing Thenable.
      *
      * @param object $thenable Object with a then() method.
      *
-     * @return PromiseInterface Promise resolved by the $thenable object.
+     * @return Thenable Promise resolved by the $thenable object.
      */
     function adapt($thenable)
     {
@@ -135,7 +135,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @param callable $promisor
      * @param mixed ...$args
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function lazy(callable $promisor /* ...$args */)
     {
@@ -157,7 +157,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function settle(array $promises)
     {
@@ -188,7 +188,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function all(array $promises)
     {
@@ -218,7 +218,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function any(array $promises)
     {
@@ -250,7 +250,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      * @param int $required Number of promises that must be fulfilled to fulfill the returned promise.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function some(array $promises, $required)
     {
@@ -296,7 +296,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param mixed[] $promises Promises or values (passed through resolve() to create promises).
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function choose(array $promises)
     {
@@ -321,7 +321,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @param callable<(mixed $value): mixed> $callback
      * @param mixed[] ...$promises Promises or values (passed through resolve() to create promises).
      *
-     * @return \Icicle\Promise\PromiseInterface[] Array of promises resolved with the result of the mapped function.
+     * @return \Icicle\Promise\Thenable[] Array of promises resolved with the result of the mapped function.
      */
     function map(callable $callback /* array ...$promises */)
     {
@@ -339,7 +339,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @param callable<(mixed $carry, mixed $value): mixed> Called for each fulfilled promise value.
      * @param mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function reduce(array $promises, callable $callback, $initial = null)
     {
@@ -388,7 +388,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * @param callable<(mixed $value): bool $predicate> Return false to stop iteration and fulfill promise.
      * @param mixed $seed Initial value given to $predicate and $worker (may be a promise).
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function iterate(callable $worker, callable $predicate, $seed = null)
     {
@@ -429,13 +429,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * If the promise returned by $promisor is fulfilled, the promise returned by this function is fulfilled with the
      * same value.
      *
-     * @param callable<(): PromiseInterface> $promisor Performs an operation to be retried on failure.
+     * @param callable<(): Thenable> $promisor Performs an operation to be retried on failure.
      *     Should return a promise, but can return any type of value (will be made into a promise using resolve()).
      * @param callable<(Exception $exception): bool $onRejected> This function is called if the promise returned by
      *     $promisor is rejected. Returning true from this function will call $promiser again to retry the
      *     operation.
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     function retry(callable $promisor, callable $onRejected)
     {

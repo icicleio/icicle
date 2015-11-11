@@ -14,7 +14,7 @@ use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
 use Icicle\Promise\Exception\InvalidArgumentError;
 use Icicle\Promise\Exception\RejectedException;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 use Icicle\Tests\TestCase;
 
 class PromiseAdaptTest extends TestCase
@@ -26,7 +26,7 @@ class PromiseAdaptTest extends TestCase
     
     public function testThenCalled()
     {
-        $mock = $this->getMock(PromiseInterface::class);
+        $mock = $this->getMock(Thenable::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -41,7 +41,7 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($mock);
 
-        $this->assertInstanceOf(PromiseInterface::class, $promise);
+        $this->assertInstanceOf(Thenable::class, $promise);
 
         $promise->done($this->createCallback(0));
 
@@ -55,7 +55,7 @@ class PromiseAdaptTest extends TestCase
     {
         $value = 1;
 
-        $mock = $this->getMock(PromiseInterface::class);
+        $mock = $this->getMock(Thenable::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -81,7 +81,7 @@ class PromiseAdaptTest extends TestCase
     {
         $reason = 'Rejected';
 
-        $mock = $this->getMock(PromiseInterface::class);
+        $mock = $this->getMock(Thenable::class);
 
         $mock->expects($this->once())
             ->method('then')
@@ -106,7 +106,7 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($value);
 
-        $this->assertInstanceOf(PromiseInterface::class, $promise);
+        $this->assertInstanceOf(Thenable::class, $promise);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -123,7 +123,7 @@ class PromiseAdaptTest extends TestCase
 
         $promise = Promise\adapt($object);
 
-        $this->assertInstanceOf(PromiseInterface::class, $promise);
+        $this->assertInstanceOf(Thenable::class, $promise);
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

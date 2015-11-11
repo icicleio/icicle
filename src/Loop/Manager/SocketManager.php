@@ -9,71 +9,71 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\SocketEventInterface;
+use Icicle\Loop\Events\SocketEvent;
 
-interface SocketManagerInterface extends EventManagerInterface
+interface SocketManager extends EventManager
 {
     /**
-     * Returns a SocketEventInterface object for the given stream socket resource.
+     * Returns a SocketEvent object for the given stream socket resource.
      *
      * @param resource $resource
      * @param callable $callback
      *
-     * @return \Icicle\Loop\Events\SocketEventInterface
+     * @return \Icicle\Loop\Events\SocketEvent
      */
     public function create($resource, callable $callback);
     
     /**
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      * @param float|int $timeout
      */
-    public function listen(SocketEventInterface $event, $timeout = 0);
+    public function listen(SocketEvent $event, $timeout = 0);
     
     /**
      * Cancels the given socket operation.
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      */
-    public function cancel(SocketEventInterface $event);
+    public function cancel(SocketEvent $event);
     
     /**
      * Determines if the socket event is enabled (listening for data or space to write).
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      *
      * @return bool
      */
-    public function isPending(SocketEventInterface $event);
+    public function isPending(SocketEvent $event);
     
     /**
      * Frees the given socket event.
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      */
-    public function free(SocketEventInterface $event);
+    public function free(SocketEvent $event);
     
     /**
      * Determines if the socket event has been freed.
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      *
      * @return bool
      */
-    public function isFreed(SocketEventInterface $event);
+    public function isFreed(SocketEvent $event);
 
     /**
      * Unreferences the given socket event, that is, if the event is pending in the loop, the loop should not continue
      * running.
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      */
-    public function unreference(SocketEventInterface $event);
+    public function unreference(SocketEvent $event);
 
     /**
      * References a socket event if it was previously unreferenced. That is, if the event is pending the loop will
      * continue running.
      *
-     * @param \Icicle\Loop\Events\SocketEventInterface $event
+     * @param \Icicle\Loop\Events\SocketEvent $event
      */
-    public function reference(SocketEventInterface $event);
+    public function reference(SocketEvent $event);
 }

@@ -25,12 +25,12 @@ use Icicle\Promise\Internal\ThenQueue;
  *
  * @see http://promisesaplus.com
  */
-class Promise implements PromiseInterface
+class Promise implements Thenable
 {
-    use Internal\PromiseTrait;
+    use Internal\SharedMethods;
 
     /**
-     * @var \Icicle\Promise\PromiseInterface|null
+     * @var \Icicle\Promise\Thenable|null
      */
     private $result;
     
@@ -55,7 +55,7 @@ class Promise implements PromiseInterface
     private $children = 0;
     
     /**
-     * @param callable<(callable $resolve, callable $reject, LoopInterface $loop): callable|null> $resolver
+     * @param callable<(callable $resolve, callable $reject, Loop $loop): callable|null> $resolver
      */
     public function __construct(callable $resolver)
     {
@@ -66,7 +66,7 @@ class Promise implements PromiseInterface
          * @param mixed $value A promise can be resolved with anything other than itself.
          */
         $resolve = function ($value = null) {
-            if ($value instanceof PromiseInterface) {
+            if ($value instanceof Thenable) {
                 $value = $value->unwrap();
                 if ($this === $value) {
                     $value = new RejectedPromise(
@@ -102,9 +102,9 @@ class Promise implements PromiseInterface
     /**
      * Resolves this promise with the given promise if this promise is still pending.
      *
-     * @param \Icicle\Promise\PromiseInterface $result
+     * @param \Icicle\Promise\Thenable $result
      */
-    private function resolve(PromiseInterface $result)
+    private function resolve(Thenable $result)
     {
         if (null !== $this->result) {
             return;

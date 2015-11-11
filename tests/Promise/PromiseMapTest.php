@@ -13,7 +13,7 @@ use Exception;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Promise;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 use Icicle\Tests\TestCase;
 
 class PromiseMapTest extends TestCase
@@ -49,7 +49,7 @@ class PromiseMapTest extends TestCase
         $this->assertTrue(is_array($result));
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertSame($values[$key] + 1, $promise->wait());
         }
     }
@@ -72,7 +72,7 @@ class PromiseMapTest extends TestCase
         Loop\run();
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertSame($promises[$key]->wait() + 1, $promise->wait());
         }
     }
@@ -97,7 +97,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $promises);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isPending());
         }
         
@@ -125,7 +125,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($this->createCallback(0), $promises);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isRejected());
 
             try {
@@ -151,7 +151,7 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $values);
         
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isPending());
         }
         
@@ -182,14 +182,14 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $values1, $values2);
 
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isPending());
         }
 
         Loop\run();
 
         foreach ($result as $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertSame(4, $promise->wait());
         }
     }
@@ -211,14 +211,14 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $promises1, $promises2);
 
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isPending());
         }
 
         Loop\run();
 
         foreach ($result as $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertSame(4, $promise->wait());
         }
     }
@@ -248,14 +248,14 @@ class PromiseMapTest extends TestCase
         $result = Promise\map($callback, $promises1, $promises2);
 
         foreach ($result as $key => $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertTrue($promise->isPending());
         }
 
         Loop\run();
 
         foreach ($result as $promise) {
-            $this->assertInstanceOf(PromiseInterface::class, $promise);
+            $this->assertInstanceOf(Thenable::class, $promise);
             $this->assertSame(4, $promise->wait());
         }
     }

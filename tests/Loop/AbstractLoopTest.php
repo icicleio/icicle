@@ -10,17 +10,16 @@
 namespace Icicle\Tests\Loop;
 
 use Exception;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Events\TimerInterface;
-use Icicle\Loop\LoopInterface;
+use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Events\Signal;
+use Icicle\Loop\Events\SocketEvent;
+use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Loop;
 use Icicle\Loop\Exception\Error;
-use Icicle\Loop\Manager\ImmediateManagerInterface;
-use Icicle\Loop\Manager\SignalManagerInterface;
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Manager\SignalManager;
+use Icicle\Loop\Manager\SocketManager;
+use Icicle\Loop\Manager\TimerManager;
 use Icicle\Tests\TestCase;
 
 /**
@@ -36,249 +35,247 @@ abstract class AbstractLoopTest extends TestCase
     const CHUNK_SIZE = 8192;
 
     /**
-     * @var \Icicle\Loop\LoopInterface
+     * @var \Icicle\Loop\Loop
      */
     protected $loop;
     
     public function setUp()
     {
-        $this->loop = $this->createLoop($this->createEventFactory());
+        $this->loop = $this->createLoop();
     }
     
     /**
      * Creates the loop implementation to test.
      *
-     * @param \Icicle\Loop\Events\EventFactoryInterface $eventFactory
-     *
-     * @return LoopInterface
+     * @return Loop
      */
-    abstract public function createLoop(EventFactoryInterface $eventFactory);
+    abstract public function createLoop();
 
-    /**
-     * @return EventFactoryInterface
-     */
-    public function createEventFactory()
-    {
-        $factory = $this->getMockBuilder(EventFactoryInterface::class)
-                        ->getMock();
-        
-        $factory->method('socket')
-            ->will($this->returnCallback(function (SocketManagerInterface $manager, $resource, callable $callback) {
-                return $this->createSocketEvent($manager, $resource, $callback);
-            }));
-        
-        $factory->method('timer')
-            ->will($this->returnCallback(
-                function (TimerManagerInterface $manager,  $interval, $periodic, callable $callback, array $args = null) {
-                    return $this->createTimer($manager, $interval, $periodic, $callback, $args);
-                }
-            ));
-        
-        $factory->method('immediate')
-            ->will($this->returnCallback(function (ImmediateManagerInterface $manager, callable $callback, array $args = null) {
-                return $this->createImmediate($manager, $callback, $args);
-            }));
+//    /**
+//     * @return EventFactory
+//     */
+//    public function createEventFactory()
+//    {
+//        $factory = $this->getMockBuilder(EventFactory::class)
+//                        ->getMock();
+//
+//        $factory->method('socket')
+//            ->will($this->returnCallback(function (SocketManager $manager, $resource, callable $callback) {
+//                return $this->createSocketEvent($manager, $resource, $callback);
+//            }));
+//
+//        $factory->method('timer')
+//            ->will($this->returnCallback(
+//                function (TimerManager $manager,  $interval, $periodic, callable $callback, array $args = null) {
+//                    return $this->createTimer($manager, $interval, $periodic, $callback, $args);
+//                }
+//            ));
+//
+//        $factory->method('immediate')
+//            ->will($this->returnCallback(function (ImmediateManager $manager, callable $callback, array $args = null) {
+//                return $this->createImmediate($manager, $callback, $args);
+//            }));
+//
+//        $factory->method('signal')
+//            ->will($this->returnCallback(function (SignalManager $manager, $signo, callable $callback) {
+//                return $this->createSignal($manager, $signo, $callback);
+//            }));
+//
+//        return $factory;
+//    }
 
-        $factory->method('signal')
-            ->will($this->returnCallback(function (SignalManagerInterface $manager, $signo, callable $callback) {
-                return $this->createSignal($manager, $signo, $callback);
-            }));
-        
-        return $factory;
-    }
-    
     public function createSockets()
     {
         $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         fwrite($sockets[1], self::WRITE_STRING); // Make $sockets[0] readable.
-        
+
         return $sockets;
     }
-    
-    public function createSocketEvent(SocketManagerInterface $manager, $resource, callable $callback)
-    {
-        $socket = $this->getMockBuilder(SocketEventInterface::class)
-                     ->getMock();
-        
-        $socket->method('getResource')
-            ->will($this->returnValue($resource));
-        
-        $socket->method('call')
-            ->will($this->returnCallback($callback));
-        
-        $socket->method('listen')
-            ->will($this->returnCallback(function ($timeout) use ($socket, $manager) {
-                $manager->listen($socket, $timeout);
-            }));
-        
-        $socket->method('isPending')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                return $manager->isPending($socket);
-            }));
-        
-        $socket->method('cancel')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                $manager->cancel($socket);
-            }));
-    
-        $socket->method('free')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                $manager->free($socket);
-            }));
 
-        $socket->method('isFreed')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                return $manager->isFreed($socket);
-            }));
-
-        $socket->method('unreference')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                $manager->unreference($socket);
-            }));
-
-        $socket->method('reference')
-            ->will($this->returnCallback(function () use ($socket, $manager) {
-                $manager->reference($socket);
-            }));
-        
-        return $socket;
-    }
-    
-    public function createImmediate(ImmediateManagerInterface $manager, callable $callback, array $args = null)
-    {
-        $immediate = $this->getMockBuilder(ImmediateInterface::class)
-                          ->getMock();
-        
-        if (!empty($args)) {
-            $callback = function () use ($callback, $args) {
-                call_user_func_array($callback, $args);
-            };
-        }
-        
-        $immediate->method('call')
-            ->will($this->returnCallback($callback));
-        
-        $immediate->method('execute')
-            ->will($this->returnCallback(function () use ($immediate, $manager) {
-                $manager->execute($immediate);
-            }));
-
-        $immediate->method('cancel')
-            ->will($this->returnCallback(function () use ($immediate, $manager) {
-                $manager->cancel($immediate);
-            }));
-    
-        $immediate->method('isPending')
-            ->will($this->returnCallback(function () use ($immediate, $manager) {
-                return $manager->isPending($immediate);
-            }));
-
-        $immediate->method('unreference')
-            ->will($this->returnCallback(function () use ($immediate, $manager) {
-                $manager->unreference($immediate);
-            }));
-
-        $immediate->method('reference')
-            ->will($this->returnCallback(function () use ($immediate, $manager) {
-                $manager->reference($immediate);
-            }));
-        
-        return $immediate;
-    }
-    
-    public function createTimer(
-        TimerManagerInterface $manager,
-        $interval = self::TIMEOUT,
-        $periodic = false,
-        callable $callback,
-        array $args = null
-    ) {
-        $timer = $this->getMockBuilder(TimerInterface::class)
-                      ->getMock();
-        
-        if (!empty($args)) {
-            $callback = function () use ($callback, $args) {
-                call_user_func_array($callback, $args);
-            };
-        }
-        
-        $timer->method('call')
-            ->will($this->returnCallback($callback));
-        
-        $timer->method('getInterval')
-            ->will($this->returnValue((float) $interval));
-        
-        $timer->method('isPeriodic')
-            ->will($this->returnValue((bool) $periodic));
-
-        $timer->method('start')
-            ->will($this->returnCallback(function () use ($timer, $manager) {
-                $manager->start($timer);
-            }));
-
-        $timer->method('stop')
-            ->will($this->returnCallback(function () use ($timer, $manager) {
-                $manager->stop($timer);
-            }));
-    
-        $timer->method('isPending')
-            ->will($this->returnCallback(function () use ($timer, $manager) {
-                return $manager->isPending($timer);
-            }));
-
-        $timer->method('unreference')
-            ->will($this->returnCallback(function () use ($timer, $manager) {
-                $manager->unreference($timer);
-            }));
-
-        $timer->method('reference')
-            ->will($this->returnCallback(function () use ($timer, $manager) {
-                $manager->reference($timer);
-            }));
-
-        return $timer;
-    }
-
-    public function createSignal(SignalManagerInterface $manager, $signo, callable $callback)
-    {
-        $signal = $this->getMockBuilder(SignalInterface::class)
-                       ->getMock();
-
-        $signal->method('getSignal')
-            ->will($this->returnValue($signo));
-
-        $signal->method('call')
-            ->will($this->returnCallback(function () use ($callback, $signo) {
-                $callback($signo);
-            }));
-
-        $signal->method('enable')
-            ->will($this->returnCallback(function () use ($signal, $manager) {
-                $manager->enable($signal);
-            }));
-
-        $signal->method('disable')
-            ->will($this->returnCallback(function () use ($signal, $manager) {
-                $manager->disable($signal);
-            }));
-
-        $signal->method('isEnabled')
-            ->will($this->returnCallback(function () use ($signal, $manager) {
-                return $manager->isEnabled($signal);
-            }));
-
-        $signal->method('unreference')
-            ->will($this->returnCallback(function () use ($signal, $manager) {
-                $manager->unreference($signal);
-            }));
-
-        $signal->method('reference')
-            ->will($this->returnCallback(function () use ($signal, $manager) {
-                $manager->reference($signal);
-            }));
-
-        return $signal;
-    }
+//    public function createSocketEvent(SocketManager $manager, $resource, callable $callback)
+//    {
+//        $socket = $this->getMockBuilder(SocketEvent::class)
+//                     ->getMock();
+//
+//        $socket->method('getResource')
+//            ->will($this->returnValue($resource));
+//
+//        $socket->method('call')
+//            ->will($this->returnCallback($callback));
+//
+//        $socket->method('listen')
+//            ->will($this->returnCallback(function ($timeout) use ($socket, $manager) {
+//                $manager->listen($socket, $timeout);
+//            }));
+//
+//        $socket->method('isPending')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                return $manager->isPending($socket);
+//            }));
+//
+//        $socket->method('cancel')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                $manager->cancel($socket);
+//            }));
+//
+//        $socket->method('free')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                $manager->free($socket);
+//            }));
+//
+//        $socket->method('isFreed')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                return $manager->isFreed($socket);
+//            }));
+//
+//        $socket->method('unreference')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                $manager->unreference($socket);
+//            }));
+//
+//        $socket->method('reference')
+//            ->will($this->returnCallback(function () use ($socket, $manager) {
+//                $manager->reference($socket);
+//            }));
+//
+//        return $socket;
+//    }
+//
+//    public function createImmediate(ImmediateManager $manager, callable $callback, array $args = null)
+//    {
+//        $immediate = $this->getMockBuilder(Immediate::class)
+//                          ->getMock();
+//
+//        if (!empty($args)) {
+//            $callback = function () use ($callback, $args) {
+//                call_user_func_array($callback, $args);
+//            };
+//        }
+//
+//        $immediate->method('call')
+//            ->will($this->returnCallback($callback));
+//
+//        $immediate->method('execute')
+//            ->will($this->returnCallback(function () use ($immediate, $manager) {
+//                $manager->execute($immediate);
+//            }));
+//
+//        $immediate->method('cancel')
+//            ->will($this->returnCallback(function () use ($immediate, $manager) {
+//                $manager->cancel($immediate);
+//            }));
+//
+//        $immediate->method('isPending')
+//            ->will($this->returnCallback(function () use ($immediate, $manager) {
+//                return $manager->isPending($immediate);
+//            }));
+//
+//        $immediate->method('unreference')
+//            ->will($this->returnCallback(function () use ($immediate, $manager) {
+//                $manager->unreference($immediate);
+//            }));
+//
+//        $immediate->method('reference')
+//            ->will($this->returnCallback(function () use ($immediate, $manager) {
+//                $manager->reference($immediate);
+//            }));
+//
+//        return $immediate;
+//    }
+//
+//    public function createTimer(
+//        TimerManager $manager,
+//        $interval = self::TIMEOUT,
+//        $periodic = false,
+//        callable $callback,
+//        array $args = null
+//    ) {
+//        $timer = $this->getMockBuilder(Timer::class)
+//                      ->getMock();
+//
+//        if (!empty($args)) {
+//            $callback = function () use ($callback, $args) {
+//                call_user_func_array($callback, $args);
+//            };
+//        }
+//
+//        $timer->method('call')
+//            ->will($this->returnCallback($callback));
+//
+//        $timer->method('getInterval')
+//            ->will($this->returnValue((float) $interval));
+//
+//        $timer->method('isPeriodic')
+//            ->will($this->returnValue((bool) $periodic));
+//
+//        $timer->method('start')
+//            ->will($this->returnCallback(function () use ($timer, $manager) {
+//                $manager->start($timer);
+//            }));
+//
+//        $timer->method('stop')
+//            ->will($this->returnCallback(function () use ($timer, $manager) {
+//                $manager->stop($timer);
+//            }));
+//
+//        $timer->method('isPending')
+//            ->will($this->returnCallback(function () use ($timer, $manager) {
+//                return $manager->isPending($timer);
+//            }));
+//
+//        $timer->method('unreference')
+//            ->will($this->returnCallback(function () use ($timer, $manager) {
+//                $manager->unreference($timer);
+//            }));
+//
+//        $timer->method('reference')
+//            ->will($this->returnCallback(function () use ($timer, $manager) {
+//                $manager->reference($timer);
+//            }));
+//
+//        return $timer;
+//    }
+//
+//    public function createSignal(SignalManager $manager, $signo, callable $callback)
+//    {
+//        $signal = $this->getMockBuilder(Signal::class)
+//                       ->getMock();
+//
+//        $signal->method('getSignal')
+//            ->will($this->returnValue($signo));
+//
+//        $signal->method('call')
+//            ->will($this->returnCallback(function () use ($callback, $signo) {
+//                $callback($signo);
+//            }));
+//
+//        $signal->method('enable')
+//            ->will($this->returnCallback(function () use ($signal, $manager) {
+//                $manager->enable($signal);
+//            }));
+//
+//        $signal->method('disable')
+//            ->will($this->returnCallback(function () use ($signal, $manager) {
+//                $manager->disable($signal);
+//            }));
+//
+//        $signal->method('isEnabled')
+//            ->will($this->returnCallback(function () use ($signal, $manager) {
+//                return $manager->isEnabled($signal);
+//            }));
+//
+//        $signal->method('unreference')
+//            ->will($this->returnCallback(function () use ($signal, $manager) {
+//                $manager->unreference($signal);
+//            }));
+//
+//        $signal->method('reference')
+//            ->will($this->returnCallback(function () use ($signal, $manager) {
+//                $manager->reference($signal);
+//            }));
+//
+//        return $signal;
+//    }
     
     public function testNoBlockingOnEmptyLoop()
     {
@@ -293,7 +290,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll = $this->loop->poll($socket, $this->createCallback(0));
         
-        $this->assertInstanceOf(SocketEventInterface::class, $poll);
+        $this->assertInstanceOf(SocketEvent::class, $poll);
     }
     
     /**
@@ -319,7 +316,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+                 ->with($this->identicalTo($socket), $this->identicalTo(false));
         
         $poll = $this->loop->poll($socket, $callback);
         
@@ -360,7 +357,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(2);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+            ->with($this->identicalTo($socket), $this->identicalTo(false));
         
         $poll = $this->loop->poll($socket, $callback);
         
@@ -387,7 +384,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+            ->with($this->identicalTo($readable), $this->identicalTo(false));
         
         $poll = $this->loop->poll($readable, $callback);
         
@@ -406,7 +403,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(true));
+            ->with($this->identicalTo($writable), $this->identicalTo(true));
         
         $poll = $this->loop->poll($writable, $callback);
         
@@ -427,7 +424,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(true));
+            ->with($this->identicalTo($writable), $this->identicalTo(true));
         
         $poll = $this->loop->poll($writable, $callback);
         
@@ -526,7 +523,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $await = $this->loop->await($writable, $this->createCallback(0));
         
-        $this->assertInstanceOf(SocketEventInterface::class, $await);
+        $this->assertInstanceOf(SocketEvent::class, $await);
     }
     
     /**
@@ -552,7 +549,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+            ->with($this->identicalTo($writable), $this->identicalTo(false));
         
         $await = $this->loop->await($writable, $callback);
         
@@ -573,7 +570,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(2);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+            ->with($this->identicalTo($writable), $this->identicalTo(false));
         
         $await = $this->loop->await($writable, $callback);
         
@@ -620,7 +617,7 @@ abstract class AbstractLoopTest extends TestCase
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(false));
+            ->with($this->identicalTo($writable), $this->identicalTo(false));
         
         $await = $this->loop->await($writable, $callback);
         
@@ -947,7 +944,7 @@ abstract class AbstractLoopTest extends TestCase
     {
         $immediate = $this->loop->immediate($this->createCallback(1));
         
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
+        $this->assertInstanceOf(Immediate::class, $immediate);
         
         $this->assertTrue($immediate->isPending());
         

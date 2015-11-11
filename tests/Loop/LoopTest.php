@@ -10,11 +10,11 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
-use Icicle\Loop\LoopInterface;
-use Icicle\Loop\Events\ImmediateInterface;
-use Icicle\Loop\Events\SignalInterface;
-use Icicle\Loop\Events\SocketEventInterface;
-use Icicle\Loop\Events\TimerInterface;
+use Icicle\Loop\Loop as LoopInterface;
+use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Events\Signal;
+use Icicle\Loop\Events\SocketEvent;
+use Icicle\Loop\Events\Timer;
 use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase
@@ -23,7 +23,7 @@ class LoopTest extends TestCase
     const WRITE_STRING = 'abcdefghijklmnopqrstuvwxyz';
 
     /**
-     * @var \Icicle\Loop\LoopInterface
+     * @var \Icicle\Loop\Loop
      */
     protected $loop;
 
@@ -120,7 +120,9 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('poll')
             ->with($this->identicalTo(0), $this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(SocketEventInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(SocketEvent::class)->disableOriginalConstructor()->getMock()
+            ));
 
         Loop\poll(0, $callback); // No need to pass a real resource, as it is not checked here.
     }
@@ -137,7 +139,9 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('await')
             ->with($this->identicalTo(0), $this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(SocketEventInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(SocketEvent::class)->disableOriginalConstructor()->getMock()
+            ));
 
         Loop\await(0, $callback); // No need to pass a real resource, as it is not checked here.
     }
@@ -151,11 +155,13 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('timer')
             ->with($this->identicalTo(self::TIMEOUT), $this->identicalTo(false), $this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $timer = Loop\timer(self::TIMEOUT, $callback);
 
-        $this->assertInstanceOf(TimerInterface::class, $timer);
+        $this->assertInstanceOf(Timer::class, $timer);
     }
     
     /**
@@ -175,11 +181,13 @@ class LoopTest extends TestCase
                 $this->identicalTo($callback),
                 $this->identicalTo([1, 2, 3.14, 'test'])
             )
-            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
         
-        $this->assertInstanceOf(TimerInterface::class, $timer);
+        $this->assertInstanceOf(Timer::class, $timer);
     }
 
     /**
@@ -194,11 +202,13 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('timer')
             ->with($this->identicalTo(self::TIMEOUT), $this->identicalTo(true), $this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback);
 
-        $this->assertInstanceOf(TimerInterface::class, $timer);
+        $this->assertInstanceOf(Timer::class, $timer);
     }
     
     /**
@@ -218,11 +228,13 @@ class LoopTest extends TestCase
                 $this->identicalTo($callback),
                 $this->identicalTo([1, 2, 3.14, 'test'])
             )
-            ->will($this->returnValue($this->getMock(TimerInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
 
-        $this->assertInstanceOf(TimerInterface::class, $timer);
+        $this->assertInstanceOf(Timer::class, $timer);
     }
 
     /**
@@ -237,11 +249,13 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('immediate')
             ->with($this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Immediate::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $immediate = Loop\immediate($callback);
 
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
+        $this->assertInstanceOf(Immediate::class, $immediate);
     }
     
     /**
@@ -256,11 +270,13 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('immediate')
             ->with($this->identicalTo($callback), $this->identicalTo([1, 2, 3.14, 'test']))
-            ->will($this->returnValue($this->getMock(ImmediateInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Immediate::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
 
-        $this->assertInstanceOf(ImmediateInterface::class, $immediate);
+        $this->assertInstanceOf(Immediate::class, $immediate);
     }
 
     /**
@@ -364,11 +380,13 @@ class LoopTest extends TestCase
         $this->loop->expects($this->once())
             ->method('signal')
             ->with($this->identicalTo(1), $this->identicalTo($callback))
-            ->will($this->returnValue($this->getMock(SignalInterface::class)));
+            ->will($this->returnValue(
+                $this->getMockBuilder(Signal::class)->disableOriginalConstructor()->getMock()
+            ));
 
         $signal = Loop\signal(1, $callback);
 
-        $this->assertInstanceOf(SignalInterface::class, $signal);
+        $this->assertInstanceOf(Signal::class, $signal);
     }
     
     /**

@@ -9,11 +9,11 @@
 
 namespace Icicle\Promise\Internal;
 
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 
-abstract class ResolvedPromise implements PromiseInterface
+abstract class ResolvedPromise implements Thenable
 {
-    use PromiseTrait;
+    use SharedMethods;
     
     /**
      * {@inheritdoc}

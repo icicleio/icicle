@@ -20,7 +20,7 @@ use Icicle\Promise\Exception\InvalidResolverError;
 use Icicle\Promise\Exception\RejectedException;
 use Icicle\Promise\Exception\TimeoutException;
 use Icicle\Promise\Exception\UnexpectedTypeError;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 use Icicle\Tests\TestCase;
 use InvalidArgumentException;
 use RuntimeException;
@@ -121,7 +121,7 @@ class PromiseTest extends TestCase
 
     public function testThenReturnsPromise()
     {
-        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
+        $this->assertInstanceOf(Thenable::class, $this->promise->then());
     }
     
     public function testResolve()
@@ -131,7 +131,7 @@ class PromiseTest extends TestCase
         $value = 'test';
         $fulfilled = Promise\resolve($value);
         
-        $this->assertInstanceOf(PromiseInterface::class, $fulfilled);
+        $this->assertInstanceOf(Thenable::class, $fulfilled);
         
         $this->assertFalse($fulfilled->isPending());
         $this->assertTrue($fulfilled->isFulfilled());
@@ -146,7 +146,7 @@ class PromiseTest extends TestCase
         
         $rejected = Promise\reject($exception);
         
-        $this->assertInstanceOf(PromiseInterface::class, $rejected);
+        $this->assertInstanceOf(Thenable::class, $rejected);
         
         $this->assertFalse($rejected->isPending());
         $this->assertFalse($rejected->isFulfilled());
@@ -183,7 +183,7 @@ class PromiseTest extends TestCase
     {
         $rejected = Promise\reject($reason);
         
-        $this->assertInstanceOf(PromiseInterface::class, $rejected);
+        $this->assertInstanceOf(Thenable::class, $rejected);
         
         $this->assertFalse($rejected->isPending());
         $this->assertFalse($rejected->isFulfilled());
@@ -226,7 +226,7 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
+        $this->assertInstanceOf(Thenable::class, $this->promise->then());
     }
     
     /**
@@ -517,7 +517,7 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertInstanceOf(PromiseInterface::class, $this->promise->then());
+        $this->assertInstanceOf(Thenable::class, $this->promise->then());
     }
     
     /**

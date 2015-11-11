@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\SocketEvent;
-use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\SocketManager;
 use Icicle\Tests\TestCase;
 
 class SocketEventTest extends TestCase
@@ -21,7 +21,7 @@ class SocketEventTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock(SocketManagerInterface::class);
+        $this->manager = $this->getMock(SocketManager::class);
     }
     
     public function createSocketEvent($resource, callable $callback)

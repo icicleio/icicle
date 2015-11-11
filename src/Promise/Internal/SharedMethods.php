@@ -10,15 +10,15 @@
 namespace Icicle\Promise\Internal;
 
 use Icicle\Promise\Exception\UnexpectedTypeError;
-use Icicle\Promise\PromiseInterface;
+use Icicle\Promise\Thenable;
 
-trait PromiseTrait
+trait SharedMethods
 {
     /**
      * @param callable $onFulfilled
      * @param callable $onRejected
      *
-     * @return \Icicle\Promise\PromiseInterface
+     * @return \Icicle\Promise\Thenable
      */
     abstract public function then(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -61,7 +61,7 @@ trait PromiseTrait
     {
         return $this->then(function ($value) use ($onFulfilled) {
             $result = $onFulfilled($value);
-            if ($result instanceof PromiseInterface) {
+            if ($result instanceof Thenable) {
                 return $result->then(function () {
                     return $this;
                 });
@@ -77,7 +77,7 @@ trait PromiseTrait
     {
         $onResolved = function () use ($onResolved) {
             $result = $onResolved();
-            if ($result instanceof PromiseInterface) {
+            if ($result instanceof Thenable) {
                 return $result->then(function () {
                     return $this;
                 });
