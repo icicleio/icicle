@@ -132,12 +132,4 @@ class LazyPromise implements Thenable
     {
         return $this->getPromise()->wait();
     }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function unwrap()
-    {
-        return $this->getPromise()->unwrap();
-    }
 }

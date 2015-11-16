@@ -67,24 +67,24 @@ class Future implements Thenable
      *
      * @param mixed $value A promise can be resolved with anything other than itself.
      */
-    protected function resolve($result)
+    protected function resolve($value = null)
     {
         if (null !== $this->result) {
             return;
         }
 
-        if ($result instanceof self) {
-            $result = $result->unwrap();
-            if ($this === $result) {
-                $result = new RejectedPromise(
+        if ($value instanceof self) {
+            $value = $value->unwrap();
+            if ($this === $value) {
+                $value = new RejectedPromise(
                     new CircularResolutionError('Circular reference in promise resolution chain.')
                 );
             }
-        } elseif (!$result instanceof Thenable) {
-            $result = new FulfilledPromise($result);
+        } elseif (!$value instanceof Thenable) {
+            $value = new FulfilledPromise($value);
         }
 
-        $this->result = $result;
+        $this->result = $value;
         $this->result->done($this->onFulfilled, $this->onRejected ?: new ThenQueue());
 
         $this->onFulfilled = null;
@@ -162,7 +162,7 @@ class Future implements Thenable
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $this->result) {
-            $this->result->done($onFulfilled, $onRejected);
+            $this->unwrap()->done($onFulfilled, $onRejected);
             return;
         }
 
@@ -224,7 +224,7 @@ class Future implements Thenable
             $this->cancel($reason);
         });
 
-        $future = new self(function (Exception $exception) use (&$timer) {
+        $future = new self(function (Exception $exception) use ($timer) {
             $timer->stop();
 
             if (0 === --$this->children) {

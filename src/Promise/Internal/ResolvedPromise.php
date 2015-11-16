@@ -51,12 +51,4 @@ abstract class ResolvedPromise implements Thenable
     {
         return $this;
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function unwrap()
-    {
-        return $this;
-    }
 }

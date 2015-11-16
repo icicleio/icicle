@@ -17,7 +17,7 @@ use Icicle\Promise\Exception\InvalidResolverError;
  *
  * @see http://promisesaplus.com
  */
-class Promise extends Future
+final class Promise extends Future
 {
     /**
      * @param callable<(callable $resolve, callable $reject, Loop $loop): callable|null> $resolver

@@ -12,7 +12,7 @@ namespace Icicle\Promise;
 /**
  * Awaitable implementation that should not be returned from a public API, but used only internally.
  */
-class Delayed extends Future
+final class Delayed extends Future
 {
     /**
      * {@inheritdoc}

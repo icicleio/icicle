@@ -148,13 +148,4 @@ interface Thenable
      * @return bool
      */
     public function isCancelled();
-
-    /**
-     * Iteratively finds the last promise in the pending chain and returns it. 
-     *
-     * @return \Icicle\Promise\Thenable
-     *
-     * @internal Used to keep promise methods from exceeding the call stack depth limit.
-     */
-    //public function unwrap();
 }
