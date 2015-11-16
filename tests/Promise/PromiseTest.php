@@ -1468,8 +1468,8 @@ class PromiseTest extends TestCase
      */
     public function testCancellingSiblingChildDoesNotCancelParent()
     {
-        $child1 = $this->promise->then();
-        $child2 = $this->promise->then();
+        $child1 = $this->promise->then(function () {});
+        $child2 = $this->promise->then(function () {});
         
         $child1->cancel();
         
@@ -1485,8 +1485,8 @@ class PromiseTest extends TestCase
      */
     public function testCancellingAllChildrenCancelsParent()
     {
-        $child1 = $this->promise->then();
-        $child2 = $this->promise->then();
+        $child1 = $this->promise->then(function () {});
+        $child2 = $this->promise->then(function () {});
         
         $child1->cancel();
         $child2->cancel();
@@ -1503,8 +1503,8 @@ class PromiseTest extends TestCase
      */
     public function testCancellingParentCancelsAllChildren()
     {
-        $child1 = $this->promise->then();
-        $child2 = $this->promise->then();
+        $child1 = $this->promise->then(function () {});
+        $child2 = $this->promise->then(function () {});
         
         $this->promise->cancel();
         
@@ -1520,13 +1520,13 @@ class PromiseTest extends TestCase
      */
     public function testCancellingSiblingsThenCreateSiblingPromise()
     {
-        $child1 = $this->promise->then();
-        $child2 = $this->promise->then();
+        $child1 = $this->promise->then(function () {});
+        $child2 = $this->promise->then(function () {});
 
         $child1->cancel();
         $child2->cancel();
 
-        $child3 = $this->promise->then();
+        $child3 = $this->promise->then(function () {});
 
         Loop\run();
 
@@ -1851,7 +1851,7 @@ class PromiseTest extends TestCase
         $time = 0.1;
         
         $timeout = $this->promise->timeout($time);
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
         
         $timeout->cancel();
         
@@ -1870,7 +1870,7 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $timeout = $this->promise->timeout($time);
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
 
         $timeout->cancel();
         $sibling->cancel();
@@ -1893,7 +1893,7 @@ class PromiseTest extends TestCase
 
         $timeout->cancel();
 
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
 
         Loop\run();
 
@@ -2082,7 +2082,7 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $delayed = $this->promise->delay($time);
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
 
         $delayed->cancel();
 
@@ -2101,7 +2101,7 @@ class PromiseTest extends TestCase
         $time = 0.1;
 
         $delayed = $this->promise->delay($time);
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
 
         $delayed->cancel();
         $sibling->cancel();
@@ -2124,7 +2124,7 @@ class PromiseTest extends TestCase
 
         $delayed->cancel();
 
-        $sibling = $this->promise->then();
+        $sibling = $this->promise->then(function () {});
 
         Loop\run();
 

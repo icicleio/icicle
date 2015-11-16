@@ -156,5 +156,5 @@ interface Thenable
      *
      * @internal Used to keep promise methods from exceeding the call stack depth limit.
      */
-    public function unwrap();
+    //public function unwrap();
 }
