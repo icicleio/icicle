@@ -511,6 +511,42 @@ class PromiseTest extends TestCase
         
         $this->assertInstanceOf(AwaitableInterface::class, $this->promise->then());
     }
+
+    /**
+     * @depends testResolveCallableWithValue
+     */
+    public function testThenWithoutOnFulfilledThenResolve()
+    {
+        $value = 1;
+
+        $promise = $this->promise->then(null, $this->createCallback(0));
+
+        $this->resolve($value);
+
+        Loop\run();
+
+        $this->assertSame($value, $promise->wait());
+    }
+
+    /**
+     * @depends testRejectCallable
+     */
+    public function testThenWithoutOnRejectedThenReject()
+    {
+        $reason = new Exception();
+
+        $promise = $this->promise->then($this->createCallback(0));
+
+        $this->reject($reason);
+
+        Loop\run();
+
+        try {
+            $this->promise->wait();
+        } catch (Exception $exception) {
+            $this->assertSame($reason, $exception);
+        }
+    }
     
     /**
      * @depends testRejectCallable

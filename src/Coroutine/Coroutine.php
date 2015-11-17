@@ -177,19 +177,17 @@ final class Coroutine extends Future
      */
     public function cancel($reason = null)
     {
-        try {
+        if (null !== $this->generator) {
             $current = $this->generator->current(); // Get last yielded value.
             if ($current instanceof Awaitable) {
                 $current->cancel($reason); // Cancel last yielded awaitable.
             }
-        } catch (Exception $exception) {
-            $reason = $exception;
-        }
 
-        try {
-            $this->close(); // Throwing finally blocks in the Generator may cause close() to throw.
-        } catch (Exception $exception) {
-            $reason = $exception;
+            try {
+                $this->close(); // Throwing finally blocks in the Generator may cause close() to throw.
+            } catch (Exception $exception) {
+                $reason = $exception;
+            }
         }
 
         parent::cancel($reason);

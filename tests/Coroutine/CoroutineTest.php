@@ -544,42 +544,6 @@ class CoroutineTest extends TestCase
         
         Loop\run();
     }
-    
-    /**
-     * @depends testCancellationWithSpecificException
-     */
-    public function testCancellationWithTryCatchBlock()
-    {
-        $exception = new Exception();
-        
-        $generator = function () {
-            try {
-                yield 1;
-            } catch (Exception $exception) {
-                // Cleanup code, generator no longer valid.
-            }
-        };
-        
-        $coroutine = new Coroutine($generator());
-        
-        $coroutine->cancel($exception);
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->with($this->identicalTo($exception));
-        
-        $coroutine->done($this->createCallback(0), $callback);
-        
-        Loop\run();
-        
-        $this->assertTrue($coroutine->isRejected());
-
-        try {
-            $coroutine->wait();
-        } catch (Exception $reason) {
-            $this->assertSame($exception, $reason);
-        }
-    }
 
     /**
      * @depends testCancellationWithSpecificException
@@ -669,6 +633,87 @@ class CoroutineTest extends TestCase
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
             ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellationOnFulfilledCoroutine()
+    {
+        $value = 1;
+
+        $generator = function () use ($value) {
+            yield $value;
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+
+        $coroutine->cancel();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $coroutine->done($callback);
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellationOnRejectedCoroutine()
+    {
+        $exception = new Exception();
+
+        $generator = function () use ($exception) {
+            throw $exception;
+
+            yield; // Unreachable, but makes function a generator.
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $this->assertTrue($coroutine->isRejected());
+
+        $coroutine->cancel();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testCancellation
+     * @depends testYieldRejectedPromise
+     */
+    public function testCancellationAfterYieldingRejectedPromise()
+    {
+        $exception = new Exception();
+
+        $generator = function () use ($exception) {
+            yield Awaitable\reject($exception);
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $coroutine->cancel();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(CancelledException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
