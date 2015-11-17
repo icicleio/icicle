@@ -11,9 +11,9 @@ namespace Icicle\Coroutine;
 
 use Exception;
 use Generator;
+use Icicle\Awaitable\Future;
+use Icicle\Awaitable\Awaitable;
 use Icicle\Loop;
-use Icicle\Promise\Future;
-use Icicle\Promise\Thenable;
 
 /**
  * This class implements cooperative coroutines using Generators. Coroutines should yield promises to pause execution
@@ -118,7 +118,7 @@ final class Coroutine extends Future
             $yielded = new self($yielded);
         }
 
-        if ($yielded instanceof Thenable) {
+        if ($yielded instanceof Awaitable) {
             $yielded->done($this->send, $this->capture);
         } else {
             Loop\queue($this->send, $yielded);
@@ -179,7 +179,7 @@ final class Coroutine extends Future
     {
         try {
             $current = $this->generator->current(); // Get last yielded value.
-            if ($current instanceof Thenable) {
+            if ($current instanceof Awaitable) {
                 $current->cancel($reason); // Cancel last yielded awaitable.
             }
         } catch (Exception $exception) {

@@ -4,6 +4,7 @@
     "keywords": [
         "asynchronous",
         "async",
+        "awaitable",
         "coroutine",
         "generator",
         "interruptible",
@@ -40,9 +41,9 @@
             "Icicle\\": "src"
         },
         "files": [
+            "src/Awaitable/functions.php",
             "src/Coroutine/functions.php",
-            "src/Loop/functions.php",
-            "src/Promise/functions.php"
+            "src/Loop/functions.php"
         ]
     },
     "autoload-dev": {

@@ -16,8 +16,8 @@
         <testsuite name="Icicle Loop">
             <directory>tests/Loop</directory>
         </testsuite>
-        <testsuite name="Icicle Promise">
-            <directory>tests/Promise</directory>
+        <testsuite name="Icicle Awaitable">
+            <directory>tests/Awaitable</directory>
         </testsuite>
         <testsuite name="Icicle Coroutine">
             <directory>tests/Coroutine</directory>

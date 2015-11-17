@@ -9,8 +9,8 @@
 
 namespace Icicle\Coroutine;
 
+use Icicle\Awaitable;
 use Icicle\Coroutine\Exception\InvalidCallableError;
-use Icicle\Promise;
 
 if (!function_exists(__NAMESPACE__ . '\wrap')) {
     /**
@@ -102,7 +102,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      */
     function sleep($time)
     {
-        $start = (yield Promise\resolve(microtime(true))->delay($time));
+        $start = (yield Awaitable\resolve(microtime(true))->delay($time));
 
         yield microtime(true) - $start;
     }

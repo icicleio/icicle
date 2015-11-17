@@ -10,14 +10,16 @@
 namespace Icicle\Tests\Coroutine;
 
 use Exception;
+use Icicle\Awaitable;
+use Icicle\Awaitable\Awaitable as AwaitableInterface;
+use Icicle\Awaitable\Exception\CancelledException;
+use Icicle\Awaitable\Exception\TimeoutException;
+use Icicle\Awaitable\Delayed;
+use Icicle\Awaitable\Promise;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Coroutine\Exception\InvalidCallableError;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
-use Icicle\Promise;
-use Icicle\Promise\Exception\CancelledException;
-use Icicle\Promise\Exception\TimeoutException;
-use Icicle\Promise\Thenable;
 use Icicle\Tests\TestCase;
 
 class CoroutineTest extends TestCase
@@ -57,7 +59,7 @@ class CoroutineTest extends TestCase
         $value = 1;
         
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise\resolve($value));
+            $yielded = (yield Awaitable\resolve($value));
         };
         
         $coroutine = new Coroutine($generator());
@@ -80,7 +82,7 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$yielded, $exception) {
-            $yielded = (yield Promise\reject($exception));
+            $yielded = (yield Awaitable\reject($exception));
         };
         
         $coroutine = new Coroutine($generator());
@@ -111,7 +113,7 @@ class CoroutineTest extends TestCase
         $value = 1;
 
         $generator = function () use (&$yielded, $value) {
-            $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+            $yielded = (yield Awaitable\resolve($value)->delay(self::TIMEOUT));
         };
         
         $coroutine = new Coroutine($generator());
@@ -148,7 +150,7 @@ class CoroutineTest extends TestCase
         
         $child = $coroutine->then($callback, $this->createCallback(0));
         
-        $this->assertInstanceOf(Thenable::class, $child);
+        $this->assertInstanceOf(AwaitableInterface::class, $child);
         
         Loop\run();
         
@@ -166,7 +168,7 @@ class CoroutineTest extends TestCase
         
         $generator = function () use ($value, $exception) {
             try {
-                yield Promise\reject($exception);
+                yield Awaitable\reject($exception);
             } catch (Exception $exception) {
                 yield $value;
             }
@@ -196,7 +198,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use ($exception) {
             try {
-                yield Promise\reject($exception);
+                yield Awaitable\reject($exception);
             } catch (Exception $exception) {
                 // No further yields in generator.
             }
@@ -324,7 +326,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use ($exception, $callback) {
             try {
-                yield Promise\reject($exception);
+                yield Awaitable\reject($exception);
             } finally {
                 $callback();
             }
@@ -361,7 +363,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use (&$yielded, $exception, $callback, $value) {
             try {
-                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+                $yielded = (yield Awaitable\resolve($value)->delay(self::TIMEOUT));
                 throw $exception;
             } finally {
                 $callback();
@@ -401,7 +403,7 @@ class CoroutineTest extends TestCase
             try {
                 throw $exception;
             } finally {
-                $yielded = (yield Promise\resolve($value)->delay(self::TIMEOUT));
+                $yielded = (yield Awaitable\resolve($value)->delay(self::TIMEOUT));
             }
         };
 
@@ -587,13 +589,13 @@ class CoroutineTest extends TestCase
         $exception = new Exception();
         
         $generator = function () use (&$promise) {
-            yield ($promise = Promise\resolve(1)->delay(0.1));
+            yield ($promise = Awaitable\resolve(1)->delay(0.1));
         };
         
         $coroutine = new Coroutine($generator());
         
         $this->assertTrue($coroutine->isPending());
-        $this->assertInstanceOf(Promise\Promise::class, $promise);
+        $this->assertInstanceOf(AwaitableInterface::class, $promise);
         
         $coroutine->cancel($exception);
         
@@ -624,7 +626,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use (&$executed) {
             try {
-                yield Promise\resolve(1)->delay(0.1);
+                yield Awaitable\resolve(1)->delay(0.1);
             } finally {
                 $executed = true;
             }
@@ -654,7 +656,7 @@ class CoroutineTest extends TestCase
 
         $generator = function () use ($exception) {
             try {
-                yield Promise\resolve(1)->delay(0.1);
+                yield Awaitable\resolve(1)->delay(0.1);
             } finally {
                 throw $exception;
             }
@@ -679,8 +681,7 @@ class CoroutineTest extends TestCase
     public function testTimeout()
     {
         $generator = function () use (&$promise) {
-            yield ($promise = new Promise\Promise(function () {
-            })); // Yield promise that will never resolve.
+            yield ($promise = new Delayed()); // Yield promise that will never resolve.
         };
         
         $coroutine = new Coroutine($generator());
@@ -691,7 +692,7 @@ class CoroutineTest extends TestCase
         
         $timeout = $coroutine->timeout(self::TIMEOUT);
         
-        $this->assertInstanceOf(Thenable::class, $timeout);
+        $this->assertInstanceOf(AwaitableInterface::class, $timeout);
         
         $timeout->done($this->createCallback(0), $callback);
         
@@ -718,7 +719,7 @@ class CoroutineTest extends TestCase
         
         $delayed = $coroutine->delay(self::TIMEOUT);
         
-        $this->assertInstanceOf(Thenable::class, $delayed);
+        $this->assertInstanceOf(AwaitableInterface::class, $delayed);
         
         $delayed->done($callback);
         
@@ -1012,7 +1013,7 @@ class CoroutineTest extends TestCase
             
             $coroutine->pause();
             
-            yield Promise\resolve(1);
+            yield Awaitable\resolve(1);
         };
         
         $coroutine = new Coroutine($generator());
@@ -1041,7 +1042,7 @@ class CoroutineTest extends TestCase
             
             $coroutine->pause();
             
-            yield $promise = Promise\reject($exception);
+            yield $promise = Awaitable\reject($exception);
         };
         
         $coroutine = new Coroutine($generator());
@@ -1118,11 +1119,10 @@ class CoroutineTest extends TestCase
         $generator = function () use ($value) {
             yield 'test';
         };
-        
-        $promise = new Promise\Promise(function ($resolve) use ($generator) {
-            $resolve(new Coroutine($generator()));
-        });
-        
+
+        $promise = new Delayed();
+        $promise->resolve(new Coroutine($generator()));
+
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
                  ->with($this->identicalTo($value));
