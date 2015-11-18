@@ -66,9 +66,6 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      * @param mixed ...$args Arguments passed to $worker.
      *
      * @return \Icicle\Coroutine\Coroutine
-     *
-     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
-     *     return a Generator.
      */
     function create(callable $worker /* , ...$args */)
     {
@@ -76,19 +73,18 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
 
         try {
             if (empty($args)) {
-                $generator = $worker();
-            } else {
-                $generator = call_user_func_array($worker, $args);
+                return new Coroutine($worker());
             }
+
+            return new Coroutine(call_user_func_array($worker, $args));
         } catch (\Exception $exception) {
-            throw new InvalidCallableError('The callable threw an exception.', $worker, $exception);
-        }
+            $worker = function () use ($exception, $worker) {
+                throw new InvalidCallableError($worker, $exception);
+                yield; // Unreachable, but makes the function a coroutine.
+            };
 
-        if (!$generator instanceof \Generator) {
-            throw new InvalidCallableError('The callable did not return a Generator.', $worker);
+            return new Coroutine($worker());
         }
-
-        return new Coroutine($generator);
     }
 
     /**

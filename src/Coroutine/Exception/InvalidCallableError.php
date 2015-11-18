@@ -17,13 +17,12 @@ class InvalidCallableError extends Error
     private $callable;
     
     /**
-     * @param string $message
      * @param callable $callable
      * @param \Exception|null $previous
      */
-    public function __construct($message, callable $callable, \Exception $previous = null)
+    public function __construct(callable $callable, \Exception $previous = null)
     {
-        parent::__construct($message, 0, $previous);
+        parent::__construct('Invalid callable.', 0, $previous);
         
         $this->callable = $callable;
     }

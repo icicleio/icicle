@@ -864,9 +864,11 @@ class CoroutineTest extends TestCase
         };
         
         $wrap = \Icicle\Coroutine\wrap($callback);
-        
+
+        $coroutine = $wrap();
+
         try {
-            $coroutine = $wrap();
+            $coroutine->wait();
             $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
         } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -883,9 +885,11 @@ class CoroutineTest extends TestCase
         };
         
         $wrap = \Icicle\Coroutine\wrap($callback);
-        
+
+        $coroutine = $wrap();
+
         try {
-            $coroutine = $wrap();
+            $coroutine->wait();
             $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
         } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -920,9 +924,11 @@ class CoroutineTest extends TestCase
     {
         $callback = function () {
         };
-        
+
+        $coroutine = \Icicle\Coroutine\create($callback);
+
         try {
-            $coroutine = \Icicle\Coroutine\create($callback);
+            $coroutine->wait();
             $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
         } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
@@ -937,9 +943,11 @@ class CoroutineTest extends TestCase
         $callback = function () {
             throw new Exception();
         };
-        
+
+        $coroutine = \Icicle\Coroutine\create($callback);
+
         try {
-            $coroutine = \Icicle\Coroutine\create($callback);
+            $coroutine->wait();
             $this->fail(sprintf('Expected exception of type %s', InvalidCallableError::class));
         } catch (InvalidCallableError $exception) {
             $this->assertSame($callback, $exception->getCallable());
