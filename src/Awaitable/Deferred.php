@@ -39,7 +39,7 @@ final class Deferred
     }
     
     /**
-     * {@inheritdoc}
+     * @return \Icicle\Awaitable\Promise
      */
     public function getPromise()
     {

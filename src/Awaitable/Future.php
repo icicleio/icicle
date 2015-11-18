@@ -61,10 +61,10 @@ class Future implements Awaitable
     }
 
     /**
-     * Resolves the promise with the given promise or value. If another promise, this promise takes on the state of
-     * that promise. If a value, the promise will be fulfilled with that value.
+     * Resolves the awaitable with the given awaitable or value. If another awaitable, this awaitable takes on the state
+     * of that awaitable. If a value, the awaitable will be fulfilled with that value.
      *
-     * @param mixed $value A promise can be resolved with anything other than itself.
+     * @param mixed $value An awaitable can be resolved with anything other than itself.
      */
     protected function resolve($value = null)
     {
@@ -76,7 +76,7 @@ class Future implements Awaitable
             $value = $value->unwrap();
             if ($this === $value) {
                 $value = new Internal\RejectedAwaitable(
-                    new CircularResolutionError('Circular reference in promise resolution chain.')
+                    new CircularResolutionError('Circular reference in awaitable resolution chain.')
                 );
             }
         } elseif (!$value instanceof Awaitable) {
@@ -92,7 +92,7 @@ class Future implements Awaitable
     }
 
     /**
-     * Rejects the promise with the given exception.
+     * Rejects the awaitable with the given exception.
      *
      * @param mixed $reason
      */
@@ -296,7 +296,7 @@ class Future implements Awaitable
     {
         while (null === $this->result) {
             if (Loop\isEmpty()) {
-                throw new UnresolvedError('Loop emptied without resolving promise.');
+                throw new UnresolvedError('Loop emptied without resolving the awaitable.');
             }
 
             Loop\tick(true);
