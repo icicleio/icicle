@@ -278,6 +278,18 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
+    public function uncancellable()
+    {
+        if (null !== $this->result) {
+            return $this->unwrap()->uncancellable();
+        }
+
+        return new Internal\UncancellableAwaitable($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function wait()
     {
         while (null === $this->result) {

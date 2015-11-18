@@ -108,6 +108,13 @@ interface Awaitable
     public function splat(callable $onFulfilled);
 
     /**
+     * Returns an awaitable that will be resolved in the same way as this awaitable but cannot be cancelled.
+     *
+     * @return \Icicle\Awaitable\Awaitable
+     */
+    public function uncancellable();
+
+    /**
      * This function may be used to synchronously wait for a promise to be resolved. This function should generally
      * not be used within a running event loop, but rather to set up a task (or set of tasks, then use join() or another
      * function to group them) and synchronously wait for the task to complete. Using this function in a running event

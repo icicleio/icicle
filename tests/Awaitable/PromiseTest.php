@@ -2632,4 +2632,45 @@ class PromiseTest extends TestCase
 
         $result = $promise->wait();
     }
+
+    /**
+     * @depends testCancellation
+     */
+    public function testUncancellable()
+    {
+        $promise = $this->promise->uncancellable();
+
+        $promise->cancel();
+
+        $this->assertFalse($this->promise->isCancelled());
+        $this->assertTrue($promise->isPending());
+    }
+
+    /**
+     * @depends testUncancellable
+     */
+    public function testUncancellableAfterResolve()
+    {
+        $value = 1;
+
+        $this->resolve($value);
+
+        $promise = $this->promise->uncancellable();
+
+        $this->assertFalse($promise->isPending());
+        $this->assertTrue($promise->isFulfilled());
+        $this->assertSame($value, $promise->wait());
+    }
+
+    /**
+     * @depends testUncancellable
+     */
+    public function testUncancellableAfterCancel()
+    {
+        $this->promise->cancel();
+
+        $promise = $this->promise->uncancellable();
+
+        $this->assertTrue($promise->isCancelled());
+    }
 }

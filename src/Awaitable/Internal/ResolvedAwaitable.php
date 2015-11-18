@@ -51,4 +51,12 @@ abstract class ResolvedAwaitable implements Awaitable
     {
         return $this;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function uncancellable()
+    {
+        return $this;
+    }
 }

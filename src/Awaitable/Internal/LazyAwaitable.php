@@ -127,6 +127,14 @@ class LazyAwaitable implements Awaitable\Awaitable
     /**
      * {@inheritdoc}
      */
+    public function uncancellable()
+    {
+        return new UncancellableAwaitable($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function wait()
     {
         return $this->getPromise()->wait();

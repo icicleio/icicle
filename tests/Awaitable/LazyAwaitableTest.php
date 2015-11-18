@@ -126,6 +126,26 @@ class LazyAwaitableTest extends TestCase
         
         $this->assertTrue($called);
     }
+
+    /**
+     * @depends testPromisorNotCalledOnConstruct
+     */
+    public function testPromisorNotCalledWhenUncancellableCalled()
+    {
+        $called = false;
+
+        $promisor = function () use (&$called) {
+            $called = true;
+        };
+
+        $lazy = Awaitable\lazy($promisor);
+
+        $this->assertFalse($called);
+
+        $awaitable = $lazy->uncancellable();
+
+        $this->assertFalse($called);
+    }
     
     /**
      * @depends testPromisorCalledWhenThenCalled
