@@ -15,8 +15,6 @@ use Icicle\Tests\TestCase;
 
 /**
  * Tests the constructor only. All other methods are covered by PromiseTest.
- *
- * @requires PHP 5.4
  */
 class FulfilledAwaitableTest extends TestCase
 {

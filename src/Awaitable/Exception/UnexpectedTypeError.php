@@ -9,4 +9,4 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class UnexpectedTypeError extends Error {}
+class UnexpectedTypeError extends InvalidArgumentError {}

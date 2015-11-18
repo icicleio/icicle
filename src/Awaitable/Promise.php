@@ -12,14 +12,15 @@ namespace Icicle\Awaitable;
 use Icicle\Awaitable\Exception\InvalidResolverError;
 
 /**
- * Promise implementation based on the Promises/A+ specification adding support for cancellation.
- *
- * @see http://promisesaplus.com
+ * A Promise is an awaitable that provides the functions to resolve or reject the promise to the resolver function
+ * given to the constructor. A Promise cannot be externally resolved. Only the functions provided to the constructor
+ * may resolve the Promise. The cancellation function should be returned from the resolver function (or null if no
+ * cancellation function is needed).
  */
 final class Promise extends Future
 {
     /**
-     * @param callable<(callable $resolve, callable $reject, Loop $loop): callable|null> $resolver
+     * @param callable<(callable $resolve, callable $reject): callable|null> $resolver
      */
     public function __construct(callable $resolver)
     {
@@ -50,7 +51,7 @@ final class Promise extends Future
             parent::__construct($onCancelled);
         } catch (\Exception $exception) {
             parent::__construct();
-            $reject($exception);
+            $this->reject($exception);
         }
     }
 }

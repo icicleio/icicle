@@ -12,9 +12,6 @@ namespace Icicle\Tests\Awaitable\Internal;
 use Icicle\Awaitable\Internal\DoneQueue;
 use Icicle\Tests\TestCase;
 
-/**
- * @requires PHP 5.4
- */
 class DoneQueueTest extends TestCase
 {
     public function testInvoke()

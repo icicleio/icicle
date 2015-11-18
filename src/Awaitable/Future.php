@@ -17,7 +17,9 @@ use Icicle\Awaitable\Internal\DoneQueue;
 use Icicle\Loop;
 
 /**
- * Awaitable implementation based on the Promises/A+ specification adding support for cancellation.
+ * Awaitable implementation based on the Promises/A+ specification adding support for cancellation. This class should
+ * be extended to create awaitable implementations. There is no way to externally resolve a Future, so the extending
+ * class must either use or expose the resolve() and reject() methods.
  *
  * @see http://promisesaplus.com
  */

@@ -23,7 +23,7 @@ class FulfilledAwaitable extends ResolvedAwaitable
     private $value;
     
     /**
-     * @param mixed $value Anything other than a Awaitable object.
+     * @param mixed $value Anything other than an Awaitable object.
      *
      * @throws \Icicle\Awaitable\Exception\InvalidArgumentError If an awaitable is given as the value.
      */
