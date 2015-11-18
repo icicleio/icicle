@@ -36,7 +36,7 @@ class LazyAwaitable implements Awaitable\Awaitable
     /**
      * @return \Icicle\Awaitable\Awaitable
      */
-    protected function getPromise()
+    protected function getAwaitable()
     {
         if (null === $this->promise) {
             $promisor = $this->promisor;
@@ -57,7 +57,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
-        return $this->getPromise()->then($onFulfilled, $onRejected);
+        return $this->getAwaitable()->then($onFulfilled, $onRejected);
     }
     
     /**
@@ -65,7 +65,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
-        $this->getPromise()->done($onFulfilled, $onRejected);
+        $this->getAwaitable()->done($onFulfilled, $onRejected);
     }
     
     /**
@@ -73,7 +73,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function cancel($reason = null)
     {
-        $this->getPromise()->cancel($reason);
+        $this->getAwaitable()->cancel($reason);
     }
     
     /**
@@ -81,7 +81,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function timeout($timeout, $reason = null)
     {
-        return $this->getPromise()->timeout($timeout, $reason);
+        return $this->getAwaitable()->timeout($timeout, $reason);
     }
     
     /**
@@ -89,7 +89,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function delay($time)
     {
-        return $this->getPromise()->delay($time);
+        return $this->getAwaitable()->delay($time);
     }
     
     /**
@@ -97,7 +97,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function isPending()
     {
-        return $this->getPromise()->isPending();
+        return $this->getAwaitable()->isPending();
     }
     
     /**
@@ -105,7 +105,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function isFulfilled()
     {
-        return $this->getPromise()->isFulfilled();
+        return $this->getAwaitable()->isFulfilled();
     }
     
     /**
@@ -113,7 +113,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function isRejected()
     {
-        return $this->getPromise()->isRejected();
+        return $this->getAwaitable()->isRejected();
     }
 
     /**
@@ -121,7 +121,7 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function isCancelled()
     {
-        return $this->getPromise()->isCancelled();
+        return $this->getAwaitable()->isCancelled();
     }
 
     /**
@@ -137,6 +137,6 @@ class LazyAwaitable implements Awaitable\Awaitable
      */
     public function wait()
     {
-        return $this->getPromise()->wait();
+        return $this->getAwaitable()->wait();
     }
 }
