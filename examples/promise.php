@@ -3,10 +3,10 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+use Icicle\Awaitable\Promise;
 use Icicle\Loop;
-use Icicle\Promise\Promise;
 
-$promise = new Promise(function ($resolve, $reject) {
+$promise = new Promise(function (callable $resolve, callable $reject) {
     Loop\timer(1, function () use ($resolve) {
         $resolve("Promise resolved");
     });

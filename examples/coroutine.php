@@ -3,24 +3,24 @@
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+use Icicle\Awaitable;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
-use Icicle\Promise;
 
 $generator = function () {
     try {
         // Sets $start to the value returned by microtime() after approx. 1 second.
-        $start = (yield Promise\resolve(microtime(true))->delay(1));
+        $start = (yield Awaitable\resolve(microtime(true))->delay(1));
 
         echo "Sleep time: ", microtime(true) - $start, "\n";
 
         // Throws the exception from the rejected promise into the coroutine.
-        yield Promise\reject(new Exception('Rejected promise'));
+        yield Awaitable\reject(new Exception('Rejected promise'));
     } catch (Exception $e) { // Catches promise rejection reason.
         echo "Caught exception: ", $e->getMessage(), "\n";
     }
 
-    yield Promise\resolve('Coroutine completed');
+    yield Awaitable\resolve('Coroutine completed');
 };
 
 $coroutine = new Coroutine($generator());
