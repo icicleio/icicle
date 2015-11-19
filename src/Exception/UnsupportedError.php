@@ -7,6 +7,6 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Awaitable\Exception;
+namespace Icicle\Exception;
 
-interface Exception extends \Icicle\Exception\Exception, Throwable {}
+class UnsupportedError extends \Exception implements Error {}

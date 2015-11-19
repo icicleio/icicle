@@ -10,9 +10,9 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
+use Icicle\Awaitable;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
-use Icicle\Awaitable;
 use Icicle\Tests\TestCase;
 
 class ReduceTest extends TestCase

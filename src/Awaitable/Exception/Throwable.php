@@ -9,4 +9,4 @@
 
 namespace Icicle\Awaitable\Exception;
 
-interface Exception extends \Icicle\Exception\Exception, Throwable {}
+interface Throwable extends \Icicle\Exception\Throwable {}

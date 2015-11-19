@@ -9,4 +9,4 @@
 
 namespace Icicle\Coroutine\Exception;
 
-class Exception extends \Exception {}
+interface Exception extends \Icicle\Exception\Exception, Throwable {}

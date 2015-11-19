@@ -11,9 +11,9 @@ namespace Icicle\Awaitable\Internal;
 
 use Exception;
 use Icicle\Loop;
-use Icicle\Awaitable\Exception\InvalidArgumentError;
 use Icicle\Awaitable\Promise;
 use Icicle\Awaitable\Awaitable;
+use Icicle\Exception\InvalidArgumentError;
 
 class FulfilledAwaitable extends ResolvedAwaitable
 {
@@ -25,7 +25,7 @@ class FulfilledAwaitable extends ResolvedAwaitable
     /**
      * @param mixed $value Anything other than an Awaitable object.
      *
-     * @throws \Icicle\Awaitable\Exception\InvalidArgumentError If an awaitable is given as the value.
+     * @throws \Icicle\Exception\InvalidArgumentError If an awaitable is given as the value.
      */
     public function __construct($value)
     {

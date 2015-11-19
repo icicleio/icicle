@@ -7,6 +7,6 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Exception;
+namespace Icicle\Coroutine\Exception;
 
-class UnsupportedError extends Error {}
+interface Throwable extends \Icicle\Exception\Throwable {}

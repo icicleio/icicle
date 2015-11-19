@@ -10,10 +10,10 @@
 namespace Icicle\Tests\Promise;
 
 use Exception;
+use Icicle\Awaitable;
+use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
-use Icicle\Awaitable;
-use Icicle\Awaitable\Exception\InvalidArgumentError;
 use Icicle\Tests\TestCase;
 
 class PromisifyTest extends TestCase

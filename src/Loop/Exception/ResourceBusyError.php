@@ -9,4 +9,4 @@
 
 namespace Icicle\Loop\Exception;
 
-class ResourceBusyError extends Error {}
+class ResourceBusyError extends \Exception implements Error {}

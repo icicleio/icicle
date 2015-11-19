@@ -1,7 +1,7 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Exception\UnsupportedError;
+use Icicle\Exception\UnsupportedError;
 use Icicle\Loop\Manager\Ev\EvSignalManager;
 use Icicle\Loop\Manager\Ev\EvSocketManager;
 use Icicle\Loop\Manager\Ev\EvTimerManager;

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Exception\UnsupportedError;
+use Icicle\Exception\UnsupportedError;
 use Icicle\Loop\Manager\Libevent\LibeventSignalManager;
 use Icicle\Loop\Manager\Libevent\LibeventSocketManager;
 use Icicle\Loop\Manager\Libevent\LibeventTimerManager;

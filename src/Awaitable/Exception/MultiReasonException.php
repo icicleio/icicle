@@ -9,7 +9,7 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class MultiReasonException extends Exception
+class MultiReasonException extends \Exception implements Exception
 {
     /**
      * @var \Exception[]

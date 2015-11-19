@@ -9,4 +9,6 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class InvalidResolverError extends InvalidArgumentError {}
+use Icicle\Exception\InvalidArgumentError;
+
+class InvalidResolverError extends InvalidArgumentError implements Error {}

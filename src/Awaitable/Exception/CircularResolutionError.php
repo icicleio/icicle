@@ -9,4 +9,4 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class CircularResolutionError extends Error {}
+class CircularResolutionError extends \Exception implements Exception {}

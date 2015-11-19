@@ -10,7 +10,7 @@
 namespace Icicle\Awaitable\Internal;
 
 use Icicle\Awaitable\Awaitable;
-use Icicle\Awaitable\Exception\UnexpectedTypeError;
+use Icicle\Exception\UnexpectedTypeError;
 
 trait AwaitableMethods
 {

@@ -9,4 +9,4 @@
 
 namespace Icicle\Loop\Exception;
 
-class FreedError extends Error {}
+class FreedError extends \Exception implements Error {}

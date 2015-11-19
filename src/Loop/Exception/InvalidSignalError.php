@@ -9,4 +9,6 @@
 
 namespace Icicle\Loop\Exception;
 
-class InvalidSignalError extends Error {}
+use Icicle\Exception\InvalidArgumentError;
+
+class InvalidSignalError extends InvalidArgumentError implements Error {}

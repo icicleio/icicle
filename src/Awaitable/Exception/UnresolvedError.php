@@ -9,4 +9,4 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class UnresolvedError extends Error {}
+class UnresolvedError extends \Exception implements Error {}

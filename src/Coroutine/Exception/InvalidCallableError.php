@@ -9,7 +9,9 @@
 
 namespace Icicle\Coroutine\Exception;
 
-class InvalidCallableError extends Error
+use Icicle\Exception\InvalidArgumentError;
+
+class InvalidCallableError extends InvalidArgumentError implements Exception
 {
     /**
      * @var callable

@@ -14,12 +14,11 @@ use Icicle\Awaitable;
 use Icicle\Awaitable\Awaitable as AwaitableInterface;
 use Icicle\Awaitable\Exception\CancelledException;
 use Icicle\Awaitable\Exception\CircularResolutionError;
-use Icicle\Awaitable\Exception\Error;
 use Icicle\Awaitable\Exception\InvalidResolverError;
 use Icicle\Awaitable\Exception\RejectedException;
 use Icicle\Awaitable\Exception\TimeoutException;
-use Icicle\Awaitable\Exception\UnexpectedTypeError;
 use Icicle\Awaitable\Promise;
+use Icicle\Exception\UnexpectedTypeError;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
@@ -1049,11 +1048,11 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testRejectCallable
-     * @expectedException \Icicle\Awaitable\Exception\Error
+     * @expectedException \Icicle\Awaitable\Exception\RejectedException
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionAfter()
     {
-        $exception = new Error();
+        $exception = new RejectedException(0);
         
         $this->promise->done($this->createCallback(0));
         
@@ -1064,11 +1063,11 @@ class PromiseTest extends TestCase
     
     /**
      * @depends testRejectCallable
-     * @expectedException \Icicle\Awaitable\Exception\Error
+     * @expectedException \Icicle\Awaitable\Exception\RejectedException
      */
     public function testDoneNoOnRejectedThrowsUncatchableExceptionWithRejectionBefore()
     {
-        $exception = new Error();
+        $exception = new RejectedException(0);
         
         $this->reject($exception);
         

@@ -19,7 +19,7 @@ use Icicle\Tests\TestCase;
 class FulfilledAwaitableTest extends TestCase
 {
     /**
-     * @expectedException \Icicle\Awaitable\Exception\InvalidArgumentError
+     * @expectedException \Icicle\Exception\InvalidArgumentError
      */
     public function testCannotUsePromseAsValue()
     {

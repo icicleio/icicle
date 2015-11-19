@@ -9,7 +9,7 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class ReasonException extends Exception
+class ReasonException extends \Exception implements Exception
 {
     /**
      * @var mixed Reason for rejection.

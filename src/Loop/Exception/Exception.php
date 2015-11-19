@@ -9,4 +9,4 @@
 
 namespace Icicle\Loop\Exception;
 
-class Exception extends \Exception {}
+interface Exception extends \Icicle\Exception\Exception, Throwable {}

@@ -9,4 +9,4 @@
 
 namespace Icicle\Loop\Exception;
 
-class RunningError extends Error {}
+class RunningError extends \Exception implements Error {}

@@ -7,6 +7,6 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Awaitable\Exception;
+namespace Icicle\Exception;
 
-class InvalidArgumentError extends Error {}
+interface Error extends Throwable {}

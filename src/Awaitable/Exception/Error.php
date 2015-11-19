@@ -9,4 +9,4 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class Error extends \Exception {}
+interface Error extends \Icicle\Exception\Error, Throwable {}

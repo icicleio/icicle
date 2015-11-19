@@ -9,4 +9,6 @@
 
 namespace Icicle\Loop\Exception;
 
-class NonResourceError extends Error {}
+use Icicle\Exception\InvalidArgumentError;
+
+class NonResourceError extends InvalidArgumentError implements Error {}

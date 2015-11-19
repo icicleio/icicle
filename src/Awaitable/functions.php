@@ -10,9 +10,9 @@
 namespace Icicle\Awaitable;
 
 use Exception;
-use Icicle\Loop;
-use Icicle\Awaitable\Exception\InvalidArgumentError;
 use Icicle\Awaitable\Exception\MultiReasonException;
+use Icicle\Exception\InvalidArgumentError;
+use Icicle\Loop;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
     /**

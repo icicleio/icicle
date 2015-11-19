@@ -11,7 +11,7 @@ namespace Icicle\Loop;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Exception\UnsupportedError;
+use Icicle\Exception\UnsupportedError;
 use Icicle\Loop\Manager\Event\EventSignalManager;
 use Icicle\Loop\Manager\Event\EventSocketManager;
 use Icicle\Loop\Manager\Event\EventTimerManager;
