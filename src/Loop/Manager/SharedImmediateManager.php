@@ -10,16 +10,10 @@
 namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Events\Immediate;
-use Icicle\Loop\Loop;
 use Icicle\Loop\Structures\ObjectStorage;
 
 class SharedImmediateManager implements ImmediateManager
 {
-    /**
-     * @var \Icicle\Loop\Loop
-     */
-    private $loop;
-
     /**
      * @var \SplQueue
      */
@@ -31,11 +25,9 @@ class SharedImmediateManager implements ImmediateManager
     private $immediates;
     
     /**
-     * @param \Icicle\Loop\Loop $loop
      */
-    public function __construct(Loop $loop)
+    public function __construct()
     {
-        $this->loop = $loop;
         $this->queue = new \SplQueue();
         $this->immediates = new ObjectStorage();
     }

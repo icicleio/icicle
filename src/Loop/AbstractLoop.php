@@ -319,6 +319,6 @@ abstract class AbstractLoop implements Loop
      */
     protected function createImmediateManager()
     {
-        return new SharedImmediateManager($this);
+        return new SharedImmediateManager();
     }
 }
