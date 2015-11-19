@@ -252,7 +252,7 @@ class Future implements Awaitable
         
         ++$this->children;
 
-        $future = new Future(function (Exception $exception) use (&$timer) {
+        $future = new self(function (Exception $exception) use (&$timer) {
             if (null !== $timer) {
                 $timer->stop();
             }
