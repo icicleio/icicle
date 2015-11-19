@@ -27,15 +27,23 @@ class LibeventLoop extends AbstractLoop
     private $base;
 
     /**
+     * @return bool True if LibeventLoop can be used, false otherwise.
+     */
+    public static function enabled()
+    {
+        return extension_loaded('libevent');
+    }
+
+    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param resource|null Resource created by event_base_new() or null to automatically create an event base.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedError If the libevent extension is not loaded.
+     * @throws \Icicle\Exception\UnsupportedError If the libevent extension is not loaded.
      */
     public function __construct($enableSignals = true, $base = null)
     {
         // @codeCoverageIgnoreStart
-        if (!extension_loaded('libevent')) {
+        if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the libevent extension.');
         } // @codeCoverageIgnoreEnd
 

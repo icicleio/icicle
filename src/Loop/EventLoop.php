@@ -27,17 +27,25 @@ class EventLoop extends AbstractLoop
     private $base;
 
     /**
+     * @return bool True if EventLoop can be used, false otherwise.
+     */
+    public static function enabled()
+    {
+        return extension_loaded('event');
+    }
+
+    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
+     * @throws \Icicle\Exception\UnsupportedError If the event extension is not loaded.
      */
     public function __construct(
         $enableSignals = true,
         EventBase $base = null
     ) {
         // @codeCoverageIgnoreStart
-        if (!extension_loaded('event')) {
+        if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
         } // @codeCoverageIgnoreEnd
         
