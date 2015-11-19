@@ -39,15 +39,15 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create($enableSignals = true)
     {
-        if (extension_loaded('ev')) {
+        if (EvLoop::enabled()) {
             return new EvLoop($enableSignals);
         }
 
-        if (extension_loaded('event')) {
+        if (EventLoop::enabled()) {
             return new EventLoop($enableSignals);
         }
 
-        if (extension_loaded('libevent')) {
+        if (LibeventLoop::enabled()) {
             return new LibeventLoop($enableSignals);
         }
 
