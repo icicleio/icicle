@@ -9,10 +9,10 @@
 
 namespace Icicle\Awaitable;
 
-use Exception;
 use Icicle\Awaitable\Exception\MultiReasonException;
 use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
+use Throwable;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
     /**
@@ -24,7 +24,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function resolve($value = null)
+    function resolve($value = null): Awaitable
     {
         if ($value instanceof Awaitable) {
             return $value;
@@ -40,7 +40,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function reject($reason = null)
+    function reject($reason = null): Awaitable
     {
         return new Internal\RejectedAwaitable($reason);
     }
@@ -57,16 +57,14 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return callable
      */
-    function lift(callable $worker)
+    function lift(callable $worker): callable
     {
         /**
          * @param mixed ...$args Awaitables or values.
          *
          * @return \Icicle\Awaitable\Awaitable
          */
-        return function (/* ...$args */) use ($worker) {
-            $args = func_get_args();
-
+        return function (...$args) use ($worker): Awaitable {
             if (1 === count($args)) {
                 return resolve($args[0])->then($worker);
             }
@@ -84,14 +82,12 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return callable
      */
-    function promisify(callable $worker, $index = 0)
+    function promisify(callable $worker, $index = 0): callable
     {
-        return function (/* ...$args */) use ($worker, $index) {
-            $args = func_get_args();
-
+        return function (...$args) use ($worker, $index): Awaitable {
             return new Promise(function (callable $resolve) use ($worker, $index, $args) {
-                $callback = function (/* ...$args */) use ($resolve) {
-                    $resolve(func_get_args());
+                $callback = function (...$args) use ($resolve) {
+                    $resolve($args);
                 };
 
                 if (count($args) < $index) {
@@ -100,7 +96,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
 
                 array_splice($args, $index, 0, [$callback]);
 
-                call_user_func_array($worker, $args);
+                $worker(...$args);
             });
         };
     }
@@ -113,7 +109,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return Awaitable Promise resolved by the $thenable object.
      */
-    function adapt($thenable)
+    function adapt($thenable): Awaitable
     {
         if (!is_object($thenable) || !method_exists($thenable, 'then')) {
             return reject(new InvalidArgumentError('Must provide an object with a then() method.'));
@@ -134,16 +130,14 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function lazy(callable $promisor /* ...$args */)
+    function lazy(callable $promisor, ...$args): Awaitable
     {
-        $args = array_slice(func_get_args(), 1);
-
         if (empty($args)) {
             return new Internal\LazyAwaitable($promisor);
         }
 
         return new Internal\LazyAwaitable(function () use ($promisor, $args) {
-            return call_user_func_array($promisor, $args);
+            return $promisor(...$args);
         });
     }
 
@@ -156,7 +150,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function settle(array $awaitables)
+    function settle(array $awaitables): Awaitable
     {
         if (empty($awaitables)) {
             return resolve([]);
@@ -187,7 +181,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function all(array $awaitables)
+    function all(array $awaitables): Awaitable
     {
         if (empty($awaitables)) {
             return resolve([]);
@@ -218,7 +212,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function any(array $awaitables)
+    function any(array $awaitables): Awaitable
     {
         if (empty($awaitables)) {
             return reject(new InvalidArgumentError('No awaitables provided.'));
@@ -229,7 +223,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
             $exceptions = [];
 
             foreach ($awaitables as $key => $awaitable) {
-                $onRejected = function (Exception $exception) use ($key, &$exceptions, &$pending, $reject) {
+                $onRejected = function (Throwable $exception) use ($key, &$exceptions, &$pending, $reject) {
                     $exceptions[$key] = $exception;
                     if (0 === --$pending) {
                         $reject(new MultiReasonException($exceptions));
@@ -250,7 +244,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function some(array $awaitables, $required)
+    function some(array $awaitables, $required): Awaitable
     {
         $required = (int) $required;
 
@@ -296,7 +290,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function choose(array $awaitables)
+    function choose(array $awaitables): Awaitable
     {
         if (empty($awaitables)) {
             return reject(new InvalidArgumentError('No awaitables provided.'));
@@ -321,12 +315,9 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable[] Array of awaitables resolved with the result of the mapped function.
      */
-    function map(callable $callback /* array ...$awaitables */)
+    function map(callable $callback, array ...$awaitables): array
     {
-        $args = func_get_args();
-        $args[0] = lift($args[0]);
-
-        return call_user_func_array('array_map', $args);
+        return array_map(lift($callback), ...$awaitables);
     }
     
     /**
@@ -339,13 +330,15 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function reduce(array $awaitables, callable $callback, $initial = null)
+    function reduce(array $awaitables, callable $callback, $initial = null): Awaitable
     {
         if (empty($awaitables)) {
             return resolve($initial);
         }
 
-        return new Promise(function (callable $resolve, callable $reject) use ($awaitables, $callback, $initial) {
+        return new Promise(function (callable $resolve, callable $reject) use (
+            $awaitables, $callback, $initial
+        ): callable {
             $pending = true;
             $count = count($awaitables);
             $carry = resolve($initial);
@@ -368,7 +361,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 resolve($awaitable)->done($onFulfilled, $reject);
             }
 
-            return function (Exception $exception) use (&$carry, &$pending) {
+            return function (Throwable $exception) use (&$carry, &$pending) {
                 $pending = false;
                 $carry->cancel($exception);
             };
@@ -388,10 +381,10 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function iterate(callable $worker, callable $predicate, $seed = null)
+    function iterate(callable $worker, callable $predicate, $seed = null): Awaitable
     {
         return new Promise(
-            function (callable $resolve, callable $reject) use (&$awaitable, $worker, $predicate, $seed) {
+            function (callable $resolve, callable $reject) use (&$awaitable, $worker, $predicate, $seed): callable {
                 $pending = true;
                 $callback = function ($value) use (
                     &$callback, &$pending, &$awaitable, $worker, $predicate, $resolve, $reject
@@ -404,7 +397,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                             }
                             $awaitable = resolve($worker($value));
                             $awaitable->done($callback, $reject);
-                        } catch (Exception $exception) {
+                        } catch (Throwable $exception) {
                             $reject($exception);
                         }
                     }
@@ -413,7 +406,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 $awaitable = resolve($seed);
                 $awaitable->done($callback, $reject); // Start iteration with $seed.
 
-                return function (Exception $exception) use (&$awaitable, &$pending) {
+                return function (Throwable $exception) use (&$awaitable, &$pending) {
                     $pending = false;
                     $awaitable->cancel($exception);
                 };
@@ -429,18 +422,18 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      *
      * @param callable<(): Awaitable> $promisor Performs an operation to be retried on failure.
      *     Should return a awaitable, but can return any type of value (will be made into a awaitable using resolve()).
-     * @param callable<(Exception $exception): bool $onRejected> This function is called if the awaitable returned by
+     * @param callable<(Throwable $exception): bool $onRejected> This function is called if the awaitable returned by
      *     $promisor is rejected. Returning true from this function will call $awaitabler again to retry the
      *     operation.
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function retry(callable $promisor, callable $onRejected)
+    function retry(callable $promisor, callable $onRejected): Awaitable
     {
         return new Promise(
-            function (callable $resolve, callable $reject) use (&$awaitable, $promisor, $onRejected) {
+            function (callable $resolve, callable $reject) use (&$awaitable, $promisor, $onRejected): callable {
                 $pending = true;
-                $callback = function (Exception $exception) use (
+                $callback = function (Throwable $exception) use (
                     &$callback, &$pending, &$awaitable, $promisor, $onRejected, $resolve, $reject
                 ) {
                     if ($pending) {
@@ -451,7 +444,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                             }
                             $awaitable = resolve($promisor());
                             $awaitable->done($resolve, $callback);
-                        } catch (Exception $exception) {
+                        } catch (Throwable $exception) {
                             $reject($exception);
                         }
                     }
@@ -460,7 +453,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 $awaitable = resolve($promisor());
                 $awaitable->done($resolve, $callback);
 
-                return function (Exception $exception) use (&$awaitable, &$pending) {
+                return function (Throwable $exception) use (&$awaitable, &$pending) {
                     $pending = false;
                     $awaitable->cancel($exception);
                 };

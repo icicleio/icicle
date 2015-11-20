@@ -49,7 +49,7 @@ final class Promise extends Future
                 throw new InvalidResolverError($resolver);
             }
             parent::__construct($onCancelled);
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             parent::__construct();
             $this->reject($exception);
         }

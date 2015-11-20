@@ -20,9 +20,9 @@ class InvalidCallableError extends InvalidArgumentError implements Error
     
     /**
      * @param callable $callable
-     * @param \Exception $previous
+     * @param \Throwable $previous
      */
-    public function __construct(callable $callable, \Exception $previous)
+    public function __construct(callable $callable, \Throwable $previous)
     {
         parent::__construct('The callable threw an exception or did not return a Generator.', 0, $previous);
         

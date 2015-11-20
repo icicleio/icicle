@@ -61,6 +61,7 @@ class AdaptTest extends TestCase
             ->method('then')
             ->will($this->returnCallback(function ($resolve, $reject) use ($value) {
                 $resolve($value);
+                return $this->getMock(AwaitableInterface::class);
             }));
 
         $promise = Awaitable\adapt($mock);
@@ -87,6 +88,7 @@ class AdaptTest extends TestCase
             ->method('then')
             ->will($this->returnCallback(function ($resolve, $reject) use ($reason) {
                 $reject($reason);
+                return $this->getMock(AwaitableInterface::class);
             }));
 
         $promise = Awaitable\adapt($mock);

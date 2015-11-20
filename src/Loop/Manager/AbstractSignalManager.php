@@ -45,7 +45,7 @@ abstract class AbstractSignalManager implements SignalManager
     /**
      * {@inheritdoc}
      */
-    public function create($signo, callable $callback): Signal
+    public function create(int $signo, callable $callback): Signal
     {
         if (!isset($this->signals[$signo])) {
             throw new InvalidSignalError($signo);
@@ -84,7 +84,7 @@ abstract class AbstractSignalManager implements SignalManager
     /**
      * {@inheritdoc}
      */
-    public function isEnabled(Signal $signal)
+    public function isEnabled(Signal $signal): bool
     {
         $signo = $signal->getSignal();
 

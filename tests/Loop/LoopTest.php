@@ -164,8 +164,6 @@ class LoopTest extends TestCase
             ));
 
         $timer = Loop\timer(self::TIMEOUT, $callback);
-
-        $this->assertInstanceOf(Timer::class, $timer);
     }
     
     /**
@@ -190,8 +188,6 @@ class LoopTest extends TestCase
             ));
 
         $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
-        
-        $this->assertInstanceOf(Timer::class, $timer);
     }
 
     /**
@@ -211,8 +207,6 @@ class LoopTest extends TestCase
             ));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback);
-
-        $this->assertInstanceOf(Timer::class, $timer);
     }
     
     /**
@@ -237,8 +231,6 @@ class LoopTest extends TestCase
             ));
 
         $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
-
-        $this->assertInstanceOf(Timer::class, $timer);
     }
 
     /**
@@ -258,8 +250,6 @@ class LoopTest extends TestCase
             ));
 
         $immediate = Loop\immediate($callback);
-
-        $this->assertInstanceOf(Immediate::class, $immediate);
     }
     
     /**
@@ -279,8 +269,6 @@ class LoopTest extends TestCase
             ));
 
         $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
-
-        $this->assertInstanceOf(Immediate::class, $immediate);
     }
 
     /**
@@ -389,8 +377,6 @@ class LoopTest extends TestCase
             ));
 
         $signal = Loop\signal(1, $callback);
-
-        $this->assertInstanceOf(Signal::class, $signal);
     }
     
     /**

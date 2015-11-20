@@ -64,7 +64,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
     {
         try {
             return new Coroutine($worker(...$args));
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             return create(function () use ($exception, $worker) {
                 throw new InvalidCallableError($worker, $exception);
                 yield; // Unreachable, but makes the function a coroutine.

@@ -9,12 +9,12 @@
 
 namespace Icicle\Awaitable;
 
-use Exception;
 use Icicle\Awaitable\Exception\CircularResolutionError;
 use Icicle\Awaitable\Exception\TimeoutException;
 use Icicle\Awaitable\Exception\UnresolvedError;
 use Icicle\Awaitable\Internal\DoneQueue;
 use Icicle\Loop;
+use Throwable;
 
 /**
  * Awaitable implementation based on the Promises/A+ specification adding support for cancellation. This class should
@@ -104,7 +104,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): Awaitable
     {
         if (null !== $this->result) {
             return $this->unwrap()->then($onFulfilled, $onRejected);
@@ -116,7 +116,7 @@ class Future implements Awaitable
 
         ++$this->children;
 
-        $future = new self(function (Exception $exception) {
+        $future = new self(function (Throwable $exception) {
             if (0 === --$this->children) {
                 $this->cancel($exception);
             }
@@ -126,7 +126,7 @@ class Future implements Awaitable
             $onFulfilled = function ($value) use ($future, $onFulfilled) {
                 try {
                     $future->resolve($onFulfilled($value));
-                } catch (Exception $exception) {
+                } catch (Throwable $exception) {
                     $future->reject($exception);
                 }
             };
@@ -137,10 +137,10 @@ class Future implements Awaitable
         }
 
         if (null !== $onRejected) {
-            $onRejected = function (Exception $exception) use ($future, $onRejected) {
+            $onRejected = function (Throwable $exception) use ($future, $onRejected) {
                 try {
                     $future->resolve($onRejected($exception));
-                } catch (Exception $exception) {
+                } catch (Throwable $exception) {
                     $future->reject($exception);
                 }
             };
@@ -166,7 +166,7 @@ class Future implements Awaitable
         }
 
         if (null === $onRejected) {
-            $onRejected = function (Exception $exception) {
+            $onRejected = function (Throwable $exception) {
                 throw $exception;
             };
         }
@@ -208,7 +208,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout(float $timeout, $reason = null): Awaitable
     {
         if (null !== $this->result) {
             return $this->unwrap()->timeout($timeout, $reason);
@@ -217,13 +217,13 @@ class Future implements Awaitable
         ++$this->children;
 
         $timer = Loop\timer($timeout, function () use ($reason) {
-            if (!$reason instanceof Exception) {
+            if (!$reason instanceof Throwable) {
                 $reason = new TimeoutException($reason);
             }
             $this->cancel($reason);
         });
 
-        $future = new self(function (Exception $exception) use ($timer) {
+        $future = new self(function (Throwable $exception) use ($timer) {
             $timer->stop();
 
             if (0 === --$this->children) {
@@ -244,7 +244,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function delay(float $time): Awaitable
     {
         if (null !== $this->result) {
             return $this->unwrap()->delay($time);
@@ -252,7 +252,7 @@ class Future implements Awaitable
         
         ++$this->children;
 
-        $future = new self(function (Exception $exception) use (&$timer) {
+        $future = new self(function (Throwable $exception) use (&$timer) {
             if (null !== $timer) {
                 $timer->stop();
             }
@@ -280,7 +280,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function uncancellable()
+    public function uncancellable(): Awaitable
     {
         if (null !== $this->result) {
             return $this->unwrap()->uncancellable();
@@ -308,7 +308,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return null === $this->result ?: $this->unwrap()->isPending();
     }
@@ -316,7 +316,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isFulfilled()
+    public function isFulfilled(): bool
     {
         return null !== $this->result ? $this->unwrap()->isFulfilled() : false;
     }
@@ -324,7 +324,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isRejected()
+    public function isRejected(): bool
     {
         return null !== $this->result ? $this->unwrap()->isRejected() : false;
     }
@@ -332,7 +332,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isCancelled()
+    public function isCancelled(): bool
     {
         return null !== $this->result ? $this->unwrap()->isCancelled() : false;
     }
@@ -340,7 +340,7 @@ class Future implements Awaitable
     /**
      * @return \Icicle\Awaitable\Awaitable
      */
-    private function unwrap()
+    private function unwrap(): Awaitable
     {
         while ($this->result instanceof self && null !== $this->result->result) {
             $this->result = $this->result->result;

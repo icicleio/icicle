@@ -833,9 +833,6 @@ abstract class AbstractLoopTest extends TestCase
     {
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
 
-        $timer->expects($this->once())
-            ->method('isPending');
-
         $this->assertTrue($timer->isPending());
         
         $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);

@@ -44,7 +44,7 @@ class LazyAwaitable implements Awaitable
             
             try {
                 $this->promise = resolve($promisor());
-            } catch (\Exception $exception) {
+            } catch (\Throwable $exception) {
                 $this->promise = reject($exception);
             }
         }

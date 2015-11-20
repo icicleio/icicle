@@ -15,18 +15,18 @@ interface Awaitable
      * Assigns a set of callback functions to the awaitable, and returns a new awaitable.
      *
      * @param callable<(mixed $value): mixed>|null $onFulfilled
-     * @param callable<(Exception $exception): mixed>|null $onRejected
+     * @param callable<(Throwable $exception): mixed>|null $onRejected
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null);
+    public function then(callable $onFulfilled = null, callable $onRejected = null): Awaitable;
     
     /**
      * Assigns a set of callback functions to the awaitable. Returned values are ignored and thrown exceptions
      * are rethrown in an uncatchable way.
      *
      * @param callable<(mixed $value)>|null $onFulfilled
-     * @param callable<(Exception $exception)>|null $onRejected
+     * @param callable<(Throwable $exception)>|null $onRejected
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -48,7 +48,7 @@ interface Awaitable
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function timeout($timeout, $reason = null);
+    public function timeout(float $timeout, $reason = null): Awaitable;
     
     /**
      * Returns an awaitable that is fulfilled $time seconds after this awaitable is fulfilled. If the promise is
@@ -58,18 +58,18 @@ interface Awaitable
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function delay($time);
+    public function delay(float $time): Awaitable;
 
     /**
      * Assigns a callback function that is called when the awaitable is rejected. If a type declaration is defined on
      * the callable (ex: function (RuntimeException $exception) {}), then the function will only be called if the
      * exception is an instance of the declared type of exception.
      *
-     * @param callable<(Exception $exception): mixed)> $onRejected
+     * @param callable<(Throwable $exception): mixed)> $onRejected
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function capture(callable $onRejected);
+    public function capture(callable $onRejected): Awaitable;
 
     /**
      * Calls the given function with the value used to fulfill the awaitable, then fulfills the returned awaitable with
@@ -81,7 +81,7 @@ interface Awaitable
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function tap(callable $onFulfilled);
+    public function tap(callable $onFulfilled): Awaitable;
     
     /**
      * The callback given to this function will be called if the awaitable is fulfilled or rejected. The callback is
@@ -93,26 +93,26 @@ interface Awaitable
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function cleanup(callable $onResolved);
+    public function cleanup(callable $onResolved): Awaitable;
 
     /**
      * If the awaitable returns an array or a Traversable object, this function uses the array (or array generated from
      * traversing the iterator) as arguments to the given function. The array is key sorted before being used as
      * function arguments. If the awaitable does not return an array, the returned awaitable will be rejected with an
-     * \Icicle\Promise\Exception\UnexpectedTypeError.
+     * \Icicle\Exception\UnexpectedTypeError.
      *
      * @param callable<(mixed ...$args): mixed> $onFulfilled
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function splat(callable $onFulfilled);
+    public function splat(callable $onFulfilled): Awaitable;
 
     /**
      * Returns an awaitable that will be resolved in the same way as this awaitable but cannot be cancelled.
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function uncancellable();
+    public function uncancellable(): Awaitable;
 
     /**
      * This function may be used to synchronously wait for an awaitable to be resolved. This function should generally
@@ -124,7 +124,7 @@ interface Awaitable
      * @return mixed Awaitable fulfillment value.
      *
      * @throws \Icicle\Awaitable\Exception\UnresolvedError If the event loop empties without fulfilling the awaitable.
-     * @throws \Exception If the awaitable is rejected, the rejection reason is thrown from this function.
+     * @throws \Throwable If the awaitable is rejected, the rejection reason is thrown from this function.
      */
     public function wait();
 
@@ -133,26 +133,26 @@ interface Awaitable
      *
      * @return bool
      */
-    public function isPending();
+    public function isPending(): bool;
     
     /**
      * Returns true if the awaitable has been fulfilled.
      *
      * @return bool
      */
-    public function isFulfilled();
+    public function isFulfilled(): bool;
     
     /**
      * Returns true if the awaitable has been rejected.
      *
      * @return bool
      */
-    public function isRejected();
+    public function isRejected(): bool;
 
     /**
      * Returns true if the awaitable has been cancelled.
      *
      * @return bool
      */
-    public function isCancelled();
+    public function isCancelled(): bool;
 }

@@ -36,7 +36,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout(float $timeout, $reason = null): Awaitable
     {
         return $this;
     }
@@ -44,7 +44,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null): Awaitable
     {
         return $this->awaitable->then($onFulfilled, $onRejected);
     }
@@ -60,7 +60,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function delay($time)
+    public function delay(float $time): Awaitable
     {
         return $this->awaitable->delay($time);
     }
@@ -68,7 +68,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function uncancellable()
+    public function uncancellable(): Awaitable
     {
         return $this;
     }
@@ -84,7 +84,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isPending()
+    public function isPending(): bool
     {
         return $this->awaitable->isPending();
     }
@@ -92,7 +92,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isFulfilled()
+    public function isFulfilled(): bool
     {
         return $this->awaitable->isFulfilled();
     }
@@ -100,7 +100,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isRejected()
+    public function isRejected(): bool
     {
         return $this->awaitable->isRejected();
     }
@@ -108,7 +108,7 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function isCancelled()
+    public function isCancelled(): bool
     {
         return $this->awaitable->isCancelled();
     }

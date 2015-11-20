@@ -20,12 +20,12 @@ trait AwaitableMethods
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    abstract public function then(callable $onFulfilled = null, callable $onRejected = null): PromiseInterface;
+    abstract public function then(callable $onFulfilled = null, callable $onRejected = null): Awaitable;
     
     /**
      * {@inheritdoc}
      */
-    public function capture(callable $onRejected): PromiseInterface
+    public function capture(callable $onRejected): Awaitable
     {
         return $this->then(null, function (\Throwable $exception) use ($onRejected) {
             if ($onRejected instanceof \Closure) { // Closure.
@@ -59,7 +59,7 @@ trait AwaitableMethods
     /**
      * {@inheritdoc}
      */
-    public function tap(callable $onFulfilled): PromiseInterface
+    public function tap(callable $onFulfilled): Awaitable
     {
         return $this->then(function ($value) use ($onFulfilled) {
             $result = $onFulfilled($value);
@@ -75,7 +75,7 @@ trait AwaitableMethods
     /**
      * {@inheritdoc}
      */
-    public function cleanup(callable $onResolved): PromiseInterface
+    public function cleanup(callable $onResolved): Awaitable
     {
         $onResolved = function () use ($onResolved) {
             $result = $onResolved();
@@ -93,7 +93,7 @@ trait AwaitableMethods
     /**
      * {@inheritdoc}
      */
-    public function splat(callable $onFulfilled): PromiseInterface
+    public function splat(callable $onFulfilled): Awaitable
     {
         return $this->then(function ($values) use ($onFulfilled) {
             if ($values instanceof \Traversable) {

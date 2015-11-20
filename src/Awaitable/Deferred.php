@@ -41,7 +41,7 @@ final class Deferred
     /**
      * @return \Icicle\Awaitable\Promise
      */
-    public function getPromise(): PromiseInterface
+    public function getPromise(): Promise
     {
         return $this->promise;
     }
