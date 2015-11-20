@@ -13,6 +13,6 @@ class TimeoutException extends ReasonException
 {
     public function __construct($reason)
     {
-        parent::__construct($reason, 'Promise timed out.');
+        parent::__construct($reason, 'Awaitable timed out.');
     }
 }

@@ -51,7 +51,7 @@ abstract class AbstractSignalManager implements SignalManager
     public function create($signo, callable $callback)
     {
         if (!isset($this->signals[$signo])) {
-            throw new InvalidSignalError(sprintf('Invalid signal number: %d.', $signo));
+            throw new InvalidSignalError($signo);
         }
 
         $signal = new Signal($this, $signo, $callback);

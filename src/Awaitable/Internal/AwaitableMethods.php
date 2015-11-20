@@ -97,10 +97,7 @@ trait AwaitableMethods
             if ($values instanceof \Traversable) {
                 $values = iterator_to_array($values);
             } elseif (!is_array($values)) {
-                throw new UnexpectedTypeError(sprintf(
-                    'Expected array or Traversable for awaitable result, got %s',
-                    is_object($values) ? get_class($values) : gettype($values)
-                ));
+                throw new UnexpectedTypeError('array or Traversable', $values);
             }
 
             ksort($values); // Ensures correct argument order.

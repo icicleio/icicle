@@ -129,9 +129,7 @@ class SelectLoop extends AbstractLoop
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalTimer) {
-            throw new SignalHandlingDisabledError(
-                'Signal handling is not enabled.'
-            );
+            throw new SignalHandlingDisabledError();
         } // @codeCoverageIgnoreEnd
 
         $this->signalTimer->stop();

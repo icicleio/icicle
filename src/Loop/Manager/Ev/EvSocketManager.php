@@ -116,7 +116,7 @@ class EvSocketManager implements SocketManager
         $id = (int) $resource;
         
         if (isset($this->events[$id])) {
-            throw new ResourceBusyError('A poll has already been created for that resource.');
+            throw new ResourceBusyError();
         }
 
         $socket = new SocketEvent($this, $resource, $callback);
@@ -137,7 +137,7 @@ class EvSocketManager implements SocketManager
         $id = (int) $socket->getResource();
         
         if (!isset($this->events[$id]) || $socket !== $this->events[$id]->data) {
-            throw new FreedError('Socket event has been freed.');
+            throw new FreedError();
         }
 
         $this->events[$id]->start();

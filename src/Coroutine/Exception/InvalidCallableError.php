@@ -11,7 +11,7 @@ namespace Icicle\Coroutine\Exception;
 
 use Icicle\Exception\InvalidArgumentError;
 
-class InvalidCallableError extends InvalidArgumentError implements Exception
+class InvalidCallableError extends InvalidArgumentError implements Error
 {
     /**
      * @var callable
@@ -20,11 +20,11 @@ class InvalidCallableError extends InvalidArgumentError implements Exception
     
     /**
      * @param callable $callable
-     * @param \Exception|null $previous
+     * @param \Exception $previous
      */
-    public function __construct(callable $callable, \Exception $previous = null)
+    public function __construct(callable $callable, \Exception $previous)
     {
-        parent::__construct('Invalid callable.', 0, $previous);
+        parent::__construct('The callable threw an exception or did not return a Generator.', 0, $previous);
         
         $this->callable = $callable;
     }

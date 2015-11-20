@@ -9,4 +9,18 @@
 
 namespace Icicle\Exception;
 
-class UnexpectedTypeError extends \Exception implements Error {}
+class UnexpectedTypeError extends InvalidArgumentError implements Error
+{
+    /**
+     * @param string $expected
+     * @param string $type
+     */
+    public function __construct($expected, $type)
+    {
+        parent::__construct(sprintf(
+            'Expected %s for argument type, instead got %s',
+            $expected,
+            is_object($type) ? get_class($type) : gettype($type)
+        ));
+    }
+}

@@ -9,4 +9,10 @@
 
 namespace Icicle\Loop\Exception;
 
-class FreedError extends \Exception implements Error {}
+class FreedError extends \Exception implements Error
+{
+    public function __construct()
+    {
+        parent::__construct('The socket event object has been freed and can no longer be used.');
+    }
+}

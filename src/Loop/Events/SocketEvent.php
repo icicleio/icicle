@@ -9,7 +9,6 @@
 
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Exception\NonResourceError;
 use Icicle\Loop\Manager\SocketManager;
 
 /**
@@ -36,15 +35,9 @@ class SocketEvent
      * @param \Icicle\Loop\Manager\SocketManager $manager
      * @param resource $resource
      * @param callable $callback
-     *
-     * @throws \Icicle\Loop\Exception\NonResourceError If a non-resource is given for $resource.
      */
     public function __construct(SocketManager $manager, $resource, callable $callback)
     {
-        if (!is_resource($resource)) {
-            throw new NonResourceError('Must provide a socket or stream resource.');
-        }
-        
         $this->manager = $manager;
         $this->resource = $resource;
         $this->callback = $callback;

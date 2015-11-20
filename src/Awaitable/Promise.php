@@ -46,7 +46,7 @@ final class Promise extends Future
         try {
             $onCancelled = $resolver($resolve, $reject);
             if (null !== $onCancelled && !is_callable($onCancelled)) {
-                throw new InvalidResolverError('The resolver must return a callable or null.');
+                throw new InvalidResolverError($resolver);
             }
             parent::__construct($onCancelled);
         } catch (\Exception $exception) {

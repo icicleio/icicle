@@ -103,7 +103,7 @@ class EventSocketManager implements SocketManager
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyError('A socket event has already been created for that resource.');
+            throw new ResourceBusyError();
         }
         
         return $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
@@ -117,7 +117,7 @@ class EventSocketManager implements SocketManager
         $id = (int) $socket->getResource();
         
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
-            throw new FreedError('Socket event has been freed.');
+            throw new FreedError();
         }
         
         if (!isset($this->events[$id])) {

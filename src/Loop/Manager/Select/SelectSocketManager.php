@@ -73,7 +73,7 @@ class SelectSocketManager implements SocketManager
         $id = (int) $resource;
         
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyError('A socket event has already been created for this resource.');
+            throw new ResourceBusyError();
         }
         
         return $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
@@ -88,7 +88,7 @@ class SelectSocketManager implements SocketManager
         $id = (int) $resource;
         
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
-            throw new FreedError('Poll has been freed.');
+            throw new FreedError();
         }
         
         $this->pending[$id] = $resource;

@@ -11,4 +11,13 @@ namespace Icicle\Loop\Exception;
 
 use Icicle\Exception\InvalidArgumentError;
 
-class InvalidSignalError extends InvalidArgumentError implements Error {}
+class InvalidSignalError extends InvalidArgumentError implements Error
+{
+    /**
+     * @param int $signo
+     */
+    public function __construct($signo)
+    {
+        parent::__construct(sprintf('Invalid signal number: %d.', $signo));
+    }
+}

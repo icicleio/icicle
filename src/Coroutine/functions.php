@@ -27,9 +27,6 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
          * @param mixed ...$args
          *
          * @return \Icicle\Coroutine\Coroutine
-         *
-         * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does
-         *     not return a Generator.
          */
         return function (/* ...$args */) use ($worker) {
             $args = func_get_args();
@@ -49,8 +46,6 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @return mixed Coroutine resolution value.
      *
-     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
-     *     return a Generator.
      * @throws \Exception Coroutine rejection reason.
      */
     function run(callable $worker /* , ...$args */)

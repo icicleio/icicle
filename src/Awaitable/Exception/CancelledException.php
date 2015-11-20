@@ -13,6 +13,6 @@ class CancelledException extends ReasonException
 {
     public function __construct($reason)
     {
-        parent::__construct($reason, 'Promise cancelled.');
+        parent::__construct($reason, 'Awaitable was cancelled.');
     }
 }

@@ -9,4 +9,10 @@
 
 namespace Icicle\Loop\Exception;
 
-class SignalHandlingDisabledError extends \Exception implements Error {}
+class SignalHandlingDisabledError extends \Exception implements Error
+{
+    public function __construct()
+    {
+        parent::__construct('Signal handling is not enabled.');
+    }
+}

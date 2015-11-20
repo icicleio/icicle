@@ -42,16 +42,7 @@ class SocketEventTest extends TestCase
         
         $this->assertSame($socket, $event->getResource());
     }
-    
-    /**
-     * @depends testGetResource
-     * @expectedException \Icicle\Loop\Exception\NonResourceError
-     */
-    public function testInvalidResource()
-    {
-        $event = $this->createSocketEvent(1, $this->createCallbacK(0));
-    }
-    
+
     public function testCall()
     {
         list($socket) = $this->createSockets();

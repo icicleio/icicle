@@ -9,4 +9,10 @@
 
 namespace Icicle\Loop\Exception;
 
-class RunningError extends \Exception implements Error {}
+class RunningError extends \Exception implements Error
+{
+    public function __construct()
+    {
+        parent::__construct('The loop was already running.');
+    }
+}

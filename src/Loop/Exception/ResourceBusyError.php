@@ -9,4 +9,10 @@
 
 namespace Icicle\Loop\Exception;
 
-class ResourceBusyError extends \Exception implements Error {}
+class ResourceBusyError extends \Exception implements Error
+{
+    public function __construct()
+    {
+        parent::__construct('A socket event has already been created for that resource.');
+    }
+}

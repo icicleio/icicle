@@ -11,4 +11,28 @@ namespace Icicle\Awaitable\Exception;
 
 use Icicle\Exception\InvalidArgumentError;
 
-class InvalidResolverError extends InvalidArgumentError implements Error {}
+class InvalidResolverError extends InvalidArgumentError implements Error
+{
+    /**
+     * @var callable
+     */
+    private $resolver;
+
+    /**
+     * @param callable $resolver
+     */
+    public function __construct(callable $resolver)
+    {
+        parent::__construct('The resolver must return a callable or null.');
+
+        $this->resolver = $resolver;
+    }
+
+    /**
+     * @return callable
+     */
+    public function getResolver()
+    {
+        return $this->resolver;
+    }
+}

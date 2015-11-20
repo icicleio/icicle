@@ -188,7 +188,7 @@ abstract class AbstractLoop implements Loop
     public function run(callable $initialize = null)
     {
         if ($this->isRunning()) {
-            throw new RunningError('The loop was already running.');
+            throw new RunningError();
         }
         
         $this->running = true;
@@ -282,9 +282,7 @@ abstract class AbstractLoop implements Loop
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalManager) {
-            throw new SignalHandlingDisabledError(
-                'The pcntl extension must be installed for signal constants to be defined.'
-            );
+            throw new SignalHandlingDisabledError();
         } // @codeCoverageIgnoreEnd
 
         return $this->signalManager->create($signo, $callback);

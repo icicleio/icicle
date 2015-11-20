@@ -105,9 +105,11 @@ class PromiseTest extends TestCase
 
     public function testResolverReturningNonCallableRejectsPromise()
     {
-        $promise = new Promise(function () {
+        $resolver = function () {
             return true;
-        });
+        };
+
+        $promise = new Promise($resolver);
 
         $this->assertFalse($promise->isPending());
         $this->assertTrue($promise->isRejected());
@@ -116,6 +118,7 @@ class PromiseTest extends TestCase
             $promise->wait();
         } catch (Exception $exception) {
             $this->assertInstanceOf(InvalidResolverError::class, $exception);
+            $this->assertSame($resolver, $exception->getResolver());
         }
     }
 
