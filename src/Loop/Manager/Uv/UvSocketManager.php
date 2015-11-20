@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,12 +9,10 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\Events\{EventFactoryInterface, SocketEventInterface};
+use Icicle\Loop\{Events\SocketEvent, Manager\SocketManager, UvLoop};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
-use Icicle\Loop\Manager\SocketManagerInterface;
-use Icicle\Loop\UvLoop;
 
-class SocketManager implements SocketManagerInterface
+class UvSocketManager implements SocketManager
 {
     const MIN_TIMEOUT = 0.001;
     const MILLISEC_PER_SEC = 1e3;
@@ -25,17 +23,12 @@ class SocketManager implements SocketManagerInterface
     private $loopHandle;
 
     /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
-
-    /**
      * @var resource[] Map of sockets to uv_poll handles.
      */
     private $polls = [];
 
     /**
-     * @var \Icicle\Loop\Events\TimerInterface[] Map of sockets to timers.
+     * @var \Icicle\Loop\Events\Timer[] Map of sockets to timers.
      */
     private $timers = [];
 
@@ -45,12 +38,12 @@ class SocketManager implements SocketManagerInterface
     private $handles = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEvent[]
      */
     private $sockets = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEventInterface[]
+     * @var \Icicle\Loop\Events\SocketEvent[]
      */
     private $unreferenced = [];
 
@@ -71,13 +64,11 @@ class SocketManager implements SocketManagerInterface
 
     /**
      * @param \Icicle\Loop\UvLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      * @param int $eventType
      */
-    public function __construct(UvLoop $loop, EventFactoryInterface $factory, int $eventType)
+    public function __construct(UvLoop $loop, int $eventType)
     {
         $this->loopHandle = $loop->getLoopHandle();
-        $this->factory = $factory;
         $this->type = $eventType;
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
@@ -150,27 +141,27 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback): SocketEventInterface
+    public function create($resource, callable $callback): SocketEvent
     {
         $id = (int) $resource;
 
         if (isset($this->sockets[$id])) {
-            throw new ResourceBusyError('A socket event has already been created for that resource.');
+            throw new ResourceBusyError();
         }
 
-        return $this->sockets[$id] = $this->factory->socket($this, $resource, $callback);
+        return $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEventInterface $socket, float $timeout = 0)
+    public function listen(SocketEvent $socket, float $timeout = 0)
     {
         $resource = $socket->getResource();
         $id = (int) $resource;
 
         if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
-            throw new FreedError('Socket event has been freed.');
+            throw new FreedError();
         }
 
         // If no poll handle exists for the socket, create one now.
@@ -200,7 +191,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEventInterface $socket)
+    public function cancel(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
 
@@ -219,7 +210,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEventInterface $socket): bool
+    public function isPending(SocketEvent $socket): bool
     {
         $id = (int) $socket->getResource();
 
@@ -231,7 +222,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function free(SocketEventInterface $socket)
+    public function free(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
 
@@ -256,7 +247,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEventInterface $socket): bool
+    public function isFreed(SocketEvent $socket): bool
     {
         $id = (int) $socket->getResource();
 
@@ -266,7 +257,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEventInterface $socket)
+    public function reference(SocketEvent $socket)
     {
         unset($this->unreferenced[(int) $socket->getResource()]);
     }
@@ -274,7 +265,7 @@ class SocketManager implements SocketManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEventInterface $socket)
+    public function unreference(SocketEvent $socket)
     {
         $id = (int) $socket->getResource();
 

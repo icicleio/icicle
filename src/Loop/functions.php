@@ -41,6 +41,10 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      */
     function create(bool $enableSignals = true): Loop
     {
+        if (UvLoop::enabled()) {
+            return new UvLoop($enableSignals);
+        }
+
         if (EvLoop::enabled()) {
             return new EvLoop($enableSignals);
         }

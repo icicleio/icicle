@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,12 +9,9 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\Events\{EventFactoryInterface, TimerInterface};
-use Icicle\Loop\Structures\ObjectStorage;
-use Icicle\Loop\Manager\TimerManagerInterface;
-use Icicle\Loop\UvLoop;
+use Icicle\Loop\{Events\Timer, Manager\TimerManager, Structures\ObjectStorage, UvLoop};
 
-class TimerManager implements TimerManagerInterface
+class UvTimerManager implements TimerManager
 {
     const MILLISEC_PER_SEC = 1e3;
 
@@ -24,17 +21,12 @@ class TimerManager implements TimerManagerInterface
     private $loopHandle;
 
     /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
-     */
-    private $factory;
-
-    /**
      * @var \Icicle\Loop\Structures\ObjectStorage ObjectStorage mapping Timer objects to uv_timer handles.
      */
     private $timers;
 
     /**
-     * @var \Icicle\Loop\Events\TimerInterface[] Array mapping uv_timer handles to Timer objects.
+     * @var \Icicle\Loop\Events\Timer[] Array mapping uv_timer handles to Timer objects.
      */
     private $handles = [];
 
@@ -45,12 +37,10 @@ class TimerManager implements TimerManagerInterface
 
     /**
      * @param \Icicle\Loop\UvLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(UvLoop $loop, EventFactoryInterface $factory)
+    public function __construct(UvLoop $loop)
     {
         $this->loopHandle = $loop->getLoopHandle();
-        $this->factory = $factory;
 
         $this->timers = new ObjectStorage();
 
@@ -94,9 +84,9 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function create(float $interval, bool $periodic, callable $callback, array $args = []): TimerInterface
+    public function create(float $interval, bool $periodic, callable $callback, array $args = []): Timer
     {
-        $timer = $this->factory->timer($this, $interval, $periodic, $callback, $args);
+        $timer = new Timer($this, $interval, $periodic, $callback, $args);
 
         $this->start($timer);
 
@@ -106,7 +96,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function start(TimerInterface $timer)
+    public function start(Timer $timer)
     {
         if (!isset($this->timers[$timer])) {
             $handle = \uv_timer_init($this->loopHandle);
@@ -128,7 +118,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function stop(TimerInterface $timer)
+    public function stop(Timer $timer)
     {
         if (isset($this->timers[$timer])) {
             $handle = $this->timers[$timer];
@@ -143,7 +133,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function isPending(TimerInterface $timer): bool
+    public function isPending(Timer $timer): bool
     {
         return isset($this->timers[$timer]);
     }
@@ -151,7 +141,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function unreference(TimerInterface $timer)
+    public function unreference(Timer $timer)
     {
         $this->timers->unreference($timer);
     }
@@ -159,7 +149,7 @@ class TimerManager implements TimerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function reference(TimerInterface $timer)
+    public function reference(Timer $timer)
     {
         $this->timers->reference($timer);
     }

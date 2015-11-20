@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,11 +9,9 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\UvLoop;
-use Icicle\Loop\Manager\AbstractSignalManager;
+use Icicle\Loop\{Manager\AbstractSignalManager, UvLoop};
 
-class SignalManager extends AbstractSignalManager
+class UvSignalManager extends AbstractSignalManager
 {
     /**
      * @var resource[]
@@ -22,11 +20,10 @@ class SignalManager extends AbstractSignalManager
 
     /**
      * @param \Icicle\Loop\UvLoop $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
      */
-    public function __construct(UvLoop $loop, EventFactoryInterface $factory)
+    public function __construct(UvLoop $loop)
     {
-        parent::__construct($loop, $factory);
+        parent::__construct($loop);
 
         $loopHandle = $loop->getLoopHandle();
 
