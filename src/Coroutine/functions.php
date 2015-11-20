@@ -11,6 +11,7 @@ namespace Icicle\Coroutine;
 
 use Icicle\Awaitable;
 use Icicle\Coroutine\Exception\InvalidCallableError;
+use Icicle\Exception\UnexpectedTypeError;
 
 if (!function_exists(__NAMESPACE__ . '\wrap')) {
     /**
@@ -68,18 +69,24 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
 
         try {
             if (empty($args)) {
-                return new Coroutine($worker());
+                $generator = $worker();
+            } else {
+                $generator = call_user_func_array($worker, $args);
             }
 
-            return new Coroutine(call_user_func_array($worker, $args));
+            if (!$generator instanceof \Generator) {
+                throw new UnexpectedTypeError('Generator', $generator);
+            }
         } catch (\Exception $exception) {
             $worker = function () use ($exception, $worker) {
                 throw new InvalidCallableError($worker, $exception);
                 yield; // Unreachable, but makes the function a coroutine.
             };
 
-            return new Coroutine($worker());
+            $generator = $worker();
         }
+
+        return new Coroutine($generator);
     }
 
     /**
