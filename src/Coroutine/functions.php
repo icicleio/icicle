@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,8 +9,8 @@
 
 namespace Icicle\Coroutine;
 
+use Icicle\Awaitable;
 use Icicle\Coroutine\Exception\InvalidCallableError;
-use Icicle\Promise;
 
 if (!function_exists(__NAMESPACE__ . '\wrap')) {
     /**
@@ -27,11 +27,8 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
          * @param mixed ...$args
          *
          * @return \Icicle\Coroutine\Coroutine
-         *
-         * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does
-         *     not return a Generator.
          */
-        return function (...$args) use ($worker): CoroutineInterface {
+        return function (...$args) use ($worker): Coroutine {
             return create($worker, ...$args);
         };
     }
@@ -47,9 +44,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      *
      * @return mixed Coroutine resolution value.
      *
-     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
-     *     return a Generator.
-     * @throws \Throwable Coroutine rejection reason.
+     * @throws \Exception Coroutine rejection reason.
      */
     function run(callable $worker, ...$args)
     {
@@ -64,23 +59,17 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      * @param mixed ...$args Arguments passed to $worker.
      *
      * @return \Icicle\Coroutine\Coroutine
-     *
-     * @throws \Icicle\Coroutine\Exception\InvalidCallableError If the callable throws an exception or does not
-     *     return a Generator.
      */
-    function create(callable $worker, ...$args): CoroutineInterface
+    function create(callable $worker, ...$args): Coroutine
     {
         try {
-            $generator = $worker(...$args);
-        } catch (\Throwable $exception) {
-            throw new InvalidCallableError('The callable threw an exception.', $worker, $exception);
+            return new Coroutine($worker(...$args));
+        } catch (\Exception $exception) {
+            return create(function () use ($exception, $worker) {
+                throw new InvalidCallableError($worker, $exception);
+                yield; // Unreachable, but makes the function a coroutine.
+            });
         }
-
-        if (!$generator instanceof \Generator) {
-            throw new InvalidCallableError('The callable did not return a Generator.', $worker);
-        }
-
-        return new Coroutine($generator);
     }
 
     /**
@@ -94,7 +83,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
      */
     function sleep(float $time): \Generator
     {
-        $start = yield Promise\resolve(microtime(true))->delay($time);
+        $start = yield Awaitable\resolve(microtime(true))->delay($time);
 
         return microtime(true) - $start;
     }

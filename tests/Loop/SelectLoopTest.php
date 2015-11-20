@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,29 +9,28 @@
 
 namespace Icicle\Tests\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\SelectLoop;
 
 class SelectLoopTest extends AbstractLoopTest
 {
-    public function createLoop(EventFactoryInterface $eventFactory)
+    public function createLoop()
     {
-        return new SelectLoop(true, $eventFactory);
+        return new SelectLoop(true);
     }
 
     public function testListenAwaitWithExpiredTimeout()
     {
         list($readable, $writable) = $this->createSockets();
         
-        fclose($writable); // A closed socket will never be writable, but is invalid in other loop implementations.
-        
         $callback = $this->createCallback(1);
         
         $callback->method('__invoke')
-                 ->with($this->identicalTo(true));
+                 ->with($this->identicalTo($writable), $this->identicalTo(true));
         
         $await = $this->loop->await($writable, $callback);
-        
+
+        fclose($writable); // A closed socket will never be writable, but is invalid in other loop implementations.
+
         $await->listen(self::TIMEOUT);
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);

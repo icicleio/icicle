@@ -1,5 +1,20 @@
 # Changelog
 
+### v0.9.0
+
+- Changes
+    - All interface names have been changed to remove the `Interface` suffix. Most interfaces simply had the suffix removed, but there are a few exceptions - more below.
+    - Promises are now Awaitables
+        - The `Icicle\Promise` namespace has been renamed to `Icicle\Awaitable`. `Icicle\Promise\PromiseInterface` is now `Icicle\Awaitable\Awaitable`.
+        - `Icicle\Awaitable\Promise` now extends a new class `Icicle\Awaitable\Future` that implements `Icicle\Awaitable\Awaitable`. `Future` can be extended in other ways to make awaitables that are resolved in different ways. The functionality of `Promise` has not changed.
+        - `Icicle\Coroutine\Coroutine` now also extends `Icicle\Awaitable\Future`. The functionality of `Coroutine` has not changed, but it should be faster to create a `Coroutine` object. `Icicle\Coroutine\CoroutineInterface` has been removed.
+
+- New Features
+    - `Icicle\Awaitable\Delayed` was added as a publicly resolvable awaitable. This type of awaitable should not be returned from public APIs, but rather only used internally within a class or Coroutine to create an awaitable that can be resolved later. So in other words, a class method or function should never return a `Delayed`. In general, methods and functions should not be returning awaitables as part of their public API. The public API should consist of Generators that can be used as Coroutines.
+    - `Icicle\Awaitable\Awaitable` now has a method `uncancellable()` that returns an awaitable that cannot be cancelled.
+
+---
+
 ### v0.8.3
 
 - New Features

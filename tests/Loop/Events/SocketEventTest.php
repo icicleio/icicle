@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\SocketEvent;
-use Icicle\Loop\Manager\SocketManagerInterface;
+use Icicle\Loop\Manager\SocketManager;
 use Icicle\Tests\TestCase;
 
 class SocketEventTest extends TestCase
@@ -21,7 +21,7 @@ class SocketEventTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock(SocketManagerInterface::class);
+        $this->manager = $this->getMock(SocketManager::class);
     }
     
     public function createSocketEvent($resource, callable $callback)
@@ -42,16 +42,7 @@ class SocketEventTest extends TestCase
         
         $this->assertSame($socket, $event->getResource());
     }
-    
-    /**
-     * @depends testGetResource
-     * @expectedException \Icicle\Loop\Exception\NonResourceError
-     */
-    public function testInvalidResource()
-    {
-        $event = $this->createSocketEvent(1, $this->createCallbacK(0));
-    }
-    
+
     public function testCall()
     {
         list($socket) = $this->createSockets();

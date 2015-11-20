@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,12 +9,12 @@
 
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\ImmediateManagerInterface;
+use Icicle\Loop\Manager\ImmediateManager;
 
-class Immediate implements ImmediateInterface
+class Immediate
 {
     /**
-     * @var \Icicle\Loop\Manager\ImmediateManagerInterface
+     * @var \Icicle\Loop\Manager\ImmediateManager
      */
     private $manager;
     
@@ -34,11 +34,11 @@ class Immediate implements ImmediateInterface
     private $referenced = true;
 
     /**
-     * @param \Icicle\Loop\Manager\ImmediateManagerInterface $manager
+     * @param \Icicle\Loop\Manager\ImmediateManager $manager
      * @param callable $callback Function called when the interval expires.
      * @param mixed[] $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(ImmediateManagerInterface $manager, callable $callback, array $args = [])
+    public function __construct(ImmediateManager $manager, callable $callback, array $args = [])
     {
         $this->manager = $manager;
         $this->callback = $callback;

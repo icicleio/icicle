@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,12 +9,12 @@
 
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\SignalManagerInterface;
+use Icicle\Loop\Manager\SignalManager;
 
-class Signal implements SignalInterface
+class Signal
 {
     /**
-     * @var \Icicle\Loop\Manager\SignalManagerInterface
+     * @var \Icicle\Loop\Manager\SignalManager
      */
     private $manager;
 
@@ -34,11 +34,11 @@ class Signal implements SignalInterface
     private $referenced = false;
 
     /**
-     * @param \Icicle\Loop\Manager\SignalManagerInterface $manager
+     * @param \Icicle\Loop\Manager\SignalManager $manager
      * @param int $signo
      * @param callable $callback
      */
-    public function __construct(SignalManagerInterface $manager, int $signo, callable $callback)
+    public function __construct(SignalManager $manager, int $signo, callable $callback)
     {
         $this->manager = $manager;
         $this->callback = $callback;

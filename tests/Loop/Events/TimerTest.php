@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop\Events;
 
 use Icicle\Loop\Events\Timer;
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\TimerManager;
 use Icicle\Tests\TestCase;
 
 class TimerTest extends TestCase
@@ -21,7 +21,7 @@ class TimerTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock(TimerManagerInterface::class);
+        $this->manager = $this->getMock(TimerManager::class);
     }
     
     public function createTimer($interval, $periodic, callable $callback, array $args = [])

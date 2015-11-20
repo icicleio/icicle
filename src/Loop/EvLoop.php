@@ -1,10 +1,9 @@
 <?php
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Ev\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
+use Icicle\Exception\UnsupportedError;
+use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
+use Icicle\Loop\Manager\Ev\{EvSignalManager, EvSocketManager, EvTimerManager};
 
 /**
  * Uses the ev extension to poll sockets for I/O and create timers.
@@ -17,22 +16,29 @@ class EvLoop extends AbstractLoop
     private $loop;
 
     /**
+     * @return bool True if EvLoop can be used, false otherwise.
+     */
+    public static function enabled(): bool
+    {
+        return extension_loaded('ev');
+    }
+
+    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
-     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EvLoop|null $loop Use null for an EvLoop object to be automatically created.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
+     * @throws \Icicle\Exception\UnsupportedError If the event extension is not loaded.
      */
-    public function __construct($enableSignals = true, EventFactoryInterface $eventFactory = null, \EvLoop $loop = null)
+    public function __construct(bool $enableSignals = true, \EvLoop $loop = null)
     {
         // @codeCoverageIgnoreStart
-        if (!extension_loaded('ev')) {
+        if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the ev extension.');
         } // @codeCoverageIgnoreEnd
         
         $this->loop = $loop ?: new \EvLoop();
 
-        parent::__construct($enableSignals, $eventFactory);
+        parent::__construct($enableSignals);
     }
 
     /**
@@ -70,32 +76,32 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createPollManager(): SocketManager
     {
-        return new SocketManager($this, $factory, \Ev::READ);
+        return new EvSocketManager($this, \Ev::READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createAwaitManager(): SocketManager
     {
-        return new SocketManager($this, $factory, \Ev::WRITE);
+        return new EvSocketManager($this, \Ev::WRITE);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
+    protected function createTimerManager(): TimerManager
     {
-        return new TimerManager($this, $factory);
+        return new EvTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
+    protected function createSignalManager(): SignalManager
     {
-        return new SignalManager($this, $factory);
+        return new EvSignalManager($this);
     }
 }

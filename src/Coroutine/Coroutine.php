@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -10,8 +10,9 @@
 namespace Icicle\Coroutine;
 
 use Generator;
+use Icicle\Awaitable\Future;
+use Icicle\Awaitable\Awaitable;
 use Icicle\Loop;
-use Icicle\Promise\{Promise, PromiseInterface};
 use Throwable;
 
 /**
@@ -19,7 +20,7 @@ use Throwable;
  * of the coroutine until the promise has resolved. If the promise is fulfilled, the fulfillment value is sent to the
  * generator. If the promise is rejected, the rejection exception is thrown into the generator.
  */
-class Coroutine extends Promise implements CoroutineInterface
+final class Coroutine extends Future
 {
     /**
      * @var \Generator|null
@@ -51,84 +52,52 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     public function __construct(Generator $generator)
     {
+        parent::__construct();
+
         $this->generator = $generator;
 
-        parent::__construct(
-            function (callable $resolve, callable $reject) {
-                $yielded = $this->generator->current();
-
-                if (!$this->generator->valid()) {
-                    $resolve($this->generator->getReturn());
-                    $this->close();
-                    return;
-                }
-
-                /**
-                 * @param mixed $value The value to send to the generator.
-                 */
-                $this->send = function ($value = null) use ($resolve, $reject) {
-                    if ($this->paused) { // If paused, save callable and value for resuming.
-                        $this->next = [$this->send, $value];
-                        return;
-                    }
-                    
-                    try {
-                        // Send the new value and execute to next yield statement.
-                        $yielded = $this->generator->send($value);
-
-                        if (!$this->generator->valid()) {
-                            $resolve($this->generator->getReturn());
-                            $this->close();
-                            return;
-                        }
-
-                        $this->next($yielded);
-                    } catch (Throwable $exception) {
-                        $reject($exception);
-                        $this->close();
-                    }
-                };
-                
-                /**
-                 * @param \Throwable $exception Exception to be thrown into the generator.
-                 */
-                $this->capture = function (Throwable $exception) use ($resolve, $reject) {
-                    if ($this->paused) { // If paused, save callable and exception for resuming.
-                        $this->next = [$this->capture, $exception];
-                        return;
-                    }
-
-                    try {
-                        // Throw exception at current execution point.
-                        $yielded = $this->generator->throw($exception);
-
-                        if (!$this->generator->valid()) {
-                            $resolve($this->generator->getReturn());
-                            $this->close();
-                            return;
-                        }
-
-                        $this->next($yielded);
-                    } catch (Throwable $exception) {
-                        $reject($exception);
-                        $this->close();
-                    }
-                };
-
-                $this->next($yielded);
-
-                return function (Throwable $exception)  {
-                    try {
-                        $current = $this->generator->current(); // Get last yielded value.
-                        if ($current instanceof PromiseInterface) {
-                            $current->cancel($exception);
-                        }
-                    } finally {
-                        $this->close();
-                    }
-                };
+        /**
+         * @param mixed $value The value to send to the generator.
+         */
+        $this->send = function ($value = null) {
+            if ($this->paused) { // If paused, save callable and value for resuming.
+                $this->next = [$this->send, $value];
+                return;
             }
-        );
+
+            try {
+                // Send the new value and execute to next yield statement.
+                $this->next($this->generator->send($value));
+            } catch (Throwable $exception) {
+                $this->reject($exception);
+                $this->close();
+            }
+        };
+
+        /**
+         * @param \Exception $exception Exception to be thrown into the generator.
+         */
+        $this->capture = function (Throwable $exception) {
+            if ($this->paused) { // If paused, save callable and exception for resuming.
+                $this->next = [$this->capture, $exception];
+                return;
+            }
+
+            try {
+                // Throw exception at current execution point.
+                $this->next($this->generator->throw($exception));
+            } catch (Throwable $exception) {
+                $this->reject($exception);
+                $this->close();
+            }
+        };
+
+        try {
+            $this->next($this->generator->current());
+        } catch (Throwable $exception) {
+            $this->reject($exception);
+            $this->close();
+        }
     }
 
     /**
@@ -138,17 +107,23 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     private function next($yielded)
     {
+        if (!$this->generator->valid()) {
+            $this->resolve($this->generator->getReturn());
+            $this->close();
+            return;
+        }
+
         if ($yielded instanceof Generator) {
             $yielded = new self($yielded);
         }
 
-        if ($yielded instanceof PromiseInterface) {
+        if ($yielded instanceof Awaitable) {
             $yielded->done($this->send, $this->capture);
         } else {
             Loop\queue($this->send, $yielded);
         }
     }
-    
+
     /**
      * The garbage collector does not automatically detect (at least not quickly) the circular references that can be
      * created, so explicitly setting these parameters to null is necessary for proper freeing of memory.
@@ -200,7 +175,19 @@ class Coroutine extends Promise implements CoroutineInterface
      */
     public function cancel($reason = null)
     {
-        $this->pause();
+        if (null !== $this->generator) {
+            $current = $this->generator->current(); // Get last yielded value.
+            if ($current instanceof Awaitable) {
+                $current->cancel($reason); // Cancel last yielded awaitable.
+            }
+
+            try {
+                $this->close(); // Throwing finally blocks in the Generator may cause close() to throw.
+            } catch (Throwable $exception) {
+                $reason = $exception;
+            }
+        }
+
         parent::cancel($reason);
     }
 }

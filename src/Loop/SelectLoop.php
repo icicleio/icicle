@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,10 +9,9 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\EventFactoryInterface;
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
-use Icicle\Loop\Manager\Select\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
+use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
+use Icicle\Loop\Manager\Select\{SelectSignalManager, SelectSocketManager, SelectTimerManager};
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -24,27 +23,27 @@ class SelectLoop extends AbstractLoop
     const DEFAULT_SIGNAL_INTERVAL = 0.25;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
      */
     private $pollManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
      */
     private $awaitManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\TimerManager
+     * @var \Icicle\Loop\Manager\Select\SelectTimerManager
      */
     private $timerManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SignalManager|null
+     * @var \Icicle\Loop\Manager\Select\SelectSignalManager|null
      */
     private $signalManager;
 
     /**
-     * @var \Icicle\Loop\Events\TimerInterface|null
+     * @var \Icicle\Loop\Events\Timer|null
      */
     private $signalTimer;
 
@@ -86,33 +85,33 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createPollManager(): SocketManager
     {
-        return $this->pollManager = new SocketManager($this, $factory);
+        return $this->pollManager = new SelectSocketManager($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createAwaitManager(): SocketManager
     {
-        return $this->awaitManager = new SocketManager($this, $factory);
+        return $this->awaitManager = new SelectSocketManager($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
+    protected function createTimerManager(): TimerManager
     {
-        return $this->timerManager = new TimerManager($this, $factory);
+        return $this->timerManager = new SelectTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
+    protected function createSignalManager(): SignalManager
     {
-        $this->signalManager = new SignalManager($this, $factory);
+        $this->signalManager = new SelectSignalManager($this);
 
         $this->signalTimer = $this->timer(self::DEFAULT_SIGNAL_INTERVAL, true, [$this->signalManager, 'tick']);
         $this->signalTimer->unreference();
@@ -129,9 +128,7 @@ class SelectLoop extends AbstractLoop
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalTimer) {
-            throw new SignalHandlingDisabledError(
-                'Signal handling is not enabled.'
-            );
+            throw new SignalHandlingDisabledError();
         } // @codeCoverageIgnoreEnd
 
         $this->signalTimer->stop();

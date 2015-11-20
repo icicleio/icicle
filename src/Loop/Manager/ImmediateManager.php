@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,141 +9,63 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\{EventFactoryInterface, ImmediateInterface};
-use Icicle\Loop\LoopInterface;
-use Icicle\Loop\Structures\ObjectStorage;
+use Icicle\Loop\Events\Immediate;
 
-class ImmediateManager implements ImmediateManagerInterface
+interface ImmediateManager extends EventManager
 {
     /**
-     * @var \Icicle\Loop\LoopInterface
+     * Creates an immediate object connected to the manager.
+     *
+     * @param callable $callback
+     * @param mixed[]|null $args
+     *
+     * @return \Icicle\Loop\Events\Immediate
      */
-    private $loop;
+    public function create(callable $callback, array $args = []): Immediate;
 
     /**
-     * @var \Icicle\Loop\Events\EventFactoryInterface
+     * Puts the immediate in the loop again for execution.
+     *
+     * @param \Icicle\Loop\Events\Immediate $immediate
      */
-    private $factory;
-    
-    /**
-     * @var \SplQueue
-     */
-    private $queue;
-    
-    /**
-     * @var \Icicle\Loop\Structures\ObjectStorage
-     */
-    private $immediates;
-    
-    /**
-     * @param \Icicle\Loop\LoopInterface $loop
-     * @param \Icicle\Loop\Events\EventFactoryInterface $factory
-     */
-    public function __construct(LoopInterface $loop, EventFactoryInterface $factory)
-    {
-        $this->loop = $loop;
-        $this->factory = $factory;
-        $this->queue = new \SplQueue();
-        $this->immediates = new ObjectStorage();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function create(callable $callback, array $args = []): ImmediateInterface
-    {
-        $immediate = $this->factory->immediate($this, $callback, $args);
-        
-        $this->execute($immediate);
-        
-        return $immediate;
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function isPending(ImmediateInterface $immediate): bool
-    {
-        return $this->immediates->contains($immediate);
-    }
+    public function execute(Immediate $immediate);
 
     /**
-     * {@inheritdoc}
+     * Cancels the immeidate.
+     *
+     * @param \Icicle\Loop\Events\Immediate $immediate
      */
-    public function execute(ImmediateInterface $immediate)
-    {
-        if (!$this->immediates->contains($immediate)) {
-            $this->queue->push($immediate);
-            $this->immediates->attach($immediate);
-        }
-    }
+    public function cancel(Immediate $immediate);
 
     /**
-     * {@inheritdoc}
+     * Determines if the immediate is active in the loop.
+     *
+     * @param \Icicle\Loop\Events\Immediate $immediate
+     *
+     * @return bool
      */
-    public function cancel(ImmediateInterface $immediate)
-    {
-        if ($this->immediates->contains($immediate)) {
-            $this->immediates->detach($immediate);
-
-            foreach ($this->queue as $key => $event) {
-                if ($event === $immediate) {
-                    unset($this->queue[$key]);
-                    break;
-                }
-            }
-        }
-    }
+    public function isPending(Immediate $immediate): bool;
 
     /**
-     * {@inheritdoc}
+     * Calls the next pending immediate. Returns true if an immediate was executed, false if not.
+     *
+     * @return bool
      */
-    public function isEmpty(): bool
-    {
-        return !$this->immediates->count();
-    }
+    public function tick();
 
     /**
-     * {@inheritdoc}
+     * Unreferences the given immediate, that is, if the immediate is pending in the loop, the loop should not continue
+     * running.
+     *
+     * @param \Icicle\Loop\Events\Immediate $immediate
      */
-    public function unreference(ImmediateInterface $immediate)
-    {
-        $this->immediates->unreference($immediate);
-    }
+    public function unreference(Immediate $immediate);
 
     /**
-     * {@inheritdoc}
+     * References an immediate if it was previously unreferenced. That is, if the immediate is pending the loop will
+     * continue running.
+     *
+     * @param \Icicle\Loop\Events\Immediate $immediate
      */
-    public function reference(ImmediateInterface $immediate)
-    {
-        $this->immediates->reference($immediate);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function clear()
-    {
-        $this->queue = new \SplQueue();
-        $this->immediates = new \SplObjectStorage();
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function tick(): bool
-    {
-        if (!$this->queue->isEmpty()) {
-            $immediate = $this->queue->shift();
-
-            $this->immediates->detach($immediate);
-
-            // Execute the immediate.
-            $immediate->call();
-
-            return true;
-        }
-
-        return false;
-    }
+    public function reference(Immediate $immediate);
 }

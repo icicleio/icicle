@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -11,10 +11,9 @@ namespace Icicle\Loop;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\EventFactoryInterface;
-use Icicle\Loop\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Event\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\{SignalManagerInterface, SocketManagerInterface, TimerManagerInterface};
+use Icicle\Exception\UnsupportedError;
+use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
+use Icicle\Loop\Manager\Event\{EventSignalManager, EventSocketManager, EventTimerManager};
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.
@@ -27,25 +26,29 @@ class EventLoop extends AbstractLoop
     private $base;
 
     /**
+     * @return bool True if EventLoop can be used, false otherwise.
+     */
+    public static function enabled(): bool
+    {
+        return extension_loaded('event');
+    }
+
+    /**
      * @param bool $enableSignals True to enable signal handling, false to disable.
-     * @param \Icicle\Loop\Events\EventFactoryInterface|null $eventFactory
      * @param \EventBase|null $base Use null for an EventBase object to be automatically created.
      *
-     * @throws \Icicle\Loop\Exception\UnsupportedError If the event extension is not loaded.
+     * @throws \Icicle\Exception\UnsupportedError If the event extension is not loaded.
      */
-    public function __construct(
-        bool $enableSignals = true,
-        EventFactoryInterface $eventFactory = null,
-        EventBase $base = null
-    ) {
+    public function __construct(bool $enableSignals = true, EventBase $base = null)
+    {
         // @codeCoverageIgnoreStart
-        if (!extension_loaded('event')) {
+        if (!self::enabled()) {
             throw new UnsupportedError(__CLASS__ . ' requires the event extension.');
         } // @codeCoverageIgnoreEnd
         
         $this->base = $base ?: new EventBase();
 
-        parent::__construct($enableSignals, $eventFactory);
+        parent::__construct($enableSignals);
     }
 
     /**
@@ -84,32 +87,32 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createPollManager(): SocketManager
     {
-        return new SocketManager($this, $factory, Event::READ);
+        return new EventSocketManager($this, Event::READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(EventFactoryInterface $factory): SocketManagerInterface
+    protected function createAwaitManager(): SocketManager
     {
-        return new SocketManager($this, $factory, Event::WRITE);
+        return new EventSocketManager($this, Event::WRITE);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createTimerManager(EventFactoryInterface $factory): TimerManagerInterface
+    protected function createTimerManager(): TimerManager
     {
-        return new TimerManager($this, $factory);
+        return new EventTimerManager($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createSignalManager(EventFactoryInterface $factory): SignalManagerInterface
+    protected function createSignalManager(): SignalManager
     {
-        return new SignalManager($this, $factory);
+        return new EventSignalManager($this);
     }
 }

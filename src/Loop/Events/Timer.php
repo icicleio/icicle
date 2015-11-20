@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Icicle, a library for writing asynchronous code in PHP using promises and coroutines.
+ * This file is part of Icicle, a library for writing asynchronous code in PHP using coroutines built with awaitables.
  *
  * @copyright 2014-2015 Aaron Piotrowski. All rights reserved.
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
@@ -9,14 +9,14 @@
 
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\TimerManagerInterface;
+use Icicle\Loop\Manager\TimerManager;
 
-class Timer implements TimerInterface
+class Timer
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
     /**
-     * @var \Icicle\Loop\Manager\TimerManagerInterface
+     * @var \Icicle\Loop\Manager\TimerManager
      */
     private $manager;
     
@@ -52,22 +52,22 @@ class Timer implements TimerInterface
     private $referenced = true;
     
     /**
-     * @param \Icicle\Loop\Manager\TimerManagerInterface $manager
+     * @param \Icicle\Loop\Manager\TimerManager $manager
      * @param int|float $interval Number of seconds until the callback function is called.
      * @param bool $periodic True to repeat the timer, false to only run it once.
      * @param callable $callback Function called when the interval expires.
      * @param mixed[] $args Optional array of arguments to pass the callback function.
      */
     public function __construct(
-        TimerManagerInterface $manager,
-        $interval,
-        $periodic,
+        TimerManager $manager,
+        float $interval,
+        bool $periodic,
         callable $callback,
         array $args = []
     ) {
         $this->manager = $manager;
-        $this->interval = (float) $interval;
-        $this->periodic = (bool) $periodic;
+        $this->interval = $interval;
+        $this->periodic = $periodic;
         $this->callback = $callback;
         $this->args = $args;
 
