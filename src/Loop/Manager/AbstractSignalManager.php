@@ -9,7 +9,6 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\EventFactory;
 use Icicle\Loop\Events\Signal;
 use Icicle\Loop\Exception\InvalidSignalError;
 use Icicle\Loop\Loop;
@@ -38,10 +37,6 @@ abstract class AbstractSignalManager implements SignalManager
     {
         $this->loop = $loop;
 
-        foreach ($this->getSignalList() as $signo) {
-            $this->signals[$signo] = new \SplObjectStorage();
-        }
-
         $this->referenced = new \SplObjectStorage();
     }
 
@@ -50,11 +45,15 @@ abstract class AbstractSignalManager implements SignalManager
      */
     public function create($signo, callable $callback)
     {
-        if (!isset($this->signals[$signo])) {
+        if (!in_array($signo, $this->getSignalList(), true)) {
             throw new InvalidSignalError($signo);
         }
 
         $signal = new Signal($this, $signo, $callback);
+
+        if (!isset($this->signals[$signo])) {
+            $this->signals[$signo] = new \SplObjectStorage();
+        }
 
         $this->signals[$signo]->attach($signal);
 
@@ -140,6 +139,12 @@ abstract class AbstractSignalManager implements SignalManager
      */
     protected function getSignalList()
     {
+        static $signals;
+
+        if (null !== $signals) {
+            return $signals;
+        }
+
         $signals = [
             SIGHUP,
             SIGINT,
@@ -194,9 +199,12 @@ abstract class AbstractSignalManager implements SignalManager
     {
         return function ($signo) {
             $handled = false;
-            foreach ($this->signals[$signo] as $signal) {
-                $handled = true;
-                $signal->call();
+
+            if (isset($this->signals[$signo])) {
+                foreach ($this->signals[$signo] as $signal) {
+                    $handled = true;
+                    $signal->call();
+                }
             }
 
             switch ($signo) {
@@ -219,13 +227,5 @@ abstract class AbstractSignalManager implements SignalManager
                     break;
             }
         };
-    }
-
-    /**
-     * @return \Icicle\Loop\Loop
-     */
-    protected function getLoop()
-    {
-        return $this->loop;
     }
 }
