@@ -139,7 +139,7 @@ class EvSocketManager implements SocketManager
 
         $this->events[$id]->start();
 
-        if (0 !== $timeout) {
+        if ($timeout) {
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
