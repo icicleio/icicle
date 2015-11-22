@@ -11,13 +11,14 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Awaitable;
-use Icicle\Awaitable\Awaitable as AwaitableInterface;
-use Icicle\Awaitable\Exception\CancelledException;
-use Icicle\Awaitable\Exception\CircularResolutionError;
-use Icicle\Awaitable\Exception\InvalidResolverError;
-use Icicle\Awaitable\Exception\RejectedException;
-use Icicle\Awaitable\Exception\TimeoutException;
-use Icicle\Awaitable\Promise;
+use Icicle\Awaitable\{Awaitable as AwaitableInterface, Promise};
+use Icicle\Awaitable\Exception\{
+    CancelledException,
+    CircularResolutionError,
+    InvalidResolverError,
+    RejectedException,
+    TimeoutException
+};
 use Icicle\Exception\UnexpectedTypeError;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;

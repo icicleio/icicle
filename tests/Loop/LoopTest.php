@@ -11,10 +11,7 @@ namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
 use Icicle\Loop\Loop as LoopInterface;
-use Icicle\Loop\Events\Immediate;
-use Icicle\Loop\Events\Signal;
-use Icicle\Loop\Events\SocketEvent;
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
 use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase

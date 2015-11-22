@@ -10,8 +10,7 @@
 namespace Icicle\Coroutine;
 
 use Generator;
-use Icicle\Awaitable\Future;
-use Icicle\Awaitable\Awaitable;
+use Icicle\Awaitable\{Awaitable, Future};
 use Icicle\Loop;
 use Throwable;
 

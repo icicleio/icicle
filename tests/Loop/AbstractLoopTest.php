@@ -10,15 +10,8 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Events\Immediate;
-use Icicle\Loop\Events\Signal;
-use Icicle\Loop\Events\SocketEvent;
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
 use Icicle\Loop\Loop;
-use Icicle\Loop\Manager\ImmediateManager;
-use Icicle\Loop\Manager\SignalManager;
-use Icicle\Loop\Manager\SocketManager;
-use Icicle\Loop\Manager\TimerManager;
 use Icicle\Tests\TestCase;
 use Throwable;
 
@@ -833,6 +826,8 @@ abstract class AbstractLoopTest extends TestCase
     {
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
 
+        $this->assertInstanceOf(Timer::class, $timer);
+
         $this->assertTrue($timer->isPending());
         
         $this->assertRunTimeBetween([$this->loop, 'run'], self::TIMEOUT - self::RUNTIME, self::TIMEOUT + self::RUNTIME);
@@ -1027,10 +1022,13 @@ abstract class AbstractLoopTest extends TestCase
         $callback3 = $this->createCallback(1);
         
         $signal = $this->loop->signal(SIGUSR1, $callback1);
+        $this->assertInstanceOf(Signal::class, $signal);
         $this->assertTrue($signal->isEnabled());
         $signal = $this->loop->signal(SIGUSR2, $callback2);
+        $this->assertInstanceOf(Signal::class, $signal);
         $this->assertTrue($signal->isEnabled());
         $signal = $this->loop->signal(SIGUSR1, $callback3);
+        $this->assertInstanceOf(Signal::class, $signal);
         $this->assertTrue($signal->isEnabled());
 
         posix_kill($pid, SIGUSR1);

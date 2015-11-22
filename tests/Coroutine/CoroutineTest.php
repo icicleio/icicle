@@ -11,13 +11,9 @@ namespace Icicle\Tests\Coroutine;
 
 use Exception;
 use Icicle\Awaitable;
-use Icicle\Awaitable\Awaitable as AwaitableInterface;
-use Icicle\Awaitable\Exception\CancelledException;
-use Icicle\Awaitable\Exception\TimeoutException;
-use Icicle\Awaitable\Delayed;
-use Icicle\Awaitable\Promise;
-use Icicle\Coroutine\Coroutine;
-use Icicle\Coroutine\Exception\InvalidCallableError;
+use Icicle\Awaitable\{Awaitable as AwaitableInterface, Delayed};
+use Icicle\Awaitable\Exception\{CancelledException, TimeoutException};
+use Icicle\Coroutine\{Coroutine, Exception\InvalidCallableError};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;

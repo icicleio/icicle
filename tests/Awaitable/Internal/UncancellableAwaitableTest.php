@@ -9,9 +9,7 @@
 
 namespace Icicle\Tests\Awaitable\Internal;
 
-use Icicle\Awaitable\Awaitable;
-use Icicle\Awaitable\Delayed;
-use Icicle\Awaitable\Internal\UncancellableAwaitable;
+use Icicle\Awaitable\{Awaitable, Delayed, Internal\UncancellableAwaitable};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;

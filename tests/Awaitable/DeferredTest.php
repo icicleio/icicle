@@ -11,8 +11,7 @@ namespace Icicle\Tests\Promise;
 
 use Exception;
 use Icicle\Awaitable;
-use Icicle\Awaitable\Deferred;
-use Icicle\Awaitable\Exception\RejectedException;
+use Icicle\Awaitable\{Deferred, Exception\RejectedException};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;

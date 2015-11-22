@@ -10,8 +10,7 @@
 namespace Icicle\Tests\Promise;
 
 use Icicle\Awaitable;
-use Icicle\Awaitable\Exception\RejectedException;
-use Icicle\Awaitable\Awaitable as AwaitableInterface;
+use Icicle\Awaitable\{Awaitable as AwaitableInterface, Exception\RejectedException};
 use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;

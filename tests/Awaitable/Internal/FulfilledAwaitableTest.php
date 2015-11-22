@@ -9,8 +9,7 @@
 
 namespace Icicle\Tests\Awaitable\Internal;
 
-use Icicle\Awaitable\Promise;
-use Icicle\Awaitable\Internal\FulfilledAwaitable;
+use Icicle\Awaitable\{Internal\FulfilledAwaitable, Promise};
 use Icicle\Tests\TestCase;
 
 /**

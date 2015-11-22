@@ -9,8 +9,7 @@
 
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Signal;
-use Icicle\Loop\Manager\SignalManager;
+use Icicle\Loop\{Events\Signal, Manager\SignalManager};
 use Icicle\Tests\TestCase;
 
 class SignalTest extends TestCase

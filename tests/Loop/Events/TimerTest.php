@@ -9,8 +9,7 @@
 
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\Timer;
-use Icicle\Loop\Manager\TimerManager;
+use Icicle\Loop\{Events\Timer, Manager\TimerManager};
 use Icicle\Tests\TestCase;
 
 class TimerTest extends TestCase

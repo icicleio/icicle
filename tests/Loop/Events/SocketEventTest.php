@@ -9,8 +9,7 @@
 
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\Events\SocketEvent;
-use Icicle\Loop\Manager\SocketManager;
+use Icicle\Loop\{Events\SocketEvent, Manager\SocketManager};
 use Icicle\Tests\TestCase;
 
 class SocketEventTest extends TestCase
