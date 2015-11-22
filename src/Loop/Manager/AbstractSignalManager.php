@@ -14,6 +14,11 @@ use Icicle\Loop\{Events\Signal, Exception\InvalidSignalError, Loop};
 abstract class AbstractSignalManager implements SignalManager
 {
     /**
+     * @var int[]|null
+     */
+    private static $list;
+
+    /**
      * @var \Icicle\Loop\Loop
      */
     private $loop;
@@ -35,10 +40,6 @@ abstract class AbstractSignalManager implements SignalManager
     {
         $this->loop = $loop;
 
-        foreach ($this->getSignalList() as $signo) {
-            $this->signals[$signo] = new \SplObjectStorage();
-        }
-
         $this->referenced = new \SplObjectStorage();
     }
 
@@ -47,11 +48,15 @@ abstract class AbstractSignalManager implements SignalManager
      */
     public function create(int $signo, callable $callback): Signal
     {
-        if (!isset($this->signals[$signo])) {
+        if (!in_array($signo, $this->getSignalList(), true)) {
             throw new InvalidSignalError($signo);
         }
 
         $signal = new Signal($this, $signo, $callback);
+
+        if (!isset($this->signals[$signo])) {
+            $this->signals[$signo] = new \SplObjectStorage();
+        }
 
         $this->signals[$signo]->attach($signal);
 
@@ -137,6 +142,10 @@ abstract class AbstractSignalManager implements SignalManager
      */
     protected function getSignalList(): array
     {
+        if (null !== self::$list) {
+            return self::$list;
+        }
+
         $signals = [
             SIGHUP,
             SIGINT,
@@ -179,7 +188,7 @@ abstract class AbstractSignalManager implements SignalManager
             $signals[] = SIGCHLD;
         }
 
-        return $signals;
+        return self::$list = $signals;
     }
 
     /**
@@ -191,9 +200,12 @@ abstract class AbstractSignalManager implements SignalManager
     {
         return function ($signo) {
             $handled = false;
-            foreach ($this->signals[$signo] as $signal) {
-                $handled = true;
-                $signal->call();
+
+            if (isset($this->signals[$signo])) {
+                foreach ($this->signals[$signo] as $signal) {
+                    $handled = true;
+                    $signal->call();
+                }
             }
 
             switch ($signo) {
@@ -216,13 +228,5 @@ abstract class AbstractSignalManager implements SignalManager
                     break;
             }
         };
-    }
-
-    /**
-     * @return \Icicle\Loop\Loop
-     */
-    protected function getLoop(): Loop
-    {
-        return $this->loop;
     }
 }
