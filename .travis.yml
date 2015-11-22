@@ -24,7 +24,7 @@ install:
   - curl -LS https://pecl.php.net/get/ev | tar -xz;
     pushd ev-*;
     phpize;
-    ./configure
+    ./configure;
     make;
     make install;
     popd;
