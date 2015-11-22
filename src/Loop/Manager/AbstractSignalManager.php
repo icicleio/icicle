@@ -16,6 +16,11 @@ use Icicle\Loop\Loop;
 abstract class AbstractSignalManager implements SignalManager
 {
     /**
+     * @var int[]|null
+     */
+    private static $list;
+
+    /**
      * @var \Icicle\Loop\Loop
      */
     private $loop;
@@ -139,10 +144,8 @@ abstract class AbstractSignalManager implements SignalManager
      */
     protected function getSignalList()
     {
-        static $signals;
-
-        if (null !== $signals) {
-            return $signals;
+        if (null !== self::$list) {
+            return self::$list;
         }
 
         $signals = [
@@ -187,7 +190,7 @@ abstract class AbstractSignalManager implements SignalManager
             $signals[] = SIGCHLD;
         }
 
-        return $signals;
+        return self::$list = $signals;
     }
 
     /**
