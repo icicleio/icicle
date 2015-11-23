@@ -9,4 +9,4 @@
 
 namespace Icicle\Exception;
 
-interface Throwable {}
+interface Throwable extends \Throwable {}
