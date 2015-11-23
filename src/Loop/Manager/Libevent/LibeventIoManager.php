@@ -124,15 +124,15 @@ class LibeventIoManager implements IoManager
      */
     public function listen(Io $io, $timeout = 0)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
+        if (!isset($this->sockets[$id]) || $io !== $this->sockets[$id]) {
             throw new FreedError();
         }
         
         if (!isset($this->events[$id])) {
             $event = event_new();
-            event_set($event, $socket->getResource(), $this->type, $this->callback, $socket);
+            event_set($event, $io->getResource(), $this->type, $this->callback, $io);
             event_base_set($event, $this->base);
 
             $this->events[$id] = $event;
@@ -158,9 +158,9 @@ class LibeventIoManager implements IoManager
      */
     public function cancel(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id], $this->events[$id]) && $io === $this->sockets[$id]) {
             event_del($this->events[$id]);
             $this->pending[$id] = false;
         }
@@ -171,10 +171,10 @@ class LibeventIoManager implements IoManager
      */
     public function isPending(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
         return isset($this->sockets[$id], $this->pending[$id])
-            && $socket === $this->sockets[$id]
+            && $io === $this->sockets[$id]
             && $this->pending[$id];
     }
     
@@ -183,9 +183,9 @@ class LibeventIoManager implements IoManager
      */
     public function free(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id]) && $io === $this->sockets[$id]) {
             unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
@@ -200,9 +200,9 @@ class LibeventIoManager implements IoManager
      */
     public function isFreed(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+        return !isset($this->sockets[$id]) || $io !== $this->sockets[$id];
     }
 
     /**
@@ -210,7 +210,7 @@ class LibeventIoManager implements IoManager
      */
     public function reference(Io $io)
     {
-        unset($this->unreferenced[(int) $socket->getResource()]);
+        unset($this->unreferenced[(int) $io->getResource()]);
     }
 
     /**
@@ -218,10 +218,10 @@ class LibeventIoManager implements IoManager
      */
     public function unreference(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
-            $this->unreferenced[$id] = $socket;
+        if (isset($this->events[$id]) && $io === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $io;
         }
     }
     
