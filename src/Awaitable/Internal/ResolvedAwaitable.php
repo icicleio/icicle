@@ -18,7 +18,7 @@ abstract class ResolvedAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null) {}
+    public function cancel(\Exception $reason = null) {}
     
     /**
      * {@inheritdoc}
@@ -39,7 +39,7 @@ abstract class ResolvedAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout($timeout, \Exception $reason = null)
     {
         return $this;
     }

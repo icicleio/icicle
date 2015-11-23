@@ -21,7 +21,7 @@ class MultiReasonException extends \Exception implements Exception
      */
     public function __construct(array $reasons)
     {
-        parent::__construct('Too many promises were rejected.');
+        parent::__construct('Too many awaitables were rejected.');
         
         $this->reasons = $reasons;
     }

@@ -94,9 +94,9 @@ class Future implements Awaitable
     /**
      * Rejects the awaitable with the given exception.
      *
-     * @param mixed $reason
+     * @param \Exception $reason
      */
-    protected function reject($reason = null)
+    protected function reject(Exception $reason)
     {
         $this->resolve(new Internal\RejectedAwaitable($reason));
     }
@@ -195,7 +195,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null)
+    public function cancel(Exception $reason = null)
     {
         if (null !== $this->result) {
             $this->unwrap()->cancel($reason);
@@ -204,11 +204,11 @@ class Future implements Awaitable
 
         $this->resolve(new Internal\CancelledAwaitable($reason, $this->onCancelled));
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, $reason = null)
+    public function timeout($timeout, Exception $reason = null)
     {
         if (null !== $this->result) {
             return $this->unwrap()->timeout($timeout, $reason);
@@ -217,8 +217,8 @@ class Future implements Awaitable
         ++$this->children;
 
         $timer = Loop\timer($timeout, function () use ($reason) {
-            if (!$reason instanceof Exception) {
-                $reason = new TimeoutException($reason);
+            if (null === $reason) {
+                $reason = new TimeoutException();
             }
             $this->cancel($reason);
         });

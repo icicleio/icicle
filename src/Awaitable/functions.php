@@ -34,13 +34,13 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
     }
     
     /**
-     * Create a new rejected awaitable using the given reason.
+     * Create a new rejected awaitable using the given exception.
      *
-     * @param mixed $reason
+     * @param \Exception $reason
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    function reject($reason = null)
+    function reject(\Exception $reason)
     {
         return new Internal\RejectedAwaitable($reason);
     }

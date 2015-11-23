@@ -35,20 +35,20 @@ interface Awaitable
      * cancellation handler, then reject the awaitable with the given exception or a CancelledException if none is
      * given.
      *
-     * @param mixed $reason
+     * @param \Exception|null $reason If null, an instance of \Icicle\Awaitable\Exception\CancelledException is used.
      */
-    public function cancel($reason = null);
+    public function cancel(\Exception $reason = null);
     
     /**
      * Cancels the awaitable with $reason if it is not resolved within $timeout seconds. When the awaitable resolves,
      * the returned awaitable is fulfilled or rejected with the same value.
      *
      * @param float $timeout
-     * @param mixed $reason
+     * @param \Exception|null $reason If null, an instance of \Icicle\Awaitable\Exception\TimeoutException is used.
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function timeout($timeout, $reason = null);
+    public function timeout($timeout, \Exception $reason = null);
     
     /**
      * Returns an awaitable that is fulfilled $time seconds after this awaitable is fulfilled. If the promise is

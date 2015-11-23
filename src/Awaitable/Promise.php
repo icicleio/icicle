@@ -37,9 +37,9 @@ final class Promise extends Future
         /**
          * Rejects the promise with the given exception.
          *
-         * @param mixed $reason
+         * @param \Exception $reason
          */
-        $reject = function ($reason = null) {
+        $reject = function (\Exception $reason) {
             $this->reject($reason);
         };
 

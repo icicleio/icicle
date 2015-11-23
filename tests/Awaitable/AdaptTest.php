@@ -79,7 +79,7 @@ class AdaptTest extends TestCase
      */
     public function testAwaitableRejected()
     {
-        $reason = 'Rejected';
+        $reason = new \Exception();
 
         $mock = $this->getMock(AwaitableInterface::class);
 
@@ -93,7 +93,7 @@ class AdaptTest extends TestCase
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->isInstanceOf(RejectedException::class));
+            ->with($this->identicalTo($reason));
 
         $promise->done($this->createCallback(0), $callback);
 

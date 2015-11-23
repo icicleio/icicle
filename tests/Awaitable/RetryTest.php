@@ -154,7 +154,7 @@ class RetryTest extends TestCase
         $exception = new Exception();
         
         $promisor = function () {
-            return Awaitable\reject();
+            return Awaitable\reject(new Exception());
         };
         
         $onRejected = function () use ($exception) {
