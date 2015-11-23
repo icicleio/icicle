@@ -128,7 +128,9 @@ class RetryTest extends TestCase
         
         $promisor = function () use ($exception) {
             $promise = new Awaitable\Promise(function () {});
-            return $promise->timeout(self::TIMEOUT, $exception);
+            return $promise->timeout(self::TIMEOUT, function () use ($exception) {
+                throw $exception;
+            });
         };
         
         $onRejected = function ($value) use ($exception) {
