@@ -10,8 +10,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\Uv\{UvSignalManager, UvSocketManager, UvTimerManager};
+use Icicle\Loop\Manager\{IoManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Uv\{UvIoManager, UvSignalManager, UvTimerManager};
 
 /**
  * Uses the UV extension to poll sockets for I/O and create timers.
@@ -97,17 +97,17 @@ class UvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(): SocketManager
+    protected function createPollManager(): IoManager
     {
-        return new UvSocketManager($this, \UV::READABLE);
+        return new UvIoManager($this, \UV::READABLE);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(): SocketManager
+    protected function createAwaitManager(): IoManager
     {
-        return new UvSocketManager($this, \UV::WRITABLE);
+        return new UvIoManager($this, \UV::WRITABLE);
     }
 
     /**

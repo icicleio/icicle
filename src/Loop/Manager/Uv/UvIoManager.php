@@ -9,10 +9,10 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\{Events\SocketEvent, Manager\SocketManager, UvLoop};
+use Icicle\Loop\{Events\Io, Manager\IoManager, UvLoop};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
 
-class UvSocketManager implements SocketManager
+class UvIoManager implements IoManager
 {
     const MIN_TIMEOUT = 0.001;
     const MILLISEC_PER_SEC = 1e3;
@@ -38,12 +38,12 @@ class UvSocketManager implements SocketManager
     private $handles = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $sockets = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $unreferenced = [];
 
@@ -141,7 +141,7 @@ class UvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback): SocketEvent
+    public function create($resource, callable $callback): Io
     {
         $id = (int) $resource;
 
@@ -149,18 +149,18 @@ class UvSocketManager implements SocketManager
             throw new ResourceBusyError();
         }
 
-        return $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
+        return $this->sockets[$id] = new Io($this, $resource, $callback);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEvent $socket, float $timeout = 0)
+    public function listen(Io $io, float $timeout = 0)
     {
-        $resource = $socket->getResource();
+        $resource = $io->getResource();
         $id = (int) $resource;
 
-        if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
+        if (!isset($this->sockets[$id]) || $io !== $this->sockets[$id]) {
             throw new FreedError();
         }
 
@@ -191,12 +191,12 @@ class UvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEvent $socket)
+    public function cancel(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
         if (isset($this->sockets[$id], $this->polls[$id])
-            && $socket === $this->sockets[$id]
+            && $io === $this->sockets[$id]
             && \uv_is_active($this->polls[$id])
         ) {
             \uv_poll_stop($this->polls[$id]);
@@ -210,23 +210,23 @@ class UvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEvent $socket): bool
+    public function isPending(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
         return isset($this->sockets[$id], $this->polls[$id])
-            && $socket === $this->sockets[$id]
+            && $io === $this->sockets[$id]
             && \uv_is_active($this->polls[$id]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function free(SocketEvent $socket)
+    public function free(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id]) && $io === $this->sockets[$id]) {
             unset($this->sockets[$id], $this->unreferenced[$id]);
 
             if (isset($this->polls[$id])) {
@@ -247,30 +247,30 @@ class UvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEvent $socket): bool
+    public function isFreed(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+        return !isset($this->sockets[$id]) || $io !== $this->sockets[$id];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEvent $socket)
+    public function reference(Io $io)
     {
-        unset($this->unreferenced[(int) $socket->getResource()]);
+        unset($this->unreferenced[(int) $io->getResource()]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEvent $socket)
+    public function unreference(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
-            $this->unreferenced[$id] = $socket;
+        if (isset($this->sockets[$id]) && $io === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $io;
         }
     }
 
