@@ -28,12 +28,12 @@ abstract class AbstractLoop implements Loop
     private $callableQueue;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManager
+     * @var \Icicle\Loop\Manager\IoManager
      */
     private $pollManager;
     
     /**
-     * @var \Icicle\Loop\Manager\SocketManager
+     * @var \Icicle\Loop\Manager\IoManager
      */
     private $awaitManager;
     
@@ -65,12 +65,12 @@ abstract class AbstractLoop implements Loop
     abstract protected function dispatch($blocking);
     
     /**
-     * @return \Icicle\Loop\Manager\SocketManager
+     * @return \Icicle\Loop\Manager\IoManager
      */
     abstract protected function createPollManager();
     
     /**
-     * @return \Icicle\Loop\Manager\SocketManager
+     * @return \Icicle\Loop\Manager\IoManager
      */
     abstract protected function createAwaitManager();
     
@@ -103,7 +103,7 @@ abstract class AbstractLoop implements Loop
     }
 
     /**
-     * @return \Icicle\Loop\Manager\SocketManager
+     * @return \Icicle\Loop\Manager\IoManager
      *
      * @codeCoverageIgnore
      */
@@ -113,7 +113,7 @@ abstract class AbstractLoop implements Loop
     }
     
     /**
-     * @return \Icicle\Loop\Manager\SocketManager
+     * @return \Icicle\Loop\Manager\IoManager
      *
      * @codeCoverageIgnore
      */

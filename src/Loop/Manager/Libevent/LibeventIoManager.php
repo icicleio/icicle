@@ -11,13 +11,13 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\SocketEvent;
+use Icicle\Loop\Events\Io;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\LibeventLoop;
-use Icicle\Loop\Manager\SocketManager;
+use Icicle\Loop\Manager\IoManager;
 
-class LibeventSocketManager implements SocketManager
+class LibeventIoManager implements IoManager
 {
     const MIN_TIMEOUT = 0.001;
     const MICROSEC_PER_SEC = 1e6;
@@ -38,7 +38,7 @@ class LibeventSocketManager implements SocketManager
     private $events = [];
     
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $sockets = [];
     
@@ -48,7 +48,7 @@ class LibeventSocketManager implements SocketManager
     private $pending = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $unreferenced = [];
     
@@ -72,9 +72,9 @@ class LibeventSocketManager implements SocketManager
         $this->base = $this->loop->getEventBase();
         $this->type = $eventType;
         
-        $this->callback = function ($resource, $what, SocketEvent $socket) {
+        $this->callback = function ($resource, $what, Io $io) {
             $this->pending[(int) $resource] = false;
-            $socket->call(0 !== (EV_TIMEOUT & $what));
+            $io->call(0 !== (EV_TIMEOUT & $what));
         };
     }
     
@@ -113,7 +113,7 @@ class LibeventSocketManager implements SocketManager
             throw new ResourceBusyError();
         }
         
-        $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
+        $this->sockets[$id] = new Io($this, $resource, $callback);
         $this->pending[$id] = false;
         
         return $this->sockets[$id];
@@ -122,7 +122,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEvent $socket, $timeout = 0)
+    public function listen(Io $io, $timeout = 0)
     {
         $id = (int) $socket->getResource();
         
@@ -156,7 +156,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEvent $socket)
+    public function cancel(Io $io)
     {
         $id = (int) $socket->getResource();
         
@@ -169,7 +169,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEvent $socket)
+    public function isPending(Io $io)
     {
         $id = (int) $socket->getResource();
         
@@ -181,7 +181,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function free(SocketEvent $socket)
+    public function free(Io $io)
     {
         $id = (int) $socket->getResource();
         
@@ -198,7 +198,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEvent $socket)
+    public function isFreed(Io $io)
     {
         $id = (int) $socket->getResource();
         
@@ -208,7 +208,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEvent $socket)
+    public function reference(Io $io)
     {
         unset($this->unreferenced[(int) $socket->getResource()]);
     }
@@ -216,7 +216,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEvent $socket)
+    public function unreference(Io $io)
     {
         $id = (int) $socket->getResource();
 

@@ -2,8 +2,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Exception\UnsupportedError;
+use Icicle\Loop\Manager\Ev\EvIoManager;
 use Icicle\Loop\Manager\Ev\EvSignalManager;
-use Icicle\Loop\Manager\Ev\EvSocketManager;
 use Icicle\Loop\Manager\Ev\EvTimerManager;
 
 /**
@@ -79,7 +79,7 @@ class EvLoop extends AbstractLoop
      */
     protected function createPollManager()
     {
-        return new EvSocketManager($this, \Ev::READ);
+        return new EvIoManager($this, \Ev::READ);
     }
     
     /**
@@ -87,7 +87,7 @@ class EvLoop extends AbstractLoop
      */
     protected function createAwaitManager()
     {
-        return new EvSocketManager($this, \Ev::WRITE);
+        return new EvIoManager($this, \Ev::WRITE);
     }
     
     /**

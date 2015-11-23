@@ -9,15 +9,15 @@
 
 namespace Icicle\Loop\Events;
 
-use Icicle\Loop\Manager\SocketManager;
+use Icicle\Loop\Manager\IoManager;
 
 /**
- * Represents read and write (poll and await) socket events.
+ * Represents read and write (poll and await) io events.
  */
-class SocketEvent
+class Io
 {
     /**
-     * @var \Icicle\Loop\Manager\SocketManager
+     * @var \Icicle\Loop\Manager\IoManager
      */
     private $manager;
     
@@ -32,11 +32,11 @@ class SocketEvent
     private $callback;
     
     /**
-     * @param \Icicle\Loop\Manager\SocketManager $manager
+     * @param \Icicle\Loop\Manager\IoManager $manager
      * @param resource $resource
      * @param callable $callback
      */
-    public function __construct(SocketManager $manager, $resource, callable $callback)
+    public function __construct(IoManager $manager, $resource, callable $callback)
     {
         $this->manager = $manager;
         $this->resource = $resource;

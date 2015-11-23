@@ -157,7 +157,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when data is available on the socket.
      *
-     * @return \Icicle\Loop\Events\SocketEvent
+     * @return \Icicle\Loop\Events\Io
      */
     function poll($socket, callable $callback)
     {
@@ -168,7 +168,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when the socket is available to write.
      *
-     * @return \Icicle\Loop\Events\SocketEvent
+     * @return \Icicle\Loop\Events\Io
      */
     function await($socket, callable $callback)
     {

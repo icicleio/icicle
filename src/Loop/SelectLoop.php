@@ -10,8 +10,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
+use Icicle\Loop\Manager\Select\SelectIoManager;
 use Icicle\Loop\Manager\Select\SelectSignalManager;
-use Icicle\Loop\Manager\Select\SelectSocketManager;
 use Icicle\Loop\Manager\Select\SelectTimerManager;
 
 /**
@@ -24,12 +24,12 @@ class SelectLoop extends AbstractLoop
     const DEFAULT_SIGNAL_INTERVAL = 0.25;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectIoManager
      */
     private $pollManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectIoManager
      */
     private $awaitManager;
 
@@ -88,7 +88,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createPollManager()
     {
-        return $this->pollManager = new SelectSocketManager($this);
+        return $this->pollManager = new SelectIoManager($this);
     }
     
     /**
@@ -96,7 +96,7 @@ class SelectLoop extends AbstractLoop
      */
     protected function createAwaitManager()
     {
-        return $this->awaitManager = new SelectSocketManager($this);
+        return $this->awaitManager = new SelectIoManager($this);
     }
     
     /**

@@ -12,8 +12,8 @@ namespace Icicle\Loop;
 use Event;
 use EventBase;
 use Icicle\Exception\UnsupportedError;
+use Icicle\Loop\Manager\Event\EventIoManager;
 use Icicle\Loop\Manager\Event\EventSignalManager;
-use Icicle\Loop\Manager\Event\EventSocketManager;
 use Icicle\Loop\Manager\Event\EventTimerManager;
 
 /**
@@ -92,7 +92,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createPollManager()
     {
-        return new EventSocketManager($this, Event::READ);
+        return new EventIoManager($this, Event::READ);
     }
     
     /**
@@ -100,7 +100,7 @@ class EventLoop extends AbstractLoop
      */
     protected function createAwaitManager()
     {
-        return new EventSocketManager($this, Event::WRITE);
+        return new EventIoManager($this, Event::WRITE);
     }
     
     /**
