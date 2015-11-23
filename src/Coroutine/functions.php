@@ -11,6 +11,7 @@ namespace Icicle\Coroutine;
 
 use Icicle\Awaitable;
 use Icicle\Coroutine\Exception\InvalidCallableError;
+use Icicle\Exception\UnexpectedTypeError;
 
 if (!function_exists(__NAMESPACE__ . '\wrap')) {
     /**
@@ -63,7 +64,13 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
     function create(callable $worker, ...$args): Coroutine
     {
         try {
-            return new Coroutine($worker(...$args));
+            $generator = $worker(...$args);
+
+            if (!$generator instanceof \Generator) {
+                throw new UnexpectedTypeError('Generator', $generator);
+            }
+
+            return new Coroutine($generator);
         } catch (\Throwable $exception) {
             return create(function () use ($exception, $worker) {
                 throw new InvalidCallableError($worker, $exception);
