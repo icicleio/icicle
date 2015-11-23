@@ -11,7 +11,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\ImmediateManager;
 
-class Immediate
+class Immediate implements Event
 {
     /**
      * @var \Icicle\Loop\Manager\ImmediateManager
@@ -44,9 +44,23 @@ class Immediate
         $this->callback = $callback;
         $this->args = $args;
     }
+
+    /**
+     * @param callable $callback
+     * @param mixed ...$args
+     */
+    public function setCallback(callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 1);
+
+        $this->callback = $callback;
+        $this->args = $args;
+    }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function call()
     {
@@ -58,7 +72,9 @@ class Immediate
     }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function __invoke()
     {
@@ -74,7 +90,7 @@ class Immediate
     }
 
     /**
-     * {@inheritdoc}
+     * Execute the immediate if not pending.
      */
     public function execute()
     {
@@ -86,7 +102,7 @@ class Immediate
     }
 
     /**
-     * {@inheritdoc}
+     * Cancels the immediate if pending.
      */
     public function cancel()
     {

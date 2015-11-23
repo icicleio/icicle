@@ -94,9 +94,9 @@ class Future implements Awaitable
     /**
      * Rejects the awaitable with the given exception.
      *
-     * @param mixed $reason
+     * @param \Throwable $reason
      */
-    protected function reject($reason = null)
+    protected function reject(Throwable $reason)
     {
         $this->resolve(new Internal\RejectedAwaitable($reason));
     }
@@ -195,7 +195,7 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null)
+    public function cancel(Throwable $reason = null)
     {
         if (null !== $this->result) {
             $this->unwrap()->cancel($reason);
@@ -204,30 +204,34 @@ class Future implements Awaitable
 
         $this->resolve(new Internal\CancelledAwaitable($reason, $this->onCancelled));
     }
-    
+
     /**
      * {@inheritdoc}
      */
-    public function timeout(float $timeout, $reason = null): Awaitable
+    public function timeout(float $timeout, callable $onTimeout = null): Awaitable
     {
         if (null !== $this->result) {
-            return $this->unwrap()->timeout($timeout, $reason);
+            return $this->unwrap()->timeout($timeout, $onTimeout);
         }
         
         ++$this->children;
 
-        $timer = Loop\timer($timeout, function () use ($reason) {
-            if (!$reason instanceof Throwable) {
-                $reason = new TimeoutException($reason);
-            }
-            $this->cancel($reason);
-        });
-
-        $future = new self(function (Throwable $exception) use ($timer) {
-            $timer->stop();
-
+        $future = new self(function (Throwable $exception) {
             if (0 === --$this->children) {
                 $this->cancel($exception);
+            }
+        });
+
+        $timer = Loop\timer($timeout, function () use ($future, $onTimeout) {
+            if (null === $onTimeout) {
+                $future->reject(new TimeoutException());
+                return;
+            }
+
+            try {
+                $future->resolve($onTimeout());
+            } catch (Throwable $exception) {
+                $future->reject($exception);
             }
         });
 

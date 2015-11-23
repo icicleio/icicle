@@ -59,9 +59,9 @@ final class Deferred
     /**
      * Reject the promise the the given reason.
      *
-     * @param mixed $reason
+     * @param \Exception $reason
      */
-    public function reject($reason = null)
+    public function reject(\Exception $reason = null)
     {
         ($this->reject)($reason);
     }

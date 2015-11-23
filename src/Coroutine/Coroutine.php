@@ -172,7 +172,7 @@ final class Coroutine extends Future
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null)
+    public function cancel(Throwable $reason = null)
     {
         if (null !== $this->generator) {
             $current = $this->generator->current(); // Get last yielded value.

@@ -31,14 +31,14 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null) {}
+    public function cancel(\Throwable $reason = null) {}
 
     /**
      * {@inheritdoc}
      */
-    public function timeout(float $timeout, $reason = null): Awaitable
+    public function timeout(float $timeout, callable $onTimeout = null): Awaitable
     {
-        return $this;
+        return $this->awaitable->timeout($timeout, $onTimeout);
     }
 
     /**

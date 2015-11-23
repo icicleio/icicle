@@ -21,14 +21,10 @@ class RejectedAwaitable extends ResolvedAwaitable
     private $exception;
     
     /**
-     * @param mixed $reason
+     * @param \Throwable $reason
      */
-    public function __construct($reason)
+    public function __construct(\Throwable $reason)
     {
-        if (!$reason instanceof Throwable) {
-            $reason = new RejectedException($reason);
-        }
-        
         $this->exception = $reason;
     }
     

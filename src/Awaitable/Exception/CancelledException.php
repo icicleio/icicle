@@ -9,10 +9,10 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class CancelledException extends ReasonException
+class CancelledException extends \Exception implements Exception
 {
-    public function __construct($reason)
+    public function __construct()
     {
-        parent::__construct($reason, 'Awaitable was cancelled.');
+        parent::__construct('Awaitable was cancelled.');
     }
 }

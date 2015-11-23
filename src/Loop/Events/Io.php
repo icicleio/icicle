@@ -14,7 +14,7 @@ use Icicle\Loop\Manager\IoManager;
 /**
  * Represents read and write (poll and await) io events.
  */
-class Io
+class Io implements Event
 {
     /**
      * @var \Icicle\Loop\Manager\IoManager
@@ -44,7 +44,9 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function call(bool $expired)
     {
@@ -52,7 +54,9 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function __invoke(bool $expired)
     {
@@ -60,7 +64,9 @@ class Io
     }
 
     /**
-     * {@inheritdoc}
+     * Sets the callback invoked when events occur.
+     *
+     * @param callable $callback
      */
     public function setCallback(callable $callback)
     {
@@ -68,7 +74,7 @@ class Io
     }
 
     /**
-     * {@inheritdoc}
+     * Listens for available data to read or space to write, invoking the callback when an event occurs.
      */
     public function listen(float $timeout = 0)
     {
@@ -76,7 +82,7 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function isPending(): bool
     {
@@ -84,7 +90,9 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * Determines if the event has been freed from the loop.
+     *
+     * @return bool
      */
     public function isFreed(): bool
     {
@@ -92,7 +100,7 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * Cancels listening for events.
      */
     public function cancel()
     {
@@ -100,7 +108,7 @@ class Io
     }
     
     /**
-     * {@inheritdoc}
+     * Frees the event from the loop.
      */
     public function free()
     {

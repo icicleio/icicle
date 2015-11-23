@@ -25,7 +25,7 @@ final class Delayed extends Future
     /**
      * {@inheritdoc}
      */
-    public function reject($reason = null)
+    public function reject(\Throwable $reason)
     {
         parent::reject($reason);
     }

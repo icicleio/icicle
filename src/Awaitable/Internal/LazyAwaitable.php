@@ -71,7 +71,7 @@ class LazyAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function cancel($reason = null)
+    public function cancel(\Throwable $reason = null)
     {
         $this->getAwaitable()->cancel($reason);
     }
@@ -79,9 +79,9 @@ class LazyAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout(float $timeout, $reason = null): Awaitable
+    public function timeout(float $timeout, callable $onTimeout = null): Awaitable
     {
-        return $this->getAwaitable()->timeout($timeout, $reason);
+        return $this->getAwaitable()->timeout($timeout, $onTimeout);
     }
     
     /**

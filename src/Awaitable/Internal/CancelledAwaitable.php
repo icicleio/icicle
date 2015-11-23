@@ -20,13 +20,13 @@ class CancelledAwaitable extends ResolvedAwaitable
     private $result;
 
     /**
-     * @param mixed $reason
+     * @param \Throwable|null $reason
      * @param callable|null $onCancelled
      */
-    public function __construct($reason, callable $onCancelled = null)
+    public function __construct(\Throwable $reason = null, callable $onCancelled = null)
     {
-        if (!$reason instanceof Throwable) {
-            $reason = new CancelledException($reason);
+        if (null === $reason) {
+            $reason = new CancelledException();
         }
 
         $this->result = new RejectedAwaitable($reason);

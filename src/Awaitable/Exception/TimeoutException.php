@@ -9,10 +9,10 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class TimeoutException extends ReasonException
+class TimeoutException extends \Exception implements Exception
 {
-    public function __construct($reason)
+    public function __construct()
     {
-        parent::__construct($reason, 'Awaitable timed out.');
+        parent::__construct('Awaitable timed out.');
     }
 }

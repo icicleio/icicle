@@ -11,7 +11,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\SignalManager;
 
-class Signal
+class Signal implements Event
 {
     /**
      * @var \Icicle\Loop\Manager\SignalManager
@@ -46,7 +46,9 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function call()
     {
@@ -54,7 +56,9 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function __invoke()
     {
@@ -62,7 +66,9 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * Sets the callback invoked when a signal is received.
+     *
+     * @param callable $callback
      */
     public function setCallback(callable $callback)
     {
@@ -70,7 +76,7 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * Enables listening for signals to arrive.
      */
     public function enable()
     {
@@ -82,7 +88,7 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * Disables listening for signals to arrive.
      */
     public function disable()
     {
@@ -90,7 +96,7 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function isEnabled(): bool
     {
@@ -98,7 +104,7 @@ class Signal
     }
 
     /**
-     * {@inheritdoc}
+     * @return int
      */
     public function getSignal(): int
     {
