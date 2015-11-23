@@ -109,7 +109,25 @@ class TimerTest extends TestCase
         
         $timer->stop();
     }
-    
+
+    /**
+     * @depends testCall
+     */
+    public function testSetCallback()
+    {
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $value = 1;
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $timer->setCallback($callback, $value);
+
+        $timer->call();
+    }
+
     public function testUnreference()
     {
         $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));

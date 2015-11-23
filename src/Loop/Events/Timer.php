@@ -11,7 +11,7 @@ namespace Icicle\Loop\Events;
 
 use Icicle\Loop\Manager\TimerManager;
 
-class Timer
+class Timer implements Event
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
@@ -75,9 +75,23 @@ class Timer
             $this->interval = self::MIN_INTERVAL;
         }
     }
+
+    /**
+     * @param callable $callback
+     * @param mixed ...$args
+     */
+    public function setCallback(callable $callback /* , ...$args */)
+    {
+        $args = array_slice(func_get_args(), 1);
+
+        $this->callback = $callback;
+        $this->args = $args;
+    }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function call()
     {
@@ -90,7 +104,9 @@ class Timer
     }
     
     /**
-     * {@inheritdoc}
+     * @internal
+     *
+     * Invokes the callback.
      */
     public function __invoke()
     {
@@ -98,7 +114,7 @@ class Timer
     }
     
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function isPending()
     {
@@ -106,7 +122,7 @@ class Timer
     }
 
     /**
-     * {@inheritdoc}
+     * Starts the timer if it not pending.
      */
     public function start()
     {
@@ -118,7 +134,7 @@ class Timer
     }
 
     /**
-     * {@inheritdoc}
+     * Stops the timer if it is pending.
      */
     public function stop()
     {
@@ -144,7 +160,7 @@ class Timer
     }
     
     /**
-     * {@inheritdoc}
+     * @return float
      */
     public function getInterval()
     {
@@ -152,7 +168,7 @@ class Timer
     }
 
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function isPeriodic()
     {
