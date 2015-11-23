@@ -1619,24 +1619,47 @@ class PromiseTest extends TestCase
         
         $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
         
-        $this->assertTrue($this->promise->isRejected());
+        $this->assertTrue($timeout->isRejected());
 
         try {
-            $this->promise->wait();
+            $timeout->wait();
         } catch (Exception $reason) {
             $this->assertInstanceOf(TimeoutException::class, $reason);
         }
+    }
+
+    /**
+     * @depends testTimeout
+     */
+    public function testTimeoutWithReturningCallback()
+    {
+        $time = 0.1;
+        $value = 1;
+
+        $timeout = $this->promise->timeout($time, function () use ($value) {
+            return 1;
+        });
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $timeout->done($callback);
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', $time);
     }
     
     /**
      * @depends testTimeout
      */
-    public function testTimeoutWithSpecificException()
+    public function testTimeoutWithThrowingCallback()
     {
         $time = 0.1;
         $exception = new Exception();
         
-        $timeout = $this->promise->timeout($time, $exception);
+        $timeout = $this->promise->timeout($time, function () use ($exception) {
+            throw $exception;
+        });
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')

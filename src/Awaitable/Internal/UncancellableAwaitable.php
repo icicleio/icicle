@@ -36,9 +36,9 @@ class UncancellableAwaitable implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, \Exception $reason = null)
+    public function timeout($timeout, callable $onTimeout = null)
     {
-        return $this;
+        return $this->awaitable->timeout($timeout, $onTimeout);
     }
 
     /**

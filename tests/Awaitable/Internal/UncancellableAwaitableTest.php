@@ -92,11 +92,10 @@ class UncancellableAwaitableTest extends TestCase
     {
         $awaitable = $this->uncancellable->timeout(self::TIMEOUT);
 
-        $timer = Loop\timer(self::TIMEOUT * 2, $this->createCallback(1));
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT - self::RUNTIME_PRECISION);
 
-        Loop\run();
-
-        $this->assertTrue($awaitable->isPending());
+        $this->assertTrue($this->uncancellable->isPending());
+        $this->assertTrue($awaitable->isRejected());
     }
 
     public function testDelay()

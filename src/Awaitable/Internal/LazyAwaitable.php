@@ -79,9 +79,9 @@ class LazyAwaitable implements Awaitable\Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, \Exception $reason = null)
+    public function timeout($timeout, callable $onTimeout = null)
     {
-        return $this->getAwaitable()->timeout($timeout, $reason);
+        return $this->getAwaitable()->timeout($timeout, $onTimeout);
     }
     
     /**

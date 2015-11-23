@@ -208,26 +208,30 @@ class Future implements Awaitable
     /**
      * {@inheritdoc}
      */
-    public function timeout($timeout, Exception $reason = null)
+    public function timeout($timeout, callable $onTimeout = null)
     {
         if (null !== $this->result) {
-            return $this->unwrap()->timeout($timeout, $reason);
+            return $this->unwrap()->timeout($timeout, $onTimeout);
         }
         
         ++$this->children;
 
-        $timer = Loop\timer($timeout, function () use ($reason) {
-            if (null === $reason) {
-                $reason = new TimeoutException();
-            }
-            $this->cancel($reason);
-        });
-
-        $future = new self(function (Exception $exception) use ($timer) {
-            $timer->stop();
-
+        $future = new self(function (Exception $exception) {
             if (0 === --$this->children) {
                 $this->cancel($exception);
+            }
+        });
+
+        $timer = Loop\timer($timeout, function () use ($future, $onTimeout) {
+            if (null === $onTimeout) {
+                $future->reject(new TimeoutException());
+                return;
+            }
+
+            try {
+                $future->resolve($onTimeout());
+            } catch (Exception $exception) {
+                $future->reject($exception);
             }
         });
 

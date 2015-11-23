@@ -40,15 +40,16 @@ interface Awaitable
     public function cancel(\Exception $reason = null);
     
     /**
-     * Cancels the awaitable with $reason if it is not resolved within $timeout seconds. When the awaitable resolves,
-     * the returned awaitable is fulfilled or rejected with the same value.
+     * Invokes the given callback if the awaitable is not resolved within $timeout seconds. The awaitable returned from
+     * this method is resolved by the return value or thrown exception from $onTimeout. If $onTimeout is null, the
+     * returned awaitable will be rejected with an instance of \Icicle\Awaitable\Exception\TimeoutException.
      *
      * @param float $timeout
-     * @param \Exception|null $reason If null, an instance of \Icicle\Awaitable\Exception\TimeoutException is used.
+     * @param callable<(): mixed>|null $onTimeout
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function timeout($timeout, \Exception $reason = null);
+    public function timeout($timeout, callable $onTimeout = null);
     
     /**
      * Returns an awaitable that is fulfilled $time seconds after this awaitable is fulfilled. If the promise is
