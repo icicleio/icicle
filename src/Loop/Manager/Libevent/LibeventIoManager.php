@@ -167,10 +167,10 @@ class LibeventIoManager implements IoManager
      */
     public function isPending(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
         return isset($this->sockets[$id], $this->pending[$id])
-            && $socket === $this->sockets[$id]
+            && $io === $this->sockets[$id]
             && $this->pending[$id];
     }
     
