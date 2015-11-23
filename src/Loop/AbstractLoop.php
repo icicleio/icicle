@@ -9,9 +9,9 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
+use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
 use Icicle\Loop\Exception\{RunningError, SignalHandlingDisabledError};
-use Icicle\Loop\Manager\{ImmediateManager, SignalManager, SocketManager, SharedImmediateManager, TimerManager};
+use Icicle\Loop\Manager\{ImmediateManager, IoManager, SignalManager, SharedImmediateManager, TimerManager};
 use Icicle\Loop\Structures\CallableQueue;
 
 /**
@@ -67,12 +67,12 @@ abstract class AbstractLoop implements Loop
     /**
      * @return \Icicle\Loop\Manager\IoManager
      */
-    abstract protected function createPollManager(): SocketManager;
+    abstract protected function createPollManager(): IoManager;
     
     /**
      * @return \Icicle\Loop\Manager\IoManager
      */
-    abstract protected function createAwaitManager(): SocketManager;
+    abstract protected function createAwaitManager(): IoManager;
     
     /**
      * @return \Icicle\Loop\Manager\TimerManager
@@ -107,7 +107,7 @@ abstract class AbstractLoop implements Loop
      *
      * @codeCoverageIgnore
      */
-    protected function getPollManager(): SocketManager
+    protected function getPollManager(): IoManager
     {
         return $this->pollManager;
     }
@@ -117,7 +117,7 @@ abstract class AbstractLoop implements Loop
      *
      * @codeCoverageIgnore
      */
-    protected function getAwaitManager(): SocketManager
+    protected function getAwaitManager(): IoManager
     {
         return $this->awaitManager;
     }
@@ -246,7 +246,7 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function poll($resource, callable $callback): SocketEvent
+    public function poll($resource, callable $callback): Io
     {
         return $this->pollManager->create($resource, $callback);
     }
@@ -254,7 +254,7 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function await($resource, callable $callback): SocketEvent
+    public function await($resource, callable $callback): Io
     {
         return $this->awaitManager->create($resource, $callback);
     }

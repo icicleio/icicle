@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
+use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
 
 if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
@@ -163,7 +163,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\Io
      */
-    function poll($socket, callable $callback): SocketEvent
+    function poll($socket, callable $callback): Io
     {
         return loop()->poll($socket, $callback);
     }
@@ -174,7 +174,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return \Icicle\Loop\Events\Io
      */
-    function await($socket, callable $callback): SocketEvent
+    function await($socket, callable $callback): Io
     {
         return loop()->await($socket, $callback);
     }
