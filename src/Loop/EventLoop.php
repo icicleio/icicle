@@ -12,8 +12,8 @@ namespace Icicle\Loop;
 use Event;
 use EventBase;
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\Event\{EventSignalManager, EventSocketManager, EventTimerManager};
+use Icicle\Loop\Manager\{IoManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Event\{EventIoManager, EventSignalManager, EventTimerManager};
 
 /**
  * Uses the event extension to poll sockets for I/O and create timers.
@@ -87,17 +87,17 @@ class EventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(): SocketManager
+    protected function createPollManager(): IoManager
     {
-        return new EventSocketManager($this, Event::READ);
+        return new EventIoManager($this, Event::READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(): SocketManager
+    protected function createAwaitManager(): IoManager
     {
-        return new EventSocketManager($this, Event::WRITE);
+        return new EventIoManager($this, Event::WRITE);
     }
     
     /**

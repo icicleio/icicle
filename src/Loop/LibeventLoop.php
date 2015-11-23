@@ -10,7 +10,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Manager\Libevent\{LibeventSignalManager, LibeventSocketManager, LibeventTimerManager};
+use Icicle\Loop\Manager\{IoManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Libevent\{LibeventIoManager, LibeventSignalManager, LibeventTimerManager};
 
 /**
  * Uses the libevent extension to poll sockets for I/O and create timers.
@@ -91,17 +92,17 @@ class LibeventLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(): SocketManager
+    protected function createPollManager(): IoManager
     {
-        return new LibeventSocketManager($this, EV_READ);
+        return new LibeventIoManager($this, EV_READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(): SocketManager
+    protected function createAwaitManager(): IoManager
     {
-        return new LibeventSocketManager($this, EV_WRITE);
+        return new LibeventIoManager($this, EV_WRITE);
     }
     
     /**

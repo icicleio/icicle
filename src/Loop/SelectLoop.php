@@ -10,8 +10,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Loop\Exception\SignalHandlingDisabledError;
-use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\Select\{SelectSignalManager, SelectSocketManager, SelectTimerManager};
+use Icicle\Loop\Manager\{IoManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Select\{SelectIoManager, SelectSignalManager, SelectTimerManager};
 
 /**
  * Uses stream_select(), time_nanosleep(), and pcntl_signal_dispatch() (if available) to implement an event loop that
@@ -23,12 +23,12 @@ class SelectLoop extends AbstractLoop
     const DEFAULT_SIGNAL_INTERVAL = 0.25;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectIoManager
      */
     private $pollManager;
 
     /**
-     * @var \Icicle\Loop\Manager\Select\SelectSocketManager
+     * @var \Icicle\Loop\Manager\Select\SelectIoManager
      */
     private $awaitManager;
 
@@ -85,17 +85,17 @@ class SelectLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(): SocketManager
+    protected function createPollManager(): IoManager
     {
-        return $this->pollManager = new SelectSocketManager($this);
+        return $this->pollManager = new SelectIoManager($this);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(): SocketManager
+    protected function createAwaitManager(): IoManager
     {
-        return $this->awaitManager = new SelectSocketManager($this);
+        return $this->awaitManager = new SelectIoManager($this);
     }
     
     /**

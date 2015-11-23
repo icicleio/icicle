@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
+use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
 use Icicle\Loop\Loop;
 use Icicle\Tests\TestCase;
 use Throwable;
@@ -65,7 +65,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll = $this->loop->poll($socket, $this->createCallback(0));
         
-        $this->assertInstanceOf(SocketEvent::class, $poll);
+        $this->assertInstanceOf(Io::class, $poll);
     }
     
     /**
@@ -298,7 +298,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $await = $this->loop->await($writable, $this->createCallback(0));
         
-        $this->assertInstanceOf(SocketEvent::class, $await);
+        $this->assertInstanceOf(Io::class, $await);
     }
     
     /**

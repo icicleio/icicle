@@ -80,24 +80,24 @@ interface Loop
     public function queue(callable $callback, array $args = []);
     
     /**
-     * Creates an event object that can be used to listen for available data on the stream socket.
+     * Creates an event object that can be used to listen for available data on the stream or socket resource.
      *
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\SocketEvent
+     * @return \Icicle\Loop\Events\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
     public function poll($resource, callable $callback): SocketEvent;
     
     /**
-     * Creates an event object that can be used to wait for the socket resource to be available for writing.
+     * Creates an event object that can be used to wait for the stream or socket resource to be available for writing.
      *
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\SocketEvent
+     * @return \Icicle\Loop\Events\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */

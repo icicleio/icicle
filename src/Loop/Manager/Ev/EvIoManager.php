@@ -1,10 +1,10 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\{Events\SocketEvent, EvLoop, Manager\SocketManager};
+use Icicle\Loop\{Events\Io, EvLoop, Manager\IoManager};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 
-class EvSocketManager implements SocketManager
+class EvIoManager implements IoManager
 {
     const MIN_TIMEOUT = 0.001;
 
@@ -24,7 +24,7 @@ class EvSocketManager implements SocketManager
     private $timers = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $unreferenced = [];
 
@@ -53,27 +53,27 @@ class EvSocketManager implements SocketManager
         $this->type = $eventType;
         
         $this->socketCallback = function (\EvIO $event) {
-            /** @var \Icicle\Loop\Events\SocketEvent $socket */
-            $socket = $event->data;
-            $id = (int) $socket->getResource();
+            /** @var \Icicle\Loop\Events\Io $io */
+            $io = $event->data;
+            $id = (int) $io->getResource();
 
             $event->stop();
             if (isset($this->timers[$id])) {
                 $this->timers[$id]->stop();
             }
 
-            $socket->call(false);
+            $io->call(false);
         };
 
         $this->timerCallback = function (\EvTimer $event) {
-            /** @var \Icicle\Loop\Events\SocketEvent $socket */
-            $socket = $event->data;
-            $id = (int) $socket->getResource();
+            /** @var \Icicle\Loop\Events\Io $io */
+            $io = $event->data;
+            $id = (int) $io->getResource();
 
             $event->stop();
             $this->events[$id]->stop();
 
-            $socket->call(true);
+            $io->call(true);
         };
     }
     
@@ -108,7 +108,7 @@ class EvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback): SocketEvent
+    public function create($resource, callable $callback): Io
     {
         $id = (int) $resource;
         
@@ -116,7 +116,7 @@ class EvSocketManager implements SocketManager
             throw new ResourceBusyError();
         }
 
-        $socket = new SocketEvent($this, $resource, $callback);
+        $socket = new Io($this, $resource, $callback);
 
         $event = $this->loop->io($resource, $this->type, $this->socketCallback, $socket);
         $event->stop();
@@ -129,11 +129,11 @@ class EvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEvent $socket, float $timeout = 0)
+    public function listen(Io $io, float $timeout = 0)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (!isset($this->events[$id]) || $socket !== $this->events[$id]->data) {
+        if (!isset($this->events[$id]) || $io !== $this->events[$id]->data) {
             throw new FreedError();
         }
 
@@ -148,7 +148,7 @@ class EvSocketManager implements SocketManager
                 $this->timers[$id]->set($timeout, 0);
                 $this->timers[$id]->start();
             } else {
-                $this->timers[$id] = $this->loop->timer($timeout, 0, $this->timerCallback, $socket);
+                $this->timers[$id] = $this->loop->timer($timeout, 0, $this->timerCallback, $io);
             }
         }
     }
@@ -156,11 +156,11 @@ class EvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEvent $socket)
+    public function cancel(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->events[$id]) && $socket === $this->events[$id]->data) {
+        if (isset($this->events[$id]) && $io === $this->events[$id]->data) {
             $this->events[$id]->stop();
 
             if (isset($this->timers[$id])) {
@@ -172,23 +172,23 @@ class EvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEvent $socket): bool
+    public function isPending(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
         return isset($this->events[$id])
-            && $socket === $this->events[$id]->data
+            && $io === $this->events[$id]->data
             && $this->events[$id]->is_active;
     }
     
     /**
      * @inheritdoc
      */
-    public function free(SocketEvent $socket)
+    public function free(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->events[$id]) && $socket === $this->events[$id]->data) {
+        if (isset($this->events[$id]) && $io === $this->events[$id]->data) {
             $this->events[$id]->stop();
             unset($this->events[$id], $this->unreferenced[$id]);
 
@@ -202,30 +202,30 @@ class EvSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEvent $socket): bool
+    public function isFreed(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        return !isset($this->events[$id]) || $socket !== $this->events[$id]->data;
+        return !isset($this->events[$id]) || $io !== $this->events[$id]->data;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEvent $socket)
+    public function reference(Io $io)
     {
-        unset($this->unreferenced[(int) $socket->getResource()]);
+        unset($this->unreferenced[(int) $io->getResource()]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEvent $socket)
+    public function unreference(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        if (isset($this->events[$id]) && $socket === $this->events[$id]->data) {
-            $this->unreferenced[$id] = $socket;
+        if (isset($this->events[$id]) && $io === $this->events[$id]->data) {
+            $this->unreferenced[$id] = $io;
         }
     }
 

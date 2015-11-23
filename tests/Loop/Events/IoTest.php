@@ -9,10 +9,10 @@
 
 namespace Icicle\Tests\Loop\Events;
 
-use Icicle\Loop\{Events\SocketEvent, Manager\SocketManager};
+use Icicle\Loop\{Events\Io, Manager\IoManager};
 use Icicle\Tests\TestCase;
 
-class SocketEventTest extends TestCase
+class IoTest extends TestCase
 {
     const TIMEOUT = 0.1;
     
@@ -20,12 +20,12 @@ class SocketEventTest extends TestCase
     
     public function setUp()
     {
-        $this->manager = $this->getMock(SocketManager::class);
+        $this->manager = $this->getMock(IoManager::class);
     }
     
-    public function createSocketEvent($resource, callable $callback)
+    public function createIo($resource, callable $callback)
     {
-        return new SocketEvent($this->manager, $resource, $callback);
+        return new Io($this->manager, $resource, $callback);
     }
     
     public function createSockets()
@@ -37,7 +37,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
         
         $this->assertSame($socket, $event->getResource());
     }
@@ -50,7 +50,7 @@ class SocketEventTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $event = $this->createSocketEvent($socket, $callback);
+        $event = $this->createIo($socket, $callback);
         
         $event->call(false);
         $event->call(false);
@@ -67,7 +67,7 @@ class SocketEventTest extends TestCase
         $callback->method('__invoke')
                  ->with($this->identicalTo($socket), $this->identicalTo(false));
         
-        $event = $this->createSocketEvent($socket, $callback);
+        $event = $this->createIo($socket, $callback);
         
         $event(false);
         $event(false);
@@ -77,7 +77,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('listen')
@@ -97,7 +97,7 @@ class SocketEventTest extends TestCase
         $callback->method('__invoke')
             ->with($this->identicalTo($socket), $this->identicalTo(false));
 
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
 
         $event->setCallback($callback);
 
@@ -112,7 +112,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('listen')
@@ -125,7 +125,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('isPending')
@@ -139,7 +139,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('free')
@@ -160,7 +160,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
         
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
         
         $this->manager->expects($this->once())
             ->method('cancel')
@@ -173,7 +173,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
 
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('unreference')
@@ -186,7 +186,7 @@ class SocketEventTest extends TestCase
     {
         list($socket) = $this->createSockets();
 
-        $event = $this->createSocketEvent($socket, $this->createCallback(0));
+        $event = $this->createIo($socket, $this->createCallback(0));
 
         $this->manager->expects($this->once())
             ->method('reference')

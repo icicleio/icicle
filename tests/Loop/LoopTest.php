@@ -11,7 +11,7 @@ namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
 use Icicle\Loop\Loop as LoopInterface;
-use Icicle\Loop\Events\{Immediate, Signal, SocketEvent, Timer};
+use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
 use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase
@@ -122,7 +122,7 @@ class LoopTest extends TestCase
             ->method('poll')
             ->with($this->identicalTo(0), $this->identicalTo($callback))
             ->will($this->returnValue(
-                $this->getMockBuilder(SocketEvent::class)->disableOriginalConstructor()->getMock()
+                $this->getMockBuilder(Io::class)->disableOriginalConstructor()->getMock()
             ));
 
         Loop\poll(0, $callback); // No need to pass a real resource, as it is not checked here.
@@ -141,7 +141,7 @@ class LoopTest extends TestCase
             ->method('await')
             ->with($this->identicalTo(0), $this->identicalTo($callback))
             ->will($this->returnValue(
-                $this->getMockBuilder(SocketEvent::class)->disableOriginalConstructor()->getMock()
+                $this->getMockBuilder(Io::class)->disableOriginalConstructor()->getMock()
             ));
 
         Loop\await(0, $callback); // No need to pass a real resource, as it is not checked here.

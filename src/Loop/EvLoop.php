@@ -2,8 +2,8 @@
 namespace Icicle\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Manager\{SignalManager, SocketManager, TimerManager};
-use Icicle\Loop\Manager\Ev\{EvSignalManager, EvSocketManager, EvTimerManager};
+use Icicle\Loop\Manager\{IoManager, SignalManager, TimerManager};
+use Icicle\Loop\Manager\Ev\{EvIoManager, EvSignalManager, EvTimerManager};
 
 /**
  * Uses the ev extension to poll sockets for I/O and create timers.
@@ -76,17 +76,17 @@ class EvLoop extends AbstractLoop
     /**
      * {@inheritdoc}
      */
-    protected function createPollManager(): SocketManager
+    protected function createPollManager(): IoManager
     {
-        return new EvSocketManager($this, \Ev::READ);
+        return new EvIoManager($this, \Ev::READ);
     }
     
     /**
      * {@inheritdoc}
      */
-    protected function createAwaitManager(): SocketManager
+    protected function createAwaitManager(): IoManager
     {
-        return new EvSocketManager($this, \Ev::WRITE);
+        return new EvIoManager($this, \Ev::WRITE);
     }
     
     /**

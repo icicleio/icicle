@@ -11,10 +11,10 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
-use Icicle\Loop\{Events\SocketEvent, LibeventLoop, Manager\SocketManager};
+use Icicle\Loop\{Events\Io, LibeventLoop, Manager\IoManager};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 
-class LibeventSocketManager implements SocketManager
+class LibeventIoManager implements IoManager
 {
     const MIN_TIMEOUT = 0.001;
     const MICROSEC_PER_SEC = 1e6;
@@ -35,7 +35,7 @@ class LibeventSocketManager implements SocketManager
     private $events = [];
     
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $sockets = [];
     
@@ -45,7 +45,7 @@ class LibeventSocketManager implements SocketManager
     private $pending = [];
 
     /**
-     * @var \Icicle\Loop\Events\SocketEvent[]
+     * @var \Icicle\Loop\Events\Io[]
      */
     private $unreferenced = [];
     
@@ -69,9 +69,9 @@ class LibeventSocketManager implements SocketManager
         $this->base = $this->loop->getEventBase();
         $this->type = $eventType;
         
-        $this->callback = function ($resource, $what, SocketEvent $socket) {
+        $this->callback = function ($resource, int $what, Io $io) {
             $this->pending[(int) $resource] = false;
-            $socket->call(0 !== (EV_TIMEOUT & $what));
+            $io->call(0 !== (EV_TIMEOUT & $what));
         };
     }
     
@@ -102,7 +102,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback): SocketEvent
+    public function create($resource, callable $callback): Io
     {
         $id = (int) $resource;
         
@@ -110,7 +110,7 @@ class LibeventSocketManager implements SocketManager
             throw new ResourceBusyError();
         }
         
-        $this->sockets[$id] = new SocketEvent($this, $resource, $callback);
+        $this->sockets[$id] = new Io($this, $resource, $callback);
         $this->pending[$id] = false;
         
         return $this->sockets[$id];
@@ -119,17 +119,17 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function listen(SocketEvent $socket, float $timeout = 0)
+    public function listen(Io $io, float $timeout = 0)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (!isset($this->sockets[$id]) || $socket !== $this->sockets[$id]) {
+        if (!isset($this->sockets[$id]) || $io !== $this->sockets[$id]) {
             throw new FreedError();
         }
         
         if (!isset($this->events[$id])) {
             $event = event_new();
-            event_set($event, $socket->getResource(), $this->type, $this->callback, $socket);
+            event_set($event, $io->getResource(), $this->type, $this->callback, $io);
             event_base_set($event, $this->base);
 
             $this->events[$id] = $event;
@@ -152,11 +152,11 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function cancel(SocketEvent $socket)
+    public function cancel(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->sockets[$id], $this->events[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id], $this->events[$id]) && $io === $this->sockets[$id]) {
             event_del($this->events[$id]);
             $this->pending[$id] = false;
         }
@@ -165,7 +165,7 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isPending(SocketEvent $socket): bool
+    public function isPending(Io $io): bool
     {
         $id = (int) $socket->getResource();
         
@@ -177,11 +177,11 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function free(SocketEvent $socket)
+    public function free(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        if (isset($this->sockets[$id]) && $socket === $this->sockets[$id]) {
+        if (isset($this->sockets[$id]) && $io === $this->sockets[$id]) {
             unset($this->sockets[$id], $this->pending[$id], $this->unreferenced[$id]);
             
             if (isset($this->events[$id])) {
@@ -194,30 +194,30 @@ class LibeventSocketManager implements SocketManager
     /**
      * {@inheritdoc}
      */
-    public function isFreed(SocketEvent $socket): bool
+    public function isFreed(Io $io): bool
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
         
-        return !isset($this->sockets[$id]) || $socket !== $this->sockets[$id];
+        return !isset($this->sockets[$id]) || $io !== $this->sockets[$id];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function reference(SocketEvent $socket)
+    public function reference(Io $io)
     {
-        unset($this->unreferenced[(int) $socket->getResource()]);
+        unset($this->unreferenced[(int) $io->getResource()]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function unreference(SocketEvent $socket)
+    public function unreference(Io $io)
     {
-        $id = (int) $socket->getResource();
+        $id = (int) $io->getResource();
 
-        if (isset($this->events[$id]) && $socket === $this->sockets[$id]) {
-            $this->unreferenced[$id] = $socket;
+        if (isset($this->events[$id]) && $io === $this->sockets[$id]) {
+            $this->unreferenced[$id] = $io;
         }
     }
     
