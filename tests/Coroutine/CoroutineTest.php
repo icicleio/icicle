@@ -735,7 +735,11 @@ class CoroutineTest extends TestCase
         $callback->method('__invoke')
             ->with($this->isInstanceOf(TimeoutException::class));
         
-        $timeout = $coroutine->timeout(self::TIMEOUT);
+        $timeout = $coroutine->timeout(self::TIMEOUT, function () use ($coroutine) {
+            $exception = new TimeoutException();
+            $coroutine->cancel($exception);
+            throw $exception;
+        });
         
         $this->assertInstanceOf(AwaitableInterface::class, $timeout);
         
