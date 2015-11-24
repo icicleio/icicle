@@ -10,9 +10,8 @@
 namespace Icicle\Awaitable\Internal;
 
 use Exception;
+use Icicle\Awaitable;
 use Icicle\Loop;
-use Icicle\Awaitable\Exception\RejectedException;
-use Icicle\Awaitable\Promise;
 
 class RejectedAwaitable extends ResolvedAwaitable
 {
@@ -37,16 +36,12 @@ class RejectedAwaitable extends ResolvedAwaitable
         if (null === $onRejected) {
             return $this;
         }
-        
-        return new Promise(function (callable $resolve, callable $reject) use ($onRejected) {
-            Loop\queue(function () use ($resolve, $reject, $onRejected) {
-                try {
-                    $resolve($onRejected($this->exception));
-                } catch (Exception $exception) {
-                    $reject($exception);
-                }
-            });
-        });
+
+        try {
+            return Awaitable\resolve($onRejected($this->exception));
+        } catch (Exception $exception) {
+            return Awaitable\reject($exception);
+        }
     }
     
     /**
@@ -55,7 +50,13 @@ class RejectedAwaitable extends ResolvedAwaitable
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onRejected) {
-            Loop\queue($onRejected, $this->exception);
+            try {
+                $onRejected($this->exception);
+            } catch (Exception $exception) {
+                Loop\queue(function () use ($exception) {
+                    throw $exception;
+                });
+            }
         } else {
             Loop\queue(function () {
                 throw $this->exception; // Rethrow exception in uncatchable way.
