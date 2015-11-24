@@ -11,7 +11,6 @@ namespace Icicle\Awaitable;
 
 use Icicle\Awaitable\Exception\MultiReasonException;
 use Icicle\Exception\InvalidArgumentError;
-use Icicle\Loop;
 use Throwable;
 
 if (!function_exists(__NAMESPACE__ . '\resolve')) {
@@ -366,98 +365,5 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
                 $carry->cancel($exception);
             };
         });
-    }
-    
-    /**
-     * Calls $worker using the return value of the previous call until $predicate returns false. $seed is used as the
-     * initial parameter to $worker. $predicate is called before $worker with the value to be passed to $worker. If
-     * $worker or $predicate throws an exception, the awaitable is rejected using that exception. The call stack is
-     * cleared before each call to $worker to avoid filling the call stack. If $worker returns a awaitable, iteration
-     * waits for the returned awaitable to be resolved.
-     *
-     * @param callable<(mixed $value): mixed $worker> Called with the previous return value on each iteration.
-     * @param callable<(mixed $value): bool $predicate> Return false to stop iteration and fulfill awaitable.
-     * @param mixed $seed Initial value given to $predicate and $worker (may be a awaitable).
-     *
-     * @return \Icicle\Awaitable\Awaitable
-     */
-    function iterate(callable $worker, callable $predicate, $seed = null): Awaitable
-    {
-        return new Promise(
-            function (callable $resolve, callable $reject) use (&$awaitable, $worker, $predicate, $seed): callable {
-                $pending = true;
-                $callback = function ($value) use (
-                    &$callback, &$pending, &$awaitable, $worker, $predicate, $resolve, $reject
-                ) {
-                    if ($pending) {
-                        try {
-                            if (!$predicate($value)) { // Resolve promise if $predicate returns false.
-                                $resolve($value);
-                                return;
-                            }
-                            $awaitable = resolve($worker($value));
-                            $awaitable->done($callback, $reject);
-                        } catch (Throwable $exception) {
-                            $reject($exception);
-                        }
-                    }
-                };
-
-                $awaitable = resolve($seed);
-                $awaitable->done($callback, $reject); // Start iteration with $seed.
-
-                return function (Throwable $exception) use (&$awaitable, &$pending) {
-                    $pending = false;
-                    $awaitable->cancel($exception);
-                };
-            }
-        );
-    }
-    
-    /**
-     * Repeatedly calls $promisor if the awaitable returned by $promisor is rejected or until $onRejected returns false.
-     * Useful to retry an operation a number of times or until an operation fails with a specific exception.
-     * If the awaitable returned by $promisor is fulfilled, the awaitable returned by this function is fulfilled with
-     * the same value.
-     *
-     * @param callable<(): Awaitable> $promisor Performs an operation to be retried on failure.
-     *     Should return a awaitable, but can return any type of value (will be made into a awaitable using resolve()).
-     * @param callable<(Throwable $exception): bool $onRejected> This function is called if the awaitable returned by
-     *     $promisor is rejected. Returning true from this function will call $awaitabler again to retry the
-     *     operation.
-     *
-     * @return \Icicle\Awaitable\Awaitable
-     */
-    function retry(callable $promisor, callable $onRejected): Awaitable
-    {
-        return new Promise(
-            function (callable $resolve, callable $reject) use (&$awaitable, $promisor, $onRejected): callable {
-                $pending = true;
-                $callback = function (Throwable $exception) use (
-                    &$callback, &$pending, &$awaitable, $promisor, $onRejected, $resolve, $reject
-                ) {
-                    if ($pending) {
-                        try {
-                            if (!$onRejected($exception)) { // Reject promise if $onRejected returns false.
-                                $reject($exception);
-                                return;
-                            }
-                            $awaitable = resolve($promisor());
-                            $awaitable->done($resolve, $callback);
-                        } catch (Throwable $exception) {
-                            $reject($exception);
-                        }
-                    }
-                };
-
-                $awaitable = resolve($promisor());
-                $awaitable->done($resolve, $callback);
-
-                return function (Throwable $exception) use (&$awaitable, &$pending) {
-                    $pending = false;
-                    $awaitable->cancel($exception);
-                };
-            }
-        );
     }
 }

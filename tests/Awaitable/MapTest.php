@@ -152,7 +152,6 @@ class MapTest extends TestCase
         
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(AwaitableInterface::class, $promise);
-            $this->assertTrue($promise->isPending());
         }
         
         Loop\run();
@@ -183,7 +182,6 @@ class MapTest extends TestCase
 
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(AwaitableInterface::class, $promise);
-            $this->assertTrue($promise->isPending());
         }
 
         Loop\run();
@@ -212,7 +210,6 @@ class MapTest extends TestCase
 
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(AwaitableInterface::class, $promise);
-            $this->assertTrue($promise->isPending());
         }
 
         Loop\run();
@@ -249,7 +246,6 @@ class MapTest extends TestCase
 
         foreach ($result as $key => $promise) {
             $this->assertInstanceOf(AwaitableInterface::class, $promise);
-            $this->assertTrue($promise->isPending());
         }
 
         Loop\run();

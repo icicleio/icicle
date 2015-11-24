@@ -1023,66 +1023,6 @@ class PromiseTest extends TestCase
         
         Loop\run(); // Exception will be thrown from loop.
     }
-    
-    /**
-     * @depends testThenInvokeNewCallbackAfterResolved
-     * @depends testDoneInvokeNewCallbackAfterResolved
-     */
-    public function testCallToOnFulfilledIsAsynchronous()
-    {
-        $this->resolve();
-        
-        Loop\run();
-        
-        $this->assertTrue($this->promise->isFulfilled());
-        
-        $string = '';
-        
-        $callback = function () use (&$string) {
-            $string .= '<onFulfilled>';
-        };
-        
-        $string .= '<before>';
-        
-        $this->promise->then($callback);
-        $this->promise->done($callback);
-        
-        $string .= '<after>';
-        
-        Loop\run();
-        
-        $this->assertSame('<before><after><onFulfilled><onFulfilled>', $string);
-    }
-    
-    /**
-     * @depends testThenInvokeNewCallbackAfterRejected
-     * @depends testDoneInvokeNewCallbackAfterRejected
-     */
-    public function testCallToOnRejectedIsAsynchronous()
-    {
-        $this->reject(new Exception());
-        
-        Loop\run();
-        
-        $this->assertTrue($this->promise->isRejected());
-        
-        $string = '';
-        
-        $callback = function () use (&$string) {
-            $string .= '<onRejected>';
-        };
-        
-        $string .= '<before>';
-        
-        $this->promise->then(null, $callback);
-        $this->promise->done(null, $callback);
-        
-        $string .= '<after>';
-        
-        Loop\run();
-        
-        $this->assertSame('<before><after><onRejected><onRejected>', $string);
-    }
 
     /**
      * @depends testRejectCallable
@@ -1463,25 +1403,6 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @depends testCancellation
-     */
-    public function testCancellingSiblingsThenCreateSiblingPromise()
-    {
-        $child1 = $this->promise->then(function () {});
-        $child2 = $this->promise->then(function () {});
-
-        $child1->cancel();
-        $child2->cancel();
-
-        $child3 = $this->promise->then(function () {});
-
-        Loop\run();
-
-        $this->assertTrue($this->promise->isPending());
-        $this->assertTrue($child3->isPending());
-    }
-    
-    /**
      * @depends testResolveCallableWithPendingPromise
      */
     public function testCancellationAfterResolvingWithPendingPromise()
@@ -1496,58 +1417,6 @@ class PromiseTest extends TestCase
         
         Loop\run();
         
-        $this->assertTrue($promise->isRejected());
-
-        try {
-            $promise->wait();
-        } catch (Exception $reason) {
-            $this->assertSame($exception, $reason);
-        }
-    }
-
-    /**
-     * @depends testCancellation
-     */
-    public function testCancellationPreventsResolveInCancellationCallable()
-    {
-        $exception = new Exception();
-
-        $promise = new Promise(function ($resolve) {
-            return function () use ($resolve) {
-                $resolve(1);
-            };
-        });
-
-        $promise->cancel($exception);
-
-        Loop\run();
-
-        $this->assertTrue($promise->isRejected());
-
-        try {
-            $promise->wait();
-        } catch (Exception $reason) {
-            $this->assertSame($exception, $reason);
-        }
-    }
-
-    /**
-     * @depends testCancellationPreventsResolveInCancellationCallable
-     */
-    public function testCancellationPreventsRejectInCancellationCallable()
-    {
-        $exception = new Exception();
-
-        $promise = new Promise(function ($resolve, $reject) {
-            return function () use ($reject) {
-                $reject(new Exception());
-            };
-        });
-
-        $promise->cancel($exception);
-
-        Loop\run();
-
         $this->assertTrue($promise->isRejected());
 
         try {
@@ -1822,26 +1691,6 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @depends testCancellation
-     */
-    public function testCancelTimeoutThenCreateSiblingPromise()
-    {
-        $time = 0.1;
-
-        $timeout = $this->promise->delay($time);
-
-        $timeout->cancel();
-
-        $sibling = $this->promise->then(function () {});
-
-        Loop\run();
-
-        $this->assertTrue($timeout->isRejected());
-        $this->assertTrue($this->promise->isPending());
-        $this->assertTrue($sibling->isPending());
-    }
-
-    /**
      * @depends testResolveCallableWithValue
      */
     public function testDelayThenFulfill()
@@ -2051,27 +1900,6 @@ class PromiseTest extends TestCase
         $this->assertFalse($this->promise->isPending());
         $this->assertTrue($sibling->isRejected());
     }
-
-    /**
-     * @depends testCancellation
-     */
-    public function testCancelDelayThenCreateSiblingPromise()
-    {
-        $time = 0.1;
-
-        $delayed = $this->promise->delay($time);
-
-        $delayed->cancel();
-
-        $sibling = $this->promise->then(function () {});
-
-        Loop\run();
-
-        $this->assertTrue($delayed->isRejected());
-        $this->assertTrue($this->promise->isPending());
-        $this->assertTrue($sibling->isPending());
-    }
-
 
     /**
      * @depends testResolveCallableWithValue

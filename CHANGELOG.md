@@ -12,10 +12,13 @@
     - `Icicle\Loop\Events\SocketEvent` was renamed to `Icicle\Loop\Events\Io` since more than just 'sockets' can be used.
     - `Icicle\Coroutine\create()` no longer throws if the callback throws or returns a promise, instead it returns a rejected coroutine.
     - `Icicle\Awaitable\Awaitable::timeout()` (previously `Icicle\Promise\PromiseInterface::timeout()`) now takes a callback function that is invoked if the parent awaitable is not resolved in the given timeout. The promise returned from this method is resolved by the callback function. This callback function can still cancel the parent promise if desired or perform any other action.
+    - Rejecting an awaitable now requires an exception instance.
+    - `Icicle\Awaitable\Awaitable::cancel()` (previously `Icicle\Promise\PromiseInterface::cancel()` now requires an exception instance or null. If null, an instance of `Icicle\Awaitable\Exception\CancelledException` is used.
+    - `Icicle\Awaitable\Awaitable::timeout()` (previously `Icicle\Promise\PromiseInterface::timeout()` now takes a callable or null as the second argument. The awaitable returned from `timeout()` is resolved by the callable or rejected with an instance of `Icicle\Awaitable\Exception\TimeoutException` if no callable is given.
 
 - New Features
     - `Icicle\Awaitable\Delayed` was added as a publicly resolvable awaitable. This type of awaitable should not be returned from public APIs, but rather only used internally within a class or Coroutine to create an awaitable that can be resolved later. So in other words, a class method or function should never return a `Delayed`. In general, methods and functions should not be returning awaitables as part of their public API. The public API should consist of Generators that can be used as Coroutines.
-    - `Icicle\Awaitable\Awaitable` now has a method `uncancellable()` that returns an awaitable that cannot be cancelled.
+    - `Icicle\Awaitable\Awaitable` now has a method `uncancellable()` that returns an awaitable that cannot be cancelled (the `cancel()` method is a no-op).
 
 ---
 
