@@ -9,17 +9,17 @@
 
 namespace Icicle\Loop\Manager;
 
-interface EventManager
+interface WatcherManager
 {
     /**
-     * Determines if any referenced events are pending in the manager.
+     * Determines if any referenced watchers are pending in the manager.
      *
      * @return bool
      */
     public function isEmpty(): bool;
 
     /**
-     * Clears all events from the manager.
+     * Clears all watchers from the manager.
      */
     public function clear();
 }

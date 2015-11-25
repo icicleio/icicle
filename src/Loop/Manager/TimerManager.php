@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Watcher\Timer;
 
-interface TimerManager extends EventManager
+interface TimerManager extends WatcherManager
 {
     /**
      * Creates a timer object connected to the manager.

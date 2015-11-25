@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Watcher\Immediate;
 
-interface ImmediateManager extends EventManager
+interface ImmediateManager extends WatcherManager
 {
     /**
      * Creates an immediate object connected to the manager.

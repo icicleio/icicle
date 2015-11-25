@@ -12,12 +12,12 @@ namespace Icicle\Loop\Watcher;
 interface Watcher
 {
     /**
-     * An unreferenced event will allow the event loop to exit if no other events are pending.
+     * An unreferenced event will allow the event loop to exit if no other watchers are pending.
      */
     public function unreference();
 
     /**
-     * Adds a reference to the event, causing the event loop to continue to run as long as the event is still pending.
+     * Adds a reference to the event, causing the event loop to continue to run as long as the watcher is still pending.
      */
     public function reference();
 }

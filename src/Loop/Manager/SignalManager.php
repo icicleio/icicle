@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Watcher\Signal;
 
-interface SignalManager extends EventManager
+interface SignalManager extends WatcherManager
 {
     /**
      * Creates a signal event connected to the manager.
