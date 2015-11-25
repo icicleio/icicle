@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
+use Icicle\Loop\Watcher\{Immediate, Io, Signal, Timer};
 
 interface Loop
 {
@@ -85,7 +85,7 @@ interface Loop
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\Io
+     * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
@@ -97,7 +97,7 @@ interface Loop
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
      *
-     * @return \Icicle\Loop\Events\Io
+     * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
@@ -111,7 +111,7 @@ interface Loop
      * @param callable<(mixed ...$args): void> $callback
      * @param mixed[] $args
      *
-     * @return \Icicle\Loop\Events\Timer
+     * @return \Icicle\Loop\Watcher\Timer
      */
     public function timer(float $interval, bool $periodic, callable $callback, array $args = []): Timer;
     
@@ -121,7 +121,7 @@ interface Loop
      * @param callable<(mixed ...$args): void> $callback
      * @param mixed[] $args
      *
-     * @return \Icicle\Loop\Events\Immediate
+     * @return \Icicle\Loop\Watcher\Immediate
      */
     public function immediate(callable $callback, array $args = []): Immediate;
 
@@ -129,7 +129,7 @@ interface Loop
      * @param int $signo
      * @param callable<(int $signo): void> $callback
      *
-     * @return \Icicle\Loop\Events\Signal
+     * @return \Icicle\Loop\Watcher\Signal
      */
     public function signal(int $signo, callable $callback): Signal;
 

@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
-use Icicle\Loop\{EventLoop, Events\Timer, Structures\ObjectStorage, Manager\TimerManager};
+use Icicle\Loop\{EventLoop, Structures\ObjectStorage, Manager\TimerManager, Watcher\Timer};
 
 class EventTimerManager implements TimerManager
 {

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\{Events\Timer, Manager\TimerManager, SelectLoop, Structures\ObjectStorage};
+use Icicle\Loop\{Manager\TimerManager, SelectLoop, Structures\ObjectStorage, Watcher\Timer};
 use SplPriorityQueue;
 
 class SelectTimerManager implements TimerManager

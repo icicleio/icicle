@@ -11,7 +11,7 @@ namespace Icicle\Tests\Loop;
 
 use Icicle\Loop;
 use Icicle\Loop\Loop as LoopInterface;
-use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
+use Icicle\Loop\Watcher\{Immediate, Io, Signal, Timer};
 use Icicle\Tests\TestCase;
 
 class LoopTest extends TestCase

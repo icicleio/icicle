@@ -10,7 +10,7 @@
 namespace Icicle\Tests\Loop;
 
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
+use Icicle\Loop\Watcher\{Immediate, Io, Signal, Timer};
 use Icicle\Loop\Loop;
 use Icicle\Tests\TestCase;
 use Throwable;

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\{Events\Io, Manager\IoManager, SelectLoop};
+use Icicle\Loop\{Manager\IoManager, SelectLoop, Watcher\Io};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 
 class SelectIoManager implements IoManager
@@ -22,7 +22,7 @@ class SelectIoManager implements IoManager
     private $loop;
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $sockets = [];
     
@@ -32,12 +32,12 @@ class SelectIoManager implements IoManager
     private $pending = [];
     
     /**
-     * @var \Icicle\Loop\Events\Timer[]
+     * @var \Icicle\Loop\Watcher\Timer[]
      */
     private $timers = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $unreferenced = [];
     

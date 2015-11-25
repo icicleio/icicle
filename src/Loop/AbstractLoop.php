@@ -9,9 +9,9 @@
 
 namespace Icicle\Loop;
 
-use Icicle\Loop\Events\{Immediate, Io, Signal, Timer};
 use Icicle\Loop\Exception\{RunningError, SignalHandlingDisabledError};
 use Icicle\Loop\Manager\{ImmediateManager, IoManager, SignalManager, SharedImmediateManager, TimerManager};
+use Icicle\Loop\Watcher\{Immediate, Io, Signal, Timer};
 use Icicle\Loop\Structures\CallableQueue;
 
 /**

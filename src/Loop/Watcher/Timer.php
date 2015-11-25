@@ -7,11 +7,11 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Events;
+namespace Icicle\Loop\Watcher;
 
 use Icicle\Loop\Manager\TimerManager;
 
-class Timer implements Event
+class Timer implements Watcher
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     

@@ -7,9 +7,9 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Events;
+namespace Icicle\Loop\Watcher;
 
-interface Event
+interface Watcher
 {
     /**
      * An unreferenced event will allow the event loop to exit if no other events are pending.

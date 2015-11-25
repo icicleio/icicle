@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager\Event;
 
 use Event;
 use EventBase;
-use Icicle\Loop\{EventLoop, Events\Io, Manager\IoManager};
+use Icicle\Loop\{EventLoop, Manager\IoManager, Watcher\Io};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 
 class EventIoManager implements IoManager
@@ -34,12 +34,12 @@ class EventIoManager implements IoManager
     private $events = [];
     
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $sockets = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $unreferenced = [];
     

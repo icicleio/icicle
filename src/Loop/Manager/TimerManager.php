@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Watcher\Timer;
 
 interface TimerManager extends EventManager
 {
@@ -21,28 +21,28 @@ interface TimerManager extends EventManager
      * @param callable $callback
      * @param mixed[]|null $args
      *
-     * @return \Icicle\Loop\Events\Timer
+     * @return \Icicle\Loop\Watcher\Timer
      */
     public function create(float $interval, bool $periodic, callable $callback, array $args = []): Timer;
 
     /**
      * Starts the given timer if it is not already pending.
      *
-     * @param \Icicle\Loop\Events\Timer $timer
+     * @param \Icicle\Loop\Watcher\Timer $timer
      */
     public function start(Timer $timer);
 
     /**
      * Cancels the given timer.
      *
-     * @param \Icicle\Loop\Events\Timer $timer
+     * @param \Icicle\Loop\Watcher\Timer $timer
      */
     public function stop(Timer $timer);
     
     /**
      * Determines if the timer is pending.
      *
-     * @param \Icicle\Loop\Events\Timer $timer
+     * @param \Icicle\Loop\Watcher\Timer $timer
      *
      * @return bool
      */
@@ -51,7 +51,7 @@ interface TimerManager extends EventManager
     /**
      * Unreferences the given timer, that is, if the timer is pending in the loop, the loop should not continue running.
      *
-     * @param \Icicle\Loop\Events\Timer $timer
+     * @param \Icicle\Loop\Watcher\Timer $timer
      */
     public function unreference(Timer $timer);
     
@@ -59,7 +59,7 @@ interface TimerManager extends EventManager
      * References a timer if it was previously unreferenced. That is, if the timer is pending the loop will continue
      * running.
      *
-     * @param \Icicle\Loop\Events\Timer $timer
+     * @param \Icicle\Loop\Watcher\Timer $timer
      */
     public function reference(Timer $timer);
 }

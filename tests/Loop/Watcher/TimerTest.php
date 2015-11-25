@@ -7,9 +7,9 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Tests\Loop\Events;
+namespace Icicle\Tests\Loop\Watcher;
 
-use Icicle\Loop\{Events\Timer, Manager\TimerManager};
+use Icicle\Loop\{Manager\TimerManager, Watcher\Timer};
 use Icicle\Tests\TestCase;
 
 class TimerTest extends TestCase

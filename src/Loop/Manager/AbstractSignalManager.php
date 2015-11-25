@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\{Events\Signal, Exception\InvalidSignalError, Loop};
+use Icicle\Loop\{Exception\InvalidSignalError, Loop, Watcher\Signal};
 
 abstract class AbstractSignalManager implements SignalManager
 {
