@@ -27,7 +27,8 @@ Icicle uses [Coroutines](#coroutines) built with [Awaitables](#awaitables) to fa
 
 ##### Requirements
 
-- PHP 5.5+
+- PHP 5.5+ for v0.9.x branch (current stable) and v1.x branch (mirrors current stable)
+- PHP 7 for v2.0 branch (under development) supporting generator delegation and return expressions
 
 ##### Installation
 
@@ -153,7 +154,6 @@ The example above uses the [DNS component](https://github.com/icicleio/Dns) to r
 
 ##### Brief overview of awaitable API features
 
-- Asynchronous resolution (callbacks are not called before `then()` or `done()` return).
 - Convenience methods for registering special callbacks to handle awaitable resolution.
 - Lazy execution of awaitable-creating functions.
 - Operations on collections of awaitables to join, select, iterate, and map to other awaitables or values.
@@ -204,7 +204,44 @@ Loop\run();
 
 The example above does the same thing as the example in the section on [awaitables](#awaitables) above, but instead uses a coroutine to **structure asynchronous code like synchronous code**. Fulfillment values of awaitables are accessed through simple variable assignments and exceptions used to reject awaitables are caught using a try/catch block, rather than creating and registering callback functions to each awaitable.
 
-An `Icicle\Coroutine\Coroutine` object is also an [awaitable](#awaitables), implementing `Icicle\Awaitable\Awaitable`. The awaitable is fulfilled with the last value yielded from the generator (or fulfillment value of the last yielded awaitable) or rejected if an exception is thrown from the generator. **A coroutine may then yield other coroutines, suspending execution of the calling coroutine until the yielded coroutine has completed execution.** If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded awaitable.
+An `Icicle\Coroutine\Coroutine` object is also an [awaitable](#awaitables), implementing `Icicle\Awaitable\Awaitable`. The awaitable is fulfilled with the last value yielded from the generator (the v2.0 branch for PHP 7 only uses the return value of the generator) or rejected if an exception is thrown from the generator. **A coroutine may then yield other coroutines, suspending execution of the calling coroutine until the yielded coroutine has completed execution.** If a coroutine yields a `Generator`, it will automatically be converted to a `Icicle\Coroutine\Coroutine` and handled in the same way as a yielded awaitable.
+
+#### Coroutines in v1.x vs v2.x
+
+The v2.0 branch (under development) takes advantage of two new features in PHP 7: generator delegation and generator return expressions.
+
+Coroutines in v2.0 return values using the `return` keyword like a normal function. If a coroutine does not use `return`, the coroutine will resolve will `null`, just like a normal function that does not use `return` (or uses `return` without an expression). Requiring the use of `return` allows `yield from` to be used in coroutines, delegating to another coroutine without the overhead of creating another `Coroutine` object.
+
+```php
+// PHP 5.5+
+$generator = function () {
+    $value = (yield coroutineFunction());
+    $result = (yield anotherCoroutineFunction($value));
+
+    if (null === $result) {
+        throw new Exception('Invalid value.'); // Rejects the coroutine.
+    }
+
+    yield $result; // Final yield is resolution value of the coroutine.
+};
+
+// PHP 7
+$generator = function () {
+    $value = yield from coroutineFunction(); // yield from avoids creating another Coroutine object.
+    $result = yield from anotherCoroutineFunction($value);
+
+    if (null === $result) {
+        throw new Exception('Invalid value.'); // Rejects the coroutine.
+    }
+
+    return $result; // Uses return keyword to resolve the coroutine.
+};
+```
+
+`yield` and `yield from` can be used directly with `return` in a coroutine:
+
+- Returning the resolution value of an awaitable: `return yield $awaitable;`
+- Delegating to another coroutine and returning the resolution value of that coroutine: `return yield from coroutineFunction();`
 
 ## Loop
 
