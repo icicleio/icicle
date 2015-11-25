@@ -11,7 +11,7 @@ namespace Icicle\Loop\Manager;
 
 use Icicle\Loop\Watcher\Io;
 
-interface IoManager extends EventManager
+interface IoManager extends WatcherManager
 {
     /**
      * Returns a Io object for the given stream socket resource.
@@ -24,56 +24,56 @@ interface IoManager extends EventManager
     public function create($resource, callable $callback);
     
     /**
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      * @param float|int $timeout
      */
-    public function listen(Io $event, $timeout = 0);
+    public function listen(Io $io, $timeout = 0);
     
     /**
      * Cancels the given socket operation.
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      */
-    public function cancel(Io $event);
+    public function cancel(Io $io);
     
     /**
      * Determines if the socket event is enabled (listening for data or space to write).
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      *
      * @return bool
      */
-    public function isPending(Io $event);
+    public function isPending(Io $io);
     
     /**
      * Frees the given socket event.
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      */
-    public function free(Io $event);
+    public function free(Io $io);
     
     /**
      * Determines if the socket event has been freed.
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      *
      * @return bool
      */
-    public function isFreed(Io $event);
+    public function isFreed(Io $io);
 
     /**
      * Unreferences the given socket event, that is, if the event is pending in the loop, the loop should not continue
      * running.
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      */
-    public function unreference(Io $event);
+    public function unreference(Io $io);
 
     /**
      * References a socket event if it was previously unreferenced. That is, if the event is pending the loop will
      * continue running.
      *
-     * @param \Icicle\Loop\Watcher\Io $event
+     * @param \Icicle\Loop\Watcher\Io $io
      */
-    public function reference(Io $event);
+    public function reference(Io $io);
 }
