@@ -1,10 +1,10 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\Timer;
 use Icicle\Loop\EvLoop;
 use Icicle\Loop\Manager\TimerManager;
 use Icicle\Loop\Structures\ObjectStorage;
+use Icicle\Loop\Watcher\Timer;
 
 class EvTimerManager implements TimerManager
 {
@@ -35,7 +35,7 @@ class EvTimerManager implements TimerManager
         $this->timers = new ObjectStorage();
         
         $this->callback = function (\EvTimer $event) {
-            /** @var \Icicle\Loop\Events\Timer $timer */
+            /** @var \Icicle\Loop\Watcher\Timer $timer */
             $timer = $event->data;
 
             if (!$timer->isPeriodic()) {

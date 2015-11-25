@@ -7,10 +7,10 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Tests\Loop\Events;
+namespace Icicle\Tests\Loop\Watcher;
 
-use Icicle\Loop\Events\Immediate;
 use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Watcher\Immediate;
 use Icicle\Tests\TestCase;
 
 class ImmediateTest extends TestCase

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\Immediate;
+use Icicle\Loop\Watcher\Immediate;
 
 interface ImmediateManager extends EventManager
 {
@@ -19,28 +19,28 @@ interface ImmediateManager extends EventManager
      * @param callable $callback
      * @param mixed[]|null $args
      *
-     * @return \Icicle\Loop\Events\Immediate
+     * @return \Icicle\Loop\Watcher\Immediate
      */
     public function create(callable $callback, array $args = []);
 
     /**
      * Puts the immediate in the loop again for execution.
      *
-     * @param \Icicle\Loop\Events\Immediate $immediate
+     * @param \Icicle\Loop\Watcher\Immediate $immediate
      */
     public function execute(Immediate $immediate);
 
     /**
      * Cancels the immeidate.
      *
-     * @param \Icicle\Loop\Events\Immediate $immediate
+     * @param \Icicle\Loop\Watcher\Immediate $immediate
      */
     public function cancel(Immediate $immediate);
 
     /**
      * Determines if the immediate is active in the loop.
      *
-     * @param \Icicle\Loop\Events\Immediate $immediate
+     * @param \Icicle\Loop\Watcher\Immediate $immediate
      *
      * @return bool
      */
@@ -57,7 +57,7 @@ interface ImmediateManager extends EventManager
      * Unreferences the given immediate, that is, if the immediate is pending in the loop, the loop should not continue
      * running.
      *
-     * @param \Icicle\Loop\Events\Immediate $immediate
+     * @param \Icicle\Loop\Watcher\Immediate $immediate
      */
     public function unreference(Immediate $immediate);
 
@@ -65,7 +65,7 @@ interface ImmediateManager extends EventManager
      * References an immediate if it was previously unreferenced. That is, if the immediate is pending the loop will
      * continue running.
      *
-     * @param \Icicle\Loop\Events\Immediate $immediate
+     * @param \Icicle\Loop\Watcher\Immediate $immediate
      */
     public function reference(Immediate $immediate);
 }

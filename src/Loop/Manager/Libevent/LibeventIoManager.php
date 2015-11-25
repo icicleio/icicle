@@ -11,11 +11,11 @@ namespace Icicle\Loop\Manager\Libevent;
 
 use Event;
 use EventBase;
-use Icicle\Loop\Events\Io;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\LibeventLoop;
 use Icicle\Loop\Manager\IoManager;
+use Icicle\Loop\Watcher\Io;
 
 class LibeventIoManager implements IoManager
 {
@@ -38,7 +38,7 @@ class LibeventIoManager implements IoManager
     private $events = [];
     
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $sockets = [];
     
@@ -48,7 +48,7 @@ class LibeventIoManager implements IoManager
     private $pending = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $unreferenced = [];
     

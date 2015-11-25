@@ -157,7 +157,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when data is available on the socket.
      *
-     * @return \Icicle\Loop\Events\Io
+     * @return \Icicle\Loop\Watcher\Io
      */
     function poll($socket, callable $callback)
     {
@@ -168,7 +168,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when the socket is available to write.
      *
-     * @return \Icicle\Loop\Events\Io
+     * @return \Icicle\Loop\Watcher\Io
      */
     function await($socket, callable $callback)
     {
@@ -180,7 +180,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when the timer expires.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\Timer
+     * @return \Icicle\Loop\Watcher\Timer
      */
     function timer($interval, callable $callback /* , ...$args */)
     {
@@ -194,7 +194,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when the timer expires.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\Timer
+     * @return \Icicle\Loop\Watcher\Timer
      */
     function periodic($interval, callable $callback /* , ...$args */)
     {
@@ -207,7 +207,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param callable $callback Function to invoke when no other active events are available.
      * @param mixed ...$args Arguments to pass to the callback function.
      *
-     * @return \Icicle\Loop\Events\Immediate
+     * @return \Icicle\Loop\Watcher\Immediate
      */
     function immediate(callable $callback /* , ...$args */)
     {
@@ -220,7 +220,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * @param int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
      * @param callable $callback Function to invoke when the given signal arrives.
      *
-     * @return \Icicle\Loop\Events\Signal
+     * @return \Icicle\Loop\Watcher\Signal
      */
     function signal($signo, callable $callback)
     {

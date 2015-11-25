@@ -11,10 +11,10 @@ namespace Icicle\Tests\Loop;
 
 use Exception;
 use Icicle\Exception\UnsupportedError;
-use Icicle\Loop\Events\Immediate;
-use Icicle\Loop\Events\Signal;
-use Icicle\Loop\Events\Io;
-use Icicle\Loop\Events\Timer;
+use Icicle\Loop\Watcher\Immediate;
+use Icicle\Loop\Watcher\Signal;
+use Icicle\Loop\Watcher\Io;
+use Icicle\Loop\Watcher\Timer;
 use Icicle\Loop\Loop;
 use Icicle\Tests\TestCase;
 

@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\Signal;
+use Icicle\Loop\Watcher\Signal;
 
 interface SignalManager extends EventManager
 {
@@ -19,28 +19,28 @@ interface SignalManager extends EventManager
      * @param int $signo
      * @param callable $callback
      *
-     * @return \Icicle\Loop\Events\Signal
+     * @return \Icicle\Loop\Watcher\Signal
      */
     public function create($signo, callable $callback);
 
     /**
      * Enables listening for the signal.
      *
-     * @param \Icicle\Loop\Events\Signal $signal
+     * @param \Icicle\Loop\Watcher\Signal $signal
      */
     public function enable(Signal $signal);
 
     /**
      * Disables listening for the signal.
      *
-     * @param \Icicle\Loop\Events\Signal
+     * @param \Icicle\Loop\Watcher\Signal
      */
     public function disable(Signal $signal);
     
     /**
      * Determines if the signal event is in the loop.
      *
-     * @param \Icicle\Loop\Events\Signal
+     * @param \Icicle\Loop\Watcher\Signal
      *
      * @return bool
      */
@@ -50,7 +50,7 @@ interface SignalManager extends EventManager
      * Unreferences the given signal event, that is, if the signal is pending in the loop, the loop should not continue
      * running.
      *
-     * @param \Icicle\Loop\Events\Signal $signal
+     * @param \Icicle\Loop\Watcher\Signal $signal
      */
     public function unreference(Signal $signal);
 
@@ -58,7 +58,7 @@ interface SignalManager extends EventManager
      * References a signal if it was previously unreferenced. That is, if the timer is pending the loop will continue
      * running.
      *
-     * @param \Icicle\Loop\Events\Signal $signal
+     * @param \Icicle\Loop\Watcher\Signal $signal
      */
     public function reference(Signal $signal);
 }

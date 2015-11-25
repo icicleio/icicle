@@ -7,18 +7,22 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Events;
+namespace Icicle\Loop\Watcher;
 
-use Icicle\Loop\Manager\ImmediateManager;
+use Icicle\Loop\Manager\TimerManager;
 
-class Immediate implements Event
+class Timer implements Watcher
 {
+    const MIN_INTERVAL = 0.001; // 1ms minimum interval.
+    
     /**
-     * @var \Icicle\Loop\Manager\ImmediateManager
+     * @var \Icicle\Loop\Manager\TimerManager
      */
     private $manager;
     
     /**
+     * Callback function to be called when the timer expires.
+     *
      * @var callable
      */
     private $callback;
@@ -27,22 +31,49 @@ class Immediate implements Event
      * @var mixed[]|null
      */
     private $args;
+    
+    /**
+     * Number of seconds until the timer is called.
+     *
+     * @var float
+     */
+    private $interval;
+    
+    /**
+     * True if the timer is periodic, false if the timer should only be called once.
+     *
+     * @var bool
+     */
+    private $periodic;
 
     /**
      * @var bool
      */
     private $referenced = true;
-
+    
     /**
-     * @param \Icicle\Loop\Manager\ImmediateManager $manager
+     * @param \Icicle\Loop\Manager\TimerManager $manager
+     * @param int|float $interval Number of seconds until the callback function is called.
+     * @param bool $periodic True to repeat the timer, false to only run it once.
      * @param callable $callback Function called when the interval expires.
      * @param mixed[] $args Optional array of arguments to pass the callback function.
      */
-    public function __construct(ImmediateManager $manager, callable $callback, array $args = [])
-    {
+    public function __construct(
+        TimerManager $manager,
+        $interval,
+        $periodic,
+        callable $callback,
+        array $args = []
+    ) {
         $this->manager = $manager;
+        $this->interval = (float) $interval;
+        $this->periodic = (bool) $periodic;
         $this->callback = $callback;
         $this->args = $args;
+
+        if (self::MIN_INTERVAL > $this->interval) {
+            $this->interval = self::MIN_INTERVAL;
+        }
     }
 
     /**
@@ -83,7 +114,7 @@ class Immediate implements Event
     }
     
     /**
-     * {@inheritdoc}
+     * @return bool
      */
     public function isPending()
     {
@@ -91,11 +122,11 @@ class Immediate implements Event
     }
 
     /**
-     * Execute the immediate if not pending.
+     * Starts the timer if it not pending.
      */
-    public function execute()
+    public function start()
     {
-        $this->manager->execute($this);
+        $this->manager->start($this);
 
         if (!$this->referenced) {
             $this->manager->unreference($this);
@@ -103,13 +134,13 @@ class Immediate implements Event
     }
 
     /**
-     * Cancels the immediate if pending.
+     * Stops the timer if it is pending.
      */
-    public function cancel()
+    public function stop()
     {
-        $this->manager->cancel($this);
+        $this->manager->stop($this);
     }
-
+    
     /**
      * {@inheritdoc}
      */
@@ -118,7 +149,7 @@ class Immediate implements Event
         $this->referenced = false;
         $this->manager->unreference($this);
     }
-
+    
     /**
      * {@inheritdoc}
      */
@@ -126,5 +157,21 @@ class Immediate implements Event
     {
         $this->referenced = true;
         $this->manager->reference($this);
+    }
+    
+    /**
+     * @return float
+     */
+    public function getInterval()
+    {
+        return $this->interval;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPeriodic()
+    {
+        return $this->periodic;
     }
 }

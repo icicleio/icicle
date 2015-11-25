@@ -9,8 +9,8 @@
 
 namespace Icicle\Loop\Manager;
 
-use Icicle\Loop\Events\Immediate;
 use Icicle\Loop\Structures\ObjectStorage;
+use Icicle\Loop\Watcher\Immediate;
 
 class SharedImmediateManager implements ImmediateManager
 {

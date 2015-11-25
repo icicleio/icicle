@@ -8,8 +8,8 @@
         - The `Icicle\Promise` namespace has been renamed to `Icicle\Awaitable`. `Icicle\Promise\PromiseInterface` is now `Icicle\Awaitable\Awaitable`.
         - `Icicle\Awaitable\Promise` (previously `Icicle\Promise\Promise`) now extends a new class `Icicle\Awaitable\Future` that implements `Icicle\Awaitable\Awaitable`. `Future` uses protected methods to resolve the awaitable, so it can be extended to create awaitables that are resolved in different ways. The functionality of `Promise` has not changed.
         - `Icicle\Coroutine\Coroutine` now also extends `Icicle\Awaitable\Future`. The functionality of `Coroutine` has not changed, but it should be faster to create a `Coroutine` object. `Icicle\Coroutine\CoroutineInterface` has been removed.
-    - Interfaces in the `Icicle\Loop\Events` namespace were removed.
-    - `Icicle\Loop\Events\SocketEvent` was renamed to `Icicle\Loop\Events\Io` since more than just 'sockets' can be used.
+    - The `Icicle\Loop\Events` namespace was renamed to `Icicle\Loop\Watcher`. Interfaces in the namespace were removed except `EventInterface` which was renamed to `Watcher`.
+    - `Icicle\Loop\Events\SocketEvent` was renamed to `Icicle\Loop\Watcher\Io` since more than just 'sockets' can be used.
     - `Icicle\Coroutine\create()` no longer throws if the callback throws or returns a promise, instead it returns a rejected coroutine.
     - `Icicle\Awaitable\Awaitable::timeout()` (previously `Icicle\Promise\PromiseInterface::timeout()`) now takes a callback function that is invoked if the parent awaitable is not resolved in the given timeout. The promise returned from this method is resolved by the callback function. This callback function can still cancel the parent promise if desired or perform any other action.
     - Rejecting an awaitable now requires an exception instance.

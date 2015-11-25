@@ -1,11 +1,11 @@
 <?php
 namespace Icicle\Loop\Manager\Ev;
 
-use Icicle\Loop\Events\Io;
 use Icicle\Loop\EvLoop;
 use Icicle\Loop\Exception\FreedError;
 use Icicle\Loop\Exception\ResourceBusyError;
 use Icicle\Loop\Manager\IoManager;
+use Icicle\Loop\Watcher\Io;
 
 class EvIoManager implements IoManager
 {
@@ -27,7 +27,7 @@ class EvIoManager implements IoManager
     private $timers = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $unreferenced = [];
 
@@ -56,7 +56,7 @@ class EvIoManager implements IoManager
         $this->type = $eventType;
         
         $this->socketCallback = function (\EvIO $event) {
-            /** @var \Icicle\Loop\Events\Io $io */
+            /** @var \Icicle\Loop\Watcher\Io $io */
             $io = $event->data;
             $id = (int) $io->getResource();
 
@@ -69,7 +69,7 @@ class EvIoManager implements IoManager
         };
 
         $this->timerCallback = function (\EvTimer $event) {
-            /** @var \Icicle\Loop\Events\Io $io */
+            /** @var \Icicle\Loop\Watcher\Io $io */
             $io = $event->data;
             $id = (int) $io->getResource();
 

@@ -9,10 +9,10 @@
 
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\Events\Timer;
 use Icicle\Loop\Manager\TimerManager;
 use Icicle\Loop\SelectLoop;
 use Icicle\Loop\Structures\ObjectStorage;
+use Icicle\Loop\Watcher\Timer;
 use SplPriorityQueue;
 
 class SelectTimerManager implements TimerManager

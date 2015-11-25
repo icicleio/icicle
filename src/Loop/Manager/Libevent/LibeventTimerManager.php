@@ -9,10 +9,10 @@
 
 namespace Icicle\Loop\Manager\Libevent;
 
-use Icicle\Loop\Events\Timer;
 use Icicle\Loop\LibeventLoop;
-use Icicle\Loop\Structures\ObjectStorage;
 use Icicle\Loop\Manager\TimerManager;
+use Icicle\Loop\Structures\ObjectStorage;
+use Icicle\Loop\Watcher\Timer;
 
 class LibeventTimerManager implements TimerManager
 {

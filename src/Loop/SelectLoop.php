@@ -44,7 +44,7 @@ class SelectLoop extends AbstractLoop
     private $signalManager;
 
     /**
-     * @var \Icicle\Loop\Events\Timer|null
+     * @var \Icicle\Loop\Watcher\Timer|null
      */
     private $signalTimer;
 

@@ -7,11 +7,11 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Loop\Events;
+namespace Icicle\Loop\Watcher;
 
 use Icicle\Loop\Manager\SignalManager;
 
-class Signal implements Event
+class Signal implements Watcher
 {
     /**
      * @var \Icicle\Loop\Manager\SignalManager

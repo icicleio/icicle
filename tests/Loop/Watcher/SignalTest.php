@@ -7,10 +7,10 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Tests\Loop\Events;
+namespace Icicle\Tests\Loop\Watcher;
 
-use Icicle\Loop\Events\Signal;
 use Icicle\Loop\Manager\SignalManager;
+use Icicle\Loop\Watcher\Signal;
 use Icicle\Tests\TestCase;
 
 class SignalTest extends TestCase
