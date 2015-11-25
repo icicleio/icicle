@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\{Events\Io, Manager\IoManager, UvLoop};
+use Icicle\Loop\{Manager\IoManager, UvLoop, Watcher\Io};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError, UvException};
 
 class UvIoManager implements IoManager
@@ -23,12 +23,12 @@ class UvIoManager implements IoManager
     private $loopHandle;
 
     /**
-     * @var resource[] Map of sockets to uv_poll handles.
+     * @var resource[] Map of descriptors to uv_poll handles.
      */
     private $polls = [];
 
     /**
-     * @var \Icicle\Loop\Events\Timer[] Map of sockets to timers.
+     * @var \Icicle\Loop\Watcher\Timer[] Map of sockets to timers.
      */
     private $timers = [];
 
@@ -38,12 +38,12 @@ class UvIoManager implements IoManager
     private $handles = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $sockets = [];
 
     /**
-     * @var \Icicle\Loop\Events\Io[]
+     * @var \Icicle\Loop\Watcher\Io[]
      */
     private $unreferenced = [];
 

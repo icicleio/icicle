@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager\Uv;
 
-use Icicle\Loop\{Events\Timer, Manager\TimerManager, Structures\ObjectStorage, UvLoop};
+use Icicle\Loop\{Manager\TimerManager, Structures\ObjectStorage, UvLoop, Watcher\Timer};
 
 class UvTimerManager implements TimerManager
 {
@@ -26,7 +26,7 @@ class UvTimerManager implements TimerManager
     private $timers;
 
     /**
-     * @var \Icicle\Loop\Events\Timer[] Array mapping uv_timer handles to Timer objects.
+     * @var \Icicle\Loop\Watcher\Timer[] Array mapping uv_timer handles to Timer objects.
      */
     private $handles = [];
 
