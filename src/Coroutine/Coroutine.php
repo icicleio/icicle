@@ -37,11 +37,6 @@ final class Coroutine extends Future
     private $capture;
 
     /**
-     * @var bool
-     */
-    private $paused = false;
-
-    /**
      * @param \Generator $generator
      */
     public function __construct(Generator $generator)
@@ -54,8 +49,7 @@ final class Coroutine extends Future
          * @param mixed $value The value to send to the generator.
          */
         $this->send = function ($value = null) {
-            if ($this->paused) { // Avoid blowing up the call stack by queuing the continuation.
-                Loop\queue($this->send, $value);
+            if (null === $this->generator) { // Coroutine may have been cancelled.
                 return;
             }
 
@@ -71,8 +65,7 @@ final class Coroutine extends Future
          * @param \Throwable $exception Exception to be thrown into the generator.
          */
         $this->capture = function (Throwable $exception) {
-            if ($this->paused) { // Avoid blowing up the call stack by queuing the continuation.
-                Loop\queue($this->capture, $exception);
+            if (null === $this->generator) { // Coroutine may have been cancelled.
                 return;
             }
 
@@ -103,8 +96,6 @@ final class Coroutine extends Future
             return;
         }
 
-        $this->paused = true;
-
         if ($yielded instanceof Generator) {
             $yielded = new self($yielded);
         }
@@ -114,8 +105,18 @@ final class Coroutine extends Future
         } else {
             Loop\queue($this->send, $yielded);
         }
+    }
 
-        $this->paused = false;
+    /**
+     * {@inheritdoc}
+     */
+    protected function resolve($value = null)
+    {
+        parent::resolve($value);
+
+        $this->generator = null;
+        $this->send = null;
+        $this->capture = null;
     }
 
     /**
@@ -127,6 +128,12 @@ final class Coroutine extends Future
             $current = $this->generator->current(); // Get last yielded value.
             if ($current instanceof Awaitable) {
                 $current->cancel($reason); // Cancel last yielded awaitable.
+            }
+
+            try {
+                $this->generator = null; // finally blocks may throw from force-closed Generator.
+            } catch (Throwable $exception) {
+                $reason = $exception;
             }
         }
 

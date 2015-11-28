@@ -548,6 +548,54 @@ class CoroutineTest extends TestCase
         $this->assertTrue($coroutine->isFulfilled());
         $this->assertSame($value, $coroutine->wait());
     }
+
+    /**
+     * @depends testYieldFulfilledPromise
+     */
+    public function testYieldConsecutiveFulfilled()
+    {
+        $count = 1000;
+        $awaitable = Awaitable\resolve();
+
+        $generator = function () use ($count, $awaitable) {
+            for ($i = 0; $i < $count; ++$i) {
+                yield $awaitable;
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+        $coroutine->done($this->createCallback(1));
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+    }
+
+    /**
+     * @depends testYieldRejectedPromise
+     */
+    public function testYieldConsecutiveRejected()
+    {
+        $count = 1000;
+        $awaitable = Awaitable\reject(new Exception());
+
+        $generator = function () use ($count, $awaitable) {
+            for ($i = 0; $i < $count; ++$i) {
+                try {
+                    yield $awaitable;
+                } catch (Exception $exception) {
+                    // Ignore and continue.
+                }
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+        $coroutine->done($this->createCallback(1));
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isFulfilled());
+    }
     
     public function testCancellation()
     {
@@ -752,31 +800,6 @@ class CoroutineTest extends TestCase
 
     /**
      * @depends testCancellation
-     * @depends testYieldRejectedPromise
-     */
-    public function testCancellationAfterYieldingRejectedPromise()
-    {
-        $exception = new Exception();
-
-        $generator = function () use ($exception) {
-            yield Awaitable\reject($exception);
-        };
-
-        $coroutine = new Coroutine($generator());
-
-        $coroutine->cancel();
-
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->with($this->isInstanceOf(CancelledException::class));
-
-        $coroutine->done($this->createCallback(0), $callback);
-
-        Loop\run();
-    }
-
-    /**
-     * @depends testCancellation
      */
     public function testTimeout()
     {
@@ -841,8 +864,7 @@ class CoroutineTest extends TestCase
     {
         $generator = function ($id, $count = 0) {
             for ($i = 0; $count > $i; ++$i) {
-                echo "[{$id}]";
-                yield;
+                echo (yield "[{$id}]");
             }
         };
         

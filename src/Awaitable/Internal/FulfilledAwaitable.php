@@ -9,7 +9,7 @@
 
 namespace Icicle\Awaitable\Internal;
 
-use Icicle\Awaitable\{Awaitable, Promise, function resolve, function reject};
+use Icicle\Awaitable\{Awaitable, Promise};
 use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
 use Throwable;
@@ -44,11 +44,15 @@ class FulfilledAwaitable extends ResolvedAwaitable
             return $this;
         }
 
-        try {
-            return resolve($onFulfilled($this->value));
-        } catch (Throwable $exception) {
-            return reject($exception);
-        }
+        return new Promise(function (callable $resolve, callable $reject) use ($onFulfilled) {
+            Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
+                try {
+                    $resolve($onFulfilled($this->value));
+                } catch (Throwable $exception) {
+                    $reject($exception);
+                }
+            });
+        });
     }
     
     /**
@@ -57,13 +61,7 @@ class FulfilledAwaitable extends ResolvedAwaitable
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onFulfilled) {
-            try {
-                $onFulfilled($this->value);
-            } catch (Throwable $exception) {
-                Loop\queue(function () use ($exception) {
-                    throw $exception;
-                });
-            }
+            Loop\queue($onFulfilled, $this->value);
         }
     }
     
