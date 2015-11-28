@@ -10,7 +10,7 @@
 namespace Icicle\Awaitable\Internal;
 
 use Exception;
-use Icicle\Awaitable;
+use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Promise;
 use Icicle\Exception\InvalidArgumentError;
 use Icicle\Loop;
@@ -29,7 +29,7 @@ class FulfilledAwaitable extends ResolvedAwaitable
      */
     public function __construct($value)
     {
-        if ($value instanceof Awaitable\Awaitable) {
+        if ($value instanceof Awaitable) {
             throw new InvalidArgumentError('Cannot use an awaitable as a fulfillment value.');
         }
         
@@ -45,11 +45,15 @@ class FulfilledAwaitable extends ResolvedAwaitable
             return $this;
         }
 
-        try {
-            return Awaitable\resolve($onFulfilled($this->value));
-        } catch (Exception $exception) {
-            return Awaitable\reject($exception);
-        }
+        return new Promise(function (callable $resolve, callable $reject) use ($onFulfilled) {
+            Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
+                try {
+                    $resolve($onFulfilled($this->value));
+                } catch (Exception $exception) {
+                    $reject($exception);
+                }
+            });
+        });
     }
     
     /**
@@ -58,13 +62,7 @@ class FulfilledAwaitable extends ResolvedAwaitable
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onFulfilled) {
-            try {
-                $onFulfilled($this->value);
-            } catch (Exception $exception) {
-                Loop\queue(function () use ($exception) {
-                    throw $exception;
-                });
-            }
+            Loop\queue($onFulfilled, $this->value);
         }
     }
     
