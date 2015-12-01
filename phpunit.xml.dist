@@ -22,6 +22,9 @@
         <testsuite name="Icicle Coroutine">
             <directory>tests/Coroutine</directory>
         </testsuite>
+        <testsuite name="Icicle Observable">
+            <directory>tests/Observable</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist>
