@@ -49,7 +49,8 @@
         "files": [
             "src/Awaitable/functions.php",
             "src/Coroutine/functions.php",
-            "src/Loop/functions.php"
+            "src/Loop/functions.php",
+            "src/Observable/functions.php"
         ]
     },
     "autoload-dev": {
