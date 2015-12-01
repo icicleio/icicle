@@ -9,15 +9,12 @@
 
 namespace Icicle\Observable;
 
-use Exception;
 use Generator;
-use Icicle\Coroutine as CoroutineNS;
-use Icicle\Coroutine\Coroutine;
-use Icicle\Exception\InvalidArgumentError;
-use Icicle\Exception\UnexpectedTypeError;
+use Icicle\Coroutine\{Coroutine, function sleep};
+use Icicle\Exception\{InvalidArgumentError, UnexpectedTypeError};
 use Icicle\Loop;
-use Icicle\Observable\Exception\DisposedException;
-use Icicle\Observable\Exception\InvalidEmitterError;
+use Icicle\Observable\Exception\{DisposedException, InvalidEmitterError};
+use Throwable;
 
 class Emitter implements Observable
 {
@@ -70,7 +67,7 @@ class Emitter implements Observable
              * @throws \Icicle\Observable\Exception\CompletedError If the observable has been completed.
              * @throws \Icicle\Observable\Exception\BusyError If the observable is still busy emitting a value.
              */
-            $emit = function ($value = null) {
+            $emit = function ($value = null): \Generator {
                 return $this->queue->push($value);
             };
 
@@ -86,11 +83,11 @@ class Emitter implements Observable
                     function ($value) {
                         $this->queue->complete($value);
                     },
-                    function (Exception $exception) {
+                    function (Throwable $exception) {
                         $this->queue->fail($exception);
                     }
                 );
-            } catch (Exception $exception) {
+            } catch (Throwable $exception) {
                 $this->queue->fail(new InvalidEmitterError($emitter, $exception));
             }
         });
@@ -99,7 +96,7 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
-    public function dispose(Exception $exception = null)
+    public function dispose(Throwable $exception = null)
     {
         if (null === $exception) {
             $exception = new DisposedException('Observable disposed.');
@@ -117,7 +114,7 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
-    public function getIterator()
+    public function getIterator(): ObservableIterator
     {
         if (null !== $this->emitter) {
             $this->start();
@@ -129,63 +126,61 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
-    public function each(callable $onNext = null)
+    public function each(callable $onNext = null): \Generator
     {
         $iterator = $this->getIterator();
 
-        while (yield $iterator->wait()) {
+        while (yield from $iterator->wait()) {
             if (null !== $onNext) {
                 yield $onNext($iterator->getCurrent());
             }
         }
 
-        yield $iterator->getReturn();
+        return $iterator->getReturn();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map(callable $onNext, callable $onComplete = null)
+    public function map(callable $onNext, callable $onComplete = null): Observable
     {
         return new self(function (callable $emit) use ($onNext, $onComplete) {
             $iterator = $this->getIterator();
-            while (yield $iterator->wait()) {
-                yield $emit($onNext($iterator->getCurrent()));
+            while (yield from $iterator->wait()) {
+                yield from $emit($onNext($iterator->getCurrent()));
             }
 
             if (null === $onComplete) {
-                yield $iterator->getReturn();
-                return;
+                return $iterator->getReturn();
             }
 
-            yield $onComplete($iterator->getReturn());
+            return yield $onComplete($iterator->getReturn());
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function filter(callable $callback)
+    public function filter(callable $callback): Observable
     {
         return new self(function (callable $emit) use ($callback) {
             $iterator = $this->getIterator();
-            while (yield $iterator->wait()) {
+            while (yield from $iterator->wait()) {
                 $value = $iterator->getCurrent();
                 if (yield $callback($value)) {
-                    yield $emit($value);
+                    yield from $emit($value);
                 }
             }
 
-            yield $iterator->getReturn();
+            return $iterator->getReturn();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function throttle($time)
+    public function throttle(float $time): Observable
     {
-        $time = (float) $time;
         if (0 >= $time) {
             return $this->skip(0);
         }
@@ -194,28 +189,28 @@ class Emitter implements Observable
             $iterator = $this->getIterator();
             $start = microtime(true) - $time;
 
-            while (yield $iterator->wait()) {
+            while (yield from $iterator->wait()) {
                 $value = $iterator->getCurrent();
 
                 $diff = $time + $start - microtime(true);
 
                 if (0 < $diff) {
-                    yield CoroutineNS\sleep($diff);
+                    yield from sleep($diff);
                 }
 
                 $start = microtime(true);
 
-                yield $emit($value);
+                yield from $emit($value);
             }
 
-            yield $iterator->getReturn();
+            return $iterator->getReturn();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function splat(callable $onNext, callable $onComplete = null)
+    public function splat(callable $onNext, callable $onComplete = null): Observable
     {
         $onNext = function ($values) use ($onNext) {
             if ($values instanceof \Traversable) {
@@ -225,7 +220,7 @@ class Emitter implements Observable
             }
 
             ksort($values);
-            return call_user_func_array($onNext, $values);
+            return $onNext(...$values);
         };
 
         if (null !== $onComplete) {
@@ -237,7 +232,7 @@ class Emitter implements Observable
                 }
 
                 ksort($values);
-                return call_user_func_array($onComplete, $values);
+                return $onComplete(...$values);
             };
         }
 
@@ -247,48 +242,46 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
-    public function take($count)
+    public function take(int $count): Observable
     {
         return new self(function (callable $emit) use ($count) {
-            $count = (int) $count;
             if (0 > $count) {
                 throw new InvalidArgumentError('The number of values to take must be non-negative.');
             }
 
             $iterator = $this->getIterator();
-            for ($i = 0; $i < $count && (yield $iterator->wait()); ++$i) {
-                yield $emit($iterator->getCurrent());
+            for ($i = 0; $i < $count && yield from $iterator->wait(); ++$i) {
+                yield from $emit($iterator->getCurrent());
             }
 
-            yield $i;
+            return $i;
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function skip($count)
+    public function skip(int $count): Observable
     {
         return new self(function (callable $emit) use ($count) {
-            $count = (int) $count;
             if (0 > $count) {
                 throw new InvalidArgumentError('The number of values to skip must be non-negative.');
             }
 
             $iterator = $this->getIterator();
-            for ($i = 0; $i < $count && (yield $iterator->wait()); ++$i);
-            while (yield $iterator->wait()) {
-                yield $emit($iterator->getCurrent());
+            for ($i = 0; $i < $count && yield from $iterator->wait(); ++$i);
+            while (yield from $iterator->wait()) {
+                yield from $emit($iterator->getCurrent());
             }
 
-            yield $iterator->getReturn();
+            return $iterator->getReturn();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isComplete()
+    public function isComplete(): bool
     {
         return $this->queue->isComplete();
     }
@@ -296,7 +289,7 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
-    public function isFailed()
+    public function isFailed(): bool
     {
         return $this->queue->isFailed();
     }

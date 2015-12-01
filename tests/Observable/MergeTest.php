@@ -33,7 +33,7 @@ class MergeTest extends TestCase
     {
         return new Observable\Emitter(function (callable $emit) use ($low, $high) {
             foreach (range($low, $high) as $value) {
-                yield $emit($value);
+                yield from $emit($value);
             }
         });
     }
@@ -75,7 +75,7 @@ class MergeTest extends TestCase
         $exception = new MergeTestException();
 
         $emitter = new Observable\Emitter(function (callable $emit) use ($exception) {
-            yield $emit(1); // Emit once before failing.
+            yield from $emit(1); // Emit once before failing.
             throw $exception;
         });
 
@@ -83,7 +83,7 @@ class MergeTest extends TestCase
         $iterator->expects($this->once())
             ->method('wait')
             ->will($this->returnCallback(function () {
-                yield new Delayed();
+                return yield new Delayed();
             }));
 
         $observable = $this->getMock(Observable\Observable::class);

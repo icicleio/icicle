@@ -26,7 +26,7 @@ interface ObservableIterator
      *     method is not resolved before calling the method again. Prevents synchronous iteration.
      * @throws \Exception Exception used to fail the observable.
      */
-    public function wait();
+    public function wait(): \Generator;
 
     /**
      * Gets the last emitted value or throws an exception if the observable has completed.
@@ -56,5 +56,5 @@ interface ObservableIterator
      *
      * @return bool
      */
-    public function isValid();
+    public function isValid(): bool;
 }

@@ -9,8 +9,7 @@
 
 namespace Icicle\Observable\Internal;
 
-use Icicle\Awaitable\Awaitable;
-use Icicle\Awaitable\Delayed;
+use Icicle\Awaitable\{Awaitable, Delayed};
 use Icicle\Loop;
 
 final class Placeholder
@@ -42,7 +41,7 @@ final class Placeholder
     /**
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function getAwaitable()
+    public function getAwaitable(): Awaitable
     {
         ++$this->waiting;
         return $this->awaitable;
@@ -63,7 +62,7 @@ final class Placeholder
      *
      * @return \Icicle\Awaitable\Awaitable
      */
-    public function wait()
+    public function wait(): Awaitable
     {
         return $this->delayed;
     }

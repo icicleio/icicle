@@ -9,10 +9,7 @@
 
 namespace Icicle\Observable;
 
-use Exception;
-use Icicle\Observable\Exception\CompletedError;
-use Icicle\Observable\Exception\IncompleteError;
-use Icicle\Observable\Exception\UninitializedError;
+use Icicle\Observable\Exception\{CompletedError, IncompleteError, UninitializedError};
 
 class EmitterIterator implements ObservableIterator
 {
@@ -60,7 +57,7 @@ class EmitterIterator implements ObservableIterator
     /**
      * {@inheritdoc}
      */
-    public function wait()
+    public function wait(): \Generator
     {
         while (null !== $this->awaitable) {
             yield $this->awaitable; // Wait until last call has resolved.
@@ -72,15 +69,15 @@ class EmitterIterator implements ObservableIterator
 
         try {
             $this->placeholder = $this->queue->pull();
-            $this->current = (yield $this->awaitable = $this->placeholder->getAwaitable());
-        } catch (Exception $exception) {
+            $this->current = yield $this->awaitable = $this->placeholder->getAwaitable();
+        } catch (\Throwable $exception) {
             $this->current = $exception;
             throw $exception;
         } finally {
             $this->awaitable = null;
         }
 
-        yield !$this->queue->isComplete();
+        return !$this->queue->isComplete();
     }
 
     /**
@@ -118,7 +115,7 @@ class EmitterIterator implements ObservableIterator
     /**
      * {@inheritdoc}
      */
-    public function isValid()
+    public function isValid(): bool
     {
         return !$this->queue->isComplete();
     }

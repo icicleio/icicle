@@ -28,7 +28,7 @@ class FromTest extends TestCase
     public function testFromObservable()
     {
         $observable = new Emitter(function (callable $emit) {
-            yield $emit(0);
+            yield from $emit(0);
         });
 
         $this->assertSame(Observable\from($observable), $observable);

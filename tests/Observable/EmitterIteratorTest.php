@@ -36,9 +36,9 @@ class EmitterIteratorTest extends TestCase
         Loop\loop(new SelectLoop());
 
         $this->emitter = new Emitter(function (callable $emit) {
-            yield $emit(Awaitable\resolve(1)->delay(self::TIMEOUT));
-            yield $emit(Awaitable\resolve(2)->delay(self::TIMEOUT));
-            yield $emit(Awaitable\resolve(3)->delay(self::TIMEOUT));
+            yield from $emit(Awaitable\resolve(1)->delay(self::TIMEOUT));
+            yield from $emit(Awaitable\resolve(2)->delay(self::TIMEOUT));
+            yield from $emit(Awaitable\resolve(3)->delay(self::TIMEOUT));
             yield 0;
         });
 

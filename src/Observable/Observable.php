@@ -14,15 +14,15 @@ interface Observable
     /**
      * @return \Icicle\Observable\ObservableIterator
      */
-    public function getIterator();
+    public function getIterator(): ObservableIterator;
 
     /**
      * Disposes of the observable, halting emission of values and failing the observable with the given exception.
      * If no exception is given, an instance of \Icicle\Observable\Exception\DisposedException is used.
      *
-     * @param \Exception|null $exception
+     * @param \Throwable|null $exception
      */
-    public function dispose(\Exception $exception = null);
+    public function dispose(\Throwable $exception = null);
 
     /**
      * The given callable will be invoked each time a value is emitted from the observable. The returned awaitable
@@ -40,7 +40,7 @@ interface Observable
      * @throws \Exception Throws any exception thrown by the observable, used to dispose the observable, or thrown
      *     by the callback function given to this method.
      */
-    public function each(callable $onNext = null);
+    public function each(callable $onNext = null): \Generator;
 
     /**
      * Each emitted value is passed to $onNext. The value returned from $onNext is then emitted from the returned
@@ -52,7 +52,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function map(callable $onNext, callable $onComplete = null);
+    public function map(callable $onNext, callable $onComplete = null): Observable;
 
     /**
      * Filters the values emitted by the observable using $callback. If $callback returns true, the value is emitted
@@ -62,7 +62,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function filter(callable $callback);
+    public function filter(callable $callback): Observable;
 
     /**
      * Throttles the observable to only emit a value every $time seconds.
@@ -71,7 +71,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function throttle($time);
+    public function throttle(float $time): Observable;
 
     /**
      * This method is a modified form of map() that expects the observable to emit an array or Traversable that is
@@ -84,7 +84,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function splat(callable $onNext, callable $onComplete = null);
+    public function splat(callable $onNext, callable $onComplete = null): Observable;
 
     /**
      * Only emits the next $count values from the observable before completing.
@@ -93,7 +93,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function take($count);
+    public function take(int $count): Observable;
 
     /**
      * Skips the first $count values emitted from the observable.
@@ -102,7 +102,7 @@ interface Observable
      *
      * @return \Icicle\Observable\Observable
      */
-    public function skip($count);
+    public function skip(int $count): Observable;
 
     /**
      * Determines if the observable has completed (completed observables will no longer emit values). Returns true
@@ -110,12 +110,12 @@ interface Observable
      *
      * @return bool
      */
-    public function isComplete();
+    public function isComplete(): bool;
 
     /**
      * Determines if the observable has completed due to an error.
      *
      * @return bool
      */
-    public function isFailed();
+    public function isFailed(): bool;
 }

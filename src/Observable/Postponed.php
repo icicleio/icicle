@@ -39,18 +39,18 @@ final class Postponed
         $this->started = new Delayed();
         $this->delayed = new Delayed();
 
-        $this->emitter = new Emitter(function (callable $emit) {
+        $this->emitter = new Emitter(function (callable $emit): \Generator {
             $this->started->resolve($emit);
             $this->started = null;
 
-            yield $this->delayed;
+            return yield $this->delayed;
         });
     }
 
     /**
      * @return \Icicle\Observable\Emitter
      */
-    public function getEmitter()
+    public function getEmitter(): Emitter
     {
         return $this->emitter;
     }
@@ -72,7 +72,7 @@ final class Postponed
      * @throws \Icicle\Observable\Exception\BusyError If the observable is still busy emitting a value.
      * @throws \Icicle\Observable\Exception\DisposedException If no listeners remain on the observable.
      */
-    public function emit($value = null)
+    public function emit($value = null): \Generator
     {
         if (null === $this->emit) {
             $this->emit = (yield $this->started);
@@ -86,8 +86,7 @@ final class Postponed
             throw new CompletedError('The observable was marked as completed.');
         }
 
-        $emit = $this->emit;
-        yield $emit($value);
+        return yield from ($this->emit)($value);
     }
 
     /**
@@ -103,9 +102,9 @@ final class Postponed
     /**
      * Throws an error in the observable.
      *
-     * @param \Exception $reason
+     * @param \Throwable $reason
      */
-    public function fail(\Exception $reason)
+    public function fail(\Throwable $reason)
     {
         $this->delayed->reject($reason);
     }

@@ -21,22 +21,20 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      *
      * @return \Icicle\Observable\Observable
      */
-    function from($traversable)
+    function from($traversable): Observable
     {
         if ($traversable instanceof Observable) {
             return $traversable;
         }
 
-        return new Emitter(function (callable $emit) use ($traversable) {
+        return new Emitter(function (callable $emit) use ($traversable): \Generator {
             if (!is_array($traversable) && !$traversable instanceof \Traversable) {
                 throw new InvalidArgumentError('Must provide an array or instance of Traversable.');
             }
 
             foreach ($traversable as $value) {
-                yield $emit($value);
+                yield from $emit($value);
             }
-
-            yield null; // Yield null so last emitted value is not the return value (not needed in PHP 7).
         });
     }
 
@@ -45,9 +43,9 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      *
      * @return \Icicle\Observable\Observable
      */
-    function merge(array $observables)
+    function merge(array $observables): Observable
     {
-        return new Emitter(function (callable $emit) use ($observables) {
+        return new Emitter(function (callable $emit) use ($observables): \Generator {
             /** @var \Icicle\Observable\Observable[] $observables */
             $observables = array_map(__NAMESPACE__ . '\from', $observables);
 
@@ -79,7 +77,7 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                             continue;
                         }
 
-                        yield $emit($iterator->getCurrent());
+                        yield from $emit($iterator->getCurrent());
 
                         $coroutines[$key] = new Coroutine($iterator->wait());
                     }
@@ -90,8 +88,6 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                 }
                 throw $exception;
             }
-
-            yield null; // Yield null so last emitted value is not the return value (not needed in PHP 7).
         });
     }
 
@@ -106,17 +102,13 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      *
      * @return \Icicle\Observable\Observable
      */
-    function observe(callable $emitter, $index = 0 /* , ...$args */)
+    function observe(callable $emitter, int $index = 0, ...$args): Observable
     {
-        $args = array_slice(func_get_args(), 2);
-
-        return new Emitter(function (callable $emit) use ($emitter, $index, $args) {
+        return new Emitter(function (callable $emit) use ($emitter, $index, $args): \Generator {
             $queue = new \SplQueue();
 
             /** @var \Icicle\Awaitable\Delayed $delayed */
-            $callback = function (/* ...$args */) use (&$delayed, $queue) {
-                $args = func_get_args();
-
+            $callback = function (...$args) use (&$delayed, $queue) {
                 if (null !== $delayed) {
                     $delayed->resolve($args);
                     $delayed = null;
@@ -131,14 +123,14 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
 
             array_splice($args, $index, 0, [$callback]);
 
-            call_user_func_array($emitter, $args);
+            $emitter(...$args);
 
             while (true) {
                 if ($queue->isEmpty()) {
                     $delayed = new Delayed();
-                    yield $emit($delayed);
+                    yield from $emit($delayed);
                 } else {
-                    yield $emit($queue->shift());
+                    yield from $emit($queue->shift());
                 }
             }
         });
@@ -153,10 +145,9 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      *
      * @return \Icicle\Observable\Observable
      */
-    function interval($interval, $count = 0)
+    function interval(float $interval, int $count = 0): Observable
     {
-        return new Emitter(function (callable $emit) use ($interval, $count) {
-            $count = (int) $count;
+        return new Emitter(function (callable $emit) use ($interval, $count): \Generator {
             if (0 > $count) {
                 throw new InvalidArgumentError('The number of times to emit must be a non-negative value.');
             }
@@ -173,13 +164,13 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
 
             try {
                 while (0 === $count || $i < $count) {
-                    yield $emit($delayed);
+                    yield from $emit($delayed);
                 }
             } finally {
                 $timer->stop();
             }
 
-            yield microtime(true) - $start;
+            return microtime(true) - $start;
         });
     }
 }

@@ -34,7 +34,7 @@ class EmitterTest extends TestCase
     public function testGetIterator()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit();
+            yield from $emit();
         });
 
         $iterator = $emitter->getIterator();
@@ -81,7 +81,7 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            yield from $emit($value);
         });
 
         $callback = $this->createCallback(1);
@@ -106,7 +106,7 @@ class EmitterTest extends TestCase
         $delayed = new Delayed();
 
         $emitter = new Emitter(function (callable $emit) use ($delayed) {
-            yield $emit($delayed);
+            return yield from $emit($delayed);
         });
 
         $value = 1;
@@ -133,11 +133,11 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $generator = function () use ($value) {
-            yield $value;
+            return yield $value;
         };
 
         $emitter = new Emitter(function (callable $emit) use ($generator) {
-            yield $emit($generator());
+            return yield from $emit($generator());
         });
 
         $callback = $this->createCallback(1);
@@ -160,9 +160,9 @@ class EmitterTest extends TestCase
 
         $emitter = new Emitter(function (callable $emit) use (&$time, $value) {
             $time = microtime(true);
-            yield $emit();
+            yield from $emit();
             $time = microtime(true) - $time;
-            yield $value;
+            return $value;
         });
 
         $awaitable = new Coroutine($emitter->each(function () {
@@ -202,7 +202,7 @@ class EmitterTest extends TestCase
     public function testEachCallbackThrowingRejectsCoroutine()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit();
+            yield from $emit();
         });
 
         $awaitable = new Coroutine($emitter->each(function () {
@@ -220,7 +220,7 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            return yield from $emit($value);
         });
 
         $observable = $emitter->map(function ($value) {
@@ -244,7 +244,7 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            return yield from $emit($value);
         });
 
         $callback = function ($value) {
@@ -270,17 +270,17 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit(1);
-            yield $emit(2);
-            yield $emit(3);
-            yield $emit(4);
-            yield $value;
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
+            return $value;
         });
 
         $i = 0;
 
         $observable = $emitter->map(function ($value) use (&$i) {
-            yield $value++;
+            return yield $value++;
         });
 
         $awaitable = new Coroutine($observable->each(function ($emitted) use (&$i, $value) {
@@ -299,7 +299,7 @@ class EmitterTest extends TestCase
     public function testMapCallbackThrows()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit();
+            yield from $emit();
         });
 
         $observable = $emitter->map(function () {
@@ -320,7 +320,7 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            yield from $emit($value);
             throw new EmitterTestException();
         });
 
@@ -343,10 +343,10 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit(0);
-            yield $emit(1);
-            yield $emit(2);
-            yield $value;
+            yield from $emit(0);
+            yield from $emit(1);
+            yield from $emit(2);
+            return $value;
         });
 
         $callback = $this->createCallback(3);
@@ -377,14 +377,14 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit(0);
-            yield $emit(1);
-            yield $emit(2);
-            yield $value;
+            yield from $emit(0);
+            yield from $emit(1);
+            yield from $emit(2);
+            return $value;
         });
 
         $callback = function ($value) {
-            yield 1 === $value;
+            return yield 1 === $value;
         };
 
         $observable = $emitter->filter($callback);
@@ -407,7 +407,7 @@ class EmitterTest extends TestCase
     public function testFilterCallbackThrows()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit();
+            yield from $emit();
         });
 
         $observable = $emitter->filter(function () {
@@ -427,7 +427,7 @@ class EmitterTest extends TestCase
     {
         $value = 1;
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            yield from $emit($value);
             throw new EmitterTestException();
         });
 
@@ -450,9 +450,9 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit([1, 2, 3]);
-            yield $emit(new \ArrayIterator([1, 2, 3]));
-            yield $value;
+            yield from $emit([1, 2, 3]);
+            yield from $emit(new \ArrayIterator([1, 2, 3]));
+            return $value;
         });
 
         $callback = $this->createCallback(2);
@@ -480,9 +480,9 @@ class EmitterTest extends TestCase
         $value = new \ArrayObject([1, 2, 3]);
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit([1, 2, 3]);
-            yield $emit(new \ArrayIterator([1, 2, 3]));
-            yield $value;
+            yield from $emit([1, 2, 3]);
+            yield from $emit(new \ArrayIterator([1, 2, 3]));
+            return $value;
         });
 
         $callback = $this->createCallback(3);
@@ -522,7 +522,7 @@ class EmitterTest extends TestCase
     public function testSplatWithNonArray($value)
     {
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            yield from $emit($value);
         });
 
         $observable = $emitter->splat($this->createCallback(0));
@@ -561,7 +561,7 @@ class EmitterTest extends TestCase
         $value = [1, 2, 3];
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit($value);
+            yield from $emit($value);
             throw new EmitterTestException();
         });
 
@@ -580,11 +580,11 @@ class EmitterTest extends TestCase
         $value = 1;
 
         $emitter = new Emitter(function (callable $emit) use ($value) {
-            yield $emit(1);
-            yield $emit(2);
-            yield $emit(3);
-            yield $emit(4);
-            yield $value;
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
+            return $value;
         });
 
         $observable = $emitter->skip(3);
@@ -607,7 +607,7 @@ class EmitterTest extends TestCase
     public function testSkipWithInvalidCount()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->skip(-1);
@@ -623,10 +623,10 @@ class EmitterTest extends TestCase
     public function testTake()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(2);
-            yield $emit(3);
-            yield $emit(4);
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
         });
 
         $observable = $emitter->take(2);
@@ -647,7 +647,7 @@ class EmitterTest extends TestCase
     public function testTakeWithInvalidCount()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->take(-1);
@@ -663,10 +663,10 @@ class EmitterTest extends TestCase
     public function testThrottle()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(2);
-            yield $emit(3);
-            yield $emit(4);
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
         });
 
         $observable = $emitter->throttle(self::TIMEOUT);
@@ -688,10 +688,10 @@ class EmitterTest extends TestCase
     public function testThrottleWithDelayedEmits()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(Awaitable\resolve(2)->delay(self::TIMEOUT * 2));
-            yield $emit(3);
-            yield $emit(Awaitable\resolve(4)->delay(self::TIMEOUT * 2));
+            yield from $emit(1);
+            yield from $emit(Awaitable\resolve(2)->delay(self::TIMEOUT * 2));
+            yield from $emit(3);
+            yield from $emit(Awaitable\resolve(4)->delay(self::TIMEOUT * 2));
         });
 
         $observable = $emitter->throttle(self::TIMEOUT);
@@ -713,10 +713,10 @@ class EmitterTest extends TestCase
     public function testThrottleWithInvalidTime()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(2);
-            yield $emit(3);
-            yield $emit(4);
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
         });
 
         $observable = $emitter->throttle(-1);
@@ -739,8 +739,8 @@ class EmitterTest extends TestCase
     public function testDispose()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(2);
+            yield from $emit(1);
+            yield from $emit(2);
         });
 
         $emitter->dispose();
@@ -761,8 +761,8 @@ class EmitterTest extends TestCase
     public function testDisposeWithCustomException()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
-            yield $emit(2);
+            yield from $emit(1);
+            yield from $emit(2);
         });
 
         $exception = new EmitterTestException();
@@ -786,7 +786,7 @@ class EmitterTest extends TestCase
     public function testAutoDispose()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $iterator = $emitter->getIterator();
@@ -812,7 +812,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromMap()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->map($this->createCallback(0));
@@ -833,7 +833,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromSplat()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->splat($this->createCallback(0));
@@ -854,7 +854,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromFilter()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->filter($this->createCallback(0));
@@ -875,7 +875,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromTake()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->take(5);
@@ -896,7 +896,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromSkip()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->skip(5);
@@ -919,7 +919,7 @@ class EmitterTest extends TestCase
     public function testDisposeFailsObservableFromThrottle()
     {
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(1);
+            yield from $emit(1);
         });
 
         $observable = $emitter->throttle(1);

@@ -9,10 +9,8 @@
 
 namespace Icicle\Observable\Internal;
 
-use Icicle\Awaitable\Delayed;
-use Icicle\Coroutine\Coroutine;
-use Icicle\Observable\Exception\BusyError;
-use Icicle\Observable\Exception\DisposedException;
+use Icicle\Awaitable\{Awaitable, Delayed};
+use Icicle\Observable\Exception\{BusyError, DisposedException};
 use Icicle\Observable\Observable;
 
 class EmitQueue
@@ -64,7 +62,7 @@ class EmitQueue
      *
      * @throws \Icicle\Observable\Exception\BusyError
      */
-    public function push($value)
+    public function push($value): \Generator
     {
         if ($this->busy) {
             throw new BusyError(
@@ -74,22 +72,25 @@ class EmitQueue
 
         $this->busy = true;
 
-        if ($value instanceof \Generator) {
-            $value = new Coroutine($value);
-        }
-
-        $this->delayed->resolve($value);
-        $this->delayed = new Delayed();
-
-        $placeholder = $this->placeholder;
-        $this->placeholder = new Placeholder($this->delayed);
-
         try {
+            if ($value instanceof \Generator) {
+                $value = yield from $value;
+            } elseif ($value instanceof Awaitable) {
+                $value = yield $value;
+            }
+
+            $this->delayed->resolve($value);
+            $this->delayed = new Delayed();
+
+            $placeholder = $this->placeholder;
+            $this->placeholder = new Placeholder($this->delayed);
+
             yield $placeholder->wait();
-            yield $value;
         } finally {
             $this->busy = false;
         }
+
+        return $value;
     }
 
     /**
@@ -113,7 +114,7 @@ class EmitQueue
     /**
      * @return \Icicle\Observable\Internal\Placeholder
      */
-    public function pull()
+    public function pull(): Placeholder
     {
         return $this->placeholder;
     }
@@ -136,9 +137,9 @@ class EmitQueue
     /**
      * Marks the observable as complete with the given error.
      *
-     * @param \Exception $exception
+     * @param \Throwable $exception
      */
-    public function fail(\Exception $exception)
+    public function fail(\Throwable $exception)
     {
         if (null === $this->observable) {
             return;
@@ -152,7 +153,7 @@ class EmitQueue
     /**
      * @return bool
      */
-    public function isComplete()
+    public function isComplete(): bool
     {
         return null === $this->observable;
     }
@@ -160,7 +161,7 @@ class EmitQueue
     /**
      * @return bool
      */
-    public function isFailed()
+    public function isFailed(): bool
     {
         return $this->failed;
     }
