@@ -22,8 +22,6 @@ class MergeTest extends TestCase
 {
     const TIMEOUT = 0.1;
 
-    protected $callback;
-
     public function setUp()
     {
         Loop\loop(new SelectLoop());
@@ -31,21 +29,16 @@ class MergeTest extends TestCase
 
     protected function createEmitter($low, $high)
     {
-        return new Observable\Emitter(function (callable $emit) use ($low, $high) {
-            foreach (range($low, $high) as $value) {
-                yield from $emit($value);
-                return $high - $low + 1;
-            }
-        });
+        return Observable\from(range($low, $high));
     }
 
     public function getObservables()
     {
         return [
-            [[range(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6], [null, null]],
-            [[$this->createEmitter(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6], [3, null]],
-            [[$this->createEmitter(1, 5), $this->createEmitter(6, 8)], [1, 6, 2, 7, 3, 8, 4, 5], [5, 3]],
-            [[new \ArrayObject(range(1, 4)), new \ArrayIterator(range(5, 8))], [1, 5, 2, 6, 3, 7, 4, 8], [null, null]],
+            [[range(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6]],
+            [[$this->createEmitter(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6]],
+            [[$this->createEmitter(1, 5), $this->createEmitter(6, 8)], [1, 6, 2, 7, 3, 8, 4, 5]],
+            [[new \ArrayObject(range(1, 4)), new \ArrayIterator(range(5, 8))], [1, 5, 2, 6, 3, 7, 4, 8]],
         ];
     }
 
@@ -55,7 +48,7 @@ class MergeTest extends TestCase
      * @param array $observables
      * @param array $expected
      */
-    public function testMerge(array $observables, array $expected, array $result)
+    public function testMerge(array $observables, array $expected)
     {
         $observable = Observable\merge($observables);
 
@@ -64,7 +57,7 @@ class MergeTest extends TestCase
             $this->assertSame($expected[$i++], $value);
         }));
 
-        $this->assertEquals($result, $awaitable->wait());
+        $awaitable->wait();
     }
 
     /**

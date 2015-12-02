@@ -12,6 +12,7 @@ namespace Icicle\Observable;
 use Generator;
 use Icicle\Coroutine\{Coroutine, function sleep};
 use Icicle\Exception\{InvalidArgumentError, UnexpectedTypeError};
+use Icicle\Awaitable\Awaitable;
 use Icicle\Loop;
 use Icicle\Observable\Exception\{DisposedException, InvalidEmitterError};
 use Throwable;
@@ -132,7 +133,13 @@ class Emitter implements Observable
 
         while (yield from $iterator->wait()) {
             if (null !== $onNext) {
-                yield $onNext($iterator->getCurrent());
+                $result = $onNext($iterator->getCurrent());
+
+                if ($result instanceof Generator) {
+                    yield from $result;
+                } elseif ($result instanceof Awaitable) {
+                    yield $result;
+                }
             }
         }
 
@@ -154,7 +161,15 @@ class Emitter implements Observable
                 return $iterator->getReturn();
             }
 
-            return yield $onComplete($iterator->getReturn());
+            $result = $onComplete($iterator->getReturn());
+
+            if ($result instanceof Generator) {
+                $result = yield from $result;
+            } elseif ($result instanceof Awaitable) {
+                $result = yield $result;
+            }
+
+            return $result;
         });
     }
 
@@ -167,7 +182,15 @@ class Emitter implements Observable
             $iterator = $this->getIterator();
             while (yield from $iterator->wait()) {
                 $value = $iterator->getCurrent();
-                if (yield $callback($value)) {
+                $result = $callback($value);
+
+                if ($result instanceof Generator) {
+                    $result = yield from $result;
+                } elseif ($result instanceof Awaitable) {
+                    $result = yield $result;
+                }
+
+                if ($result) {
                     yield from $emit($value);
                 }
             }

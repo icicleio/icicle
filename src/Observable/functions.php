@@ -49,27 +49,27 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             /** @var \Icicle\Observable\Observable[] $observables */
             $observables = array_map(__NAMESPACE__ . '\from', $observables);
 
-            $callback = function ($value) use (&$emitting, $emit) {
+            $callback = function ($value) use (&$emitting, $emit): \Generator {
                 while (null !== $emitting) {
                     yield $emitting; // Prevents simultaneous calls to $emit.
                 }
 
                 $emitting = new Delayed();
 
-                yield $emit($value);
+                yield from $emit($value);
 
                 $emitting->resolve();
                 $emitting = null;
             };
 
             /** @var \Icicle\Coroutine\Coroutine[] $coroutines */
-            $coroutines = array_map(function (Observable $observable) use ($callback) {
+            $coroutines = array_map(function (Observable $observable) use ($callback): Coroutine {
                 return new Coroutine($observable->each($callback));
             }, $observables);
 
             try {
                 return yield Awaitable\all($coroutines);
-            } catch (\Exception $exception) {
+            } catch (\Throwable $exception) {
                 foreach ($coroutines as $coroutine) {
                     $coroutine->cancel($exception);
                 }

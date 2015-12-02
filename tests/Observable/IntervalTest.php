@@ -9,8 +9,7 @@
 
 namespace Icicle\Tests\Observable;
 
-use Icicle\Coroutine as CoroutineNS;
-use Icicle\Coroutine\Coroutine;
+use Icicle\Coroutine\{Coroutine, function sleep};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Observable;
@@ -74,7 +73,7 @@ class IntervalTest extends TestCase
         $i = 0;
         $awaitable = new Coroutine($observable->each(function () use (&$i) {
             ++$i;
-            yield CoroutineNS\sleep(self::TIMEOUT * 2);
+            yield from sleep(self::TIMEOUT * 2.5);
         }));
 
         $awaitable->wait();
