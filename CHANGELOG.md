@@ -17,6 +17,7 @@
     - `Icicle\Awaitable\Awaitable::timeout()` (previously `Icicle\Promise\PromiseInterface::timeout()` now takes a callable or null as the second argument. The awaitable returned from `timeout()` is resolved by the callable or rejected with an instance of `Icicle\Awaitable\Exception\TimeoutException` if no callable is given.
 
 - New Features
+    - Added observables that represent asynchronous collections. Observables implement `Icicle\Observable\Observable` and include array-like methods including `Observable::map()` and `Observable::filter()`. Observables can be iterated over asynchronously in a coroutine using the iterator returned from `Observable::getIterator()`. See the example in `examples/observable.php` and the documentation (work-in-progress) for more information.
     - `Icicle\Awaitable\Delayed` was added as a publicly resolvable awaitable. This type of awaitable should not be returned from public APIs, but rather only used internally within a class or Coroutine to create an awaitable that can be resolved later. So in other words, a class method or function should never return a `Delayed`. In general, methods and functions should not be returning awaitables as part of their public API. The public API should consist of Generators that can be used as Coroutines.
     - `Icicle\Awaitable\Awaitable` now has a method `uncancellable()` that returns an awaitable that cannot be cancelled (the `cancel()` method is a no-op).
 
