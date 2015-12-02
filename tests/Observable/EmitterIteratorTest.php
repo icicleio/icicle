@@ -47,21 +47,16 @@ class EmitterIteratorTest extends TestCase
 
     protected function iterate(EmitterIterator $iterator, callable $callback)
     {
-        while (yield $iterator->wait()) {
-            $this->assertTrue($iterator->isValid());
+        while (yield $iterator->isValid()) {
             $callback($iterator->getCurrent());
         }
     }
 
     public function testIteration()
     {
-        $this->assertTrue($this->iterator->isValid());
-
         $coroutine = new Coroutine($this->iterate($this->iterator, $this->createCallback(3)));
 
         $coroutine->wait();
-
-        $this->assertFalse($this->iterator->isValid());
     }
 
     /**
@@ -74,8 +69,6 @@ class EmitterIteratorTest extends TestCase
 
         $coroutine->wait();
 
-        $this->assertFalse($this->iterator->isValid());
-
         $this->iterator->getCurrent();
     }
 
@@ -85,7 +78,7 @@ class EmitterIteratorTest extends TestCase
      */
     public function testGetCurrentThrowsWhenFailed()
     {
-        $coroutine = new Coroutine($this->iterator->wait());
+        $coroutine = new Coroutine($this->iterator->isValid());
 
         $this->emitter->dispose();
 
@@ -99,10 +92,10 @@ class EmitterIteratorTest extends TestCase
      */
     public function testSimultaneousCallsToWait()
     {
-        $coroutine1 = new Coroutine($this->iterator->wait());
-        $coroutine2 = new Coroutine($this->iterator->wait());
-        $coroutine3 = new Coroutine($this->iterator->wait());
-        $coroutine4 = new Coroutine($this->iterator->wait());
+        $coroutine1 = new Coroutine($this->iterator->isValid());
+        $coroutine2 = new Coroutine($this->iterator->isValid());
+        $coroutine3 = new Coroutine($this->iterator->isValid());
+        $coroutine4 = new Coroutine($this->iterator->isValid());
 
         $this->assertTrue($coroutine1->wait());
         $this->assertTrue($coroutine2->wait());
@@ -123,11 +116,9 @@ class EmitterIteratorTest extends TestCase
      */
     public function testGetReturnThrowsWhenIncomplete()
     {
-        $coroutine = new Coroutine($this->iterator->wait());
+        $coroutine = new Coroutine($this->iterator->isValid());
 
         $coroutine->wait();
-
-        $this->assertTrue($this->iterator->isValid());
 
         $this->iterator->getReturn();
     }
@@ -137,7 +128,7 @@ class EmitterIteratorTest extends TestCase
      */
     public function testGetReturnThrowsWhenFailed()
     {
-        $coroutine = new Coroutine($this->iterator->wait());
+        $coroutine = new Coroutine($this->iterator->isValid());
 
         $coroutine->wait();
 
