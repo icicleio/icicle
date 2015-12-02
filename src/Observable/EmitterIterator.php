@@ -57,7 +57,7 @@ class EmitterIterator implements ObservableIterator
     /**
      * {@inheritdoc}
      */
-    public function wait(): \Generator
+    public function isValid(): \Generator
     {
         while (null !== $this->awaitable) {
             yield $this->awaitable; // Wait until last call has resolved.
@@ -110,13 +110,5 @@ class EmitterIterator implements ObservableIterator
         }
 
         return $this->current;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isValid(): bool
-    {
-        return !$this->queue->isComplete();
     }
 }

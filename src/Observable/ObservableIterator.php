@@ -22,11 +22,9 @@ interface ObservableIterator
      *
      * @resolve bool
      *
-     * @throws \Icicle\Observable\Exception\SynchronousIterationError Thrown if the last promise returned by this
-     *     method is not resolved before calling the method again. Prevents synchronous iteration.
      * @throws \Exception Exception used to fail the observable.
      */
-    public function wait(): \Generator;
+    public function isValid(): \Generator;
 
     /**
      * Gets the last emitted value or throws an exception if the observable has completed.
@@ -49,12 +47,4 @@ interface ObservableIterator
      * @throws \Exception Exception used to fail the observable.
      */
     public function getReturn();
-
-    /**
-     * Synchronously returns the last resolution of wait(). Do not use as the loop conditional, yield the generator
-     * (coroutine) returned from wait() instead.
-     *
-     * @return bool
-     */
-    public function isValid(): bool;
 }

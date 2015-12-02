@@ -131,7 +131,7 @@ class Emitter implements Observable
     {
         $iterator = $this->getIterator();
 
-        while (yield from $iterator->wait()) {
+        while (yield from $iterator->isValid()) {
             if (null !== $onNext) {
                 $result = $onNext($iterator->getCurrent());
 
@@ -153,7 +153,7 @@ class Emitter implements Observable
     {
         return new self(function (callable $emit) use ($onNext, $onComplete) {
             $iterator = $this->getIterator();
-            while (yield from $iterator->wait()) {
+            while (yield from $iterator->isValid()) {
                 yield from $emit($onNext($iterator->getCurrent()));
             }
 
@@ -180,7 +180,7 @@ class Emitter implements Observable
     {
         return new self(function (callable $emit) use ($callback) {
             $iterator = $this->getIterator();
-            while (yield from $iterator->wait()) {
+            while (yield from $iterator->isValid()) {
                 $value = $iterator->getCurrent();
                 $result = $callback($value);
 
@@ -212,7 +212,7 @@ class Emitter implements Observable
             $iterator = $this->getIterator();
             $start = microtime(true) - $time;
 
-            while (yield from $iterator->wait()) {
+            while (yield from $iterator->isValid()) {
                 $value = $iterator->getCurrent();
 
                 $diff = $time + $start - microtime(true);
@@ -273,7 +273,7 @@ class Emitter implements Observable
             }
 
             $iterator = $this->getIterator();
-            for ($i = 0; $i < $count && yield from $iterator->wait(); ++$i) {
+            for ($i = 0; $i < $count && yield from $iterator->isValid(); ++$i) {
                 yield from $emit($iterator->getCurrent());
             }
 
@@ -292,8 +292,8 @@ class Emitter implements Observable
             }
 
             $iterator = $this->getIterator();
-            for ($i = 0; $i < $count && yield from $iterator->wait(); ++$i);
-            while (yield from $iterator->wait()) {
+            for ($i = 0; $i < $count && yield from $iterator->isValid(); ++$i);
+            while (yield from $iterator->isValid()) {
                 yield from $emit($iterator->getCurrent());
             }
 
