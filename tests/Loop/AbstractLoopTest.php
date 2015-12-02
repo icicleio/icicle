@@ -15,6 +15,8 @@ use Icicle\Loop\Loop;
 use Icicle\Tests\TestCase;
 use Throwable;
 
+class LoopTestException extends \Exception {}
+
 /**
  * Abstract class to be used as a base to test loop implementations.
  */
@@ -501,13 +503,13 @@ abstract class AbstractLoopTest extends TestCase
 
     /**
      * @depends testListenPoll
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testRunThrowsAfterThrownExceptionFromPollCallback()
     {
         list($socket) = $this->createSockets();
 
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -530,13 +532,13 @@ abstract class AbstractLoopTest extends TestCase
 
     /**
      * @depends testListenAwait
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testRunThrowsAfterThrownExceptionFromAwaitCallback()
     {
         list($readable, $writable) = $this->createSockets();
 
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -630,11 +632,11 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testQueue
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testRunThrowsAfterThrownExceptionFromQueueCallback()
     {
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -686,11 +688,11 @@ abstract class AbstractLoopTest extends TestCase
 
     /**
      * @depends testRunCallsInitializeFunctionImmediately
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testInitializeFunctionThrowingStopsLoopAndThrowsFromRun()
     {
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
 
         try {
             $this->loop->run(function () use ($exception) {
@@ -781,11 +783,11 @@ abstract class AbstractLoopTest extends TestCase
 
     /**
      * @depends testCreateImmediate
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testRunThrowsAfterThrownExceptionFromImmediateCallback()
     {
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
@@ -972,11 +974,11 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @medium
      * @depends testCreateTimer
-     * @expectedException \Icicle\Exception\UnsupportedError
+     * @expectedException \Icicle\Tests\Loop\LoopTestException
      */
     public function testRunThrowsAfterThrownExceptionFromTimerCallback()
     {
-        $exception = new UnsupportedError();
+        $exception = new LoopTestException();
         
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
