@@ -51,47 +51,32 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             /** @var \Icicle\Observable\Observable[] $observables */
             $observables = array_map(__NAMESPACE__ . '\from', $observables);
 
-            /** @var \Icicle\Observable\ObservableIterator[] $iterators */
-            $iterators = array_map(function (Observable $observable) {
-                return $observable->getIterator();
-            }, $observables);
+            $callback = function ($value) use (&$emitting, $emit) {
+                while (null !== $emitting) {
+                    yield $emitting; // Prevents simultaneous calls to $emit.
+                }
+
+                $emitting = new Delayed();
+
+                yield $emit($value);
+
+                $emitting->resolve();
+                $emitting = null;
+            };
 
             /** @var \Icicle\Coroutine\Coroutine[] $coroutines */
-            $coroutines = array_map(function (ObservableIterator $iterator) {
-                return new Coroutine($iterator->wait());
-            }, $iterators);
+            $coroutines = array_map(function (Observable $observable) use ($callback) {
+                return new Coroutine($observable->each($callback));
+            }, $observables);
 
             try {
-                while (count($coroutines)) {
-                    yield Awaitable\choose($coroutines);
-
-                    /**
-                     * @var int $key
-                     * @var \Icicle\Coroutine\Coroutine $coroutine
-                     */
-                    foreach (array_filter($coroutines, function (Coroutine $coroutine) {
-                        return !$coroutine->isPending();
-                    }) as $key => $coroutine) {
-                        $iterator = $iterators[$key];
-
-                        if (!(yield $coroutine)) {
-                            unset($coroutines[$key], $iterators[$key], $observables[$key]);
-                            continue;
-                        }
-
-                        yield $emit($iterator->getCurrent());
-
-                        $coroutines[$key] = new Coroutine($iterator->wait());
-                    }
-                }
+                yield Awaitable\all($coroutines);
             } catch (\Exception $exception) {
-                foreach ($observables as $observable) {
-                    $observable->dispose($exception);
+                foreach ($coroutines as $coroutine) {
+                    $coroutine->cancel($exception);
                 }
                 throw $exception;
             }
-
-            yield null; // Yield null so last emitted value is not the return value (not needed in PHP 7).
         });
     }
 
