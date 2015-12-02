@@ -49,14 +49,6 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
             return new EvLoop($enableSignals);
         }
 
-        if (EventLoop::enabled()) {
-            return new EventLoop($enableSignals);
-        }
-
-        if (LibeventLoop::enabled()) {
-            return new LibeventLoop($enableSignals);
-        }
-
         return new SelectLoop($enableSignals);
     }
 
