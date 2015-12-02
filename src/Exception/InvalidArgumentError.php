@@ -9,4 +9,4 @@
 
 namespace Icicle\Exception;
 
-class InvalidArgumentError extends \Exception implements Error {}
+class InvalidArgumentError extends \Error implements Error {}

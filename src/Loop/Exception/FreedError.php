@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Exception;
 
-class FreedError extends \Exception implements Error
+class FreedError extends \Error implements Error
 {
     public function __construct()
     {

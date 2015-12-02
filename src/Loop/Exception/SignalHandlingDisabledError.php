@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Exception;
 
-class SignalHandlingDisabledError extends \Exception implements Error
+class SignalHandlingDisabledError extends \Error implements Error
 {
     public function __construct()
     {

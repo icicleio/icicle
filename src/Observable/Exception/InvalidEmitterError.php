@@ -21,9 +21,9 @@ class InvalidEmitterError extends InvalidArgumentError implements Error
     /**
      * @param string $message
      * @param callable $callable
-     * @param \Exception|null $previous
+     * @param \Throwable|null $previous
      */
-    public function __construct(callable $callable, \Exception $previous = null)
+    public function __construct(callable $callable, \Throwable $previous = null)
     {
         parent::__construct('Invalid observable emitter.', 0, $previous);
 

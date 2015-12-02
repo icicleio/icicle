@@ -9,4 +9,4 @@
 
 namespace Icicle\Observable\Exception;
 
-class IncompleteError extends \Exception implements Exception {}
+class IncompleteError extends \Error implements Exception {}

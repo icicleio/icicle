@@ -9,4 +9,4 @@
 
 namespace Icicle\Observable\Exception;
 
-class UninitializedError extends \Exception implements Error {}
+class UninitializedError extends \Error implements Error {}

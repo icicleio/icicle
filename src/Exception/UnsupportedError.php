@@ -9,4 +9,4 @@
 
 namespace Icicle\Exception;
 
-class UnsupportedError extends \Exception implements Error {}
+class UnsupportedError extends \Error implements Error {}

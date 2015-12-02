@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Exception;
 
-class RunningError extends \Exception implements Error
+class RunningError extends \Error implements Error
 {
     public function __construct()
     {

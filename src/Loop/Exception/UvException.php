@@ -12,7 +12,7 @@ namespace Icicle\Loop\Exception;
 /**
  * Throws an unexpected libuv error as an exception.
  */
-class UvException extends Exception
+class UvException extends \Exception
 {
     public function __construct($errorCode)
     {

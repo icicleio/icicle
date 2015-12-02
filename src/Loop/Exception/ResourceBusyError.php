@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Exception;
 
-class ResourceBusyError extends \Exception implements Error
+class ResourceBusyError extends \Error implements Error
 {
     public function __construct()
     {
