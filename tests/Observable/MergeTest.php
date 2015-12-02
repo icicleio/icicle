@@ -34,6 +34,7 @@ class MergeTest extends TestCase
         return new Observable\Emitter(function (callable $emit) use ($low, $high) {
             foreach (range($low, $high) as $value) {
                 yield from $emit($value);
+                return $high - $low + 1;
             }
         });
     }
@@ -41,10 +42,10 @@ class MergeTest extends TestCase
     public function getObservables()
     {
         return [
-            [[range(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6]],
-            [[$this->createEmitter(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6]],
-            [[range(1, 5), $this->createEmitter(6, 8)], [1, 6, 2, 7, 3, 8, 4, 5]],
-            [[new \ArrayObject(range(1, 4)), new \ArrayIterator(range(5, 8))], [1, 5, 2, 6, 3, 7, 4, 8]],
+            [[range(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6], [null, null]],
+            [[$this->createEmitter(1, 3), range(4, 6)], [1, 4, 2, 5, 3, 6], [3, null]],
+            [[$this->createEmitter(1, 5), $this->createEmitter(6, 8)], [1, 6, 2, 7, 3, 8, 4, 5], [5, 3]],
+            [[new \ArrayObject(range(1, 4)), new \ArrayIterator(range(5, 8))], [1, 5, 2, 6, 3, 7, 4, 8], [null, null]],
         ];
     }
 
@@ -54,7 +55,7 @@ class MergeTest extends TestCase
      * @param array $observables
      * @param array $expected
      */
-    public function testMerge(array $observables, array $expected)
+    public function testMerge(array $observables, array $expected, array $result)
     {
         $observable = Observable\merge($observables);
 
@@ -63,7 +64,7 @@ class MergeTest extends TestCase
             $this->assertSame($expected[$i++], $value);
         }));
 
-        $awaitable->wait();
+        $this->assertEquals($result, $awaitable->wait());
     }
 
     /**
@@ -79,20 +80,12 @@ class MergeTest extends TestCase
             throw $exception;
         });
 
-        $iterator = $this->getMock(Observable\ObservableIterator::class);
-        $iterator->expects($this->once())
-            ->method('wait')
-            ->will($this->returnCallback(function () {
-                return yield new Delayed();
-            }));
-
         $observable = $this->getMock(Observable\Observable::class);
         $observable->expects($this->once())
-            ->method('getIterator')
-            ->will($this->returnValue($iterator));
-        $observable->expects($this->once())
-            ->method('dispose')
-            ->with($this->identicalTo($exception));
+            ->method('each')
+            ->will($this->returnCallback(function (callable $callback) {
+                yield new Delayed();
+            }));
 
         $observable = Observable\merge([$emitter, $observable]);
 
