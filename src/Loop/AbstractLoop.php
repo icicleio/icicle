@@ -246,17 +246,17 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function poll($resource, callable $callback): Io
+    public function poll($resource, callable $callback, bool $persistent = false): Io
     {
-        return $this->pollManager->create($resource, $callback);
+        return $this->pollManager->create($resource, $callback, $persistent);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function await($resource, callable $callback): Io
+    public function await($resource, callable $callback, bool $persistent = false): Io
     {
-        return $this->awaitManager->create($resource, $callback);
+        return $this->awaitManager->create($resource, $callback, $persistent);
     }
     
     /**

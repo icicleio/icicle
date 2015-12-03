@@ -11,8 +11,11 @@ namespace Icicle\Loop\Exception;
 
 class ResourceBusyError extends \Error implements Error
 {
-    public function __construct()
+    /**
+     * @param string|null $message
+     */
+    public function __construct(string $message = null)
     {
-        parent::__construct('A socket event has already been created for that resource.');
+        parent::__construct($message ?: 'A socket event has already been created for that resource.');
     }
 }

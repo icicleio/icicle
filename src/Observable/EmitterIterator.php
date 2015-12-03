@@ -34,6 +34,11 @@ class EmitterIterator implements ObservableIterator
     private $awaitable;
 
     /**
+     * @var bool
+     */
+    private $complete = false;
+
+    /**
      * @param \Icicle\Observable\Internal\EmitQueue $queue
      */
     public function __construct(Internal\EmitQueue $queue)
@@ -74,10 +79,11 @@ class EmitterIterator implements ObservableIterator
             $this->current = $exception;
             throw $exception;
         } finally {
+            $this->complete = $this->queue->isComplete();
             $this->awaitable = null;
         }
 
-        return !$this->queue->isComplete();
+        return !$this->complete;
     }
 
     /**
@@ -89,7 +95,11 @@ class EmitterIterator implements ObservableIterator
             throw new UninitializedError('wait() must be called before calling this method.');
         }
 
-        if ($this->queue->isComplete()) {
+        if ($this->complete) {
+            if ($this->queue->isFailed()) {
+                throw $this->current;
+            }
+
             throw new CompletedError('The observable has completed and the iterator is invalid.');
         }
 
@@ -105,8 +115,12 @@ class EmitterIterator implements ObservableIterator
             throw new UninitializedError('wait() must be called before calling this method.');
         }
 
-        if (!$this->queue->isComplete() || $this->queue->isFailed()) {
+        if (!$this->complete) {
             throw new IncompleteError('The observable has not completed.');
+        }
+
+        if ($this->queue->isFailed()) {
+            throw $this->current;
         }
 
         return $this->current;

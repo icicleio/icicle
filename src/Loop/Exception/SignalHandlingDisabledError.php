@@ -11,8 +11,11 @@ namespace Icicle\Loop\Exception;
 
 class SignalHandlingDisabledError extends \Error implements Error
 {
-    public function __construct()
+    /**
+     * @param string|null $message
+     */
+    public function __construct(string $message = null)
     {
-        parent::__construct('Signal handling is not enabled.');
+        parent::__construct($message ?: 'Signal handling is not enabled.');
     }
 }

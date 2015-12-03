@@ -11,8 +11,11 @@ namespace Icicle\Awaitable\Exception;
 
 class CancelledException extends \Exception implements Exception
 {
-    public function __construct()
+    /**
+     * @param string|null $message
+     */
+    public function __construct(string $message = null)
     {
-        parent::__construct('Awaitable was cancelled.');
+        parent::__construct($message ?: 'Awaitable was cancelled.');
     }
 }

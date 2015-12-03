@@ -11,6 +11,7 @@ namespace Icicle\Coroutine;
 
 use Generator;
 use Icicle\Awaitable\{Awaitable, Future};
+use Icicle\Coroutine\Exception\TerminatedException;
 use Icicle\Loop;
 use Throwable;
 
@@ -132,14 +133,21 @@ final class Coroutine extends Future
      */
     public function cancel(Throwable $reason = null)
     {
-        if ($this->current instanceof Awaitable) {
-            $this->current->cancel($reason);
+        if (null === $reason) {
+            $reason = new TerminatedException();
         }
 
-        try {
-            $this->generator = null; // finally blocks may throw from force-closed Generator.
-        } catch (Throwable $exception) {
-            $reason = $exception;
+        if (null !== $this->generator) {
+            try {
+                do {
+                    if ($this->current instanceof Awaitable) {
+                        $this->current->cancel($reason);
+                    }
+                    $this->current = $this->generator->throw($reason);
+                } while ($this->generator->valid());
+            } catch (Throwable $exception) {
+                $reason = $exception;
+            }
         }
 
         parent::cancel($reason);

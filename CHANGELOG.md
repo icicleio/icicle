@@ -1,5 +1,20 @@
 # Changelog
 
+### v0.9.1
+
+- New Features
+    - `Icicle\Loop\Watcher\Timer` gained an `again()` method that will restart the timer as though it were just started even if the timer is currently pending.
+    - `Icicle\Loop\poll()` and `Icicle\Loop\await()` now have a third parameter that if true (defaults to false) will create a persistent IO watcher object that will remain active once `listen()` is called until `cancel()` is called on the watcher. `Icicle\Loop\Watcher\Io` gained a `isPersistent()` method returning a boolean.
+
+- Changes
+    - Dropped support for the `event` and `libevent` extensions. These extensions have been replaced by the `ev` extension and are no longer being actively developed.
+    - Cancelling a coroutine will throw the cancellation reason into the generator and cancel any yielded awaitables.
+
+- Bug Fixes
+    - Fixed issue where disposing of an observable would not throw the disposal reason from `ObservableIterator::getReturn()`.
+
+---
+
 ### v0.9.0
 
 - Changes

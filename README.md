@@ -54,9 +54,9 @@ You can also manually edit `composer.json` to add Icicle as a project requiremen
 ##### Suggested
 
 - [pcntl extension](http://php.net/manual/en/book.pcntl.php): Enables custom signal handling.
-- [ev extension](https://pecl.php.net/package/ev): Allows for the most performant event loop implementation.
-- [event extension](https://pecl.php.net/package/event): Another extension allowing for event loop implementation with better performance (ev extension preferred).
-- [libevent extension](https://pecl.php.net/package/libevent): Similar to the event extension, it allows for event loop implementation with better performance (ev extension preferred).
+- [uv extension](https://github.com/bwoebi/php-uv) (PHP 7 only): Allows for the most performant event loop implementation.
+- [ev extension](https://pecl.php.net/package/ev): Another extension providing a more performant event loop if the uv extension is not available.
+preferred).
 
 #### Example
 

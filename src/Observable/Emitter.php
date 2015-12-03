@@ -48,10 +48,11 @@ class Emitter implements Observable
      */
     private function start()
     {
-        $emitter = $this->emitter;
-        $this->emitter = null;
+        Loop\queue(function () { // Asynchronously start the observable.
+            if (null === $this->emitter) {
+                return;
+            }
 
-        Loop\queue(function () use ($emitter) { // Asynchronously start the observable.
             /**
              * Emits a value from the observable.
              *
@@ -73,7 +74,7 @@ class Emitter implements Observable
             };
 
             try {
-                $generator = $emitter($emit);
+                $generator = ($this->emitter)($emit);
 
                 if (!$generator instanceof Generator) {
                     throw new UnexpectedTypeError('Generator', $generator);
@@ -89,8 +90,10 @@ class Emitter implements Observable
                     }
                 );
             } catch (Throwable $exception) {
-                $this->queue->fail(new InvalidEmitterError($emitter, $exception));
+                $this->queue->fail(new InvalidEmitterError($this->emitter, $exception));
             }
+
+            $this->emitter = null;
         });
     }
 
@@ -105,11 +108,11 @@ class Emitter implements Observable
 
         $this->emitter = null;
 
+        $this->queue->fail($exception);
+
         if (null !== $this->coroutine) {
             $this->coroutine->cancel($exception);
         }
-
-        $this->queue->fail($exception);
     }
 
     /**

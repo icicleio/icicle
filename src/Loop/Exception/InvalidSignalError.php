@@ -16,7 +16,7 @@ class InvalidSignalError extends InvalidArgumentError implements Error
     /**
      * @param int $signo
      */
-    public function __construct($signo)
+    public function __construct(int $signo)
     {
         parent::__construct(sprintf('Invalid signal number: %d.', $signo));
     }

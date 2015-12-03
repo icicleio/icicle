@@ -139,6 +139,18 @@ class Timer implements Watcher
     {
         $this->manager->stop($this);
     }
+
+    /**
+     * If the timer is running, restarts the timer as though it were just started. Otherwise the timer is started again.
+     */
+    public function again()
+    {
+        if ($this->isPending()) {
+            $this->stop();
+        }
+
+        $this->start();
+    }
     
     /**
      * {@inheritdoc}

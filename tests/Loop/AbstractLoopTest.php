@@ -234,6 +234,90 @@ abstract class AbstractLoopTest extends TestCase
     
     /**
      * @depends testListenPoll
+     */
+    public function testPersistentPoll()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+
+        $callback->method('__invoke')
+            ->with($this->identicalTo($readable), $this->identicalTo(false));
+
+        $poll = $this->loop->poll($readable, $callback, true);
+
+        $poll->listen();
+
+        $this->assertTrue($poll->isPending());
+
+        $this->loop->tick(false); // Should invoke callback.
+
+        $this->assertTrue($poll->isPending());
+
+        fwrite($writable, self::WRITE_STRING);
+
+        $this->loop->tick(false); // Should invoke callback again.
+    }
+
+    /**
+     * @depends testPersistentPoll
+     */
+    public function testPersistentPollWithTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+
+        $callback->method('__invoke')
+            ->with($this->identicalTo($readable), $this->identicalTo(false));
+
+        $poll = $this->loop->poll($readable, $callback, true);
+
+        $poll->listen(self::TIMEOUT);
+
+        $this->loop->tick(false);
+
+        $this->assertTrue($poll->isPending());
+
+        fwrite($writable, self::WRITE_STRING);
+
+        $this->loop->tick(false); // Should invoke callback again.
+    }
+
+    /**
+     * @depends testPersistentPoll
+     */
+    public function testPersistentPollWithExpiredTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+
+        $callback->expects($this->at(0))
+            ->method('__invoke')
+            ->with($this->identicalTo($readable), $this->identicalTo(false));
+
+        $callback->expects($this->at(1))
+            ->method('__invoke')
+            ->with($this->identicalTo($readable), $this->identicalTo(true));
+
+        $poll = $this->loop->poll($readable, $callback, true);
+
+        $poll->listen(self::TIMEOUT);
+
+        $this->loop->tick(false);
+
+        fread($readable, self::CHUNK_SIZE); // Drain readable stream.
+
+        $this->assertTrue($poll->isPending());
+
+        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+
+        $this->loop->tick(false); // Poll should timeout.
+    }
+
+    /**
+     * @depends testListenPoll
      * @expectedException \Icicle\Loop\Exception\FreedError
      */
     public function testFreePoll()
@@ -385,7 +469,7 @@ abstract class AbstractLoopTest extends TestCase
     }
     
     /**
-     * @depends testListenPoll
+     * @depends testListenAwait
      */
     public function testListenAwaitWithTimeout()
     {
@@ -404,7 +488,7 @@ abstract class AbstractLoopTest extends TestCase
     }
 
     /**
-     * @depends testListenPollWithTimeout
+     * @depends testListenAwaitWithTimeout
      */
     public function testListenAwaitWithInvalidTimeout()
     {
@@ -438,7 +522,57 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->assertFalse($await->isFreed());
     }
-    
+
+    /**
+     * @depends testListenAwait
+     */
+    public function testPersistentAwait()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+
+        $callback->method('__invoke')
+            ->with($this->identicalTo($writable), $this->identicalTo(false));
+
+        $await = $this->loop->await($writable, $callback, true);
+
+        $await->listen();
+
+        $this->assertTrue($await->isPending());
+
+        $this->loop->tick(false); // Should invoke callback.
+
+        $this->assertTrue($await->isPending());
+
+        $this->loop->tick(false); // Should invoke callback again.
+    }
+
+    /**
+     * @depends testPersistentAwait
+     */
+    public function testPersistentAwaitWithTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(2);
+
+        $callback->method('__invoke')
+            ->with($this->identicalTo($writable), $this->identicalTo(false));
+
+        $await = $this->loop->await($writable, $callback, true);
+
+        $await->listen(self::TIMEOUT);
+
+        $this->assertTrue($await->isPending());
+
+        $this->loop->tick(false); // Should invoke callback.
+
+        $this->assertTrue($await->isPending());
+
+        $this->loop->tick(false); // Should invoke callback again.
+    }
+
     /**
      * @depends testListenAwait
      * @expectedException \Icicle\Loop\Exception\FreedError

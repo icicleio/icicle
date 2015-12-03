@@ -84,24 +84,26 @@ interface Loop
      *
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
+     * @param bool $persistent
      *
      * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
-    public function poll($resource, callable $callback): Io;
+    public function poll($resource, callable $callback, bool $persistent = false): Io;
     
     /**
      * Creates an event object that can be used to wait for the stream or socket resource to be available for writing.
      *
      * @param resource $resource
      * @param callable<(resource $resource, bool $expired): void> $callback
+     * @param bool $persistent
      *
      * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
-    public function await($resource, callable $callback): Io;
+    public function await($resource, callable $callback, bool $persistent = false): Io;
     
     /**
      * Creates a timer object connected to the loop.

@@ -14,7 +14,7 @@ namespace Icicle\Loop\Exception;
  */
 class UvException extends \Exception
 {
-    public function __construct($errorCode)
+    public function __construct(int $errorCode)
     {
         parent::__construct(
             sprintf('UV_%s: %s', \uv_err_name($errorCode), \ucfirst(\uv_strerror($errorCode))),

@@ -7,15 +7,17 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Awaitable\Exception;
+namespace Icicle\Coroutine\Exception;
 
-class TimeoutException extends \Exception implements Exception
+use Icicle\Awaitable\Exception\CancelledException;
+
+class TerminatedException extends CancelledException implements Exception
 {
     /**
      * @param string|null $message
      */
     public function __construct(string $message = null)
     {
-        parent::__construct($message ?: 'Awaitable timed out.');
+        parent::__construct($message ?: 'Coroutine was terminated (cancelled).');
     }
 }
