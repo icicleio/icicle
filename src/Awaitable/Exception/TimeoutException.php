@@ -11,8 +11,11 @@ namespace Icicle\Awaitable\Exception;
 
 class TimeoutException extends \Exception implements Exception
 {
-    public function __construct()
+    /**
+     * @param string|null $message
+     */
+    public function __construct($message = null)
     {
-        parent::__construct('Awaitable timed out.');
+        parent::__construct($message ?: 'Awaitable timed out.');
     }
 }

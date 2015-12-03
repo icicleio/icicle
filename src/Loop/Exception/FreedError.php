@@ -11,8 +11,11 @@ namespace Icicle\Loop\Exception;
 
 class FreedError extends \Exception implements Error
 {
-    public function __construct()
+    /**
+     * @param string|null $message
+     */
+    public function __construct($message = null)
     {
-        parent::__construct('The socket event object has been freed and can no longer be used.');
+        parent::__construct($message ?: 'The socket event object has been freed and can no longer be used.');
     }
 }
