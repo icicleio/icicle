@@ -314,6 +314,32 @@ abstract class AbstractLoopTest extends TestCase
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
 
         $this->loop->tick(false); // Poll should timeout.
+
+        $this->assertFalse($poll->isPending());
+    }
+
+    /**
+     * @depends testPersistentPollWithExpiredTimeout
+     */
+    public function testPersistentPollRelistenWithoutTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $poll = $this->loop->poll($writable, $this->createCallback(0), true);
+
+        $poll->listen(self::TIMEOUT);
+
+        $this->loop->tick(false);
+
+        $this->assertTrue($poll->isPending());
+
+        $poll->listen();
+
+        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+
+        $this->loop->tick(false); // Poll should not timeout.
+
+        $this->assertTrue($poll->isPending());
     }
 
     /**

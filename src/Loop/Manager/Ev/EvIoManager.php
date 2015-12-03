@@ -156,6 +156,8 @@ class EvIoManager implements IoManager
             } else {
                 $this->timers[$id] = $this->loop->timer($timeout, $timeout, $this->timerCallback, $io);
             }
+        } elseif (isset($this->timers[$id])) {
+            $this->timers[$id]->stop();
         }
     }
     
