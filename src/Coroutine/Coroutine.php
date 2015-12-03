@@ -13,6 +13,7 @@ use Exception;
 use Generator;
 use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Future;
+use Icicle\Coroutine\Exception\TerminatedException;
 use Icicle\Loop;
 
 /**
@@ -126,14 +127,19 @@ final class Coroutine extends Future
      */
     public function cancel(Exception $reason = null)
     {
-        if ($this->isPending()) {
-            $current = $this->generator->current(); // Get last yielded value.
-            if ($current instanceof Awaitable) {
-                $current->cancel($reason); // Cancel last yielded awaitable.
-            }
+        if (null === $reason) {
+            $reason = new TerminatedException();
+        }
 
+        if (null !== $this->generator) {
             try {
-                $this->generator = null; // finally blocks may throw from force-closed Generator.
+                $current = $this->generator->current();
+                do {
+                    if ($current instanceof Awaitable) {
+                        $current->cancel($reason);
+                    }
+                    $current = $this->generator->throw($reason);
+                } while ($this->generator->valid());
             } catch (Exception $exception) {
                 $reason = $exception;
             }
