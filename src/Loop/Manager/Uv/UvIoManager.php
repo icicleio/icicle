@@ -95,6 +95,7 @@ class UvIoManager implements IoManager
 
             if ($this->sockets[$id]->isPersistent()) {
                 if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
+                    \uv_timer_stop($this->timers[$id]);
                     \uv_timer_again($this->timers[$id]);
                 }
             } else {
