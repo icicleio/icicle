@@ -68,7 +68,7 @@ class SelectIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback, $persistent = false)
     {
         $id = (int) $resource;
         
@@ -76,7 +76,7 @@ class SelectIoManager implements IoManager
             throw new ResourceBusyError();
         }
         
-        return $this->sockets[$id] = new Io($this, $resource, $callback);
+        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent);
     }
     
     /**
@@ -175,12 +175,16 @@ class SelectIoManager implements IoManager
     {
         foreach ($active as $id => $resource) {
             if (isset($this->sockets[$id], $this->pending[$id])) { // Event may have been removed from a previous call.
-                unset($this->pending[$id]);
-                
-                if (isset($this->timers[$id])) {
-                    $this->timers[$id]->stop();
+
+                if (!$this->sockets[$id]->isPersistent()) {
+                    unset($this->pending[$id]);
+                    if (isset($this->timers[$id])) {
+                        $this->timers[$id]->stop();
+                    }
+                } elseif (isset($this->timers[$id])) {
+                    $this->timers[$id]->again();
                 }
-                
+
                 $this->sockets[$id]->call(false);
             }
         }

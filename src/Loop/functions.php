@@ -148,23 +148,25 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
     /**
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when data is available on the socket.
+     * @param bool $persistent
      *
      * @return \Icicle\Loop\Watcher\Io
      */
-    function poll($socket, callable $callback)
+    function poll($socket, callable $callback, $persistent = false)
     {
-        return loop()->poll($socket, $callback);
+        return loop()->poll($socket, $callback, $persistent);
     }
 
     /**
      * @param resource $socket Stream socket resource.
      * @param callable $callback Callback to be invoked when the socket is available to write.
+     * @param bool $persistent
      *
      * @return \Icicle\Loop\Watcher\Io
      */
-    function await($socket, callable $callback)
+    function await($socket, callable $callback, $persistent = false)
     {
-        return loop()->await($socket, $callback);
+        return loop()->await($socket, $callback, $persistent);
     }
 
     /**

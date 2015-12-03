@@ -60,9 +60,15 @@ class EvIoManager implements IoManager
             $io = $event->data;
             $id = (int) $io->getResource();
 
-            $event->stop();
-            if (isset($this->timers[$id])) {
-                $this->timers[$id]->stop();
+            if ($io->isPersistent()) {
+                if (isset($this->timers[$id])) {
+                    $this->timers[$id]->again();
+                }
+            } else {
+                $event->stop();
+                if (isset($this->timers[$id])) {
+                    $this->timers[$id]->stop();
+                }
             }
 
             $io->call(false);
@@ -111,7 +117,7 @@ class EvIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback)
+    public function create($resource, callable $callback, $persistent = false)
     {
         $id = (int) $resource;
         
@@ -119,7 +125,7 @@ class EvIoManager implements IoManager
             throw new ResourceBusyError();
         }
 
-        $socket = new Io($this, $resource, $callback);
+        $socket = new Io($this, $resource, $callback, $persistent);
 
         $event = $this->loop->io($resource, $this->type, $this->socketCallback, $socket);
         $event->stop();
@@ -142,17 +148,17 @@ class EvIoManager implements IoManager
 
         $this->events[$id]->start();
 
-        if (0 !== $timeout) {
+        if ($timeout) {
             $timeout = (float) $timeout;
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
 
             if (isset($this->timers[$id])) {
-                $this->timers[$id]->set($timeout, 0);
+                $this->timers[$id]->set($timeout, $timeout);
                 $this->timers[$id]->start();
             } else {
-                $this->timers[$id] = $this->loop->timer($timeout, 0, $this->timerCallback, $io);
+                $this->timers[$id] = $this->loop->timer($timeout, $timeout, $this->timerCallback, $io);
             }
         }
     }

@@ -30,17 +30,24 @@ class Io implements Watcher
      * @var callable
      */
     private $callback;
+
+    /**
+     * @var bool
+     */
+    private $persistent;
     
     /**
      * @param \Icicle\Loop\Manager\IoManager $manager
      * @param resource $resource
      * @param callable $callback
+     * @param bool $persistent
      */
-    public function __construct(IoManager $manager, $resource, callable $callback)
+    public function __construct(IoManager $manager, $resource, callable $callback, $persistent = false)
     {
         $this->manager = $manager;
         $this->resource = $resource;
         $this->callback = $callback;
+        $this->persistent = (bool) $persistent;
     }
     
     /**
@@ -114,6 +121,14 @@ class Io implements Watcher
     public function free()
     {
         $this->manager->free($this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPersistent()
+    {
+        return $this->persistent;
     }
     
     /**
