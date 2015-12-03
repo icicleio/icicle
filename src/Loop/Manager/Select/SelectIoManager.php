@@ -100,6 +100,8 @@ class SelectIoManager implements IoManager
             }
             
             $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, [$io]);
+        } elseif (isset($this->timers[$id])) {
+            $this->timers[$id]->stop();
         }
     }
     
