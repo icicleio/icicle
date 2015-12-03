@@ -110,6 +110,8 @@ class UvIoManager implements IoManager
         $this->timerCallback = function ($timer) {
             $id = $this->handles[(int) $timer];
 
+            \uv_timer_stop($timer);
+
             if (\uv_is_active($this->polls[$id])) {
                 \uv_poll_stop($this->polls[$id]);
 
@@ -192,7 +194,11 @@ class UvIoManager implements IoManager
                 $this->timers[$id] = $timer;
             }
 
-            \uv_timer_start($this->timers[$id], $timeout * self::MILLISEC_PER_SEC, 0, $this->timerCallback);
+            $timeout *= self::MILLISEC_PER_SEC;
+
+            \uv_timer_start($this->timers[$id], $timeout, $timeout, $this->timerCallback);
+        } elseif (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
+            \uv_timer_stop($this->timers[$id]);
         }
     }
 
