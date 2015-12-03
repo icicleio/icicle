@@ -8,6 +8,10 @@
 
 - Changes
     - Dropped support for the `event` and `libevent` extensions. These extensions have been replaced by the `ev` extension and are no longer being actively developed.
+    - Cancelling a coroutine will throw the cancellation reason into the generator and cancel any yielded awaitables.
+
+- Bug Fixes
+    - Fixed issue where disposing of an observable would not throw the disposal reason from `ObservableIterator::getReturn()`.
 
 ---
 
