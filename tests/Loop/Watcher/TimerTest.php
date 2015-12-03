@@ -111,6 +111,31 @@ class TimerTest extends TestCase
     }
 
     /**
+     * @depends testStart
+     */
+    public function testAgain()
+    {
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $this->manager->expects($this->once())
+            ->method('isPending')
+            ->with($this->identicalTo($timer))
+            ->will($this->returnValue(true));
+
+        $this->manager->expects($this->exactly(2))
+            ->method('start')
+            ->with($this->identicalTo($timer));
+
+        $this->manager->expects($this->once())
+            ->method('stop')
+            ->with($this->identicalTo($timer));
+
+        $timer->start();
+
+        $timer->again();
+    }
+
+    /**
      * @depends testCall
      */
     public function testSetCallback()
