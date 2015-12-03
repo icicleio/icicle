@@ -28,7 +28,7 @@ class UvIoManager implements IoManager
     private $polls = [];
 
     /**
-     * @var \Icicle\Loop\Watcher\Timer[] Map of sockets to timers.
+     * @var resource[] Map of sockets to timers.
      */
     private $timers = [];
 
@@ -72,6 +72,8 @@ class UvIoManager implements IoManager
         $this->type = $eventType;
 
         $this->pollCallback = function ($poll, int $status, int $events, $resource) {
+            $id = (int) $resource;
+
             switch ($status) {
                 case 0: // OK
                     break;
@@ -82,18 +84,24 @@ class UvIoManager implements IoManager
                 case \UV::EINVAL:
                 case \UV::ENOTSOCK:
                     \uv_poll_stop($poll);
+                    if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
+                        \uv_timer_stop($this->timers[$id]);
+                    }
                     throw new UvException($status);
 
                 default: // Ignore other (probably) trivial warnings and continuing polling.
                     return;
             }
 
-            \uv_poll_stop($poll);
-
-            $id = (int) $resource;
-
-            if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
-                \uv_timer_stop($this->timers[$id]);
+            if ($this->sockets[$id]->isPersistent()) {
+                if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
+                    \uv_timer_again($this->timers[$id]);
+                }
+            } else {
+                \uv_poll_stop($poll);
+                if (isset($this->timers[$id]) && \uv_is_active($this->timers[$id])) {
+                    \uv_timer_stop($this->timers[$id]);
+                }
             }
 
             $this->sockets[$id]->call(false);
@@ -141,7 +149,7 @@ class UvIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback): Io
+    public function create($resource, callable $callback, bool $persistent = false): Io
     {
         $id = (int) $resource;
 
@@ -149,7 +157,7 @@ class UvIoManager implements IoManager
             throw new ResourceBusyError();
         }
 
-        return $this->sockets[$id] = new Io($this, $resource, $callback);
+        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent);
     }
 
     /**
