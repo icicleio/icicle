@@ -9,9 +9,11 @@
 
 namespace Icicle\Observable\Internal;
 
+use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Observable\Exception\BusyError;
+use Icicle\Observable\Exception\CompletedError;
 use Icicle\Observable\Exception\DisposedException;
 use Icicle\Observable\Observable;
 
@@ -76,6 +78,10 @@ class EmitQueue
 
         if ($value instanceof \Generator) {
             $value = new Coroutine($value);
+        }
+
+        if ($value instanceof Awaitable) {
+            $value = (yield $value);
         }
 
         $this->delayed->resolve($value);

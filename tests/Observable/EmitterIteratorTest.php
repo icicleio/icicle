@@ -61,6 +61,19 @@ class EmitterIteratorTest extends TestCase
 
     /**
      * @depends testIteration
+     * @expectedException \Icicle\Observable\Exception\DisposedException
+     */
+    public function testIsValidThrowsWhenFailed()
+    {
+        $this->emitter->dispose();
+
+        $coroutine = new Coroutine($this->iterator->isValid());
+
+        $coroutine->wait();
+    }
+
+    /**
+     * @depends testIteration
      * @expectedException \Icicle\Observable\Exception\CompletedError
      */
     public function testGetCurrentThrowsWhenComplete()
@@ -80,9 +93,13 @@ class EmitterIteratorTest extends TestCase
     {
         $coroutine = new Coroutine($this->iterator->isValid());
 
+        $coroutine->wait();
+
         $this->emitter->dispose();
 
-        $coroutine->wait();
+        $coroutine = new Coroutine($this->iterator->isValid());
+
+        Loop\run();
 
         $this->iterator->getCurrent();
     }
@@ -124,7 +141,7 @@ class EmitterIteratorTest extends TestCase
     }
 
     /**
-     * @expectedException \Icicle\Observable\Exception\IncompleteError
+     * @expectedException \Icicle\Observable\Exception\DisposedException
      */
     public function testGetReturnThrowsWhenFailed()
     {
@@ -133,6 +150,10 @@ class EmitterIteratorTest extends TestCase
         $coroutine->wait();
 
         $this->emitter->dispose();
+
+        $coroutine = new Coroutine($this->iterator->isValid());
+
+        Loop\run();
 
         $this->iterator->getReturn();
     }

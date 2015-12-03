@@ -930,4 +930,28 @@ class EmitterTest extends TestCase
 
         $awaitable->wait();
     }
+
+    /**
+     * @expectedException \Icicle\Observable\Exception\DisposedException
+     */
+    public function testEmitterCatchesDisposalException()
+    {
+        $emitter = new Emitter(function (callable $emit) {
+            try {
+                yield $emit(new Delayed());
+            } catch (DisposedException $exception) {
+                yield $emit(1); // Should throw again.
+            }
+
+            $this->fail('Emitting after disposal should throw.');
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick(false);
+
+        $emitter->dispose();
+
+        $awaitable->wait();
+    }
 }
