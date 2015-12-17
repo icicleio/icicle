@@ -31,7 +31,7 @@ interface Observable
      *
      * @coroutine
      *
-     * @param callable<(mixed $value): \Generator|Awaitable|null>|null $onNext
+     * @param callable(mixed $value): \Generator|Awaitable|null|null $onNext
      *
      * @return \Generator
      *
@@ -47,8 +47,8 @@ interface Observable
      * observable. The return value of the observable is given to $onCompleted if provided. The return of $onCompleted
      * is the return value of observable returned from this method.
      *
-     * @param callable<(mixed $value): \Generator|Awaitable|mixed> $onNext
-     * @param callable<(mixed $value): \Generator|Awaitable|mixed>|null $onComplete
+     * @param callable(mixed $value): \Generator|Awaitable|mixed $onNext
+     * @param callable(mixed $value): \Generator|Awaitable|mixed|null $onComplete
      *
      * @return \Icicle\Observable\Observable
      */
@@ -58,7 +58,7 @@ interface Observable
      * Filters the values emitted by the observable using $callback. If $callback returns true, the value is emitted
      * from the returned observable. If $callback returns false, the value is ignored and not emitted.
      *
-     * @param callable<(mixed $value): \Generator|Awaitable|bool)> $callback
+     * @param callable(mixed $value): \Generator|Awaitable|bool) $callback
      *
      * @return \Icicle\Observable\Observable
      */
@@ -79,8 +79,8 @@ interface Observable
      * arguments. If the observable does not emit an array or Traversable, the observable will error with an instance
      * of Icicle\Observable\Exception\InvalidArgumentError.
      *
-     * @param callable<(mixed ...$args): mixed> $onNext
-     * @param callable<(mixed ...$args): mixed>|null $onComplete
+     * @param callable(mixed ...$args): mixed $onNext
+     * @param callable(mixed ...$args): mixed|null $onComplete
      *
      * @return \Icicle\Observable\Observable
      */

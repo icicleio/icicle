@@ -106,7 +106,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * Starts the default event loop. If a function is provided, that function is executed immediately after starting
      * the event loop, passing the event loop as the first argument.
      *
-     * @param callable<(Loop $loop): void>|null $initialize
+     * @param callable(Loop $loop): void|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *

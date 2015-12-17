@@ -14,8 +14,8 @@ interface Awaitable
     /**
      * Assigns a set of callback functions to the awaitable, and returns a new awaitable.
      *
-     * @param callable<(mixed $value): mixed>|null $onFulfilled
-     * @param callable<(Exception $exception): mixed>|null $onRejected
+     * @param callable(mixed $value): mixed|null $onFulfilled
+     * @param callable(Exception $exception): mixed|null $onRejected
      *
      * @return \Icicle\Awaitable\Awaitable
      */
@@ -25,8 +25,8 @@ interface Awaitable
      * Assigns a set of callback functions to the awaitable. Returned values are ignored and thrown exceptions
      * are rethrown in an uncatchable way.
      *
-     * @param callable<(mixed $value)>|null $onFulfilled
-     * @param callable<(Exception $exception)>|null $onRejected
+     * @param callable(mixed $value)|null $onFulfilled
+     * @param callable(Exception $exception)|null $onRejected
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null);
     
@@ -45,7 +45,7 @@ interface Awaitable
      * returned awaitable will be rejected with an instance of \Icicle\Awaitable\Exception\TimeoutException.
      *
      * @param float $timeout
-     * @param callable<(): mixed>|null $onTimeout
+     * @param callable(): mixed|null $onTimeout
      *
      * @return \Icicle\Awaitable\Awaitable
      */
@@ -66,7 +66,7 @@ interface Awaitable
      * the callable (ex: function (RuntimeException $exception) {}), then the function will only be called if the
      * exception is an instance of the declared type of exception.
      *
-     * @param callable<(Exception $exception): mixed)> $onRejected
+     * @param callable(Exception $exception): mixed) $onRejected
      *
      * @return \Icicle\Awaitable\Awaitable
      */
@@ -78,7 +78,7 @@ interface Awaitable
      * called. If $onFulfilled throws, the returned awaitable is rejected with the thrown exception. The return value of
      * $onFulfilled is not used.
      *
-     * @param callable<(mixed $value): Awaitable|null)> $onFulfilled
+     * @param callable(mixed $value): Awaitable|null) $onFulfilled
      *
      * @return \Icicle\Awaitable\Awaitable
      */
@@ -90,7 +90,7 @@ interface Awaitable
      * the original awaitable. That is, it is fulfilled or rejected with the same value or exception. If the callback
      * throws an exception, the returned awaitable is rejected with that exception.
      *
-     * @param callable<(): Awaitable|null)> $onResolved
+     * @param callable(): Awaitable|null) $onResolved
      *
      * @return \Icicle\Awaitable\Awaitable
      */
@@ -102,7 +102,7 @@ interface Awaitable
      * function arguments. If the awaitable does not return an array, the returned awaitable will be rejected with an
      * \Icicle\Promise\Exception\UnexpectedTypeError.
      *
-     * @param callable<(mixed ...$args): mixed> $onFulfilled
+     * @param callable(mixed ...$args): mixed $onFulfilled
      *
      * @return \Icicle\Awaitable\Awaitable
      */

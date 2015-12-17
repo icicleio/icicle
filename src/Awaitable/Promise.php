@@ -20,7 +20,7 @@ use Icicle\Awaitable\Exception\InvalidResolverError;
 final class Promise extends Future
 {
     /**
-     * @param callable<(callable $resolve, callable $reject): callable|null> $resolver
+     * @param callable(callable $resolve, callable $reject): callable|null $resolver
      */
     public function __construct(callable $resolver)
     {

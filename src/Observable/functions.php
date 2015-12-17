@@ -85,7 +85,7 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      * observable that emits the arguments passed to the callback function each time the callback function would be
      * invoked.
      *
-     * @param callable<(mixed ...$args)> $emitter Function accepting a callback that periodically emits events.
+     * @param callable(mixed ...$args) $emitter Function accepting a callback that periodically emits events.
      * @param int $index Position of callback function in emitter function argument list.
      * @param mixed ...$args Other arguments to pass to emitter function.
      *
