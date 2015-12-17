@@ -19,10 +19,11 @@ interface IoManager extends WatcherManager
      * @param resource $resource
      * @param callable $callback
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Io
      */
-    public function create($resource, callable $callback, $persistent = false);
+    public function create($resource, callable $callback, $persistent = false, $data = null);
     
     /**
      * @param \Icicle\Loop\Watcher\Io $io

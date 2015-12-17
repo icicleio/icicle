@@ -35,9 +35,9 @@ class SharedImmediateManager implements ImmediateManager
     /**
      * {@inheritdoc}
      */
-    public function create(callable $callback, array $args = [])
+    public function create(callable $callback, $data = null)
     {
-        $immediate = new Immediate($this, $callback, $args);
+        $immediate = new Immediate($this, $callback, $data);
         
         $this->execute($immediate);
         

@@ -17,11 +17,11 @@ interface ImmediateManager extends WatcherManager
      * Creates an immediate object connected to the manager.
      *
      * @param callable $callback
-     * @param mixed[]|null $args
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Immediate
      */
-    public function create(callable $callback, array $args = []);
+    public function create(callable $callback, $data = null);
 
     /**
      * Puts the immediate in the loop again for execution.

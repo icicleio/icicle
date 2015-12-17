@@ -24,9 +24,9 @@ class IoTest extends TestCase
         $this->manager = $this->getMock(IoManager::class);
     }
     
-    public function createIo($resource, callable $callback)
+    public function createIo($resource, callable $callback, $data = null)
     {
-        return new Io($this->manager, $resource, $callback);
+        return new Io($this->manager, $resource, $callback, false, $data);
     }
     
     public function createSockets()
@@ -49,7 +49,7 @@ class IoTest extends TestCase
         
         $callback = $this->createCallback(2);
         $callback->method('__invoke')
-                 ->with($this->identicalTo($socket), $this->identicalTo(false));
+                 ->with($this->identicalTo($socket), $this->identicalTo(false), $this->isInstanceOf(Io::class));
         
         $event = $this->createIo($socket, $callback);
         
@@ -194,5 +194,20 @@ class IoTest extends TestCase
             ->with($this->identicalTo($event));
 
         $event->reference();
+    }
+
+    public function testData()
+    {
+        list($socket) = $this->createSockets();
+
+        $data = 'data';
+
+        $event = $this->createIo($socket, $this->createCallback(0), $data);
+
+        $this->assertSame($data, $event->getData());
+
+        $event->setData($data = 'test');
+
+        $this->assertSame($data, $event->getData());
     }
 }

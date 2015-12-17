@@ -14,7 +14,7 @@ use Icicle\Loop\Manager\IoManager;
 /**
  * Represents read and write (poll and await) io events.
  */
-class Io implements Watcher
+class Io extends Watcher
 {
     /**
      * @var \Icicle\Loop\Manager\IoManager
@@ -41,24 +41,31 @@ class Io implements Watcher
      * @param resource $resource
      * @param callable $callback
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      */
-    public function __construct(IoManager $manager, $resource, callable $callback, $persistent = false)
+    public function __construct(IoManager $manager, $resource, callable $callback, $persistent = false, $data = null)
     {
         $this->manager = $manager;
         $this->resource = $resource;
         $this->callback = $callback;
         $this->persistent = (bool) $persistent;
+
+        if (null !== $data) {
+            $this->setData($data);
+        }
     }
     
     /**
      * @internal
      *
      * Invokes the callback.
+     *
+     * @param bool $expired
      */
     public function call($expired)
     {
         $callback = $this->callback;
-        $callback($this->resource, $expired);
+        $callback($this->resource, $expired, $this);
     }
     
     /**
@@ -83,6 +90,9 @@ class Io implements Watcher
 
     /**
      * Listens for available data to read or space to write, invoking the callback when an event occurs.
+     *
+     * @param float|int $timeout If no data is received or space is not made available to write after the given timeout,
+     *     the callback will be invoked with the $expired parameter set to true. Use 0 for no timeout.
      */
     public function listen($timeout = 0)
     {

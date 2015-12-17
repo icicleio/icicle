@@ -246,46 +246,46 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function poll($resource, callable $callback, $persistent = false)
+    public function poll($resource, callable $callback, $persistent = false, $data = null)
     {
-        return $this->pollManager->create($resource, $callback, $persistent);
+        return $this->pollManager->create($resource, $callback, $persistent, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function await($resource, callable $callback, $persistent = false)
+    public function await($resource, callable $callback, $persistent = false, $data = null)
     {
-        return $this->awaitManager->create($resource, $callback, $persistent);
+        return $this->awaitManager->create($resource, $callback, $persistent, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function timer($interval, $periodic, callable $callback, array $args = [])
+    public function timer($interval, $periodic, callable $callback, $data = null)
     {
-        return $this->timerManager->create($interval, $periodic, $callback, $args);
+        return $this->timerManager->create($interval, $periodic, $callback, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function immediate(callable $callback, array $args = [])
+    public function immediate(callable $callback, $data = null)
     {
-        return $this->immediateManager->create($callback, $args);
+        return $this->immediateManager->create($callback, $data);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function signal($signo, callable $callback)
+    public function signal($signo, callable $callback, $data = null)
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalManager) {
             throw new SignalHandlingDisabledError();
         } // @codeCoverageIgnoreEnd
 
-        return $this->signalManager->create($signo, $callback);
+        return $this->signalManager->create($signo, $callback, $data);
     }
     
     /**

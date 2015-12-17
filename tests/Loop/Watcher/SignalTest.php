@@ -24,9 +24,9 @@ class SignalTest extends TestCase
         $this->manager = $this->getMock(SignalManager::class);
     }
     
-    public function createSignal($signo, callable $callback)
+    public function createSignal($signo, callable $callback, $data = null)
     {
-        return new Signal($this->manager, $signo, $callback);
+        return new Signal($this->manager, $signo, $callback, $data);
     }
 
     public function testGetSignal()
@@ -44,7 +44,7 @@ class SignalTest extends TestCase
 
         $callback = $this->createCallback(2);
         $callback->method('__invoke')
-            ->with($this->identicalTo($signo));
+            ->with($this->identicalTo($signo), $this->isInstanceOf(Signal::class));
 
         $signal = $this->createSignal($signo, $callback);
         
@@ -163,5 +163,18 @@ class SignalTest extends TestCase
         $signal->reference();
 
         $signal->enable();
+    }
+
+    public function testData()
+    {
+        $data = 'data';
+
+        $signal = $this->createSignal(1, $this->createCallback(0), $data);
+
+        $this->assertSame($data, $signal->getData());
+
+        $signal->setData($data = 'test');
+
+        $this->assertSame($data, $signal->getData());
     }
 }

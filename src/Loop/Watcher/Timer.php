@@ -11,7 +11,7 @@ namespace Icicle\Loop\Watcher;
 
 use Icicle\Loop\Manager\TimerManager;
 
-class Timer implements Watcher
+class Timer extends Watcher
 {
     const MIN_INTERVAL = 0.001; // 1ms minimum interval.
     
@@ -27,11 +27,6 @@ class Timer implements Watcher
      */
     private $callback;
 
-    /**
-     * @var mixed[]|null
-     */
-    private $args;
-    
     /**
      * Number of seconds until the timer is called.
      *
@@ -56,36 +51,35 @@ class Timer implements Watcher
      * @param int|float $interval Number of seconds until the callback function is called.
      * @param bool $periodic True to repeat the timer, false to only run it once.
      * @param callable $callback Function called when the interval expires.
-     * @param mixed[] $args Optional array of arguments to pass the callback function.
+     * @param mixed $data Optional data to associate with the watcher.
      */
     public function __construct(
         TimerManager $manager,
         $interval,
         $periodic,
         callable $callback,
-        array $args = []
+        $data = null
     ) {
         $this->manager = $manager;
         $this->interval = (float) $interval;
         $this->periodic = (bool) $periodic;
         $this->callback = $callback;
-        $this->args = $args;
 
         if (self::MIN_INTERVAL > $this->interval) {
             $this->interval = self::MIN_INTERVAL;
+        }
+
+        if (null !== $data) {
+            $this->setData($data);
         }
     }
 
     /**
      * @param callable $callback
-     * @param mixed ...$args
      */
-    public function setCallback(callable $callback /* , ...$args */)
+    public function setCallback(callable $callback)
     {
-        $args = array_slice(func_get_args(), 1);
-
         $this->callback = $callback;
-        $this->args = $args;
     }
     
     /**
@@ -95,12 +89,8 @@ class Timer implements Watcher
      */
     public function call()
     {
-        if (empty($this->args)) {
-            $callback = $this->callback;
-            $callback();
-        } else {
-            call_user_func_array($this->callback, $this->args);
-        }
+        $callback = $this->callback;
+        $callback($this);
     }
     
     /**

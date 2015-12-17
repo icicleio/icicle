@@ -22,9 +22,9 @@ class ImmediateTest extends TestCase
         $this->manager = $this->getMock(ImmediateManager::class);
     }
     
-    public function createImmediate(callable $callback, array $args = [])
+    public function createImmediate(callable $callback, $data = null)
     {
-        return new Immediate($this->manager, $callback, $args);
+        return new Immediate($this->manager, $callback, $data);
     }
 
     public function testCall()
@@ -87,13 +87,11 @@ class ImmediateTest extends TestCase
     {
         $timer = $this->createImmediate($this->createCallback(0));
 
-        $value = 1;
-
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo($value));
+            ->with($this->isInstanceOf(Immediate::class));
 
-        $timer->setCallback($callback, $value);
+        $timer->setCallback($callback);
 
         $timer->call();
     }
@@ -141,27 +139,16 @@ class ImmediateTest extends TestCase
         $immediate->execute();
     }
 
-    /**
-     * @depends testCall
-     */
-    public function testArguments()
+    public function testData()
     {
-        $arg1 = 1;
-        $arg2 = 2;
-        $arg3 = 3;
-        $arg4 = 4;
-        
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(
-                     $this->identicalTo($arg1),
-                     $this->identicalTo($arg2),
-                     $this->identicalTo($arg3),
-                     $this->identicalTo($arg4)
-                 );
-        
-        $immediate = $this->createImmediate($callback, [$arg1, $arg2, $arg3, $arg4]);
-        
-        $immediate->call();
+        $data = 'data';
+
+        $immediate = $this->createImmediate($this->createCallback(0), $data);
+
+        $this->assertSame($data, $immediate->getData());
+
+        $immediate->setData($data = 'test');
+
+        $this->assertSame($data, $immediate->getData());
     }
 }

@@ -24,9 +24,9 @@ class TimerTest extends TestCase
         $this->manager = $this->getMock(TimerManager::class);
     }
     
-    public function createTimer($interval, $periodic, callable $callback, array $args = [])
+    public function createTimer($interval, $periodic, callable $callback, $data = null)
     {
-        return new Timer($this->manager, $interval, $periodic, $callback, $args);
+        return new Timer($this->manager, $interval, $periodic, $callback, $data);
     }
 
     public function testGetInterval()
@@ -48,7 +48,11 @@ class TimerTest extends TestCase
     
     public function testCall()
     {
-        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(2));
+        $callback = $this->createCallback(2);
+        $callback->method('__invoke')
+            ->with($this->isInstanceOf(Timer::class));
+
+        $timer = $this->createTimer(self::TIMEOUT, false, $callback);
         
         $timer->call();
         $timer->call();
@@ -142,13 +146,11 @@ class TimerTest extends TestCase
     {
         $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0));
 
-        $value = 1;
-
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo($value));
+            ->with($this->isInstanceOf(Timer::class));
 
-        $timer->setCallback($callback, $value);
+        $timer->setCallback($callback);
 
         $timer->call();
     }
@@ -196,27 +198,16 @@ class TimerTest extends TestCase
         $timer->start();
     }
     
-    /**
-     * @depends testCall
-     */
-    public function testArguments()
+    public function testData()
     {
-        $arg1 = 1;
-        $arg2 = 2;
-        $arg3 = 3;
-        $arg4 = 4;
+        $data = 'data';
+
+        $timer = $this->createTimer(self::TIMEOUT, false, $this->createCallback(0), $data);
         
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-                 ->with(
-                     $this->identicalTo($arg1),
-                     $this->identicalTo($arg2),
-                     $this->identicalTo($arg3),
-                     $this->identicalTo($arg4)
-                 );
-        
-        $timer = $this->createTimer(self::TIMEOUT, false, $callback, [$arg1, $arg2, $arg3, $arg4]);
-        
-        $timer->call();
+        $this->assertSame($data, $timer->getData());
+
+        $timer->setData($data = 'test');
+
+        $this->assertSame($data, $timer->getData());
     }
 }

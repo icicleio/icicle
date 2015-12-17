@@ -48,13 +48,13 @@ abstract class AbstractSignalManager implements SignalManager
     /**
      * {@inheritdoc}
      */
-    public function create($signo, callable $callback)
+    public function create($signo, callable $callback, $data = null)
     {
         if (!in_array($signo, $this->getSignalList(), true)) {
             throw new InvalidSignalError($signo);
         }
 
-        $signal = new Signal($this, $signo, $callback);
+        $signal = new Signal($this, $signo, $callback, $data);
 
         if (!isset($this->signals[$signo])) {
             $this->signals[$signo] = new \SplObjectStorage();

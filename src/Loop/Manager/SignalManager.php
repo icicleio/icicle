@@ -18,10 +18,11 @@ interface SignalManager extends WatcherManager
      *
      * @param int $signo
      * @param callable $callback
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Signal
      */
-    public function create($signo, callable $callback);
+    public function create($signo, callable $callback, $data = null);
 
     /**
      * Enables listening for the signal.

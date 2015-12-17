@@ -11,7 +11,7 @@ namespace Icicle\Loop\Watcher;
 
 use Icicle\Loop\Manager\ImmediateManager;
 
-class Immediate implements Watcher
+class Immediate extends Watcher
 {
     /**
      * @var \Icicle\Loop\Manager\ImmediateManager
@@ -24,11 +24,6 @@ class Immediate implements Watcher
     private $callback;
 
     /**
-     * @var mixed[]|null
-     */
-    private $args;
-
-    /**
      * @var bool
      */
     private $referenced = true;
@@ -36,25 +31,24 @@ class Immediate implements Watcher
     /**
      * @param \Icicle\Loop\Manager\ImmediateManager $manager
      * @param callable $callback Function called when the interval expires.
-     * @param mixed[] $args Optional array of arguments to pass the callback function.
+     * @param mixed $data Optional data to associate with the watcher.
      */
-    public function __construct(ImmediateManager $manager, callable $callback, array $args = [])
+    public function __construct(ImmediateManager $manager, callable $callback, $data = null)
     {
         $this->manager = $manager;
         $this->callback = $callback;
-        $this->args = $args;
+
+        if (null !== $data) {
+            $this->setData($data);
+        }
     }
 
     /**
      * @param callable $callback
-     * @param mixed ...$args
      */
-    public function setCallback(callable $callback /* , ...$args */)
+    public function setCallback(callable $callback)
     {
-        $args = array_slice(func_get_args(), 1);
-
         $this->callback = $callback;
-        $this->args = $args;
     }
     
     /**
@@ -64,12 +58,8 @@ class Immediate implements Watcher
      */
     public function call()
     {
-        if (empty($this->args)) {
-            $callback = $this->callback;
-            $callback();
-        } else {
-            call_user_func_array($this->callback, $this->args);
-        }
+        $callback = $this->callback;
+        $callback($this);
     }
     
     /**
