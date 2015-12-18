@@ -22,7 +22,7 @@ interface SignalManager extends WatcherManager
      *
      * @return \Icicle\Loop\Watcher\Signal
      */
-    public function create($signo, callable $callback, $data = null): Signal;
+    public function create(int $signo, callable $callback, $data = null): Signal;
 
     /**
      * Enables listening for the signal.

@@ -67,7 +67,7 @@ class EvTimerManager implements TimerManager
     /**
      * {@inheritdoc}
      */
-    public function create($interval, $periodic = false, callable $callback, $data = null): Timer
+    public function create(float $interval, bool $periodic = false, callable $callback, $data = null): Timer
     {
         $timer = new Timer($this, $interval, $periodic, $callback, $data);
 

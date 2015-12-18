@@ -23,7 +23,7 @@ interface TimerManager extends WatcherManager
      *
      * @return \Icicle\Loop\Watcher\Timer
      */
-    public function create($interval, $periodic, callable $callback, $data = null): Timer;
+    public function create(float $interval, bool $periodic, callable $callback, $data = null): Timer;
 
     /**
      * Starts the given timer if it is not already pending.

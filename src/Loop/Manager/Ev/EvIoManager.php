@@ -114,7 +114,7 @@ class EvIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback, $persistent = false, $data = null): Io
+    public function create($resource, callable $callback, bool $persistent = false, $data = null): Io
     {
         $id = (int) $resource;
         
