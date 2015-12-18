@@ -152,7 +152,7 @@ class UvIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback, bool $persistent = false): Io
+    public function create($resource, callable $callback, bool $persistent = false, $data = null): Io
     {
         $id = (int) $resource;
 
@@ -160,7 +160,7 @@ class UvIoManager implements IoManager
             throw new ResourceBusyError();
         }
 
-        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent);
+        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent, $data);
     }
 
     /**
