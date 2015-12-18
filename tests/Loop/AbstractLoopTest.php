@@ -1352,7 +1352,9 @@ abstract class AbstractLoopTest extends TestCase
             $signal->unreference();
         });
 
-        $this->loop->timer(1, false, 'posix_kill', [$pid, SIGUSR1])->unreference();
+        $this->loop->timer(1, false, function () use ($pid) {
+            posix_kill($pid, SIGUSR1);
+        })->unreference();
 
         $this->assertTrue($this->loop->isEmpty());
 

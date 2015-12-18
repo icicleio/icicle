@@ -246,46 +246,46 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function poll($resource, callable $callback, bool $persistent = false): Io
+    public function poll($resource, callable $callback, $persistent = false, $data = null): Io
     {
-        return $this->pollManager->create($resource, $callback, $persistent);
+        return $this->pollManager->create($resource, $callback, $persistent, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function await($resource, callable $callback, bool $persistent = false): Io
+    public function await($resource, callable $callback, $persistent = false, $data = null): Io
     {
-        return $this->awaitManager->create($resource, $callback, $persistent);
+        return $this->awaitManager->create($resource, $callback, $persistent, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function timer(float $interval, bool $periodic, callable $callback, array $args = []): Timer
+    public function timer($interval, $periodic, callable $callback, $data = null): Timer
     {
-        return $this->timerManager->create($interval, $periodic, $callback, $args);
+        return $this->timerManager->create($interval, $periodic, $callback, $data);
     }
     
     /**
      * {@inheritdoc}
      */
-    public function immediate(callable $callback, array $args = []): Immediate
+    public function immediate(callable $callback, $data = null): Immediate
     {
-        return $this->immediateManager->create($callback, $args);
+        return $this->immediateManager->create($callback, $data);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function signal(int $signo, callable $callback): Signal
+    public function signal($signo, callable $callback, $data = null): Signal
     {
         // @codeCoverageIgnoreStart
         if (null === $this->signalManager) {
             throw new SignalHandlingDisabledError();
         } // @codeCoverageIgnoreEnd
 
-        return $this->signalManager->create($signo, $callback);
+        return $this->signalManager->create($signo, $callback, $data);
     }
     
     /**

@@ -76,7 +76,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * Queues a function to be executed later. The function may be executed as soon as immediately after
      * the calling scope exits. Functions are guaranteed to be executed in the order queued.
      *
-     * @param callable $callback
+     * @param callable(mixed ...$args) $callback
      * @param mixed ...$args
      */
     function queue(callable $callback, ...$args)
@@ -110,7 +110,7 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      * Starts the default event loop. If a function is provided, that function is executed immediately after starting
      * the event loop, passing the event loop as the first argument.
      *
-     * @param callable<(Loop $loop): void>|null $initialize
+     * @param callable(Loop $loop): void|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
@@ -151,72 +151,77 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
 
     /**
      * @param resource $socket Stream socket resource.
-     * @param callable $callback Callback to be invoked when data is available on the socket.
+     * @param callable(resource $resource, bool $expired, Io $io) $callback Callback to be invoked when data is
+     *     available on the socket.
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Io
      */
-    function poll($socket, callable $callback, bool $persistent = false): Io
+    function poll($socket, callable $callback, $persistent = false, $data = null): Io
     {
-        return loop()->poll($socket, $callback, $persistent);
+        return loop()->poll($socket, $callback, $persistent, $data);
     }
 
     /**
      * @param resource $socket Stream socket resource.
-     * @param callable $callback Callback to be invoked when the socket is available to write.
+     * @param callable(resource $resource, bool $expired, Io $io) $callback Callback to be invoked when the socket is
+     *     available to write.
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Io
      */
-    function await($socket, callable $callback, bool $persistent = false): Io
+    function await($socket, callable $callback, $persistent = false, $data = null): Io
     {
-        return loop()->await($socket, $callback, $persistent);
+        return loop()->await($socket, $callback, $persistent, $data);
     }
 
     /**
      * @param float|int $interval Number of seconds before the callback is invoked.
-     * @param callable $callback Function to invoke when the timer expires.
-     * @param mixed ...$args Arguments to pass to the callback function.
+     * @param callable(Timer $timer) $callback Function to invoke when the timer expires.
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Timer
      */
-    function timer(float $interval, callable $callback, ...$args): Timer
+    function timer($interval, callable $callback, $data = null): Timer
     {
-        return loop()->timer($interval, false, $callback, $args);
+        return loop()->timer($interval, false, $callback, $data);
     }
 
     /**
      * @param float|int $interval Number of seconds between invocations of the callback.
-     * @param callable $callback Function to invoke when the timer expires.
-     * @param mixed ...$args Arguments to pass to the callback function.
+     * @param callable(Timer $timer) $callback Function to invoke when the timer expires.
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Timer
      */
-    function periodic(float $interval, callable $callback, ...$args): Timer
+    function periodic($interval, callable $callback, $data = null): Timer
     {
-        return loop()->timer($interval, true, $callback, $args);
+        return loop()->timer($interval, true, $callback, $data);
     }
 
     /**
      * @param callable $callback Function to invoke when no other active events are available.
-     * @param mixed ...$args Arguments to pass to the callback function.
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Immediate
      */
-    function immediate(callable $callback, ...$args): Immediate
+    function immediate(callable $callback, $data = null): Immediate
     {
-        return loop()->immediate($callback, $args);
+        return loop()->immediate($callback, $data);
     }
 
     /**
      * @param int $signo Signal number. (Use constants such as SIGTERM, SIGCONT, etc.)
-     * @param callable $callback Function to invoke when the given signal arrives.
+     * @param callable(int $signo, Signal $signal) $callback Function to invoke when the given signal arrives.
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Signal
      */
-    function signal(int $signo, callable $callback): Signal
+    function signal($signo, callable $callback, $data = null): Signal
     {
-        return loop()->signal($signo, $callback);
+        return loop()->signal($signo, $callback, $data);
     }
 
     /**

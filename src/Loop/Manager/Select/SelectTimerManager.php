@@ -43,9 +43,9 @@ class SelectTimerManager implements TimerManager
     /**
      * {@inheritdoc}
      */
-    public function create(float $interval, bool $periodic, callable $callback, array $args = []): Timer
+    public function create($interval, $periodic, callable $callback, $data = null): Timer
     {
-        $timer = new Timer($this, $interval, $periodic, $callback, $args);
+        $timer = new Timer($this, $interval, $periodic, $callback, $data);
         
         $this->start($timer);
         

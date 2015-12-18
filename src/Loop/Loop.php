@@ -24,7 +24,7 @@ interface Loop
      * Starts the event loop. If a function is provided, that function is executed immediately after starting the event
      * loop.
      *
-     * @param callable<(): void>|null $initialize
+     * @param callable()|null $initialize
      *
      * @return bool True if the loop was stopped, false if the loop exited because no events remained.
      *
@@ -74,7 +74,7 @@ interface Loop
      * Queue a callback function to be run after all I/O has been handled in the current tick.
      * Callbacks are called in the order queued.
      *
-     * @param callable<(mixed ...$args): void> $callback
+     * @param callable(mixed ...$args) $callback
      * @param mixed[] $args Array of arguments to be passed to the callback function.
      */
     public function queue(callable $callback, array $args = []);
@@ -83,57 +83,60 @@ interface Loop
      * Creates an event object that can be used to listen for available data on the stream or socket resource.
      *
      * @param resource $resource
-     * @param callable<(resource $resource, bool $expired): void> $callback
+     * @param callable(resource $resource, bool $expired, Io $io) $callback
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If a poll was already created for the resource.
      */
-    public function poll($resource, callable $callback, bool $persistent = false): Io;
+    public function poll($resource, callable $callback, $persistent = false, $data = null): Io;
     
     /**
      * Creates an event object that can be used to wait for the stream or socket resource to be available for writing.
      *
      * @param resource $resource
-     * @param callable<(resource $resource, bool $expired): void> $callback
+     * @param callable(resource $resource, bool $expired, Io $io) $callback
      * @param bool $persistent
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Io
      *
      * @throws \Icicle\Loop\Exception\ResourceBusyError If an await was already created for the resource.
      */
-    public function await($resource, callable $callback, bool $persistent = false): Io;
+    public function await($resource, callable $callback, $persistent = false, $data = null): Io;
     
     /**
      * Creates a timer object connected to the loop.
      *
      * @param int|float $interval
      * @param bool $periodic
-     * @param callable<(mixed ...$args): void> $callback
-     * @param mixed[] $args
+     * @param callable(Timer $timer) $callback
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Timer
      */
-    public function timer(float $interval, bool $periodic, callable $callback, array $args = []): Timer;
+    public function timer($interval, $periodic, callable $callback, $data = null): Timer;
     
     /**
      * Creates an immediate object connected to the loop.
      *
-     * @param callable<(mixed ...$args): void> $callback
-     * @param mixed[] $args
+     * @param callable(Immediate $immediate) $callback
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Immediate
      */
-    public function immediate(callable $callback, array $args = []): Immediate;
+    public function immediate(callable $callback, $data = null): Immediate;
 
     /**
      * @param int $signo
-     * @param callable<(int $signo): void> $callback
+     * @param callable(int $signo, Signal $signal) $callback
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Signal
      */
-    public function signal(int $signo, callable $callback): Signal;
+    public function signal($signo, callable $callback, $data = null): Signal;
 
     /**
      * Determines if signal handling is enabled.

@@ -11,7 +11,7 @@ namespace Icicle\Loop\Watcher;
 
 use Icicle\Loop\Manager\SignalManager;
 
-class Signal implements Watcher
+class Signal extends Watcher
 {
     /**
      * @var \Icicle\Loop\Manager\SignalManager
@@ -35,14 +35,19 @@ class Signal implements Watcher
 
     /**
      * @param \Icicle\Loop\Manager\SignalManager $manager
-     * @param int $signo
-     * @param callable $callback
+     * @param int $signo Signal number.
+     * @param callable $callback Callback invoked when the signal is received.
+     * @param mixed $data Optional data to associate with the watcher.
      */
-    public function __construct(SignalManager $manager, int $signo, callable $callback)
+    public function __construct(SignalManager $manager, int $signo, callable $callback, $data = null)
     {
         $this->manager = $manager;
         $this->callback = $callback;
         $this->signo = $signo;
+
+        if (null !== $data) {
+            $this->setData($data);
+        }
     }
 
     /**
@@ -52,7 +57,7 @@ class Signal implements Watcher
      */
     public function call()
     {
-        ($this->callback)($this->signo);
+        ($this->callback)($this->signo, $this);
     }
 
     /**

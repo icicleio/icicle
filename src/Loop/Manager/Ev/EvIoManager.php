@@ -114,7 +114,7 @@ class EvIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback, bool $persistent = false): Io
+    public function create($resource, callable $callback, $persistent = false, $data = null): Io
     {
         $id = (int) $resource;
         
@@ -122,7 +122,7 @@ class EvIoManager implements IoManager
             throw new ResourceBusyError();
         }
 
-        $socket = new Io($this, $resource, $callback, $persistent);
+        $socket = new Io($this, $resource, $callback, $persistent, $data);
 
         $event = $this->loop->io($resource, $this->type, $this->socketCallback, $socket);
         $event->stop();

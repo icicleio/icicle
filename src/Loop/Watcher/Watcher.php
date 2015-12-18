@@ -9,15 +9,38 @@
 
 namespace Icicle\Loop\Watcher;
 
-interface Watcher
+abstract class Watcher
 {
+    /**
+     * @var mixed
+     */
+    private $data;
+
+    /**
+     * @return mixed
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @param mixed $data
+     *
+     * @return mixed
+     */
+    public function setData($data)
+    {
+        $this->data = $data;
+    }
+
     /**
      * An unreferenced event will allow the event loop to exit if no other watchers are pending.
      */
-    public function unreference();
+    abstract public function unreference();
 
     /**
      * Adds a reference to the event, causing the event loop to continue to run as long as the watcher is still pending.
      */
-    public function reference();
+    abstract public function reference();
 }

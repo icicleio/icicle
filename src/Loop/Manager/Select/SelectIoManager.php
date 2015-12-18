@@ -9,7 +9,7 @@
 
 namespace Icicle\Loop\Manager\Select;
 
-use Icicle\Loop\{Manager\IoManager, SelectLoop, Watcher\Io};
+use Icicle\Loop\{Manager\IoManager, SelectLoop, Watcher\Io, Watcher\Timer};
 use Icicle\Loop\Exception\{FreedError, ResourceBusyError};
 
 class SelectIoManager implements IoManager
@@ -53,7 +53,9 @@ class SelectIoManager implements IoManager
     {
         $this->loop = $loop;
 
-        $this->timerCallback = function (Io $io) {
+        $this->timerCallback = function (Timer $timer) {
+            /** @var \Icicle\Loop\Watcher\Io $io */
+            $io = $timer->getData();
             $id = (int) $io->getResource();
             unset($this->pending[$id]);
             unset($this->timers[$id]);
@@ -65,7 +67,7 @@ class SelectIoManager implements IoManager
     /**
      * {@inheritdoc}
      */
-    public function create($resource, callable $callback, bool $persistent = false): Io
+    public function create($resource, callable $callback, $persistent = false, $data = null): Io
     {
         $id = (int) $resource;
         
@@ -73,7 +75,7 @@ class SelectIoManager implements IoManager
             throw new ResourceBusyError();
         }
         
-        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent);
+        return $this->sockets[$id] = new Io($this, $resource, $callback, $persistent, $data);
     }
     
     /**
@@ -95,7 +97,7 @@ class SelectIoManager implements IoManager
                 $timeout = self::MIN_TIMEOUT;
             }
             
-            $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, [$io]);
+            $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, $io);
         } elseif (isset($this->timers[$id])) {
             $this->timers[$id]->stop();
         }

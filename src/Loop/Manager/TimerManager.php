@@ -19,11 +19,11 @@ interface TimerManager extends WatcherManager
      * @param int|float $interval
      * @param bool $periodic
      * @param callable $callback
-     * @param mixed[]|null $args
+     * @param mixed $data Optional data to associate with the watcher.
      *
      * @return \Icicle\Loop\Watcher\Timer
      */
-    public function create(float $interval, bool $periodic, callable $callback, array $args = []): Timer;
+    public function create($interval, $periodic, callable $callback, $data = null): Timer;
 
     /**
      * Starts the given timer if it is not already pending.

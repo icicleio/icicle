@@ -309,7 +309,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * awaitable in the array is rejected for the same reason. Tip: Use all() or settle() to determine when all
      * awaitables in the array have been resolved.
      *
-     * @param callable<(mixed $value): mixed> $callback
+     * @param callable(mixed $value): mixed $callback
      * @param mixed[] ...$awaitables Awaitables or values (passed through resolve() to create awaitables).
      *
      * @return \Icicle\Awaitable\Awaitable[] Array of awaitables resolved with the result of the mapped function.
@@ -324,7 +324,7 @@ if (!function_exists(__NAMESPACE__ . '\resolve')) {
      * return a awaitable or value and the initial value may also be a awaitable or value.
      *
      * @param mixed[] $awaitables Awaitables or values (passed through resolve() to create awaitables).
-     * @param callable<(mixed $carry, mixed $value): mixed> Called for each fulfilled awaitable value.
+     * @param callable(mixed $carry, mixed $value): mixed Called for each fulfilled awaitable value.
      * @param mixed $initial The initial value supplied for the $carry parameter of the callback function.
      *
      * @return \Icicle\Awaitable\Awaitable

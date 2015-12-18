@@ -166,10 +166,11 @@ class LoopTest extends TestCase
     /**
      * @depends testTimer
      */
-    public function testTimerWithArguments()
+    public function testTimerWithData()
     {
         Loop\loop($this->loop);
 
+        $data = 'data';
         $callback = $this->createCallback(0);
 
         $this->loop->expects($this->once())
@@ -178,13 +179,13 @@ class LoopTest extends TestCase
                 $this->identicalTo(self::TIMEOUT),
                 $this->identicalTo(false),
                 $this->identicalTo($callback),
-                $this->identicalTo([1, 2, 3.14, 'test'])
+                $this->identicalTo($data)
             )
             ->will($this->returnValue(
                 $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
             ));
 
-        $timer = Loop\timer(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        $timer = Loop\timer(self::TIMEOUT, $callback, $data);
     }
 
     /**
@@ -209,10 +210,11 @@ class LoopTest extends TestCase
     /**
      * @depends testPeriodic
      */
-    public function testPeriodicWithArguments()
+    public function testPeriodicWithData()
     {
         Loop\loop($this->loop);
 
+        $data = 'data';
         $callback = $this->createCallback(0);
 
         $this->loop->expects($this->once())
@@ -221,13 +223,13 @@ class LoopTest extends TestCase
                 $this->identicalTo(self::TIMEOUT),
                 $this->identicalTo(true),
                 $this->identicalTo($callback),
-                $this->identicalTo([1, 2, 3.14, 'test'])
+                $this->identicalTo($data)
             )
             ->will($this->returnValue(
                 $this->getMockBuilder(Timer::class)->disableOriginalConstructor()->getMock()
             ));
 
-        $timer = Loop\periodic(self::TIMEOUT, $callback, 1, 2, 3.14, 'test');
+        $timer = Loop\periodic(self::TIMEOUT, $callback, $data);
     }
 
     /**
@@ -252,20 +254,21 @@ class LoopTest extends TestCase
     /**
      * @depends testImmediate
      */
-    public function testImmediateWithArguments()
+    public function testImmediateWithData()
     {
         Loop\loop($this->loop);
 
+        $data = 'data';
         $callback = $this->createCallback(0);
 
         $this->loop->expects($this->once())
             ->method('immediate')
-            ->with($this->identicalTo($callback), $this->identicalTo([1, 2, 3.14, 'test']))
+            ->with($this->identicalTo($callback), $this->identicalTo($data))
             ->will($this->returnValue(
                 $this->getMockBuilder(Immediate::class)->disableOriginalConstructor()->getMock()
             ));
 
-        $immediate = Loop\immediate($callback, 1, 2, 3.14, 'test');
+        $immediate = Loop\immediate($callback, $data);
     }
 
     /**
