@@ -33,14 +33,4 @@ abstract class Watcher
     {
         $this->data = $data;
     }
-
-    /**
-     * An unreferenced event will allow the event loop to exit if no other watchers are pending.
-     */
-    abstract public function unreference();
-
-    /**
-     * Adds a reference to the event, causing the event loop to continue to run as long as the watcher is still pending.
-     */
-    abstract public function reference();
 }

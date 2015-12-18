@@ -144,7 +144,7 @@ class Timer extends Watcher
     }
     
     /**
-     * {@inheritdoc}
+     * An unreferenced event will allow the event loop to exit if no other watchers are pending.
      */
     public function unreference()
     {
@@ -153,7 +153,7 @@ class Timer extends Watcher
     }
     
     /**
-     * {@inheritdoc}
+     * Adds a reference to the event, causing the event loop to continue to run as long as the watcher is still pending.
      */
     public function reference()
     {
