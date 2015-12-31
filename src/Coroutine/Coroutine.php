@@ -134,12 +134,10 @@ final class Coroutine extends Future
         if (null !== $this->generator) {
             try {
                 $current = $this->generator->current();
-                do {
-                    if ($current instanceof Awaitable) {
-                        $current->cancel($reason);
-                    }
-                    $current = $this->generator->throw($reason);
-                } while ($this->generator->valid());
+                if ($current instanceof Awaitable) {
+                    $current->cancel($reason);
+                }
+                $this->generator = null; // finally blocks may throw from force-closed Generator.
             } catch (Exception $exception) {
                 $reason = $exception;
             }
