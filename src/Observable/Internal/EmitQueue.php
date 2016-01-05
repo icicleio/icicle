@@ -10,7 +10,7 @@
 namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\{Awaitable, Delayed};
-use Icicle\Observable\Exception\{BusyError, DisposedException};
+use Icicle\Observable\Exception\{BusyError, AutoDisposedException};
 use Icicle\Observable\Observable;
 
 class EmitQueue
@@ -107,7 +107,7 @@ class EmitQueue
     public function decrement()
     {
         if (0 >= --$this->listeners && null !== $this->observable) {
-            $this->observable->dispose(new DisposedException('All subscribers stopped listening for emitted values.'));
+            $this->observable->dispose(new AutoDisposedException());
         }
     }
 

@@ -10,9 +10,9 @@
 namespace Icicle\Observable;
 
 use Generator;
+use Icicle\Awaitable\{Awaitable, function resolve, function reject};
 use Icicle\Coroutine\{Coroutine, function sleep};
 use Icicle\Exception\{InvalidArgumentError, UnexpectedTypeError};
-use Icicle\Awaitable\Awaitable;
 use Icicle\Loop;
 use Icicle\Observable\Exception\{DisposedException, InvalidEmitterError};
 use Throwable;
@@ -35,12 +35,19 @@ class Emitter implements Observable
     private $queue;
 
     /**
-     * @param callable $emitter
+     * @var callable|null
      */
-    public function __construct(callable $emitter)
+    private $onDisposed;
+
+    /**
+     * @param callable $emitter
+     * @param callable|null $onDisposed Function invoked if the observable is disposed.
+     */
+    public function __construct(callable $emitter, callable $onDisposed = null)
     {
         $this->emitter = $emitter;
         $this->queue = new Internal\EmitQueue($this);
+        $this->onDisposed = $onDisposed;
     }
 
     /**
@@ -81,14 +88,7 @@ class Emitter implements Observable
                 }
 
                 $this->coroutine = new Coroutine($generator);
-                $this->coroutine->done(
-                    function ($value) {
-                        $this->queue->complete($value);
-                    },
-                    function (Throwable $exception) {
-                        $this->queue->fail($exception);
-                    }
-                );
+                $this->coroutine->done([$this->queue, 'complete'], [$this->queue, 'fail']);
             } catch (Throwable $exception) {
                 $this->queue->fail(new InvalidEmitterError($this->emitter, $exception));
             }
@@ -103,16 +103,37 @@ class Emitter implements Observable
     public function dispose(Throwable $exception = null)
     {
         if (null === $exception) {
-            $exception = new DisposedException('Observable disposed.');
+            $exception = new DisposedException();
         }
 
         $this->emitter = null;
 
-        $this->queue->fail($exception);
-
-        if (null !== $this->coroutine) {
-            $this->coroutine->cancel($exception);
+        if (null === $this->coroutine) {
+            $this->queue->fail($exception);
+            return;
         }
+
+        if (null !== $this->onDisposed) {
+            try {
+                $result = ($this->onDisposed)($exception);
+
+                if ($result instanceof Generator) {
+                    $awaitable = new Coroutine($result);
+                } else {
+                    $awaitable = resolve($result);
+                }
+
+                $awaitable = $awaitable->tap(function () use ($exception) {
+                    throw $exception;
+                });
+            } catch (Throwable $exception) {
+                $awaitable = reject($exception);
+            }
+        } else {
+            $awaitable = reject($exception);
+        }
+
+        $awaitable->done(null, [$this->coroutine, 'cancel']);
     }
 
     /**

@@ -72,7 +72,7 @@ if (!function_exists(__NAMESPACE__ . '\wrap')) {
 
             return new Coroutine($generator);
         } catch (\Throwable $exception) {
-            return create(function () use ($exception, $worker) {
+            return create(function () use ($exception, $worker): \Generator {
                 throw new InvalidCallableError($worker, $exception);
                 yield; // Unreachable, but makes the function a coroutine.
             });
