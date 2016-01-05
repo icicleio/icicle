@@ -62,11 +62,12 @@ interface Loop
     /**
      * Sets the maximum number of callbacks set with Loop::queue() that will be executed per tick.
      *
-     * @param int $depth Maximum number of functions to execute each tick. Use 0 for unlimited.
+     * @param int|null $depth Maximum number of functions to execute each tick. Use 0 for unlimited. Use null to
+     *     retrieve the current max depth.
      *
      * @return int Previous max depth.
      */
-    public function maxQueueDepth($depth);
+    public function maxQueueDepth($depth = null);
     
     /**
      * Queue a callback function to be run after all I/O has been handled in the current tick.

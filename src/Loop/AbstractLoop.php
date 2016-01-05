@@ -238,7 +238,7 @@ abstract class AbstractLoop implements Loop
     /**
      * {@inheritdoc}
      */
-    public function maxQueueDepth($depth)
+    public function maxQueueDepth($depth = null)
     {
         return $this->callableQueue->maxDepth($depth);
     }
