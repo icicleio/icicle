@@ -1,9 +1,21 @@
 # Change log
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.3] - 2016-01-04
+### Added
+- `Icicle\Observable\Emitter` gained an optional `$onDisposed` parameter on the constructor accepting a callback function that is executed if the observable is disposed (either automatically or explicitly). This callback can either be a regular function, return an awaitable, or a coroutine. If the callback function returns an awaitable or is a coroutine, the observable is not disposed until the awaitable resolves. If the callback throws an exception (or the awaitable rejects), that exception will be used to dispose of the observable.
+
+### Changed
+- Cancelling a coroutine will no longer throw the cancellation reason into the generator. Generator execution is simply terminated. Repeatedly throwing the exception into the generator caused unpredictable and unexpected behaviors. Use `finally` blocks or cancellation functions on awaitables if it is necessary to clean up state in coroutines. This method is far cleaner and prevents unintentional state-altering code being executed after cancellation.
+- Cancelled awaitables will now report as pending until any cancellation function has been invoked.
+
+### Fixed
+- Fixed issue where the coroutine created from a yielded generator in a coroutine would not be cancelled if the parent coroutine was cancelled (issue only affected v0.9.x and v1.x branches).
+
 ## [0.9.2] - 2015-12-17
-### Changes
+### Changed
 - Watchers now pass the watcher object to the callback function when an event occurs. The watcher object is passed as the last function argument (in the case of timers and immediates, the only argument).
+- The interface `Icicle\Loop\Watcher\Watcher` has been changed to an abstract class.
 - All watchers feature `setData()` and `getData()` methods for setting and getting data associated with the watcher. Functions creating watchers have an optional `$data` parameter that can be used to set the data associated with a watcher when it is created.
 - Timers and immediates no longer accept a variadic list of arguments. Instead the timer or immediate object is passed to the callback. Use `getData()` and `setData()` on the watcher for passing data to the callback.
 
@@ -12,7 +24,7 @@ All notable changes to this project will be documented in this file. This projec
 - `Icicle\Loop\Watcher\Timer` gained an `again()` method that will restart the timer as though it were just started even if the timer is currently pending.
 - `Icicle\Loop\poll()` and `Icicle\Loop\await()` now have a third parameter that if true (defaults to false) will create a persistent IO watcher object that will remain active once `listen()` is called until `cancel()` is called on the watcher. `Icicle\Loop\Watcher\Io` gained a `isPersistent()` method returning a boolean.
 
-### Changes
+### Changed
 - Dropped support for the `event` and `libevent` extensions. These extensions have been replaced by the `ev` extension and are no longer being actively developed.
 - Cancelling a coroutine will throw the cancellation reason into the generator and cancel any yielded awaitables.
 
@@ -20,7 +32,7 @@ All notable changes to this project will be documented in this file. This projec
 - Fixed issue where disposing of an observable would not throw the disposal reason from `ObservableIterator::getReturn()`.
 
 ## [0.9.0] - 2015-12-02
-### Changes
+### Changed
 - All interface names have been changed to remove the `Interface` suffix. Most interfaces simply had the suffix removed, but there are a few exceptions - more below.
 - *Promises* are now *Awaitables*
     - The `Icicle\Promise` namespace has been renamed to `Icicle\Awaitable`. `Icicle\Promise\PromiseInterface` is now `Icicle\Awaitable\Awaitable`.
@@ -82,6 +94,7 @@ All notable changes to this project will be documented in this file. This projec
 See the [release list](https://github.com/icicleio/icicle/releases) for more information on previous releases.
 
 
+[0.9.3]: https://github.com/icicleio/icicle/releases/tag/v0.9.3
 [0.9.2]: https://github.com/icicleio/icicle/releases/tag/v0.9.2
 [0.9.1]: https://github.com/icicleio/icicle/releases/tag/v0.9.1
 [0.9.0]: https://github.com/icicleio/icicle/releases/tag/v0.9.0
