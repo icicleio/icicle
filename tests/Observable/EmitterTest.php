@@ -926,7 +926,7 @@ class EmitterTest extends TestCase
     /**
      * @depends testTake
      * @depends testDispose
-     * @expectedException \Icicle\Observable\Exception\DisposedException
+     * @expectedException \Icicle\Observable\Exception\AutoDisposedException
      */
     public function testAutoDispose()
     {

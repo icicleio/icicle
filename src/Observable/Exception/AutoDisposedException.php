@@ -9,13 +9,13 @@
 
 namespace Icicle\Observable\Exception;
 
-class DisposedException extends \Exception implements Exception
+class AutoDisposedException extends DisposedException
 {
     /**
      * @param string|null $message
      */
     public function __construct($message = null)
     {
-        parent::__construct($message ?: 'Observable was disposed.');
+        parent::__construct($message ?: 'Observable was automatically disposed because no subscribers remained.');
     }
 }

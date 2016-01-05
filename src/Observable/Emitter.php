@@ -107,7 +107,7 @@ class Emitter implements Observable
     public function dispose(Exception $exception = null)
     {
         if (null === $exception) {
-            $exception = new DisposedException('Observable disposed.');
+            $exception = new DisposedException();
         }
 
         $this->emitter = null;
