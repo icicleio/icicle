@@ -39,6 +39,11 @@ final class Coroutine extends Future
     private $capture;
 
     /**
+     * @var mixed
+     */
+    private $current;
+
+    /**
      * @param \Generator $generator
      */
     public function __construct(Generator $generator)
@@ -103,6 +108,8 @@ final class Coroutine extends Future
             $yielded = new self($yielded);
         }
 
+        $this->current = $yielded;
+
         if ($yielded instanceof Awaitable) {
             $yielded->done($this->send, $this->capture);
         } else {
@@ -118,6 +125,7 @@ final class Coroutine extends Future
         parent::resolve($value);
 
         $this->generator = null;
+        $this->current = null;
         $this->send = null;
         $this->capture = null;
     }
@@ -131,16 +139,14 @@ final class Coroutine extends Future
             $reason = new TerminatedException();
         }
 
-        if (null !== $this->generator) {
-            try {
-                $current = $this->generator->current();
-                if ($current instanceof Awaitable) {
-                    $current->cancel($reason);
-                }
-                $this->generator = null; // finally blocks may throw from force-closed Generator.
-            } catch (Exception $exception) {
-                $reason = $exception;
-            }
+        if ($this->current instanceof Awaitable) {
+            $this->current->cancel($reason);
+        }
+
+        try {
+            $this->generator = null; // finally blocks may throw from force-closed Generator.
+        } catch (Exception $exception) {
+            $reason = $exception;
         }
 
         parent::cancel($reason);
