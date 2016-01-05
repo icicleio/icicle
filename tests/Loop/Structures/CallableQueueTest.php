@@ -99,6 +99,8 @@ class CallableQueueTest extends TestCase
     public function testMaxDepth()
     {
         $previous = $this->queue->maxDepth(1);
+
+        $this->assertSame(1, $this->queue->maxDepth());
         
         $this->queue->insert($this->createCallback(1));
         $this->queue->insert($this->createCallback(1));

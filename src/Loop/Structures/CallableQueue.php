@@ -16,9 +16,9 @@ namespace Icicle\Loop\Structures;
 class CallableQueue implements \Countable
 {
     /**
-     * @var callable[]
+     * @var \SplQueue
      */
-    private $queue = [];
+    private $queue;
     
     /**
      * @var int
@@ -30,6 +30,8 @@ class CallableQueue implements \Countable
      */
     public function __construct(int $depth = 0)
     {
+        $this->queue = new \SplQueue();
+
         if (0 !== $depth) {
             $this->maxDepth($depth);
         }
@@ -41,7 +43,7 @@ class CallableQueue implements \Countable
      */
     public function insert(callable $callback, array $args = [])
     {
-        $this->queue[] = [$callback, $args];
+        $this->queue->push([$callback, $args]);
     }
     
     /**
@@ -51,7 +53,7 @@ class CallableQueue implements \Countable
      */
     public function count(): int
     {
-        return count($this->queue);
+        return $this->queue->count();
     }
     
     /**
@@ -61,7 +63,7 @@ class CallableQueue implements \Countable
      */
     public function isEmpty(): bool
     {
-        return empty($this->queue);
+        return $this->queue->isEmpty();
     }
     
     /**
@@ -69,18 +71,23 @@ class CallableQueue implements \Countable
      */
     public function clear()
     {
-        $this->queue = [];
+        $this->queue = new \SplQueue();
     }
     
     /**
      * Sets the maximum number of functions that can be called when the queue is called.
      *
-     * @param int $depth Maximum number of functions to execute when the queue is called. Use 0 for unlimited.
+     * @param int|null $depth Maximum number of functions to execute when the queue is called. Use 0 for unlimited.
+     *     Use null to just retrieve the current max depth.
      *
      * @return int Previous max depth.
      */
-    public function maxDepth(int $depth): int
+    public function maxDepth(int $depth = null): int
     {
+        if (null === $depth) {
+            return $this->maxDepth;
+        }
+
         $previous = $this->maxDepth;
         
         $this->maxDepth = 0 > $depth ? 0 : $depth;
@@ -97,18 +104,15 @@ class CallableQueue implements \Countable
     {
         $count = 0;
 
-        try {
-            while (isset($this->queue[$count]) && (0 === $this->maxDepth || $count < $this->maxDepth)) {
-                list($callback, $args) = $this->queue[$count++];
+        while (!$this->queue->isEmpty() && (0 === $this->maxDepth || $count < $this->maxDepth)) {
+            list($callback, $args) = $this->queue->shift();
+            ++$count;
 
-                if (empty($args)) {
-                    $callback();
-                } else {
-                    $callback(...$args);
-                }
+            if (empty($args)) {
+                $callback();
+            } else {
+                call_user_func_array($callback, $args);
             }
-        } finally {
-            $this->queue = array_slice($this->queue, $count);
         }
 
         return $count;
