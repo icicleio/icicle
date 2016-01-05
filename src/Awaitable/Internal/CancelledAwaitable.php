@@ -61,6 +61,14 @@ class CancelledAwaitable extends ResolvedAwaitable
     /**
      * {@inheritdoc}
      */
+    public function isPending()
+    {
+        return $this->result->isPending(); // Pending until cancellation function is invoked.
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isFulfilled()
     {
         return false;
@@ -79,7 +87,7 @@ class CancelledAwaitable extends ResolvedAwaitable
      */
     public function isCancelled()
     {
-        return true;
+        return $this->result->isRejected(); // Cancelled once cancellation function is invoked.
     }
 
     /**

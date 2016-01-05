@@ -1287,14 +1287,16 @@ class PromiseTest extends TestCase
 
         Loop\run();
 
-        $this->assertFalse($promise->isPending());
-        $this->assertTrue($promise->isCancelled());
+        $this->assertTrue($promise->isPending());
+        $this->assertFalse($promise->isCancelled());
         $this->assertFalse($promise->isRejected());
 
         $this->resolve(1);
 
         Loop\run();
 
+        $this->assertFalse($promise->isPending());
+        $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
     }
 
@@ -1321,14 +1323,16 @@ class PromiseTest extends TestCase
 
         Loop\run();
 
-        $this->assertFalse($promise->isPending());
-        $this->assertTrue($promise->isCancelled());
+        $this->assertTrue($promise->isPending());
+        $this->assertFalse($promise->isCancelled());
         $this->assertFalse($promise->isRejected());
 
         $this->reject($exception);
 
         Loop\run();
 
+        $this->assertFalse($promise->isPending());
+        $this->assertTrue($promise->isCancelled());
         $this->assertTrue($promise->isRejected());
 
         try {
