@@ -779,6 +779,151 @@ class EmitterTest extends TestCase
     }
 
     /**
+     * @depends testDisposeWithCustomException
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testDisposeWithOnDisposedCallback()
+    {
+        $exception = new EmitterTestException();
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose($exception);
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testDisposeWithOnDisposedCallback
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testDisposeWithOnDisposedCallbackThrowingException()
+    {
+        $exception = new EmitterTestException();
+
+        $callback = function () use ($exception) {
+            throw $exception;
+        };
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose();
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testDisposeWithOnDisposedCallback
+     */
+    public function testDisposeWithOnDisposedReturnsAwaitable()
+    {
+        $callback = function () {
+            return Awaitable\resolve()->delay(self::TIMEOUT);
+        };
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose();
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
+    }
+
+    /**
+     * @depends testDisposeWithOnDisposedReturnsAwaitable
+     * @depends testDisposeWithOnDisposedCallbackThrowingException
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testDisposeWithOnDisposedReturnsRejectedAwaitable()
+    {
+        $exception = new EmitterTestException();
+
+        $callback = function () use ($exception) {
+            return Awaitable\reject($exception);
+        };
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose();
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testDisposeWithOnDisposedCallback
+     */
+    public function testDisposeWithOnDisposedCoroutine()
+    {
+        $callback = function () {
+            yield Awaitable\resolve()->delay(self::TIMEOUT);
+        };
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose();
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT);
+    }
+
+    /**
+     * @depends testDisposeWithOnDisposedCoroutine
+     * @depends testDisposeWithOnDisposedCallbackThrowingException
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testDisposeWithOnDisposedRejectedCoroutine()
+    {
+        $callback = function () {
+            throw new EmitterTestException();
+            yield; // Unreachable, but makes function a coroutine.
+        };
+
+        $emitter = new Emitter(function (callable $emit) {
+            yield $emit(new Delayed());
+        }, $callback);
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $emitter->dispose();
+
+        $awaitable->wait();
+    }
+
+    /**
      * @depends testTake
      * @depends testDispose
      * @expectedException \Icicle\Observable\Exception\DisposedException
