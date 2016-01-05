@@ -16,9 +16,9 @@ namespace Icicle\Loop\Structures;
 class CallableQueue implements \Countable
 {
     /**
-     * @var callable[]
+     * @var \SplQueue
      */
-    private $queue = [];
+    private $queue;
     
     /**
      * @var int
@@ -30,6 +30,8 @@ class CallableQueue implements \Countable
      */
     public function __construct($depth = 0)
     {
+        $this->queue = new \SplQueue();
+
         if (0 !== $depth) {
             $this->maxDepth($depth);
         }
@@ -41,7 +43,7 @@ class CallableQueue implements \Countable
      */
     public function insert(callable $callback, array $args = [])
     {
-        $this->queue[] = [$callback, $args];
+        $this->queue->push([$callback, $args]);
     }
     
     /**
@@ -51,7 +53,7 @@ class CallableQueue implements \Countable
      */
     public function count()
     {
-        return count($this->queue);
+        return $this->queue->count();
     }
     
     /**
@@ -61,7 +63,7 @@ class CallableQueue implements \Countable
      */
     public function isEmpty()
     {
-        return empty($this->queue);
+        return $this->queue->isEmpty();
     }
     
     /**
@@ -69,7 +71,7 @@ class CallableQueue implements \Countable
      */
     public function clear()
     {
-        $this->queue = [];
+        $this->queue = new \SplQueue();
     }
     
     /**
@@ -98,18 +100,15 @@ class CallableQueue implements \Countable
     {
         $count = 0;
 
-        try {
-            while (isset($this->queue[$count]) && (0 === $this->maxDepth || $count < $this->maxDepth)) {
-                list($callback, $args) = $this->queue[$count++];
+        while (!$this->queue->isEmpty() && (0 === $this->maxDepth || $count < $this->maxDepth)) {
+            list($callback, $args) = $this->queue->shift();
+            ++$count;
 
-                if (empty($args)) {
-                    $callback();
-                } else {
-                    call_user_func_array($callback, $args);
-                }
+            if (empty($args)) {
+                $callback();
+            } else {
+                call_user_func_array($callback, $args);
             }
-        } finally {
-            $this->queue = array_slice($this->queue, $count);
         }
 
         return $count;
