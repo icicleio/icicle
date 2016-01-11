@@ -11,7 +11,8 @@ namespace Icicle\Observable;
 
 use Exception;
 use Generator;
-use Icicle\Awaitable;
+use Icicle\Awaitable as AwaitableNS;
+use Icicle\Awaitable\Awaitable;
 use Icicle\Coroutine as CoroutineNS;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Exception\InvalidArgumentError;
@@ -69,8 +70,7 @@ class Emitter implements Observable
              * @coroutine
              *
              * @param mixed $value If $value is an instance of \Icicle\Awaitable\Awaitable, the fulfillment value is
-             *     used as the value to emit or the rejection reason is thrown from this coroutine. If $value is an
-             *     instance of \Generator, it is used to create a coroutine which is then used as an awaitable.
+             *     used as the value to emit or the rejection reason is thrown from this coroutine.
              *
              * @return \Generator
              *
@@ -124,17 +124,17 @@ class Emitter implements Observable
                 if ($result instanceof Generator) {
                     $awaitable = new Coroutine($result);
                 } else {
-                    $awaitable = Awaitable\resolve($result);
+                    $awaitable = AwaitableNS\resolve($result);
                 }
 
                 $awaitable = $awaitable->tap(function () use ($exception) {
                     throw $exception;
                 });
             } catch (Exception $exception) {
-                $awaitable = Awaitable\reject($exception);
+                $awaitable = AwaitableNS\reject($exception);
             }
         } else {
-            $awaitable = Awaitable\reject($exception);
+            $awaitable = AwaitableNS\reject($exception);
         }
 
         $awaitable->done(null, [$this->coroutine, 'cancel']);
@@ -161,7 +161,11 @@ class Emitter implements Observable
 
         while (yield $iterator->isValid()) {
             if (null !== $onNext) {
-                yield $onNext($iterator->getCurrent());
+                $result = $onNext($iterator->getCurrent());
+
+                if ($result instanceof Generator || $result instanceof Awaitable) {
+                    yield $result;
+                }
             }
         }
 
@@ -176,7 +180,13 @@ class Emitter implements Observable
         return new self(function (callable $emit) use ($onNext, $onComplete) {
             $iterator = $this->getIterator();
             while (yield $iterator->isValid()) {
-                yield $emit($onNext($iterator->getCurrent()));
+                $result = $onNext($iterator->getCurrent());
+
+                if ($result instanceof Generator || $result instanceof Awaitable) {
+                    $result = (yield $result);
+                }
+
+                yield $emit($result);
             }
 
             if (null === $onComplete) {
@@ -197,7 +207,13 @@ class Emitter implements Observable
             $iterator = $this->getIterator();
             while (yield $iterator->isValid()) {
                 $value = $iterator->getCurrent();
-                if (yield $callback($value)) {
+                $result = $callback($value);
+
+                if ($result instanceof Generator || $result instanceof Awaitable) {
+                    $result = (yield $result);
+                }
+
+                if ($result) {
                     yield $emit($value);
                 }
             }

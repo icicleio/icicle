@@ -128,32 +128,6 @@ class EmitterTest extends TestCase
     /**
      * @depends testEmit
      */
-    public function testEmitCoroutine()
-    {
-        $value = 1;
-
-        $generator = function () use ($value) {
-            yield $value;
-        };
-
-        $emitter = new Emitter(function (callable $emit) use ($generator) {
-            yield $emit($generator());
-        });
-
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->with($this->identicalTo($value));
-
-        $awaitable = new Coroutine($emitter->each($callback));
-
-        $this->assertSame($value, $awaitable->wait());
-
-        $this->assertTrue($emitter->isComplete());
-    }
-
-    /**
-     * @depends testEmit
-     */
     public function testEmitBackPressure()
     {
         $value = 1;
@@ -186,8 +160,7 @@ class EmitterTest extends TestCase
             $coroutine1 = new Coroutine($emit($awaitable));
             $coroutine2 = new Coroutine($emit($awaitable->delay(self::TIMEOUT)));
 
-            yield $coroutine1;
-            yield $coroutine2;
+            yield Awaitable\all([$coroutine1, $coroutine2]);
         });
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(2)));
@@ -214,7 +187,42 @@ class EmitterTest extends TestCase
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(1)));
 
+        Loop\run();
+    }
+
+    /**
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testObservableFailedAfterEmittingRejectedAwaitable()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$coroutine2) {
+            $coroutine = new Coroutine($emit(Awaitable\reject(new EmitterTestException())));
+            yield new Delayed();
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
         $awaitable->done();
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testObservableFailedAfterEmittingRejectedAwaitable
+     * @depends testSimultaneousEmitWaitsForFirstEmit
+     * @expectedException \Icicle\Observable\Exception\CompletedError
+     */
+    public function testEmitAfterEmittingRejectedAwaitable()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$coroutine2) {
+            $coroutine1 = new Coroutine($emit(Awaitable\reject(new EmitterTestException())));
+            $coroutine2 = new Coroutine($emit(1));
+            $coroutine2->done();
+
+            yield $coroutine1;
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
 
         Loop\run();
     }

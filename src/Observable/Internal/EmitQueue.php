@@ -11,7 +11,6 @@ namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
-use Icicle\Coroutine\Coroutine;
 use Icicle\Observable\Exception\AutoDisposedException;
 use Icicle\Observable\Exception\CompletedError;
 use Icicle\Observable\Observable;
@@ -60,14 +59,17 @@ class EmitQueue
     {
         $this->observable = $observable;
         $this->delayed = new Delayed();
-        $this->next = $this->delayed;
         $this->placeholder = new Placeholder($this->delayed);
     }
 
     /**
+     * @coroutine
+     *
      * @param mixed $value
      *
      * @return \Generator
+     *
+     * @throws \Icicle\Observable\Exception\CompletedError
      */
     public function push($value)
     {
@@ -82,10 +84,6 @@ class EmitQueue
         $this->busy = true;
 
         try {
-            if ($value instanceof \Generator) {
-                $value = new Coroutine($value);
-            }
-
             if ($value instanceof Awaitable) {
                 $value = (yield $value);
             }
@@ -101,10 +99,13 @@ class EmitQueue
             $this->placeholder = new Placeholder($this->delayed);
 
             yield $placeholder->wait();
+        } catch (\Exception $exception) {
+            $this->fail($exception);
+            throw $exception;
         } finally {
             $this->busy = false;
             if (null !== $this->emitting) {
-                $this->emitting->resolve($value);
+                $this->emitting->resolve();
                 $this->emitting = null;
             }
         }
