@@ -47,36 +47,21 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      */
     function merge(array $observables)
     {
+        /** @var \Icicle\Observable\Observable[] $observables */
+        $observables = array_map(__NAMESPACE__ . '\from', $observables);
+
         return new Emitter(function (callable $emit) use ($observables) {
-            /** @var \Icicle\Observable\Observable[] $observables */
-            $observables = array_map(__NAMESPACE__ . '\from', $observables);
-
-            $callback = function ($value) use (&$emitting, $emit) {
-                while (null !== $emitting) {
-                    yield $emitting; // Prevents simultaneous calls to $emit.
-                }
-
-                $emitting = new Delayed();
-
-                yield $emit($value);
-
-                $emitting->resolve();
-                $emitting = null;
-            };
-
             /** @var \Icicle\Coroutine\Coroutine[] $coroutines */
-            $coroutines = array_map(function (Observable $observable) use ($callback) {
-                return new Coroutine($observable->each($callback));
+            $coroutines = array_map(function (Observable $observable) use ($emit) {
+                return new Coroutine($observable->each($emit));
             }, $observables);
 
-            try {
-                yield Awaitable\all($coroutines);
-            } catch (\Exception $exception) {
+            yield Awaitable\all($coroutines)->then(null, function (\Exception $exception) use ($coroutines) {
                 foreach ($coroutines as $coroutine) {
                     $coroutine->cancel($exception);
                 }
                 throw $exception;
-            }
+            });
         });
     }
 

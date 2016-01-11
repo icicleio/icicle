@@ -13,7 +13,7 @@ use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
 use Icicle\Coroutine\Coroutine;
 use Icicle\Observable\Exception\AutoDisposedException;
-use Icicle\Observable\Exception\BusyError;
+use Icicle\Observable\Exception\CompletedError;
 use Icicle\Observable\Observable;
 
 class EmitQueue
@@ -39,6 +39,11 @@ class EmitQueue
     private $delayed;
 
     /**
+     * @var \Icicle\Awaitable\Delayed|null
+     */
+    private $emitting;
+
+    /**
      * @var \Icicle\Observable\Internal\Placeholder
      */
     private $placeholder;
@@ -55,6 +60,7 @@ class EmitQueue
     {
         $this->observable = $observable;
         $this->delayed = new Delayed();
+        $this->next = $this->delayed;
         $this->placeholder = new Placeholder($this->delayed);
     }
 
@@ -62,39 +68,48 @@ class EmitQueue
      * @param mixed $value
      *
      * @return \Generator
-     *
-     * @throws \Icicle\Observable\Exception\BusyError
      */
     public function push($value)
     {
-        if ($this->busy) {
-            throw new BusyError(
-                'Still busy emitting the last value. Wait until the $emit coroutine has resolved.'
-            );
+        while ($this->busy) {
+            if (null === $this->emitting) {
+                $this->emitting = new Delayed();
+            }
+
+            yield $this->emitting; // Prevent simultaneous emit.
         }
 
         $this->busy = true;
 
-        if ($value instanceof \Generator) {
-            $value = new Coroutine($value);
-        }
-
-        if ($value instanceof Awaitable) {
-            $value = (yield $value);
-        }
-
-        $this->delayed->resolve($value);
-        $this->delayed = new Delayed();
-
-        $placeholder = $this->placeholder;
-        $this->placeholder = new Placeholder($this->delayed);
-
         try {
+            if ($value instanceof \Generator) {
+                $value = new Coroutine($value);
+            }
+
+            if ($value instanceof Awaitable) {
+                $value = (yield $value);
+            }
+
+            if (null === $this->observable) {
+                throw new CompletedError();
+            }
+
+            $this->delayed->resolve($value);
+            $this->delayed = new Delayed();
+
+            $placeholder = $this->placeholder;
+            $this->placeholder = new Placeholder($this->delayed);
+
             yield $placeholder->wait();
-            yield $value;
         } finally {
             $this->busy = false;
+            if (null !== $this->emitting) {
+                $this->emitting->resolve($value);
+                $this->emitting = null;
+            }
         }
+
+        yield $value;
     }
 
     /**

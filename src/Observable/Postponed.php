@@ -34,7 +34,10 @@ final class Postponed
      */
     private $started;
 
-    public function __construct()
+    /**
+     * @param callable|null $onDisposed
+     */
+    public function __construct(callable $onDisposed = null)
     {
         $this->started = new Delayed();
         $this->delayed = new Delayed();
@@ -44,7 +47,7 @@ final class Postponed
             $this->started = null;
 
             yield $this->delayed;
-        });
+        }, $onDisposed);
     }
 
     /**
@@ -69,21 +72,12 @@ final class Postponed
      * @resolve mixed The emitted value (the resolution value of $value)
      *
      * @throws \Icicle\Observable\Exception\CompletedError If the observable has been completed.
-     * @throws \Icicle\Observable\Exception\BusyError If the observable is still busy emitting a value.
      * @throws \Icicle\Observable\Exception\DisposedException If no listeners remain on the observable.
      */
     public function emit($value = null)
     {
         if (null === $this->emit) {
             $this->emit = (yield $this->started);
-        }
-
-        if (!$this->delayed->isPending()) {
-            if ($this->delayed->isRejected()) {
-                yield $this->delayed; // Throws failure reason.
-            }
-
-            throw new CompletedError('The observable was marked as completed.');
         }
 
         $emit = $this->emit;
@@ -97,6 +91,10 @@ final class Postponed
      */
     public function complete($value = null)
     {
+        if (null !== $this->started) {
+            $this->started->reject(new CompletedError());
+        }
+
         $this->delayed->resolve($value);
     }
 
@@ -107,6 +105,10 @@ final class Postponed
      */
     public function fail(\Exception $reason)
     {
+        if (null !== $this->started) {
+            $this->started->reject(new CompletedError());
+        }
+
         $this->delayed->reject($reason);
     }
 }

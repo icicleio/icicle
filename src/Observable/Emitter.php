@@ -77,7 +77,6 @@ class Emitter implements Observable
              * @resolve mixed The emitted value (the resolution value of $value)
              *
              * @throws \Icicle\Observable\Exception\CompletedError If the observable has been completed.
-             * @throws \Icicle\Observable\Exception\BusyError If the observable is still busy emitting a value.
              */
             $emit = function ($value = null) {
                 return $this->queue->push($value);
