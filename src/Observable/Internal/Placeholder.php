@@ -11,7 +11,6 @@ namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
-use Icicle\Loop;
 
 final class Placeholder
 {

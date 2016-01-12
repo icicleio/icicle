@@ -9,7 +9,7 @@
 
 namespace Icicle\Observable\Exception;
 
-class CompletedError extends \Exception implements Exception
+class CompletedError extends \Exception implements Error
 {
     /**
      * @param string|null $message
