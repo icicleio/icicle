@@ -113,7 +113,7 @@ class PostponedTest extends TestCase
 
     /**
      * @depends testEmit
-     * @expectedException \Icicle\Tests\Observable\PostponedTestException
+     * @expectedException \Icicle\Observable\Exception\CompletedError
      */
     public function testEmitAfterFail()
     {

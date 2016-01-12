@@ -66,15 +66,13 @@ class Emitter implements Observable
              * @coroutine
              *
              * @param mixed $value If $value is an instance of \Icicle\Awaitable\Awaitable, the fulfillment value is
-             *     used as the value to emit or the rejection reason is thrown from this coroutine. If $value is an
-             *     instance of \Generator, it is used to create a coroutine which is then used as an awaitable.
+             *     used as the value to emit or the rejection reason is thrown from this coroutine.
              *
              * @return \Generator
              *
              * @resolve mixed The emitted value (the resolution value of $value)
              *
              * @throws \Icicle\Observable\Exception\CompletedError If the observable has been completed.
-             * @throws \Icicle\Observable\Exception\BusyError If the observable is still busy emitting a value.
              */
             $emit = function ($value = null): \Generator {
                 return $this->queue->push($value);
@@ -178,7 +176,15 @@ class Emitter implements Observable
         return new self(function (callable $emit) use ($onNext, $onComplete) {
             $iterator = $this->getIterator();
             while (yield from $iterator->isValid()) {
-                yield from $emit($onNext($iterator->getCurrent()));
+                $result = $onNext($iterator->getCurrent());
+
+                if ($result instanceof Generator) {
+                    $result = yield from $result;
+                } elseif ($result instanceof Awaitable) {
+                    $result = yield $result;
+                }
+
+                yield from $emit($result);
             }
 
             if (null === $onComplete) {

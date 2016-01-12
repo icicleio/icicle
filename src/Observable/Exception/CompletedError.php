@@ -9,4 +9,13 @@
 
 namespace Icicle\Observable\Exception;
 
-class CompletedError extends \Error implements Exception {}
+class CompletedError extends \Error implements Error
+{
+    /**
+     * @param string|null $message
+     */
+    public function __construct(string $message = null)
+    {
+        parent::__construct($message ?: 'The observable was marked as completed.');
+    }
+}

@@ -10,7 +10,7 @@
 namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\{Awaitable, Delayed};
-use Icicle\Observable\Exception\{BusyError, AutoDisposedException};
+use Icicle\Observable\Exception\{AutoDisposedException, CompletedError};
 use Icicle\Observable\Observable;
 
 class EmitQueue
@@ -36,6 +36,11 @@ class EmitQueue
     private $delayed;
 
     /**
+     * @var \Icicle\Awaitable\Delayed|null
+     */
+    private $emitting;
+
+    /**
      * @var \Icicle\Observable\Internal\Placeholder
      */
     private $placeholder;
@@ -56,27 +61,33 @@ class EmitQueue
     }
 
     /**
+     * @coroutine
+     *
      * @param mixed $value
      *
      * @return \Generator
      *
-     * @throws \Icicle\Observable\Exception\BusyError
+     * @throws \Icicle\Observable\Exception\CompletedError
      */
     public function push($value): \Generator
     {
-        if ($this->busy) {
-            throw new BusyError(
-                'Still busy emitting the last value. Wait until the $emit coroutine has resolved.'
-            );
+        while ($this->busy) {
+            if (null === $this->emitting) {
+                $this->emitting = new Delayed();
+            }
+
+            yield $this->emitting; // Prevent simultaneous emit.
         }
 
         $this->busy = true;
 
         try {
-            if ($value instanceof \Generator) {
-                $value = yield from $value;
-            } elseif ($value instanceof Awaitable) {
+            if ($value instanceof Awaitable) {
                 $value = yield $value;
+            }
+
+            if (null === $this->observable) {
+                throw new CompletedError();
             }
 
             $this->delayed->resolve($value);
@@ -86,8 +97,15 @@ class EmitQueue
             $this->placeholder = new Placeholder($this->delayed);
 
             yield $placeholder->wait();
+        } catch (\Throwable $exception) {
+            $this->fail($exception);
+            throw $exception;
         } finally {
             $this->busy = false;
+            if (null !== $this->emitting) {
+                $this->emitting->resolve();
+                $this->emitting = null;
+            }
         }
 
         return $value;

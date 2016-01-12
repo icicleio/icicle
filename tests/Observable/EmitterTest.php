@@ -128,32 +128,6 @@ class EmitterTest extends TestCase
     /**
      * @depends testEmit
      */
-    public function testEmitCoroutine()
-    {
-        $value = 1;
-
-        $generator = function () use ($value) {
-            return yield $value;
-        };
-
-        $emitter = new Emitter(function (callable $emit) use ($generator) {
-            return yield from $emit($generator());
-        });
-
-        $callback = $this->createCallback(1);
-        $callback->method('__invoke')
-            ->with($this->identicalTo($value));
-
-        $awaitable = new Coroutine($emitter->each($callback));
-
-        $this->assertSame($value, $awaitable->wait());
-
-        $this->assertTrue($emitter->isComplete());
-    }
-
-    /**
-     * @depends testEmit
-     */
     public function testEmitBackPressure()
     {
         $value = 1;
@@ -178,21 +152,79 @@ class EmitterTest extends TestCase
 
     /**
      * @depends testEmit
-     * @expectedException \Icicle\Observable\Exception\BusyError
      */
-    public function testSimultaneousEmitThrows()
+    public function testSimultaneousEmitWaitsForFirstEmit()
     {
         $emitter = new Emitter(function (callable $emit) {
-            $coroutine1 = new Coroutine($emit(1));
-            $coroutine2 = new Coroutine($emit(2));
+            $awaitable = Awaitable\resolve()->delay(self::TIMEOUT);
+            $coroutine1 = new Coroutine($emit($awaitable));
+            $coroutine2 = new Coroutine($emit($awaitable->delay(self::TIMEOUT)));
+
+            yield Awaitable\all([$coroutine1, $coroutine2]);
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(2)));
+
+        $awaitable->done();
+
+        $this->assertRunTimeGreaterThan('Icicle\Loop\run', self::TIMEOUT * 2 - self::RUNTIME_PRECISION);
+    }
+
+    /**
+     * @depends testSimultaneousEmitWaitsForFirstEmit
+     * @expectedException \Icicle\Observable\Exception\CompletedError
+     */
+    public function testSimultaneousEmitAfterCompleted()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$coroutine2) {
+            $awaitable = Awaitable\resolve()->delay(self::TIMEOUT);
+            $coroutine1 = new Coroutine($emit($awaitable));
+            $coroutine2 = new Coroutine($emit($awaitable->delay(self::TIMEOUT)));
+            $coroutine2->done();
 
             yield $coroutine1;
-            yield $coroutine2;
         });
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(1)));
 
-        $awaitable->wait();
+        Loop\run();
+    }
+
+    /**
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testObservableFailedAfterEmittingRejectedAwaitable()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$coroutine2) {
+            $coroutine = new Coroutine($emit(Awaitable\reject(new EmitterTestException())));
+            yield new Delayed();
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        $awaitable->done();
+
+        Loop\run();
+    }
+
+    /**
+     * @depends testObservableFailedAfterEmittingRejectedAwaitable
+     * @depends testSimultaneousEmitWaitsForFirstEmit
+     * @expectedException \Icicle\Observable\Exception\CompletedError
+     */
+    public function testEmitAfterEmittingRejectedAwaitable()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$coroutine2) {
+            $coroutine1 = new Coroutine($emit(Awaitable\reject(new EmitterTestException())));
+            $coroutine2 = new Coroutine($emit(1));
+            $coroutine2->done();
+
+            yield $coroutine1;
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+
+        Loop\run();
     }
 
     /**
@@ -1072,30 +1104,6 @@ class EmitterTest extends TestCase
         $emitter->dispose();
 
         $awaitable = new Coroutine($observable->each($this->createCallback(0)));
-
-        $awaitable->wait();
-    }
-
-    /**
-     * @expectedException \Icicle\Observable\Exception\DisposedException
-     */
-    public function testEmitterCatchesDisposalException()
-    {
-        $emitter = new Emitter(function (callable $emit) {
-            try {
-                yield $emit(new Delayed());
-            } catch (DisposedException $exception) {
-                yield $emit(1); // Should throw again.
-            }
-
-            $this->fail('Emitting after disposal should throw.');
-        });
-
-        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
-
-        Loop\tick(false);
-
-        $emitter->dispose();
 
         $awaitable->wait();
     }
