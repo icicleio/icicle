@@ -13,7 +13,7 @@ use Exception;
 use Icicle\Awaitable;
 use Icicle\Awaitable\{Awaitable as AwaitableInterface, Delayed};
 use Icicle\Awaitable\Exception\{CancelledException, TimeoutException};
-use Icicle\Coroutine\{Coroutine, Exception\InvalidCallableError};
+use Icicle\Coroutine\{Coroutine, Exception\AwaitableReturnedError, Exception\InvalidCallableError};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
@@ -1090,5 +1090,26 @@ class CoroutineTest extends TestCase
         $promise->done($callback);
         
         Loop\run();
+    }
+
+    /**
+     * @depends testFulfilledWithReturnValue
+     */
+    public function testReturningAwaitableRejectsCoroutine()
+    {
+        $awaitable = Awaitable\resolve();
+        $generator = function () use ($awaitable) {
+            return $awaitable;
+            yield; // Unreachable, but makes function a generator.
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        try {
+            $coroutine->wait();
+            $this->fail(sprintf('Expected exception of type %s', AwaitableReturnedError::class));
+        } catch (AwaitableReturnedError $exception) {
+            $this->assertSame($awaitable, $exception->getAwaitable());
+        }
     }
 }

@@ -32,7 +32,7 @@ class InvalidCallableError extends InvalidArgumentError implements Error
     /**
      * @return callable
      */
-    public function getCallable()
+    public function getCallable(): callable
     {
         return $this->callable;
     }

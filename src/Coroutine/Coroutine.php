@@ -11,7 +11,7 @@ namespace Icicle\Coroutine;
 
 use Generator;
 use Icicle\Awaitable\{Awaitable, Future};
-use Icicle\Coroutine\Exception\TerminatedException;
+use Icicle\Coroutine\Exception\{AwaitableReturnedError, TerminatedException};
 use Icicle\Loop;
 use Throwable;
 
@@ -98,7 +98,14 @@ final class Coroutine extends Future
     private function next($yielded)
     {
         if (!$this->generator->valid()) {
-            $this->resolve($this->generator->getReturn());
+            $result = $this->generator->getReturn();
+
+            if ($result instanceof Awaitable) {
+                $this->reject(new AwaitableReturnedError($result));
+                return;
+            }
+
+            $this->resolve($result);
             return;
         }
 
