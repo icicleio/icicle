@@ -13,7 +13,8 @@ use Exception;
 use Icicle\Awaitable;
 use Icicle\Awaitable\{Awaitable as AwaitableInterface, Delayed};
 use Icicle\Awaitable\Exception\{CancelledException, TimeoutException};
-use Icicle\Coroutine\{Coroutine, Exception\AwaitableReturnedError, Exception\InvalidCallableError};
+use Icicle\Coroutine\{Coroutine, function sleep};
+use Icicle\Coroutine\Exception\{AwaitableReturnedError, GeneratorReturnedError, InvalidCallableError};
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Tests\TestCase;
@@ -1063,7 +1064,7 @@ class CoroutineTest extends TestCase
      */
     public function testSleep()
     {
-        $coroutine = new Coroutine(\Icicle\Coroutine\sleep(self::TIMEOUT));
+        $coroutine = new Coroutine(sleep(self::TIMEOUT));
         
         Loop\run();
         
@@ -1110,6 +1111,27 @@ class CoroutineTest extends TestCase
             $this->fail(sprintf('Expected exception of type %s', AwaitableReturnedError::class));
         } catch (AwaitableReturnedError $exception) {
             $this->assertSame($awaitable, $exception->getAwaitable());
+        }
+    }
+
+    /**
+     * @depends testFulfilledWithReturnValue
+     */
+    public function testReturningGeneratorRejectsCoroutine()
+    {
+        $generator1 = (function () { yield; })();
+        $generator2 = function () use ($generator1) {
+            return $generator1;
+            yield; // Unreachable, but makes function a generator.
+        };
+
+        $coroutine = new Coroutine($generator2());
+
+        try {
+            $coroutine->wait();
+            $this->fail(sprintf('Expected exception of type %s', GeneratorReturnedError::class));
+        } catch (GeneratorReturnedError $exception) {
+            $this->assertSame($generator1, $exception->getGenerator());
         }
     }
 }

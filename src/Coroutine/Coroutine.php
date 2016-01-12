@@ -11,7 +11,7 @@ namespace Icicle\Coroutine;
 
 use Generator;
 use Icicle\Awaitable\{Awaitable, Future};
-use Icicle\Coroutine\Exception\{AwaitableReturnedError, TerminatedException};
+use Icicle\Coroutine\Exception\{AwaitableReturnedError, GeneratorReturnedError, TerminatedException};
 use Icicle\Loop;
 use Throwable;
 
@@ -102,6 +102,11 @@ final class Coroutine extends Future
 
             if ($result instanceof Awaitable) {
                 $this->reject(new AwaitableReturnedError($result));
+                return;
+            }
+
+            if ($result instanceof Generator) {
+                $this->reject(new GeneratorReturnedError($result));
                 return;
             }
 
