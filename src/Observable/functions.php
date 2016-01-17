@@ -71,16 +71,19 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
      * invoked.
      *
      * @param callable(mixed ...$args) $emitter Function accepting a callback that periodically emits events.
+     * @param callable(callable $callback, \Exception $exception) $onDisposed Called if the observable is disposed.
+     *     The callback passed to this function is the callable provided to the $emitter callable given to this
+     *     function.
      * @param int $index Position of callback function in emitter function argument list.
      * @param mixed ...$args Other arguments to pass to emitter function.
      *
      * @return \Icicle\Observable\Observable
      */
-    function observe(callable $emitter, $index = 0 /* , ...$args */)
+    function observe(callable $emitter, callable $onDisposed = null, $index = 0 /* , ...$args */)
     {
-        $args = array_slice(func_get_args(), 2);
+        $args = array_slice(func_get_args(), 3);
 
-        return new Emitter(function (callable $emit) use ($emitter, $index, $args) {
+        $emitter = function (callable $emit) use (&$callback, $emitter, $index, $args) {
             $queue = new \SplQueue();
 
             /** @var \Icicle\Awaitable\Delayed $delayed */
@@ -111,7 +114,15 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                     yield $emit($queue->shift());
                 }
             }
-        });
+        };
+
+        if (null !== $onDisposed) {
+            $onDisposed = function (\Exception $exception) use (&$callback, $onDisposed) {
+                $onDisposed($callback, $exception);
+            };
+        }
+
+        return new Emitter($emitter, $onDisposed);
     }
 
     /**
