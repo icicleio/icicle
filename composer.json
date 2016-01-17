@@ -25,16 +25,14 @@
         }
     ],
     "require": {
-        "php": ">=5.5"
+        "php": "^5.5|^7.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^4.6"
     },
     "suggest": {
         "ext-pcntl": "Enables custom signal handling.",
-        "ext-ev": "Provides an event loop with better performance.",
-        "ext-event": "Another extension providing an event loop with better performance (ext-ev preferred).",
-        "ext-libevent": "Another extension providing an event loop with better performance (ext-ev or ext-event preferred)."
+        "ext-ev": "Provides an event loop with better performance."
     },
     "autoload": {
         "psr-4": {
