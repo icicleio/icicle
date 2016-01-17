@@ -1,6 +1,16 @@
 # Change log
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.4] - 2016-01-16
+### Changed
+- Passing `null` (now the default argument) to `Icicle\Loop\Loop::maxQueueDepth()` or `Icicle\Loop\maxQueueDepth()` will return the current max queue depth without modifying it.
+- `Icicle\Observable\Emitter` now allows multiple coroutines to be created from the `$emit` callable simultaneously. This makes no difference for emitters using `yield` with `$emit`, but simplifies implementations using `$emit` as part of a callback that may be called before the previous value has finished emitting. See `Icicle\Observable\merge()` for an example of a function that uses `$emit` as a callback.
+- If an awaitable emitted from `Icicle\Observable\Emitter` is rejected, the observable will fail with the exception used to reject the awaitable.
+- `Icicle\Observable\observe()` now takes a callable `$onDisposed` argument that is invoked with the callable passed to the emitting function if the observable is disposed. This function can be used to remove the callable from the event emitter.
+
+### Fixed
+- Fixed [#14](https://github.com/icicleio/icicle/issues/14) caused by queued function arguments being retained in the loop until a full tick completed, consuming more memory than necessary. Arguments are now freed immediately after executing each queued function.
+
 ## [0.9.3] - 2016-01-04
 ### Added
 - `Icicle\Observable\Emitter` gained an optional `$onDisposed` parameter on the constructor accepting a callback function that is executed if the observable is disposed (either automatically or explicitly). This callback can either be a regular function, return an awaitable, or a coroutine. If the callback function returns an awaitable or is a coroutine, the observable is not disposed until the awaitable resolves. If the callback throws an exception (or the awaitable rejects), that exception will be used to dispose of the observable.
@@ -94,6 +104,7 @@ All notable changes to this project will be documented in this file. This projec
 See the [release list](https://github.com/icicleio/icicle/releases) for more information on previous releases.
 
 
+[0.9.4]: https://github.com/icicleio/icicle/releases/tag/v0.9.4
 [0.9.3]: https://github.com/icicleio/icicle/releases/tag/v0.9.3
 [0.9.2]: https://github.com/icicleio/icicle/releases/tag/v0.9.2
 [0.9.1]: https://github.com/icicleio/icicle/releases/tag/v0.9.1
