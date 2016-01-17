@@ -13,6 +13,7 @@ use Icicle\Coroutine\Coroutine;
 use Icicle\Loop;
 use Icicle\Loop\SelectLoop;
 use Icicle\Observable;
+use Icicle\Observable\Exception\DisposedException;
 use Icicle\Tests\TestCase;
 
 class ObserveTest extends TestCase
@@ -76,7 +77,7 @@ class ObserveTest extends TestCase
             $this->assertSame($value, $name);
         };
 
-        $observable = Observable\observe($emitter, 1, $value);
+        $observable = Observable\observe($emitter, null, 1, $value);
 
         $callback = $this->createCallback(3);
         $callback->method('__invoke')
@@ -101,10 +102,34 @@ class ObserveTest extends TestCase
      */
     public function testTooFewArguments()
     {
-        $observable = Observable\observe($this->createCallback(0), 1);
+        $observable = Observable\observe($this->createCallback(0), null, 1);
 
         $awaitable = new Coroutine($observable->each($this->createCallback(0)));
 
         $awaitable->wait();
+    }
+
+    /**
+     * @depends testBasicEmitter
+     */
+    public function testDisposedFunction()
+    {
+        $emitter = function(callable $callback) {
+            $this->callback = $callback;
+        };
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->isType('callable'), $this->isInstanceOf(DisposedException::class));
+
+        $observable = Observable\observe($emitter, $callback);
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(0)));
+
+        Loop\tick();
+
+        $observable->dispose();
+
+        Loop\run();
     }
 }
