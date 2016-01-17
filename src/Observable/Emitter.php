@@ -127,7 +127,7 @@ class Emitter implements Observable
                     $awaitable = AwaitableNS\resolve($result);
                 }
 
-                $awaitable = $awaitable->tap(function () use ($exception) {
+                $awaitable = $awaitable->then(function () use ($exception) {
                     throw $exception;
                 });
             } catch (Exception $exception) {
