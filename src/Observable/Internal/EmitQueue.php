@@ -11,6 +11,7 @@ namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
+use Icicle\Exception\InvalidArgumentError;
 use Icicle\Observable\Exception\AutoDisposedException;
 use Icicle\Observable\Exception\CompletedError;
 use Icicle\Observable\Observable;
@@ -86,19 +87,22 @@ class EmitQueue
         try {
             if ($value instanceof Awaitable) {
                 $value = (yield $value);
+            } elseif ($value instanceof Observable) {
+                if ($value === $this->observable) {
+                    throw new InvalidArgumentError('Cannot emit an observable within itself.');
+                }
+
+                $iterator = $value->getIterator();
+
+                while (yield $iterator->isValid()) {
+                    yield $this->emit($iterator->getCurrent());
+                }
+
+                yield $iterator->getReturn();
+                return;
             }
 
-            if (null === $this->observable) {
-                throw new CompletedError();
-            }
-
-            $this->delayed->resolve($value);
-            $this->delayed = new Delayed();
-
-            $placeholder = $this->placeholder;
-            $this->placeholder = new Placeholder($this->delayed);
-
-            yield $placeholder->wait();
+            yield $this->emit($value);
         } catch (\Exception $exception) {
             $this->fail($exception);
             throw $exception;
@@ -111,6 +115,28 @@ class EmitQueue
         }
 
         yield $value;
+    }
+
+    /**
+     * @param mixed $value Value to emit.
+     *
+     * @return \Icicle\Awaitable\Awaitable
+     *
+     * @throws \Icicle\Observable\Exception\CompletedError Thrown if the observable has completed.
+     */
+    private function emit($value)
+    {
+        if (null === $this->observable) {
+            throw new CompletedError();
+        }
+
+        $this->delayed->resolve($value);
+        $this->delayed = new Delayed();
+
+        $placeholder = $this->placeholder;
+        $this->placeholder = new Placeholder($this->delayed);
+
+        return $placeholder->wait();
     }
 
     /**
