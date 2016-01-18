@@ -14,8 +14,8 @@ interface ObservableIterator
     /**
      * @coroutine
      *
-     * Resolves with true if a new value is available by calling current() or false if the observable has completed.
-     * Calling current() will throw an exception if the observable completed. If an error occurs with the observable,
+     * Resolves with true if a new value is available by calling getCurrent() or false if the observable has completed.
+     * Calling getCurrent() will throw an exception if the observable completed. If an error occurs with the observable,
      * this coroutine will be rejected with the exception used to fail the observable.
      *
      * @return \Generator
@@ -32,7 +32,7 @@ interface ObservableIterator
      * @return mixed Value emitted from observable.
      *
      * @throws \Icicle\Observable\Exception\CompletedError If the observable has successfully completed.
-     * @throws \Icicle\Observable\Exception\UninitializedError If wait() was not called before calling this method.
+     * @throws \Icicle\Observable\Exception\UninitializedError If isValid() was not called before calling this method.
      * @throws \Exception Exception used to fail the observable.
      */
     public function getCurrent();

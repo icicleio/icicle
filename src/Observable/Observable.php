@@ -89,7 +89,7 @@ interface Observable
      * This method is a modified form of map() that expects the observable to emit an array or Traversable that is
      * used as arguments to the given callback function. The array is key sorted before being used as function
      * arguments. If the observable does not emit an array or Traversable, the observable will error with an instance
-     * of Icicle\Observable\Exception\InvalidArgumentError.
+     * of Icicle\Exception\UnexpectedTypeError.
      *
      * @param callable(mixed ...$args): mixed $onNext
      * @param callable(mixed ...$args): mixed|null $onComplete

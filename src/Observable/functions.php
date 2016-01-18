@@ -17,6 +17,11 @@ use Icicle\Loop;
 
 if (!function_exists(__NAMESPACE__ . '\from')) {
     /**
+     * Creates an observable instance from the given data. If the data is an array or Traversable, the observable will
+     * emit each element of the array or Traversable. All other data types will result in an emitter that emits the
+     * single value then completes with null. If any values are awaitables, the fulfillment value will be emitted or
+     * the rejection reason will fail the returned observable.
+     *
      * @param mixed $values
      *
      * @return \Icicle\Observable\Observable
@@ -41,6 +46,10 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
     }
 
     /**
+     * Creates an observable that emits values emitted from any observable in the array of observables. Values in the
+     * array are passed through the from() function, so they may be observables, arrays of values to emit, awaitables,
+     * or any other value.
+     *
      * @param \Icicle\Observable\Observable[] $observables
      *
      * @return \Icicle\Observable\Observable
@@ -216,6 +225,9 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
     }
 
     /**
+     * Creates an observable of the arguments passed to this function. For example, of(1, 2, 3) will return an
+     * observable that will emit the values 1, 2, and 3. Values can be awaitables.
+     *
      * @param mixed ...$args
      *
      * @return \Icicle\Observable\Observable
