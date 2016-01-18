@@ -65,6 +65,18 @@ interface Observable
     public function filter(callable $callback);
 
     /**
+     * Reduce function similar to array_reduce(), instead invoking the accumulator as values are emitted. The initial
+     * seed value may be any value or an awaitable. Each value returned from the accumulator is emitted from the
+     * returned observable. The observable returns the final value returned from the accumulator.
+     *
+     * @param callable $accumulator
+     * @param mixed $seed
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    public function reduce(callable $accumulator, $seed = null);
+
+    /**
      * Throttles the observable to only emit a value every $time seconds.
      *
      * @param float|int $time

@@ -225,6 +225,33 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
+    public function reduce(callable $accumulator, $seed = null)
+    {
+        return new self(function (callable $emit) use ($accumulator, $seed) {
+            $iterator = $this->getIterator();
+            if ($seed instanceof Awaitable) {
+                $carry = (yield $seed);
+            } else {
+                $carry = $seed;
+            }
+
+            while (yield $iterator->isValid()) {
+                $carry = $accumulator($carry, $iterator->getCurrent());
+
+                if ($carry instanceof Generator || $carry instanceof Awaitable) {
+                    $carry = (yield $carry);
+                }
+
+                yield $emit($carry);
+            }
+
+            yield $carry;
+        });
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function throttle($time)
     {
         $time = (float) $time;
