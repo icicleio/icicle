@@ -9,4 +9,6 @@
 
 namespace Icicle\Awaitable\Exception;
 
-class CircularResolutionError extends \Exception implements Error {}
+use Icicle\Exception\InvalidArgumentError;
+
+class CircularResolutionError extends InvalidArgumentError implements Error {}
