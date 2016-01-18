@@ -11,8 +11,8 @@ namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
-use Icicle\Exception\InvalidArgumentError;
 use Icicle\Observable\Exception\AutoDisposedException;
+use Icicle\Observable\Exception\CircularEmitError;
 use Icicle\Observable\Exception\CompletedError;
 use Icicle\Observable\Observable;
 
@@ -71,6 +71,7 @@ class EmitQueue
      * @return \Generator
      *
      * @throws \Icicle\Observable\Exception\CompletedError
+     * @throws \Icicle\Observable\Exception\CircularEmitError
      */
     public function push($value)
     {
@@ -85,11 +86,9 @@ class EmitQueue
         $this->busy = true;
 
         try {
-            if ($value instanceof Awaitable) {
-                $value = (yield $value);
-            } elseif ($value instanceof Observable) {
+            if ($value instanceof Observable) {
                 if ($value === $this->observable) {
-                    throw new InvalidArgumentError('Cannot emit an observable within itself.');
+                    throw new CircularEmitError('Cannot emit an observable within itself.');
                 }
 
                 $iterator = $value->getIterator();
@@ -100,6 +99,10 @@ class EmitQueue
 
                 yield $iterator->getReturn();
                 return;
+            }
+
+            if ($value instanceof Awaitable) {
+                $value = (yield $value);
             }
 
             yield $this->emit($value);
