@@ -17,23 +17,23 @@ use Icicle\Loop;
 
 if (!function_exists(__NAMESPACE__ . '\from')) {
     /**
-     * @param array|\Traversable|\Icicle\Observable\Observable $traversable
+     * @param mixed $values
      *
      * @return \Icicle\Observable\Observable
      */
-    function from($traversable)
+    function from($values)
     {
-        if ($traversable instanceof Observable) {
-            return $traversable;
+        if ($values instanceof Observable) {
+            return $values;
         }
 
-        return new Emitter(function (callable $emit) use ($traversable) {
-            if (!is_array($traversable) && !$traversable instanceof \Traversable) {
-                throw new InvalidArgumentError('Must provide an array or instance of Traversable.');
-            }
-
-            foreach ($traversable as $value) {
-                yield $emit($value);
+        return new Emitter(function (callable $emit) use ($values) {
+            if (is_array($values) || $values instanceof \Traversable) {
+                foreach ($values as $value) {
+                    yield $emit($value);
+                }
+            } else {
+                yield $emit($values);
             }
 
             yield null; // Yield null so last emitted value is not the return value (not needed in PHP 7).
@@ -84,18 +84,12 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
         $args = array_slice(func_get_args(), 3);
 
         $emitter = function (callable $emit) use (&$callback, $emitter, $index, $args) {
-            $queue = new \SplQueue();
+            $delayed = new Delayed();
+            $reject = [$delayed, 'reject'];
 
-            /** @var \Icicle\Awaitable\Delayed $delayed */
-            $callback = function (/* ...$args */) use (&$delayed, $queue) {
-                $args = func_get_args();
-
-                if (null !== $delayed) {
-                    $delayed->resolve($args);
-                    $delayed = null;
-                } else {
-                    $queue->push($args);
-                }
+            $callback = function () use ($emit, $reject) {
+                $coroutine = new Coroutine($emit(func_get_args()));
+                $coroutine->done(null, $reject);
             };
 
             if (count($args) < $index) {
@@ -106,14 +100,7 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
 
             call_user_func_array($emitter, $args);
 
-            while (true) {
-                if ($queue->isEmpty()) {
-                    $delayed = new Delayed();
-                    yield $emit($delayed);
-                } else {
-                    yield $emit($queue->shift());
-                }
-            }
+            yield $delayed;
         };
 
         if (null !== $onDisposed) {
@@ -123,6 +110,70 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
         }
 
         return new Emitter($emitter, $onDisposed);
+    }
+
+    /**
+     * @param array $observables
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function concat(array $observables)
+    {
+        /** @var \Icicle\Observable\Observable[] $observables */
+        $observables = array_map(__NAMESPACE__ . '\from', $observables);
+
+        return new Emitter(function (callable $emit) use ($observables) {
+            $results = [];
+
+            foreach ($observables as $key => $observable) {
+                $results[$key] = (yield $emit($observable));
+            }
+
+            yield $results;
+        });
+    }
+
+    /**
+     * @param \Icicle\Observable\Observable[] $observables
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function zip(array $observables)
+    {
+        /** @var \Icicle\Observable\Observable[] $observables */
+        $observables = array_map(__NAMESPACE__ . '\from', $observables);
+
+        return new Emitter(function (callable $emit) use ($observables) {
+            $coroutines = [];
+            $next = [];
+            $delayed = new Delayed();
+            $count = count($observables);
+
+            foreach ($observables as $key => $observable) {
+                $coroutines[$key] = new Coroutine($observable->each(
+                    function ($value) use (&$next, &$delayed, $key, $count, $emit) {
+                        if (isset($next[$key])) {
+                            yield $delayed; // Wait for $next to be emitted.
+                        }
+
+                        $next[$key] = $value;
+
+                        if (count($next) === $count) {
+                            yield $emit($next);
+                            $delayed->resolve($next);
+                            $delayed = new Delayed();
+                            $next = [];
+                        }
+                    }
+                ));
+            }
+
+            yield Awaitable\choose($coroutines)->cleanup(function () use ($coroutines) {
+                foreach ($coroutines as $coroutine) {
+                    $coroutine->cancel();
+                }
+            });
+        });
     }
 
     /**
@@ -161,6 +212,40 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             }
 
             yield microtime(true) - $start;
+        });
+    }
+
+    /**
+     * @param mixed ...$args
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function of(/* ...$args */)
+    {
+        return from(func_get_args());
+    }
+
+    /**
+     * @param int $start
+     * @param int $end
+     * @param int $step
+     *
+     * @return \Icicle\Observable\Emitter
+     */
+    function range($start, $end, $step = 1)
+    {
+        $start = (int) $start;
+        $end = (int) $end;
+        $step = (int) $step;
+
+        return new Emitter(function (callable $emit) use ($start, $end, $step) {
+            if (0 >= $step) {
+                throw new InvalidArgumentError('Step must be 1 or greater');
+            }
+
+            for ($i = $start; $i <= $end; $i += $step) {
+                yield $emit($i);
+            }
         });
     }
 }

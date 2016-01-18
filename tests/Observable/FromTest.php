@@ -96,7 +96,7 @@ class FromTest extends TestCase
     /**
      * @return array
      */
-    public function getInvalidValues()
+    public function getValues()
     {
         return [
             ['test'],
@@ -108,16 +108,21 @@ class FromTest extends TestCase
     }
 
     /**
-     * @dataProvider getInvalidValues
-     * @expectedException \Icicle\Exception\InvalidArgumentError
+     * @dataProvider getValues
      *
      * @param mixed $value
      */
-    public function testFromInvalidValue($value)
+    public function testFromValue($value)
     {
         $observable = Observable\from($value);
 
-        $awaitable = new Coroutine($observable->each($this->createCallback(0)));
-        $awaitable->wait();
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($value));
+
+        $awaitable = new Coroutine($observable->each($callback));
+        $awaitable->done();
+
+        Loop\run();
     }
 }
