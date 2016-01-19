@@ -18,8 +18,6 @@ use Icicle\Tests\TestCase;
 
 class ObserveTest extends TestCase
 {
-    const TIMEOUT = 0.1;
-
     protected $callback;
 
     public function setUp()

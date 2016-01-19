@@ -46,6 +46,21 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
     }
 
     /**
+     * Returns an observable that immediately fails.
+     *
+     * @param \Exception $exception
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function fail(\Exception $exception)
+    {
+        return new Emitter(function (callable $emit) use ($exception) {
+            throw $exception;
+            yield; // Unreachable, but makes function a coroutine.
+        });
+    }
+
+    /**
      * Creates an observable that emits values emitted from any observable in the array of observables. Values in the
      * array are passed through the from() function, so they may be observables, arrays of values to emit, awaitables,
      * or any other value.
@@ -158,9 +173,10 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             $delayed = new Delayed();
             $count = count($observables);
 
+            $i = 0;
             foreach ($observables as $key => $observable) {
                 $coroutines[$key] = new Coroutine($observable->each(
-                    function ($value) use (&$next, &$delayed, $key, $count, $emit) {
+                    function ($value) use (&$i, &$next, &$delayed, $key, $count, $emit) {
                         if (isset($next[$key])) {
                             yield $delayed; // Wait for $next to be emitted.
                         }
@@ -168,6 +184,7 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                         $next[$key] = $value;
 
                         if (count($next) === $count) {
+                            ++$i;
                             yield $emit($next);
                             $delayed->resolve($next);
                             $delayed = new Delayed();
@@ -182,6 +199,8 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                     $coroutine->cancel();
                 }
             });
+
+            yield $i; // Return the number of times a set was emitted.
         });
     }
 
@@ -251,13 +270,19 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
         $step = (int) $step;
 
         return new Emitter(function (callable $emit) use ($start, $end, $step) {
-            if (0 >= $step) {
-                throw new InvalidArgumentError('Step must be 1 or greater');
+            if (0 === $step) {
+                throw new InvalidArgumentError('Step must be a non-zero integer.');
+            }
+
+            if ((($end - $start) ^ $step) < 0) {
+                throw new InvalidArgumentError('Step is not of the correct sign.');
             }
 
             for ($i = $start; $i <= $end; $i += $step) {
                 yield $emit($i);
             }
+
+            yield null; // Yield null so last emitted value is not the return value (not needed in PHP 7).
         });
     }
 }

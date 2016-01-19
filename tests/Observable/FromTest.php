@@ -125,4 +125,22 @@ class FromTest extends TestCase
 
         Loop\run();
     }
+
+    /**
+     * @depends testFrom
+     * @dataProvider getTraversables
+     *
+     * @param array|\Traversable $traversable
+     * @param int $count
+     */
+    public function testOf($traversables, $count)
+    {
+        $array = is_array($traversables) ? $traversables : iterator_to_array($traversables);
+
+        $observable = call_user_func_array('Icicle\Observable\of', $array);
+
+        $awaitable = new Coroutine($observable->each($this->createCallback($count)));
+
+        $awaitable->wait();
+    }
 }

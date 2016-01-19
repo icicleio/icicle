@@ -20,8 +20,6 @@ class MergeTestException extends \Exception {}
 
 class MergeTest extends TestCase
 {
-    const TIMEOUT = 0.1;
-
     protected $callback;
 
     public function setUp()
