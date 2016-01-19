@@ -173,7 +173,7 @@ class Emitter implements Observable
      */
     public function map(callable $onNext, callable $onComplete = null): Observable
     {
-        return new self(function (callable $emit) use ($onNext, $onComplete) {
+        return new self(function (callable $emit) use ($onNext, $onComplete): \Generator {
             $iterator = $this->getIterator();
             while (yield from $iterator->isValid()) {
                 $result = $onNext($iterator->getCurrent());
@@ -208,7 +208,7 @@ class Emitter implements Observable
      */
     public function filter(callable $callback): Observable
     {
-        return new self(function (callable $emit) use ($callback) {
+        return new self(function (callable $emit) use ($callback): \Generator {
             $iterator = $this->getIterator();
             while (yield from $iterator->isValid()) {
                 $value = $iterator->getCurrent();
@@ -232,13 +232,42 @@ class Emitter implements Observable
     /**
      * {@inheritdoc}
      */
+    public function reduce(callable $accumulator, $seed = null): Observable
+    {
+        return new self(function (callable $emit) use ($accumulator, $seed): \Generator {
+            $iterator = $this->getIterator();
+            if ($seed instanceof Awaitable) {
+                $carry = yield $seed;
+            } else {
+                $carry = $seed;
+            }
+
+            while (yield from $iterator->isValid()) {
+                $carry = $accumulator($carry, $iterator->getCurrent());
+
+                if ($carry instanceof Generator) {
+                    $carry = yield from $carry;
+                } elseif ($carry instanceof Awaitable) {
+                    $carry = yield $carry;
+                }
+
+                yield from $emit($carry);
+            }
+
+            return $carry;
+        });
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function throttle(float $time): Observable
     {
         if (0 >= $time) {
             return $this->skip(0);
         }
 
-        return new self(function (callable $emit) use ($time) {
+        return new self(function (callable $emit) use ($time): \Generator {
             $iterator = $this->getIterator();
             $start = microtime(true) - $time;
 
@@ -297,7 +326,7 @@ class Emitter implements Observable
      */
     public function take(int $count): Observable
     {
-        return new self(function (callable $emit) use ($count) {
+        return new self(function (callable $emit) use ($count): \Generator {
             if (0 > $count) {
                 throw new InvalidArgumentError('The number of values to take must be non-negative.');
             }
@@ -316,7 +345,7 @@ class Emitter implements Observable
      */
     public function skip(int $count): Observable
     {
-        return new self(function (callable $emit) use ($count) {
+        return new self(function (callable $emit) use ($count): \Generator {
             if (0 > $count) {
                 throw new InvalidArgumentError('The number of values to skip must be non-negative.');
             }

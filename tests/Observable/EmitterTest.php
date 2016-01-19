@@ -229,6 +229,154 @@ class EmitterTest extends TestCase
 
     /**
      * @depends testEmit
+     */
+    public function testEmitObservable()
+    {
+        $observable = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            return 4;
+        });
+
+        $emitter = new Emitter(function (callable $emit) use ($observable) {
+            return yield from $emit($observable);
+        });
+
+        $i = 0;
+        $awaitable = new Coroutine($emitter->each(function ($emitted) use (&$i) {
+            $this->assertSame(++$i, $emitted);
+        }));
+
+        $this->assertSame(4, $awaitable->wait());
+    }
+
+    /**
+     * @depends testEmitObservable
+     */
+    public function testEmitObservableEmittingObservable()
+    {
+        $observable1 = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            return 4;
+        });
+
+        $observable2 = new Emitter(function (callable $emit) {
+            yield from $emit(8);
+            yield from $emit(9);
+            yield from $emit(10);
+            yield from $emit(11);
+            return 12;
+        });
+
+        $observable3 = new Emitter(function (callable $emit) use ($observable1, $observable2) {
+            $result = (yield from $emit($observable1));
+            yield from $emit($result);
+            yield from $emit(5);
+            yield from $emit(6);
+            yield from $emit(7);
+            return yield from $emit($observable2);
+        });
+
+        $emitter = new Emitter(function (callable $emit) use ($observable3) {
+            return yield from $emit($observable3);
+        });
+
+        $i = 0;
+        $awaitable = new Coroutine($emitter->each(function ($emitted) use (&$i) {
+            $this->assertSame(++$i, $emitted);
+        }));
+
+        $this->assertSame(12, $awaitable->wait());
+    }
+
+    /**
+     * @depends testEmitObservable
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testEmitFailingObservable()
+    {
+        $observable = new Emitter(function (callable $emit) {
+            yield from $emit();
+            throw new EmitterTestException();
+        });
+
+        $emitter = new Emitter(function (callable $emit) use ($observable) {
+            yield from $emit($observable);
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(1)));
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testEmitObservable
+     */
+    public function testEmitCompletedObservable()
+    {
+        $observable = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            return 2;
+        });
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(1)));
+        $this->assertSame(2, $awaitable->wait());
+
+        $this->assertTrue($observable->isComplete());
+
+        $emitter = new Emitter(function (callable $emit) use ($observable) {
+            return yield from $emit($observable);
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+        $this->assertSame(2, $awaitable->wait());
+    }
+
+    /**
+     * @depends testEmitCompletedObservable
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testEmitFailedObservable()
+    {
+        $observable = new Emitter(function (callable $emit) {
+            yield from $emit();
+            throw new EmitterTestException();
+        });
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(1)));
+
+        Loop\run();
+
+        $this->assertTrue($observable->isComplete());
+        $this->assertTrue($observable->isFailed());
+
+        $emitter = new Emitter(function (callable $emit) use ($observable) {
+            yield from $emit($observable);
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testEmitObservable
+     * @expectedException \Icicle\Observable\Exception\CircularEmitError
+     */
+    public function testEmitSelf()
+    {
+        $emitter = new Emitter(function (callable $emit) use (&$emitter) {
+            yield from $emit($emitter);
+        });
+
+        $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testEmit
      * @expectedException \Icicle\Tests\Observable\EmitterTestException
      */
     public function testEachCallbackThrowingRejectsCoroutine()
@@ -766,6 +914,125 @@ class EmitterTest extends TestCase
 
     /**
      * @depends testEmit
+     */
+    public function testReduce()
+    {
+        $emitter = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
+        });
+
+        $i = 0;
+        $seed = 0;
+        $callback = function ($carry, $value) use (&$i, &$seed) {
+            $this->assertSame(++$i, $value);
+            $this->assertSame($seed, $carry);
+            $seed += $value;
+            return $carry + $value;
+        };
+
+        $observable = $emitter->reduce($callback, $seed);
+
+        $callback = $this->createCallback(4);
+        $callback->method('__invoke')
+            ->will($this->returnCallback(function ($value) use (&$seed) {
+                $this->assertSame($seed, $value);
+            }));
+
+        $awaitable = new Coroutine($observable->each($callback));
+
+        $this->assertSame(10, $awaitable->wait());
+    }
+
+    /**
+     * @depends testReduce
+     */
+    public function testReduceReturnAwaitable()
+    {
+        $emitter = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
+        });
+
+        $callback = function ($carry, $value) {
+            return Awaitable\resolve($carry + $value);
+        };
+
+        $observable = $emitter->reduce($callback, 0);
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(4)));
+
+        $this->assertSame(10, $awaitable->wait());
+    }
+
+    /**
+     * @depends testReduce
+     */
+    public function testReduceCoroutine()
+    {
+        $emitter = new Emitter(function (callable $emit) {
+            yield from $emit(1);
+            yield from $emit(2);
+            yield from $emit(3);
+            yield from $emit(4);
+        });
+
+        $callback = function ($carry, $value) {
+            return yield $carry + $value;
+        };
+
+        $observable = $emitter->reduce($callback, 0);
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(4)));
+
+        $this->assertSame(10, $awaitable->wait());
+    }
+
+    /**
+     * @depends testReduce
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testReduceAccumulatorThrows()
+    {
+        $emitter = new Emitter(function (callable $emit) {
+            yield from $emit();
+        });
+
+        $observable = $emitter->reduce(function () {
+            throw new EmitterTestException();
+        }, 0);
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(0)));
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testReduce
+     * @expectedException \Icicle\Tests\Observable\EmitterTestException
+     */
+    public function testReduceErroredEmitter()
+    {
+        $value = 1;
+
+        $emitter = new Emitter(function (callable $emit) use ($value) {
+            yield from $emit($value);
+            throw new EmitterTestException();
+        });
+
+        $observable = $emitter->reduce($this->createCallback(1));
+
+        $awaitable = new Coroutine($observable->each($this->createCallback(1)));
+
+        $awaitable->wait();
+    }
+
+    /**
+     * @depends testEmit
      * @expectedException \Icicle\Observable\Exception\DisposedException
      */
     public function testDispose()
@@ -823,7 +1090,7 @@ class EmitterTest extends TestCase
             ->with($this->identicalTo($exception));
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
@@ -848,7 +1115,7 @@ class EmitterTest extends TestCase
         };
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
@@ -870,7 +1137,7 @@ class EmitterTest extends TestCase
         };
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
@@ -896,7 +1163,7 @@ class EmitterTest extends TestCase
         };
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
@@ -918,7 +1185,7 @@ class EmitterTest extends TestCase
         };
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));
@@ -943,7 +1210,7 @@ class EmitterTest extends TestCase
         };
 
         $emitter = new Emitter(function (callable $emit) {
-            yield $emit(new Delayed());
+            yield from $emit(new Delayed());
         }, $callback);
 
         $awaitable = new Coroutine($emitter->each($this->createCallback(0)));

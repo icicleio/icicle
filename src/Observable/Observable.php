@@ -65,6 +65,18 @@ interface Observable
     public function filter(callable $callback): Observable;
 
     /**
+     * Reduce function similar to array_reduce(), instead invoking the accumulator as values are emitted. The initial
+     * seed value may be any value or an awaitable. Each value returned from the accumulator is emitted from the
+     * returned observable. The observable returns the final value returned from the accumulator.
+     *
+     * @param callable $accumulator
+     * @param mixed $seed
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    public function reduce(callable $accumulator, $seed = null): Observable;
+
+    /**
      * Throttles the observable to only emit a value every $time seconds.
      *
      * @param float|int $time
@@ -77,7 +89,7 @@ interface Observable
      * This method is a modified form of map() that expects the observable to emit an array or Traversable that is
      * used as arguments to the given callback function. The array is key sorted before being used as function
      * arguments. If the observable does not emit an array or Traversable, the observable will error with an instance
-     * of Icicle\Observable\Exception\InvalidArgumentError.
+     * of Icicle\Exception\UnexpectedTypeError.
      *
      * @param callable(mixed ...$args): mixed $onNext
      * @param callable(mixed ...$args): mixed|null $onComplete

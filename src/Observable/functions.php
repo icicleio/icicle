@@ -17,28 +17,52 @@ use Icicle\Loop;
 
 if (!function_exists(__NAMESPACE__ . '\from')) {
     /**
-     * @param array|\Traversable|\Icicle\Observable\Observable $traversable
+     * Creates an observable instance from the given data. If the data is an array or Traversable, the observable will
+     * emit each element of the array or Traversable. All other data types will result in an emitter that emits the
+     * single value then completes with null. If any values are awaitables, the fulfillment value will be emitted or
+     * the rejection reason will fail the returned observable.
+     *
+     * @param mixed $values
      *
      * @return \Icicle\Observable\Observable
      */
-    function from($traversable): Observable
+    function from($values): Observable
     {
-        if ($traversable instanceof Observable) {
-            return $traversable;
+        if ($values instanceof Observable) {
+            return $values;
         }
 
-        return new Emitter(function (callable $emit) use ($traversable): \Generator {
-            if (!is_array($traversable) && !$traversable instanceof \Traversable) {
-                throw new InvalidArgumentError('Must provide an array or instance of Traversable.');
-            }
-
-            foreach ($traversable as $value) {
-                yield from $emit($value);
+        return new Emitter(function (callable $emit) use ($values): \Generator {
+            if (is_array($values) || $values instanceof \Traversable) {
+                foreach ($values as $value) {
+                    yield from $emit($value);
+                }
+            } else {
+                yield from $emit($values);
             }
         });
     }
 
     /**
+     * Returns an observable that immediately fails.
+     *
+     * @param \Throwable $exception
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function fail(\Throwable $exception): Observable
+    {
+        return new Emitter(function (callable $emit) use ($exception): \Generator {
+            throw $exception;
+            yield; // Unreachable, but makes function a coroutine.
+        });
+    }
+
+    /**
+     * Creates an observable that emits values emitted from any observable in the array of observables. Values in the
+     * array are passed through the from() function, so they may be observables, arrays of values to emit, awaitables,
+     * or any other value.
+     *
      * @param \Icicle\Observable\Observable[] $observables
      *
      * @return \Icicle\Observable\Observable
@@ -80,16 +104,12 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
     function observe(callable $emitter, callable $onDisposed = null, int $index = 0, ...$args): Observable
     {
         $emitter = function (callable $emit) use (&$callback, $emitter, $index, $args): \Generator {
-            $queue = new \SplQueue();
+            $delayed = new Delayed();
+            $reject = [$delayed, 'reject'];
 
-            /** @var \Icicle\Awaitable\Delayed $delayed */
-            $callback = function (...$args) use (&$delayed, $queue) {
-                if (null !== $delayed) {
-                    $delayed->resolve($args);
-                    $delayed = null;
-                } else {
-                    $queue->push($args);
-                }
+            $callback = function (...$args) use ($emit, $reject) {
+                $coroutine = new Coroutine($emit($args));
+                $coroutine->done(null, $reject);
             };
 
             if (count($args) < $index) {
@@ -100,14 +120,7 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
 
             $emitter(...$args);
 
-            while (true) {
-                if ($queue->isEmpty()) {
-                    $delayed = new Delayed();
-                    yield from $emit($delayed);
-                } else {
-                    yield from $emit($queue->shift());
-                }
-            }
+            return yield $delayed;
         };
 
         if (null !== $onDisposed) {
@@ -117,6 +130,74 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
         }
 
         return new Emitter($emitter, $onDisposed);
+    }
+
+    /**
+     * @param array $observables
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function concat(array $observables): Observable
+    {
+        /** @var \Icicle\Observable\Observable[] $observables */
+        $observables = array_map(__NAMESPACE__ . '\from', $observables);
+
+        return new Emitter(function (callable $emit) use ($observables): \Generator {
+            $results = [];
+
+            foreach ($observables as $key => $observable) {
+                $results[$key] = yield from $emit($observable);
+            }
+
+            return $results;
+        });
+    }
+
+    /**
+     * @param \Icicle\Observable\Observable[] $observables
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function zip(array $observables): Observable
+    {
+        /** @var \Icicle\Observable\Observable[] $observables */
+        $observables = array_map(__NAMESPACE__ . '\from', $observables);
+
+        return new Emitter(function (callable $emit) use ($observables): \Generator {
+            $coroutines = [];
+            $next = [];
+            $delayed = new Delayed();
+            $count = count($observables);
+
+            $i = 0;
+            foreach ($observables as $key => $observable) {
+                $coroutines[$key] = new Coroutine($observable->each(
+                    function ($value) use (&$i, &$next, &$delayed, $key, $count, $emit) {
+                        if (isset($next[$key])) {
+                            yield $delayed; // Wait for $next to be emitted.
+                        }
+
+                        $next[$key] = $value;
+
+                        if (count($next) === $count) {
+                            ++$i;
+                            yield from $emit($next);
+                            $delayed->resolve($next);
+                            $delayed = new Delayed();
+                            $next = [];
+                        }
+                    }
+                ));
+            }
+
+            yield Awaitable\choose($coroutines)->cleanup(function () use ($coroutines) {
+                foreach ($coroutines as $coroutine) {
+                    $coroutine->cancel();
+                }
+            });
+
+            return $i; // Return the number of times a set was emitted.
+        });
     }
 
     /**
@@ -154,6 +235,43 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             }
 
             return microtime(true) - $start;
+        });
+    }
+
+    /**
+     * Creates an observable of the arguments passed to this function. For example, of(1, 2, 3) will return an
+     * observable that will emit the values 1, 2, and 3. Values can be awaitables.
+     *
+     * @param mixed ...$args
+     *
+     * @return \Icicle\Observable\Observable
+     */
+    function of(...$args): Observable
+    {
+        return from($args);
+    }
+
+    /**
+     * @param int $start
+     * @param int $end
+     * @param int $step
+     *
+     * @return \Icicle\Observable\Emitter
+     */
+    function range(int $start, int $end, int $step = 1): Observable
+    {
+        return new Emitter(function (callable $emit) use ($start, $end, $step): \Generator {
+            if (0 === $step) {
+                throw new InvalidArgumentError('Step must be a non-zero integer.');
+            }
+
+            if ((($end - $start) ^ $step) < 0) {
+                throw new InvalidArgumentError('Step is not of the correct sign.');
+            }
+
+            for ($i = $start; $i <= $end; $i += $step) {
+                yield from $emit($i);
+            }
         });
     }
 }

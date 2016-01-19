@@ -10,7 +10,7 @@
 namespace Icicle\Observable\Internal;
 
 use Icicle\Awaitable\{Awaitable, Delayed};
-use Icicle\Observable\Exception\{AutoDisposedException, CompletedError};
+use Icicle\Observable\Exception\{AutoDisposedException, CircularEmitError, CompletedError};
 use Icicle\Observable\Observable;
 
 class EmitQueue
@@ -68,6 +68,7 @@ class EmitQueue
      * @return \Generator
      *
      * @throws \Icicle\Observable\Exception\CompletedError
+     * @throws \Icicle\Observable\Exception\CircularEmitError
      */
     public function push($value): \Generator
     {
@@ -82,21 +83,25 @@ class EmitQueue
         $this->busy = true;
 
         try {
+            if ($value instanceof Observable) {
+                if ($value === $this->observable) {
+                    throw new CircularEmitError('Cannot emit an observable within itself.');
+                }
+
+                $iterator = $value->getIterator();
+
+                while (yield from $iterator->isValid()) {
+                    yield $this->emit($iterator->getCurrent());
+                }
+
+                return $iterator->getReturn();
+            }
+
             if ($value instanceof Awaitable) {
                 $value = yield $value;
             }
 
-            if (null === $this->observable) {
-                throw new CompletedError();
-            }
-
-            $this->delayed->resolve($value);
-            $this->delayed = new Delayed();
-
-            $placeholder = $this->placeholder;
-            $this->placeholder = new Placeholder($this->delayed);
-
-            yield $placeholder->wait();
+            yield $this->emit($value);
         } catch (\Throwable $exception) {
             $this->fail($exception);
             throw $exception;
@@ -109,6 +114,28 @@ class EmitQueue
         }
 
         return $value;
+    }
+
+    /**
+     * @param mixed $value Value to emit.
+     *
+     * @return \Icicle\Awaitable\Awaitable
+     *
+     * @throws \Icicle\Observable\Exception\CompletedError Thrown if the observable has completed.
+     */
+    private function emit($value): Awaitable
+    {
+        if (null === $this->observable) {
+            throw new CompletedError();
+        }
+
+        $this->delayed->resolve($value);
+        $this->delayed = new Delayed();
+
+        $placeholder = $this->placeholder;
+        $this->placeholder = new Placeholder($this->delayed);
+
+        return $placeholder->wait();
     }
 
     /**

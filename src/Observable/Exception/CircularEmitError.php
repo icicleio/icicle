@@ -7,8 +7,8 @@
  * @license MIT See the LICENSE file that was distributed with this source code for more information.
  */
 
-namespace Icicle\Awaitable\Exception;
+namespace Icicle\Observable\Exception;
 
 use Icicle\Exception\InvalidArgumentError;
 
-class CircularResolutionError extends InvalidArgumentError implements Error {}
+class CircularEmitError extends InvalidArgumentError implements Error {}
