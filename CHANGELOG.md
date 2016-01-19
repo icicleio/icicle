@@ -1,9 +1,14 @@
 # Change log
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.9.4] - 2016-01-16
+## [0.9.4] - 2016-01-18
+### Added
+- Added `of()`, `fail()`, `concat()`, `zip()`, and `range()` functions to the `Icicle\Observable` namespace. See each function for more information.
+- Added `reduce()` function to `Icicle\Observable\Observable` that executes an accumulator function on each emitted value, returning an observable that emits the current accumulated value after each invokation of the accumulator.
+
 ### Changed
 - Passing `null` (now the default argument) to `Icicle\Loop\Loop::maxQueueDepth()` or `Icicle\Loop\maxQueueDepth()` will return the current max queue depth without modifying it.
+- `Icicle\Observable\Emitter` can delegate to another instance of `Icicle\Observable\Observable` by emitting the observable. Values from the emitted observable will then be emitted as though they were emitted by the delegating observable. The `$emit` callable will resolve with the return value of the emitted observable.
 - `Icicle\Observable\Emitter` now allows multiple coroutines to be created from the `$emit` callable simultaneously. This makes no difference for emitters using `yield` with `$emit`, but simplifies implementations using `$emit` as part of a callback that may be called before the previous value has finished emitting. See `Icicle\Observable\merge()` for an example of a function that uses `$emit` as a callback.
 - If an awaitable emitted from `Icicle\Observable\Emitter` is rejected, the observable will fail with the exception used to reject the awaitable.
 - `Icicle\Observable\observe()` now takes a callable `$onDisposed` argument that is invoked with the callable passed to the emitting function if the observable is disposed. This function can be used to remove the callable from the event emitter.
