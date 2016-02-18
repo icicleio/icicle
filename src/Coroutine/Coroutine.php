@@ -56,10 +56,6 @@ final class Coroutine extends Future
          * @param mixed $value The value to send to the generator.
          */
         $this->send = function ($value = null) {
-            if (null === $this->generator) { // Coroutine may have been cancelled.
-                return;
-            }
-
             try {
                 // Send the new value and execute to next yield statement.
                 $this->next($this->generator->send($value), $value);
@@ -72,10 +68,6 @@ final class Coroutine extends Future
          * @param \Exception $exception Exception to be thrown into the generator.
          */
         $this->capture = function (Exception $exception) {
-            if (null === $this->generator) { // Coroutine may have been cancelled.
-                return;
-            }
-
             try {
                 // Throw exception at current execution point.
                 $this->next($this->generator->throw($exception));
@@ -120,35 +112,34 @@ final class Coroutine extends Future
     /**
      * {@inheritdoc}
      */
-    protected function resolve($value = null)
-    {
-        parent::resolve($value);
-
-        $this->generator = null;
-        $this->current = null;
-        $this->send = null;
-        $this->capture = null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function cancel(Exception $reason = null)
     {
         if (null === $reason) {
             $reason = new TerminatedException();
         }
 
-        if ($this->current instanceof Awaitable) {
+        if (!$this->isPending()) {
+            return;
+        }
+
+        if ($this->current instanceof Awaitable && $this->current->isPending()) {
             $this->current->cancel($reason);
+
+            // Resolve awaitable with cancelled awaitable. Execution will continue with thrown exception.
+            $this->resolve($this->current);
+            return;
         }
 
         try {
-            $this->generator = null; // finally blocks may throw from force-closed Generator.
-        } catch (Exception $exception) {
-            $reason = $exception;
-        }
+            // Throw exception at current yield point.
+            $yielded = $this->generator->throw($reason);
 
-        parent::cancel($reason);
+            parent::cancel($reason);
+
+            // Continue coroutine execution if a value was yielded (even though the consumer cancelled).
+            $this->next($yielded);
+        } catch (Exception $exception) {
+            parent::cancel($exception); // Use thrown exception to cancel awaitable.
+        }
     }
 }
