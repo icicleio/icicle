@@ -886,7 +886,7 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->assertTrue($immediate->isPending());
         
-        $this->loop->tick(false); // Should invoke immediate callback.
+        $this->loop->tick(true); // Should invoke immediate callback.
     }
 
     /**
@@ -898,13 +898,13 @@ abstract class AbstractLoopTest extends TestCase
         $immediate2 = $this->loop->immediate($this->createCallback(1));
         $immediate3 = $this->loop->immediate($this->createCallback(0));
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
         
         $this->assertFalse($immediate1->isPending());
         $this->assertTrue($immediate2->isPending());
         $this->assertTrue($immediate3->isPending());
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
         
         $this->assertFalse($immediate2->isPending());
         $this->assertTrue($immediate3->isPending());
@@ -917,15 +917,15 @@ abstract class AbstractLoopTest extends TestCase
     {
         $immediate = $this->loop->immediate($this->createCallback(3));
 
-        $this->loop->tick(false);
+        $this->loop->tick(true);
 
         $immediate->execute();
 
-        $this->loop->tick(false);
+        $this->loop->tick(true);
 
         $immediate->execute();
 
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
 
     /**
@@ -939,7 +939,7 @@ abstract class AbstractLoopTest extends TestCase
 
         $this->assertFalse($immediate->isPending());
 
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
 
     /**
@@ -1401,7 +1401,6 @@ abstract class AbstractLoopTest extends TestCase
     /**
      * @depends testCreatePoll
      * @depends testCreateAwait
-     * @depends testCreateImmediate
      * @depends testCreateTimer
      * @depends testQueue
      */
@@ -1411,7 +1410,6 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll = $this->loop->poll($readable, $this->createCallback(1));
         $await = $this->loop->await($writable, $this->createCallback(1));
-        $immediate = $this->loop->immediate($this->createCallback(1));
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
         
         $this->loop->queue($this->createCallback(1));
@@ -1421,7 +1419,7 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
         
         $this->assertTrue($this->loop->isEmpty());
     }
@@ -1458,13 +1456,12 @@ abstract class AbstractLoopTest extends TestCase
         $this->assertTrue($poll->isFreed());
         $this->assertTrue($await->isFreed());
         
-        $this->loop->tick(false);
+        $this->loop->run();
     }
     
     /**
      * @depends testCreatePoll
      * @depends testCreateAwait
-     * @depends testCreateImmediate
      * @depends testCreatePeriodicTimer
      * @depends testQueue
      */
@@ -1474,7 +1471,6 @@ abstract class AbstractLoopTest extends TestCase
         
         $poll = $this->loop->poll($readable, $this->createCallback(1));
         $await = $this->loop->await($writable, $this->createCallback(1));
-        $immediate = $this->loop->immediate($this->createCallback(1));
         $timer = $this->loop->timer(self::TIMEOUT, false, $this->createCallback(1));
         
         $this->loop->queue($this->createCallback(1));
@@ -1485,6 +1481,6 @@ abstract class AbstractLoopTest extends TestCase
         
         usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
         
-        $this->loop->tick(false);
+        $this->loop->tick(true);
     }
 }
