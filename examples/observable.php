@@ -23,7 +23,7 @@ $observable = new Emitter(function (callable $emit) {
 
 $coroutine = Coroutine\create(function () use ($observable) {
     $iter = $observable->getIterator();
-    while (yield $iter->wait()) {
+    while (yield $iter->isValid()) {
         printf("Base observable: %d\n", $iter->getCurrent());
         yield Coroutine\sleep(0.5); // Artificial back-pressure on observable.
     }
@@ -40,7 +40,7 @@ $observable = $observable
 
 $coroutine = Coroutine\create(function () use ($observable) {
     $iter = $observable->getIterator();
-    while (yield $iter->wait()) {
+    while (yield $iter->isValid()) {
         printf("Filtered and mapped observable: %d\n", $iter->getCurrent());
     }
 });
