@@ -133,13 +133,14 @@ final class Coroutine extends Future
         try {
             // Throw exception at current yield point.
             $yielded = $this->generator->throw($reason);
-
-            parent::cancel($reason);
-
-            // Continue coroutine execution if a value was yielded (even though the consumer cancelled).
-            $this->next($yielded);
         } catch (Exception $exception) {
             parent::cancel($exception); // Use thrown exception to cancel awaitable.
+            return;
         }
+
+        parent::cancel($reason);
+
+        // Continue coroutine execution if a value was yielded (even though the consumer cancelled).
+        $this->next($yielded);
     }
 }
