@@ -44,6 +44,11 @@ final class Coroutine extends Future
     private $current;
 
     /**
+     * @var bool
+     */
+    private $busy = false;
+
+    /**
      * @param \Generator $generator
      */
     public function __construct(Generator $generator)
@@ -56,6 +61,11 @@ final class Coroutine extends Future
          * @param mixed $value The value to send to the generator.
          */
         $this->send = function ($value = null) {
+            if ($this->busy) {
+                Loop\queue($this->send, $value); // Queue continuation to avoid blowing up call stack.
+                return;
+            }
+
             try {
                 // Send the new value and execute to next yield statement.
                 $this->next($this->generator->send($value), $value);
@@ -68,6 +78,11 @@ final class Coroutine extends Future
          * @param \Exception $exception Exception to be thrown into the generator.
          */
         $this->capture = function (Exception $exception) {
+            if ($this->busy) {
+                Loop\queue($this->capture, $exception); // Queue continuation to avoid blowing up call stack.
+                return;
+            }
+
             try {
                 // Throw exception at current execution point.
                 $this->next($this->generator->throw($exception));
@@ -96,6 +111,8 @@ final class Coroutine extends Future
             return;
         }
 
+        $this->busy = true;
+
         if ($yielded instanceof Generator) {
             $yielded = new self($yielded);
         }
@@ -107,6 +124,8 @@ final class Coroutine extends Future
         } else {
             Loop\queue($this->send, $yielded);
         }
+
+        $this->busy = false;
     }
 
     /**
@@ -114,33 +133,18 @@ final class Coroutine extends Future
      */
     public function cancel(Exception $reason = null)
     {
-        if (null === $reason) {
-            $reason = new TerminatedException();
-        }
-
         if (!$this->isPending()) {
             return;
         }
 
-        if ($this->current instanceof Awaitable && $this->current->isPending()) {
-            $this->current->cancel($reason);
-
-            // Resolve awaitable with cancelled awaitable. Execution will continue with thrown exception.
-            $this->resolve($this->current);
-            return;
-        }
-
-        try {
-            // Throw exception at current yield point.
-            $yielded = $this->generator->throw($reason);
-        } catch (Exception $exception) {
-            parent::cancel($exception); // Use thrown exception to cancel awaitable.
-            return;
+        if (null === $reason) {
+            $reason = new TerminatedException();
         }
 
         parent::cancel($reason);
 
-        // Continue coroutine execution if a value was yielded (even though the consumer cancelled).
-        $this->next($yielded);
+        if ($this->current instanceof Awaitable) {
+            $this->current->cancel($reason); // Will continue execution by throwing into the generator.
+        }
     }
 }

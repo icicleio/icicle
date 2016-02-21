@@ -9,7 +9,6 @@
 
 namespace Icicle\Observable\Internal;
 
-use Icicle\Awaitable\Awaitable;
 use Icicle\Awaitable\Delayed;
 use Icicle\Observable\Exception\AutoDisposedException;
 use Icicle\Observable\Exception\CircularEmitError;
@@ -101,19 +100,16 @@ class EmitQueue
                 return;
             }
 
-            if ($value instanceof Awaitable) {
-                $value = (yield $value);
-            }
-
-            yield $this->emit($value);
+            yield $this->emit(yield $value);
         } catch (\Exception $exception) {
             $this->fail($exception);
             throw $exception;
         } finally {
             $this->busy = false;
             if (null !== $this->emitting) {
-                $this->emitting->resolve();
+                $emitting = $this->emitting;
                 $this->emitting = null;
+                $emitting->resolve();
             }
         }
 
@@ -133,11 +129,13 @@ class EmitQueue
             throw new CompletedError();
         }
 
-        $this->delayed->resolve($value);
-        $this->delayed = new Delayed();
-
+        $delayed = $this->delayed;
         $placeholder = $this->placeholder;
+
+        $this->delayed = new Delayed();
         $this->placeholder = new Placeholder($this->delayed);
+
+        $delayed->resolve($value);
 
         return $placeholder->wait();
     }

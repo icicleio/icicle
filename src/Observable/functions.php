@@ -186,9 +186,10 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                         if (count($next) === $count) {
                             ++$i;
                             yield $emit($next);
-                            $delayed->resolve($next);
-                            $delayed = new Delayed();
                             $next = [];
+                            $temp = $delayed;
+                            $delayed = new Delayed();
+                            $temp->resolve();
                         }
                     }
                 ));

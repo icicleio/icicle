@@ -45,15 +45,17 @@ class FulfilledAwaitable extends ResolvedAwaitable
             return $this;
         }
 
-        return new Promise(function (callable $resolve, callable $reject) use ($onFulfilled) {
-            Loop\queue(function () use ($resolve, $reject, $onFulfilled) {
-                try {
-                    $resolve($onFulfilled($this->value));
-                } catch (Exception $exception) {
-                    $reject($exception);
-                }
-            });
-        });
+        try {
+            $result = $onFulfilled($this->value);
+        } catch (Exception $exception) {
+            return new RejectedAwaitable($exception);
+        }
+
+        if (!$result instanceof Awaitable) {
+            $result = new self($result);
+        }
+
+        return $result;
     }
     
     /**
@@ -62,7 +64,13 @@ class FulfilledAwaitable extends ResolvedAwaitable
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null !== $onFulfilled) {
-            Loop\queue($onFulfilled, $this->value);
+            try {
+                $onFulfilled($this->value);
+            } catch (Exception $exception) {
+                Loop\queue(function () use ($exception) {
+                    throw $exception; // Rethrow exception in uncatchable way.
+                });
+            }
         }
     }
     
