@@ -622,7 +622,73 @@ class CoroutineTest extends TestCase
         
         $this->assertTrue($coroutine->isRejected());
     }
-    
+
+    /**
+     * @depends testCancellation
+     */
+    public function testCancellationThrowsIntoGenerator()
+    {
+        $exception = new Exception();
+
+        $generator = function () use ($exception) {
+            try {
+                yield new Delayed();
+            } catch (Exception $reason) {
+                $this->assertSame($exception, $reason);
+                throw $reason;
+            }
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $this->assertTrue($coroutine->isPending());
+
+        $coroutine->cancel($exception);
+
+        $callback = $this->createCallback(1);
+        $callback->method('__invoke')
+            ->with($this->identicalTo($exception));
+
+        $coroutine->done($this->createCallback(0), $callback);
+
+        Loop\run();
+
+        $this->assertTrue($coroutine->isRejected());
+    }
+
+    /**
+     * @depends testCancellationThrowsIntoGenerator
+     */
+    public function testCancellationAllowsGeneratorToContinueIfExceptionCaught()
+    {
+        $exception = new Exception();
+        $run = false;
+
+        $generator = function () use (&$run, $exception) {
+            try {
+                yield new Delayed();
+            } catch (Exception $reason) {
+                // Catch and ignore cancellation reason.
+            }
+
+            yield Awaitable\resolve()->delay(self::TIMEOUT);
+
+            $run = true;
+        };
+
+        $coroutine = new Coroutine($generator());
+
+        $this->assertTrue($coroutine->isPending());
+
+        $coroutine->cancel();
+
+        $coroutine->done($this->createCallback(0), $this->createCallback(1));
+
+        Loop\run();
+
+        $this->assertTrue($run);
+    }
+
     /**
      * @depends testCancellation
      */
@@ -726,21 +792,25 @@ class CoroutineTest extends TestCase
             try {
                 yield Awaitable\resolve(1)->delay(0.1);
             } finally {
-                throw $exception;
+                throw $exception; // Exception is thrown after cancellation and ignored.
             }
         };
 
         $coroutine = new Coroutine($generator());
 
+        $this->assertTrue($coroutine->isPending());
+
         $coroutine->cancel();
 
         $callback = $this->createCallback(1);
         $callback->method('__invoke')
-            ->with($this->identicalTo($exception));
+            ->with($this->isInstanceOf(CancelledException::class));
 
         $coroutine->done($this->createCallback(0), $callback);
 
         Loop\run();
+
+        $this->assertTrue($coroutine->isCancelled());
     }
 
     /**

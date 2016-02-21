@@ -97,9 +97,7 @@ class EmitQueue
                 return $iterator->getReturn();
             }
 
-            if ($value instanceof Awaitable) {
-                $value = yield $value;
-            }
+            $value = yield $value; // Get resolution value of $value.
 
             yield $this->emit($value);
         } catch (\Throwable $exception) {
@@ -108,8 +106,9 @@ class EmitQueue
         } finally {
             $this->busy = false;
             if (null !== $this->emitting) {
-                $this->emitting->resolve();
+                $emitting = $this->emitting;
                 $this->emitting = null;
+                $emitting->resolve();
             }
         }
 
@@ -129,11 +128,13 @@ class EmitQueue
             throw new CompletedError();
         }
 
-        $this->delayed->resolve($value);
-        $this->delayed = new Delayed();
-
+        $delayed = $this->delayed;
         $placeholder = $this->placeholder;
+
+        $this->delayed = new Delayed();
         $this->placeholder = new Placeholder($this->delayed);
+
+        $delayed->resolve($value);
 
         return $placeholder->wait();
     }

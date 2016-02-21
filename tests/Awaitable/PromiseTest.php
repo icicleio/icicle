@@ -1025,66 +1025,6 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * @depends testThenInvokeNewCallbackAfterResolved
-     * @depends testDoneInvokeNewCallbackAfterResolved
-     */
-    public function testCallbackInvocationIsAsynchronousAfterFulfill()
-    {
-        $this->resolve();
-
-        Loop\run();
-
-        $this->assertTrue($this->promise->isFulfilled());
-
-        $string = '';
-
-        $callback = function () use (&$string) {
-            $string .= '[onFulfilled]';
-        };
-
-        $string .= '[before]';
-
-        $this->promise->then($callback);
-        $this->promise->done($callback);
-
-        $string .= '[after]';
-
-        Loop\run();
-
-        $this->assertSame('[before][after][onFulfilled][onFulfilled]', $string);
-    }
-
-    /**
-     * @depends testThenInvokeNewCallbackAfterRejected
-     * @depends testDoneInvokeNewCallbackAfterRejected
-     */
-    public function testCallbackInvocationIsAsynchronousAfterReject()
-    {
-        $this->reject(new Exception());
-
-        Loop\run();
-
-        $this->assertTrue($this->promise->isRejected());
-
-        $string = '';
-
-        $callback = function () use (&$string) {
-            $string .= '[onRejected]';
-        };
-
-        $string .= '[before]';
-
-        $this->promise->then(null, $callback);
-        $this->promise->done(null, $callback);
-
-        $string .= '[after]';
-
-        Loop\run();
-
-        $this->assertSame('[before][after][onRejected][onRejected]', $string);
-    }
-
-    /**
      * @depends testRejectCallable
      */
     public function testCapture()

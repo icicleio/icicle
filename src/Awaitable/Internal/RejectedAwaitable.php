@@ -9,7 +9,7 @@
 
 namespace Icicle\Awaitable\Internal;
 
-use Icicle\Awaitable\{Awaitable, Promise};
+use Icicle\Awaitable\Awaitable;
 use Icicle\Loop;
 use Throwable;
 
@@ -37,15 +37,17 @@ class RejectedAwaitable extends ResolvedAwaitable
             return $this;
         }
 
-        return new Promise(function (callable $resolve, callable $reject) use ($onRejected) {
-            Loop\queue(function () use ($resolve, $reject, $onRejected) {
-                try {
-                    $resolve($onRejected($this->exception));
-                } catch (Throwable $exception) {
-                    $reject($exception);
-                }
-            });
-        });
+        try {
+            $result = $onRejected($this->exception);
+        } catch (Throwable $exception) {
+            return new self($exception);
+        }
+
+        if (!$result instanceof Awaitable) {
+            $result = new FulfilledAwaitable($result);
+        }
+
+        return $result;
     }
     
     /**
@@ -53,13 +55,20 @@ class RejectedAwaitable extends ResolvedAwaitable
      */
     public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
+        $exception = $this->exception;
+
         if (null !== $onRejected) {
-            Loop\queue($onRejected, $this->exception);
-        } else {
-            Loop\queue(function () {
-                throw $this->exception; // Rethrow exception in uncatchable way.
-            });
+            try {
+                $onRejected($exception);
+                return;
+            } catch (Throwable $exception) {
+                // Code below will rethrow exception from loop.
+            }
         }
+
+        Loop\queue(function () use ($exception) {
+            throw $exception; // Rethrow exception in uncatchable way.
+        });
     }
 
     /**

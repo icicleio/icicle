@@ -43,6 +43,11 @@ final class Coroutine extends Future
     private $current;
 
     /**
+     * @var bool
+     */
+    private $busy = false;
+
+    /**
      * @param \Generator $generator
      */
     public function __construct(Generator $generator)
@@ -55,7 +60,8 @@ final class Coroutine extends Future
          * @param mixed $value The value to send to the generator.
          */
         $this->send = function ($value = null) {
-            if (null === $this->generator) { // Coroutine may have been cancelled.
+            if ($this->busy) {
+                Loop\queue($this->send, $value); // Queue continuation to avoid blowing up call stack.
                 return;
             }
 
@@ -71,7 +77,8 @@ final class Coroutine extends Future
          * @param \Throwable $exception Exception to be thrown into the generator.
          */
         $this->capture = function (Throwable $exception) {
-            if (null === $this->generator) { // Coroutine may have been cancelled.
+            if ($this->busy) {
+                Loop\queue($this->capture, $exception); // Queue continuation to avoid blowing up call stack.
                 return;
             }
 
@@ -114,6 +121,8 @@ final class Coroutine extends Future
             return;
         }
 
+        $this->busy = true;
+
         if ($yielded instanceof Generator) {
             $yielded = new self($yielded);
         }
@@ -125,19 +134,8 @@ final class Coroutine extends Future
         } else {
             Loop\queue($this->send, $yielded);
         }
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function resolve($value = null)
-    {
-        parent::resolve($value);
-
-        $this->generator = null;
-        $this->current = null;
-        $this->send = null;
-        $this->capture = null;
+        $this->busy = false;
     }
 
     /**
@@ -145,20 +143,18 @@ final class Coroutine extends Future
      */
     public function cancel(Throwable $reason = null)
     {
+        if (!$this->isPending()) {
+            return;
+        }
+
         if (null === $reason) {
             $reason = new TerminatedException();
         }
 
-        if ($this->current instanceof Awaitable) {
-            $this->current->cancel($reason);
-        }
-
-        try {
-            $this->generator = null; // finally blocks may throw from force-closed Generator.
-        } catch (Throwable $exception) {
-            $reason = $exception;
-        }
-
         parent::cancel($reason);
+
+        if ($this->current instanceof Awaitable) {
+            $this->current->cancel($reason); // Will continue execution by throwing into the generator.
+        }
     }
 }
