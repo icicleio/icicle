@@ -142,5 +142,5 @@ interface Loop
      * *
      * @return bool
      */
-    public function signalHandlingEnabled();
+    public function isSignalHandlingEnabled();
 }

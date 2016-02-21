@@ -290,9 +290,9 @@ class LoopTest extends TestCase
         Loop\loop($this->loop);
 
         $this->loop->expects($this->once())
-            ->method('signalHandlingEnabled');
+            ->method('isSignalHandlingEnabled');
 
-        Loop\signalHandlingEnabled();
+        Loop\isSignalHandlingEnabled();
     }
 
     /**

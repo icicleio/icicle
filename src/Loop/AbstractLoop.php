@@ -296,7 +296,7 @@ abstract class AbstractLoop implements Loop
     /**
      * @return bool
      */
-    public function signalHandlingEnabled()
+    public function isSignalHandlingEnabled()
     {
         return null !== $this->signalManager;
     }

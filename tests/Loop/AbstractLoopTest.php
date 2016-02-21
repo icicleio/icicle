@@ -1163,7 +1163,7 @@ abstract class AbstractLoopTest extends TestCase
      */
     public function testSignalHandlingEnabled()
     {
-        $this->assertTrue($this->loop->signalHandlingEnabled());
+        $this->assertTrue($this->loop->isSignalHandlingEnabled());
     }
     
     /**

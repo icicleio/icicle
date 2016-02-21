@@ -226,9 +226,9 @@ if (!function_exists(__NAMESPACE__ . '\loop')) {
      *
      * @return bool
      */
-    function signalHandlingEnabled()
+    function isSignalHandlingEnabled()
     {
-        return loop()->signalHandlingEnabled();
+        return loop()->isSignalHandlingEnabled();
     }
 
     /**
