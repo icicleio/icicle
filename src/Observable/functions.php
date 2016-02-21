@@ -78,12 +78,14 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                 return new Coroutine($observable->each($emit));
             }, $observables);
 
-            yield Awaitable\all($coroutines)->then(null, function (\Throwable $exception) use ($coroutines) {
+            try {
+                yield Awaitable\all($coroutines);
+            } catch (\Throwable $exception) {
                 foreach ($coroutines as $coroutine) {
                     $coroutine->cancel($exception);
                 }
                 throw $exception;
-            });
+            }
         });
     }
 
@@ -191,11 +193,14 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
                 ));
             }
 
-            yield Awaitable\choose($coroutines)->cleanup(function () use ($coroutines) {
+            try {
+                yield Awaitable\choose($coroutines);
+                yield $delayed;
+            } finally {
                 foreach ($coroutines as $coroutine) {
                     $coroutine->cancel();
                 }
-            });
+            }
 
             return $i; // Return the number of times a set was emitted.
         });
