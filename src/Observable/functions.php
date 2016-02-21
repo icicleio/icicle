@@ -196,10 +196,15 @@ if (!function_exists(__NAMESPACE__ . '\from')) {
             try {
                 yield Awaitable\choose($coroutines);
                 yield $delayed;
-            } finally {
+
                 foreach ($coroutines as $coroutine) {
                     $coroutine->cancel();
                 }
+            } catch (\Exception $exception) {
+                foreach ($coroutines as $coroutine) {
+                    $coroutine->cancel($exception);
+                }
+                throw $exception;
             }
 
             return $i; // Return the number of times a set was emitted.
