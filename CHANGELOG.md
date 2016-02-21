@@ -1,6 +1,13 @@
 # Change log
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.5] - 2016-02-21
+### Changed
+- Awaitables are now synchronously resolved. Callbacks are immediately invoked when an awaitable is resolved. Callbacks registered with `then()`, `done()` or other methods will invoke the callback immediately if the awaitable has been resolved. This change was made to improve performance in coroutines. If resolving an awaitable in an object, be sure to cleanup the objects state *before* resolving the awaitable. With this change, methods on the object could be called before the method resolving the awaitable finishes. While some changes were needed within this library and some of the basic Icicle packages, application code built on coroutines should see no effects from this change.
+- Renamed `signalHandlingEnabled()` to `isSignalHandlingEnabled()` in `Icicle\Loop\Loop` to be consistent with other method naming conventions. The function `Icicle\Loop\signalHandlingEnabled()` was also renamed to `Icicle\Loop\isSignalHandlingEnabled()`.
+- Immediates are now invoked only if there are no *active* events in the loop. An active event is one where the event has occurred, but the callback has not yet been invoked. As before, only a single Immediate is invoked before polling streams for data, invoking timers, or checking for signals.
+- Cancelled coroutines now continue executing their generator function, allowing coroutines to execute cleanup code in try/catch blocks. As before, if a coroutine is waiting on an awaitable at the time it is cancelled, that awaitable is still cancelled. The cancellation reason is then thrown into the generator.
+
 ## [0.9.4] - 2016-01-18
 ### Added
 - Added `of()`, `fail()`, `concat()`, `zip()`, and `range()` functions to the `Icicle\Observable` namespace. See each function for more information.
@@ -21,7 +28,6 @@ All notable changes to this project will be documented in this file. This projec
 - `Icicle\Observable\Emitter` gained an optional `$onDisposed` parameter on the constructor accepting a callback function that is executed if the observable is disposed (either automatically or explicitly). This callback can either be a regular function, return an awaitable, or a coroutine. If the callback function returns an awaitable or is a coroutine, the observable is not disposed until the awaitable resolves. If the callback throws an exception (or the awaitable rejects), that exception will be used to dispose of the observable.
 
 ### Changed
-- Cancelling a coroutine will no longer throw the cancellation reason into the generator. Generator execution is simply terminated. Repeatedly throwing the exception into the generator caused unpredictable and unexpected behaviors. Use `finally` blocks or cancellation functions on awaitables if it is necessary to clean up state in coroutines. This method is far cleaner and prevents unintentional state-altering code being executed after cancellation.
 - Cancelled awaitables will now report as pending until any cancellation function has been invoked.
 
 ### Fixed
@@ -109,6 +115,7 @@ All notable changes to this project will be documented in this file. This projec
 See the [release list](https://github.com/icicleio/icicle/releases) for more information on previous releases.
 
 
+[0.9.5]: https://github.com/icicleio/icicle/releases/tag/v0.9.5
 [0.9.4]: https://github.com/icicleio/icicle/releases/tag/v0.9.4
 [0.9.3]: https://github.com/icicleio/icicle/releases/tag/v0.9.3
 [0.9.2]: https://github.com/icicleio/icicle/releases/tag/v0.9.2
