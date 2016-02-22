@@ -885,11 +885,27 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->assertTrue($immediate->isPending());
         
-        $this->loop->tick(true); // Should invoke immediate callback.
+        $this->loop->run();
     }
 
     /**
      * @depends testCreateImmediate
+     */
+    public function testImmediateInvokedOnlyOnBlocking()
+    {
+        $immediate = $this->loop->immediate($this->createCallback(1));
+
+        $this->loop->tick(false);
+
+        $this->assertTrue($immediate->isPending());
+
+        $this->loop->tick(true);
+
+        $this->assertFalse($immediate->isPending());
+    }
+
+    /**
+     * @depends testImmediateInvokedOnlyOnBlocking
      */
     public function testOneImmediatePerTick()
     {
@@ -916,15 +932,15 @@ abstract class AbstractLoopTest extends TestCase
     {
         $immediate = $this->loop->immediate($this->createCallback(3));
 
-        $this->loop->tick(true);
+        $this->loop->run();
 
         $immediate->execute();
 
-        $this->loop->tick(true);
+        $this->loop->run();
 
         $immediate->execute();
 
-        $this->loop->tick(true);
+        $this->loop->run();
     }
 
     /**
@@ -938,7 +954,7 @@ abstract class AbstractLoopTest extends TestCase
 
         $this->assertFalse($immediate->isPending());
 
-        $this->loop->tick(true);
+        $this->loop->run();
     }
 
     /**
