@@ -172,17 +172,12 @@ abstract class AbstractLoop implements Loop
      */
     public function tick($blocking = true)
     {
-        if ($blocking) {
-            $blocking = $this->callableQueue->isEmpty();
-        }
+        // Dispatch all pending I/O, timers, and signal callbacks.
+        $this->dispatch($blocking && $this->callableQueue->isEmpty() && $this->immediateManager->isEmpty());
 
         if ($blocking) {
-            $this->immediateManager->tick(); // Call the next immediate only if blocking.
-            $blocking = $this->immediateManager->isEmpty();
+            $this->immediateManager->tick();
         }
-        
-        // Dispatch all pending I/O, timers, and signal callbacks.
-        $this->dispatch($blocking);
 
         $this->callableQueue->call(); // Call each callback in the tick queue (up to the max depth).
     }
