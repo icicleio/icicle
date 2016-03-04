@@ -178,9 +178,9 @@ class SelectIoManager implements IoManager
      */
     public function handle(array $active)
     {
-        foreach ($active as $id => $resource) {
+        foreach ($active as $resource) {
+            $id = (int) $resource;
             if (isset($this->sockets[$id], $this->pending[$id])) { // Event may have been removed from a previous call.
-
                 if (!$this->sockets[$id]->isPersistent()) {
                     unset($this->pending[$id]);
                     if (isset($this->timers[$id])) {
