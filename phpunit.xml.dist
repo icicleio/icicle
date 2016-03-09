@@ -25,6 +25,9 @@
         <testsuite name="Icicle Observable">
             <directory>tests/Observable</directory>
         </testsuite>
+        <testsuite name="Icicle">
+            <directory>tests</directory>
+        </testsuite>
     </testsuites>
     <filter>
         <whitelist>

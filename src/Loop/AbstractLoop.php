@@ -208,7 +208,7 @@ abstract class AbstractLoop implements Loop
             $this->stop();
         }
         
-        return true;
+        return !$this->isEmpty();
     }
     
     /**

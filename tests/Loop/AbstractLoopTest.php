@@ -873,8 +873,13 @@ abstract class AbstractLoopTest extends TestCase
     public function testStop()
     {
         $this->loop->queue([$this->loop, 'stop']);
-        
-        $this->assertSame(true, $this->loop->run());
+
+        $this->assertFalse($this->loop->run());
+
+        $this->loop->queue([$this->loop, 'stop']);
+        $this->loop->timer(self::TIMEOUT, false, $this->createCallback(0));
+
+        $this->assertTrue($this->loop->run());
     }
     
     public function testCreateImmediate()
