@@ -39,6 +39,7 @@
             "Icicle\\": "src"
         },
         "files": [
+            "src/functions.php",
             "src/Awaitable/functions.php",
             "src/Coroutine/functions.php",
             "src/Loop/functions.php",
