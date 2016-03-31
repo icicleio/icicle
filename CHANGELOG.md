@@ -1,6 +1,14 @@
 # Change log
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.6] - 2016-03-31
+### Added
+- Added `Icicle\execute()` function that takes a callback (may be a normal function, return an `Awaitable`, or be a coroutine) and runs the function within a running event loop. This function may be used to initialize and run a program instead of manually creating an initial `Coroutine` instance and calling `Icicle\Loop\run()`.
+
+### Fixed
+- Fixed [#18](https://github.com/icicleio/icicle/issues/18) resulting from `stream_select()` on Windows sometimes removing array keys if only a single socket is in the loop.
+- Fixed a bug in `Icicle\Loop\SelectLoop` that could result in the callback on an IO watcher to be erroneously invoked with `$expired` set to `true` if `Io::listen()` is called successively without an event occurring between invocations.
+
 ## [0.9.5] - 2016-02-21
 ### Changed
 - Awaitables are now synchronously resolved. Callbacks are immediately invoked when an awaitable is resolved. Callbacks registered with `then()`, `done()` or other methods will invoke the callback immediately if the awaitable has been resolved. This change was made to improve performance in coroutines. If resolving an awaitable in an object, be sure to cleanup the objects state *before* resolving the awaitable. With this change, methods on the object could be called before the method resolving the awaitable finishes. While some changes were needed within this library and some of the basic Icicle packages, application code built on coroutines should see no effects from this change.
@@ -115,6 +123,7 @@ All notable changes to this project will be documented in this file. This projec
 See the [release list](https://github.com/icicleio/icicle/releases) for more information on previous releases.
 
 
+[0.9.6]: https://github.com/icicleio/icicle/releases/tag/v0.9.6
 [0.9.5]: https://github.com/icicleio/icicle/releases/tag/v0.9.5
 [0.9.4]: https://github.com/icicleio/icicle/releases/tag/v0.9.4
 [0.9.3]: https://github.com/icicleio/icicle/releases/tag/v0.9.3

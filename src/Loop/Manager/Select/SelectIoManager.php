@@ -91,15 +91,17 @@ class SelectIoManager implements IoManager
         }
         
         $this->pending[$id] = $resource;
-        
+
+        if (isset($this->timers[$id])) {
+            $this->timers[$id]->stop();
+        }
+
         if ($timeout) {
             if (self::MIN_TIMEOUT > $timeout) {
                 $timeout = self::MIN_TIMEOUT;
             }
             
             $this->timers[$id] = $this->loop->timer($timeout, false, $this->timerCallback, $io);
-        } elseif (isset($this->timers[$id])) {
-            $this->timers[$id]->stop();
         }
     }
     

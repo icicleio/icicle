@@ -211,6 +211,25 @@ abstract class AbstractLoopTest extends TestCase
         
         $this->loop->tick(false);
     }
+
+    /**
+     * @depends testListenPollWithTimeout
+     */
+    public function testDoubleListenPollWithTimeout()
+    {
+        list($readable, $writable) = $this->createSockets();
+
+        $callback = $this->createCallback(0);
+
+        $poll = $this->loop->poll($writable, $callback);
+
+        $poll->listen(self::TIMEOUT);
+        $poll->listen(self::TIMEOUT * 2);
+
+        usleep(self::TIMEOUT * self::MICROSEC_PER_SEC);
+
+        $this->loop->tick(false);
+    }
     
     /**
      * @depends testListenPollWithTimeout
