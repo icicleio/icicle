@@ -1,3 +1,5 @@
+**Icicle is now deprecated in favor of [Amp v2.0](http://amphp.org).** This version is is currently under development, but close to release. The v2.0 branches are *amp_v2* in all packages except the [main Amp package](https://github.com/amphp/amp), loop package, and postgres package, where v2.0 is the *master* branch.
+
 # Icicle
 
 **Icicle is a PHP library for writing *asynchronous* code using *synchronous* coding techniques.**
